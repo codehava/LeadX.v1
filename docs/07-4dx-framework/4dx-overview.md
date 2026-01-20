@@ -8,6 +8,18 @@
 
 **The 4 Disciplines of Execution (4DX)** adalah framework dari FranklinCovey untuk mengeksekusi strategi dengan konsistensi dan akuntabilitas. LeadX CRM mengintegrasikan 4DX secara native untuk memastikan tim sales PT Askrindo mencapai target secara terukur.
 
+### Key Implementation Points
+
+| Aspect | Implementation |
+|--------|---------------|
+| **Metrics Source** | AUTO-CALCULATED dari data aplikasi (activities, pipelines, customers) |
+| **Admin Config** | Measure targets, weights, bonuses dikonfigurasi di Admin Panel |
+| **Real-time** | Score dihitung real-time berdasarkan data aktual |
+| **No Manual Entry** | Tidak ada input manual untuk metrics - semuanya dari data operasional |
+
+> **Admin Panel Location**: `Admin Panel > 4DX Settings > Measure Configuration`
+> Lihat [Lead-Lag Measures](lead-lag-measures.md) untuk detail konfigurasi.
+
 ---
 
 ## 🏛️ 4 Disciplines Explained

@@ -8,6 +8,72 @@
 
 Dokumen ini menjelaskan secara detail semua **Lead Measures** dan **Lag Measures** yang digunakan dalam sistem scoring 4DX LeadX CRM, termasuk definisi, perhitungan, sumber data, dan konfigurasi.
 
+> **⚠️ PENTING**: Semua metrics dalam 4DX LeadX adalah **AUTO-CALCULATED** dari data yang sudah ada di aplikasi. Tidak ada input manual untuk metrics - semuanya dihitung dari tabel `activities`, `pipelines`, `customers`, dan `cadence_*`.
+
+---
+
+## ⚙️ Admin Panel Configuration
+
+### Lokasi Konfigurasi
+**Admin Panel > 4DX Settings > Measure Configuration**
+
+### Apa yang Bisa Dikonfigurasi Admin?
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Enable/Disable Measure** | Aktifkan/nonaktifkan measure tertentu | All enabled |
+| **Default Target** | Target default untuk user baru | Per measure |
+| **Weight** | Bobot measure dalam perhitungan score | 1.0 |
+| **Lead/Lag Ratio** | Rasio bobot Lead vs Lag | 60:40 |
+| **Bonus Config** | Konfigurasi bonus per kondisi | Per measure |
+| **Period Type** | Weekly/Monthly/Quarterly | Per measure |
+| **Cap Percentage** | Maximum achievement % | 150% |
+
+### Admin UI Mockup
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  4DX MEASURE CONFIGURATION                                     [Admin Panel]│
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  LEAD MEASURES (60% weight)                          [Edit Ratio]           │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ ☑ VISIT_COUNT    │ Visits    │ Weekly │ Target: 10 │ Weight: 1.0 [✎]│  │
+│  │ ☑ CALL_COUNT     │ Calls     │ Weekly │ Target: 20 │ Weight: 1.0 [✎]│  │
+│  │ ☑ MEETING_COUNT  │ Meetings  │ Weekly │ Target: 5  │ Weight: 1.0 [✎]│  │
+│  │ ☑ NEW_CUSTOMER   │ New Cust  │ Monthly│ Target: 4  │ Weight: 1.5 [✎]│  │
+│  │ ☑ NEW_PIPELINE   │ New Pipe  │ Monthly│ Target: 5  │ Weight: 1.2 [✎]│  │
+│  │ ☑ PROPOSAL_SENT  │ Proposals │ Weekly │ Target: 3  │ Weight: 1.3 [✎]│  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  LAG MEASURES (40% weight)                                                  │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ ☑ PIPELINE_WON   │ Won Deals │ Monthly│ Target: 3  │ Weight: 1.5 [✎]│  │
+│  │ ☑ PREMIUM_WON    │ Premium   │ Monthly│ Target:500M│ Weight: 2.0 [✎]│  │
+│  │ ☑ CONVERSION_RATE│ Win Rate  │ Monthly│ Target: 40%│ Weight: 1.0 [✎]│  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  [+ Add Custom Measure]    [Save Changes]    [Reset to Defaults]            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Measure Calculation Source (Auto-Generated)
+
+| Measure | Source Table | Filter | Calculation |
+|---------|-------------|--------|-------------|
+| VISIT_COUNT | `activities` | type='VISIT', status='COMPLETED' | COUNT(*) |
+| CALL_COUNT | `activities` | type='CALL', status='COMPLETED' | COUNT(*) |
+| MEETING_COUNT | `activities` | type='MEETING', status='COMPLETED' | COUNT(*) |
+| PROPOSAL_SENT | `activities` | type='PROPOSAL', status='COMPLETED' | COUNT(*) |
+| NEW_CUSTOMER | `customers` | created_by=user_id, created_at in period | COUNT(*) |
+| NEW_PIPELINE | `pipelines` | assigned_rm_id=user_id, created_at in period | COUNT(*) |
+| PIPELINE_WON | `pipelines` | stage='ACCEPTED', won_date in period | COUNT(*) |
+| PREMIUM_WON | `pipelines` | stage='ACCEPTED', won_date in period | SUM(final_premium) |
+| CONVERSION_RATE | `pipelines` | closed in period | WON/TOTAL × 100 |
+
+> **Note**: Admin TIDAK bisa mengubah source data - hanya target, weight, dan bonus config.
+
 ---
 
 ## 🎯 Prinsip Lead vs Lag

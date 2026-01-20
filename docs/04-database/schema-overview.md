@@ -357,6 +357,71 @@ Unified activities (scheduled + immediate)
 | `longitude` | DECIMAL(11,8) | | Photo GPS longitude |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Upload time |
 
+### activity_audit_logs
+**History log untuk setiap perubahan pada Activity**
+
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id` | UUID | PK | Unique identifier |
+| `activity_id` | UUID | FK, NOT NULL | Target activity |
+| `action` | VARCHAR(50) | NOT NULL | See action types below |
+| `old_status` | VARCHAR(20) | | Previous status |
+| `new_status` | VARCHAR(20) | | New status |
+| `old_values` | JSONB | | Previous field values |
+| `new_values` | JSONB | | New field values |
+| `changed_fields` | TEXT[] | | List of changed fields |
+| `latitude` | DECIMAL(10,8) | | GPS at time of change |
+| `longitude` | DECIMAL(11,8) | | GPS at time of change |
+| `device_info` | JSONB | | Device info (OS, app version) |
+| `performed_by` | UUID | FK, NOT NULL | User who made change |
+| `performed_at` | TIMESTAMPTZ | DEFAULT NOW() | Change timestamp |
+| `notes` | TEXT | | Additional notes |
+
+**Action Types:**
+| Action | Description |
+|--------|-------------|
+| `CREATED` | Activity created |
+| `STATUS_CHANGED` | Status updated (PLANNED→IN_PROGRESS, etc) |
+| `EXECUTED` | Activity marked completed with GPS |
+| `RESCHEDULED` | Activity rescheduled |
+| `CANCELLED` | Activity cancelled |
+| `EDITED` | Fields edited |
+| `PHOTO_ADDED` | Photo attached |
+| `PHOTO_REMOVED` | Photo removed |
+| `GPS_OVERRIDE` | GPS location overridden |
+| `SYNCED` | Synced from offline |
+
+**Example Trigger:**
+```sql
+CREATE OR REPLACE FUNCTION log_activity_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO activity_audit_logs (
+    activity_id, action, old_status, new_status,
+    old_values, new_values, performed_by, performed_at
+  ) VALUES (
+    NEW.id,
+    CASE 
+      WHEN TG_OP = 'INSERT' THEN 'CREATED'
+      WHEN OLD.status != NEW.status THEN 'STATUS_CHANGED'
+      ELSE 'EDITED'
+    END,
+    OLD.status,
+    NEW.status,
+    to_jsonb(OLD),
+    to_jsonb(NEW),
+    COALESCE(NEW.updated_by, auth.uid()),
+    NOW()
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER activity_audit_trigger
+AFTER INSERT OR UPDATE ON activities
+FOR EACH ROW EXECUTE FUNCTION log_activity_changes();
+```
+
 ---
 
 ## 🏢 HVC & Broker Tables
