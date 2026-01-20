@@ -88,20 +88,30 @@ INSERT INTO users (id, name, role, parent_id) VALUES
 
 ---
 
-## 🏢 HVC ↔ Customer Relationship
+## 🏢 HVC → Customer → Pipeline Hierarchy
 
-### Konsep
+### Konsep (CORRECTED)
 
-**HVC (High Value Customer)** adalah pengelompokan strategis customer. Satu HVC bisa memiliki banyak customer, tapi **tidak semua customer harus terhubung ke HVC**.
+**Hierarchy yang benar:** `HVC → Customer → Pipeline`
+
+- HVC adalah pengelompokan strategis (Kawasan Industri, Banking Group, dll)
+- Customer adalah entitas yang berada di dalam/terkait dengan HVC (optional)
+- Pipeline adalah prospek bisnis yang dimiliki oleh Customer
+
+**BUKAN:** Customer → HVC → Pipeline
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      HVC - CUSTOMER RELATIONSHIP                             │
+│                      CORRECT HIERARCHY: HVC → CUSTOMER → PIPELINE            │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │                           HVC                                        │    │
-│  │  (Kawasan Industri, Bank, BUMN Group, dll)                          │    │
+│  │  (Kawasan Industri MM2100)                                          │    │
+│  │                                                                      │    │
+│  │  📍 KEY PERSONS (HVC Level):                                        │    │
+│  │     • General Manager Kawasan                                        │    │
+│  │     • Marketing Manager                                              │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                               │                                              │
 │                               │ 1 : N (One HVC → Many Customers)            │
@@ -112,14 +122,64 @@ INSERT INTO users (id, name, role, parent_id) VALUES
 │    ┌───────────┐        ┌───────────┐        ┌───────────┐                 │
 │    │ Customer  │        │ Customer  │        │ Customer  │                 │
 │    │ A (HVC)   │        │ B (HVC)   │        │ C (HVC)   │                 │
+│    │           │        │           │        │           │                 │
+│    │ KEY PERS: │        │ KEY PERS: │        │ KEY PERS: │                 │
+│    │ • Fin Dir │        │ • CFO     │        │ • GM      │                 │
+│    └─────┬─────┘        └─────┬─────┘        └─────┬─────┘                 │
+│          │                    │                    │                        │
+│          ▼                    ▼                    ▼                        │
+│    ┌───────────┐        ┌───────────┐        ┌───────────┐                 │
+│    │ Pipelines │        │ Pipelines │        │ Pipelines │                 │
+│    │ • Surety  │        │ • CAR     │        │ • Fire    │                 │
+│    │ • Marine  │        │           │        │ • Marine  │                 │
 │    └───────────┘        └───────────┘        └───────────┘                 │
 │                                                                              │
 │    ┌───────────┐        ┌───────────┐                                       │
 │    │ Customer  │        │ Customer  │    ← Customer TANPA HVC              │
 │    │ D         │        │ E         │      (standalone customers)           │
+│    │           │        │           │                                       │
+│    │ KEY PERS: │        │ KEY PERS: │                                       │
+│    │ • Owner   │        │ • Manager │                                       │
+│    └─────┬─────┘        └─────┬─────┘                                       │
+│          │                    │                                             │
+│          ▼                    ▼                                             │
+│    ┌───────────┐        ┌───────────┐                                       │
+│    │ Pipelines │        │ Pipelines │                                       │
 │    └───────────┘        └───────────┘                                       │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Persons Structure
+
+**PENTING:** Key Persons ada di 3 level berbeda:
+
+| Entity | Key Persons | Example |
+|--------|-------------|---------|
+| **HVC** | Contact person untuk kawasan/group | General Manager Kawasan, Marketing Manager |
+| **Customer** | Contact person untuk perusahaan | Finance Director, Procurement Manager |
+| **Broker** | Contact person untuk broker | Account Director, Account Executive |
+
+```sql
+-- Key Persons table (polymorphic)
+CREATE TABLE key_persons (
+  id UUID PRIMARY KEY,
+  entity_type VARCHAR(20) NOT NULL,  -- 'HVC', 'CUSTOMER', 'BROKER'
+  entity_id UUID NOT NULL,            -- FK to respective table
+  name VARCHAR(200) NOT NULL,
+  position VARCHAR(100),
+  department VARCHAR(100),
+  phone VARCHAR(20),
+  email VARCHAR(100),
+  is_primary BOOLEAN DEFAULT FALSE,
+  -- ...
+  
+  -- Check constraint for valid entity types
+  CONSTRAINT valid_entity_type CHECK (entity_type IN ('HVC', 'CUSTOMER', 'BROKER'))
+);
+
+-- Index for efficient lookup by entity
+CREATE INDEX idx_key_persons_entity ON key_persons(entity_type, entity_id);
 ```
 
 ### Database Implementation
