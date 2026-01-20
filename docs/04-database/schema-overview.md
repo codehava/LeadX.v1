@@ -204,6 +204,7 @@ Stage pipeline dengan probability (Configurable in Admin Panel)
 | `is_won` | BOOLEAN | DEFAULT FALSE | Won stage flag |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
 
 **Default Stages:**
 | Code | Name | Probability | is_final | is_won |
@@ -229,6 +230,7 @@ Status per stage - setiap stage HARUS memiliki minimal 1 status
 | `is_default` | BOOLEAN | DEFAULT FALSE | Default status for stage |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
 
 **Example Status per Stage (Admin Configurable):**
 | Stage | Status Options |
@@ -304,11 +306,13 @@ Data customer utama
 | `industry_id` | UUID | FK, NOT NULL | Industry |
 | `npwp` | VARCHAR(30) | | Tax ID |
 | `assigned_rm_id` | UUID | FK, NOT NULL | Assigned RM |
+| `image_url` | TEXT | | Customer logo/image URL (optional) |
 | `notes` | TEXT | | Additional notes |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### key_persons
 Unified key persons untuk Customer, Broker, HVC
@@ -330,6 +334,8 @@ Unified key persons untuk Customer, Broker, HVC
 | `notes` | TEXT | | Notes |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### pipelines
 Data pipeline penjualan
@@ -363,6 +369,7 @@ Data pipeline penjualan
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
 | `closed_at` | TIMESTAMPTZ | | Closing time |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### pipeline_referrals
 **Mekanisme referral pipeline antar RM dengan handshake dan approval BM**
@@ -449,6 +456,7 @@ Unified activities (scheduled + immediate)
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
 | `synced_at` | TIMESTAMPTZ | | Last sync time |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### activity_photos
 
@@ -551,10 +559,12 @@ High Value Customer data
 | `location` | GEOMETRY(Point, 4326) | | PostGIS point |
 | `radius_meters` | INTEGER | DEFAULT 500 | Geofence radius |
 | `potential_value` | DECIMAL(18,2) | | Potential business value |
+| `image_url` | TEXT | | HVC logo/image URL (optional) |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### customer_hvc_links
 Many-to-many link antara Customer dan HVC
@@ -568,6 +578,8 @@ Many-to-many link antara Customer dan HVC
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ### brokers
 Data broker/agent
@@ -584,10 +596,12 @@ Data broker/agent
 | `bank_name` | VARCHAR(100) | | Bank name |
 | `bank_account_number` | VARCHAR(50) | | Bank account |
 | `bank_account_name` | VARCHAR(100) | | Account holder name |
+| `image_url` | TEXT | | Broker logo/image URL (optional) |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+| `deleted_at` | TIMESTAMPTZ | | Soft delete timestamp |
 
 ---
 
