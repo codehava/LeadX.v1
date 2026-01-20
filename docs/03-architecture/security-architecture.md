@@ -13,6 +13,8 @@ Dokumen ini mendeskripsikan arsitektur keamanan LeadX CRM yang mencakup:
 - Application Security
 - Compliance
 
+> **Benchmark Reference**: Arsitektur ini mengacu pada best practice dari Salesforce Mobile Security, Supabase Production Checklist, dan OWASP MASVS (Mobile Application Security Verification Standard).
+
 ---
 
 ## 🏛️ Security Architecture Diagram
@@ -132,16 +134,38 @@ Dokumen ini mendeskripsikan arsitektur keamanan LeadX CRM yang mencakup:
 
 ### Password Policy
 
-| Requirement | Value |
-|-------------|-------|
-| Minimum Length | 8 characters |
-| Uppercase Required | Yes (min 1) |
-| Lowercase Required | Yes (min 1) |
-| Number Required | Yes (min 1) |
-| Special Character | Optional |
-| Password History | Last 3 passwords |
-| Lockout After | 5 failed attempts |
-| Lockout Duration | 15 minutes |
+| Requirement | Value | Industry Standard |
+|-------------|-------|-------------------|
+| Minimum Length | 8 characters | NIST 800-63B: 8 min |
+| Uppercase Required | Yes (min 1) | Common practice |
+| Lowercase Required | Yes (min 1) | Common practice |
+| Number Required | Yes (min 1) | Common practice |
+| Special Character | Optional | NIST: not required |
+| Password History | Last 3 passwords | Salesforce: 3-24 |
+| Lockout After | 5 failed attempts | OWASP: 3-5 |
+| Lockout Duration | 15 minutes | Standard |
+
+### JWT Security Enhancement Roadmap
+
+| Phase | Current | Target | Reason |
+|-------|---------|--------|--------|
+| Phase 1 (MVP) | HS256 (symmetric) | - | Supabase default, sufficient for launch |
+| Phase 2 | - | RS256 (asymmetric) | If secret leaked, attacker can't forge tokens |
+| Phase 3 | - | ES256 (ECDSA) | Shorter signatures, better performance |
+
+```sql
+-- Future: Asymmetric JWT verification
+-- This prevents token forgery even if verification key is exposed
+-- (Only private key can sign, public key can only verify)
+```
+
+### Multi-Factor Authentication (MFA) Roadmap
+
+| Phase | Status | Implementation |
+|-------|--------|----------------|
+| Phase 1 (MVP) | ⚠️ Email-only | Password + Email verification |
+| Phase 2 | 🔜 Planned | TOTP via Authenticator app |
+| Phase 3 | 🔜 Future | Biometric (fingerprint/face) on device |
 
 ---
 
@@ -231,6 +255,49 @@ CREATE TABLE user_hierarchy (
 -- (BM-1, BH-1, 1)  -- direct report
 -- (BM-1, RM-1, 2)  -- indirect (via BH-1)
 -- (BM-1, RM-2, 2)  -- indirect (via BH-1)
+```
+
+### RLS Performance Optimization (Supabase Best Practices)
+
+```sql
+-- ✅ BEST PRACTICE 1: Add indexes on RLS policy columns
+CREATE INDEX idx_customers_assigned_rm ON customers(assigned_rm_id);
+CREATE INDEX idx_user_hierarchy_ancestor ON user_hierarchy(ancestor_id);
+CREATE INDEX idx_user_hierarchy_descendant ON user_hierarchy(descendant_id);
+
+-- ✅ BEST PRACTICE 2: Wrap auth functions in SELECT for caching
+CREATE POLICY "optimized_rm_policy" ON customers
+FOR SELECT TO authenticated
+USING (
+  assigned_rm_id = (SELECT auth.uid())  -- Cached per request
+);
+
+-- ✅ BEST PRACTICE 3: Use security definer functions for complex checks
+CREATE OR REPLACE FUNCTION user_can_access_customer(customer_id UUID)
+RETURNS BOOLEAN
+SECURITY DEFINER
+AS $$
+DECLARE
+  current_user_id UUID := auth.uid();
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM customers c
+    WHERE c.id = customer_id
+    AND (
+      c.assigned_rm_id = current_user_id
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = current_user_id
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  );
+END;
+$$ LANGUAGE plpgsql;
+
+-- ✅ BEST PRACTICE 4: Document policies with comments
+COMMENT ON POLICY "rm_own_customers" ON customers IS 
+  'RM can only access customers assigned to them. Created: 2025-01-18';
 ```
 
 ---
@@ -462,6 +529,68 @@ FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
 - [ ] Monthly: Review access patterns
 - [ ] Quarterly: Penetration testing
 - [ ] Annually: Full security audit
+
+---
+
+## 🏆 Enterprise Security Benchmark
+
+### Perbandingan dengan Industry Leaders
+
+| Security Feature | Salesforce | HubSpot | LeadX Status |
+|-----------------|------------|---------|-------------|
+| **Authentication** | | | |
+| Email/Password | ✅ | ✅ | ✅ Implemented |
+| MFA (TOTP) | ✅ Native | ✅ 2FA | 🔜 Phase 2 |
+| SSO (SAML) | ✅ | ✅ | 🔜 Future |
+| Biometric | ✅ | ❓ | 🔜 Phase 3 |
+| **Authorization** | | | |
+| Role-Based Access | ✅ | ✅ | ✅ Implemented |
+| Row-Level Security | ✅ Apex | Custom | ✅ PostgreSQL RLS |
+| Hierarchical Access | ✅ Territory | ✅ Teams | ✅ Closure Table |
+| **Data Protection** | | | |
+| Encryption at Rest | ✅ AES-256 | ✅ AES-256 | ✅ AES-256 |
+| Encryption in Transit | ✅ TLS 1.3 | ✅ TLS 1.2+ | ✅ TLS 1.3 |
+| Local DB Encryption | ✅ SQLCipher | ❓ | ✅ SQLCipher |
+| **Device Security** | | | |
+| Remote Wipe | ✅ MDM | ❓ | 🔜 Phase 2 |
+| Session Timeout | ✅ | ✅ | ✅ Implemented |
+| Secure Storage | ✅ | ✅ | ✅ Keychain/Keystore |
+| **Compliance** | | | |
+| Audit Trail | ✅ Full | ✅ Full | ✅ Full |
+| Data Retention | ✅ Configurable | ✅ | ✅ Configurable |
+| GDPR Ready | ✅ | ✅ | ✅ Designed |
+
+### Action Items Priority Matrix
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SECURITY ENHANCEMENT PRIORITY                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  HIGH IMPACT / LOW EFFORT (Do First):                                       │
+│  ✅ Enable MFA on Supabase Dashboard (admin protection)                     │
+│  ✅ Add indexes on RLS policy columns                                        │
+│  ✅ Configure rate limiting on Kong                                          │
+│  ✅ Enable fail2ban on VPS                                                   │
+│                                                                              │
+│  HIGH IMPACT / HIGH EFFORT (Phase 2):                                       │
+│  🔜 Implement user MFA (TOTP)                                              │
+│  🔜 Remote wipe capability                                                 │
+│  🔜 JWT migration to RS256                                                 │
+│  🔜 Anti-GPS spoofing detection                                            │
+│                                                                              │
+│  MEDIUM IMPACT / LOW EFFORT (Nice to Have):                                 │
+│  ⚠️ Session activity logging                                                │
+│  ⚠️ Suspicious activity alerts                                              │
+│  ⚠️ Password expiry policy                                                  │
+│                                                                              │
+│  LOW IMPACT / HIGH EFFORT (Future):                                         │
+│  ⭕ SSO/SAML integration                                                    │
+│  ⭕ MDM integration                                                          │
+│  ⭕ Hardware security key support                                            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

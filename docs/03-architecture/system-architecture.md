@@ -12,13 +12,14 @@ LeadX CRM menggunakan arsitektur **mobile-first, offline-first** dengan Supabase
 
 ## 🎯 Architecture Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Offline-First** | Local database sebagai source of truth untuk UI |
-| **Mobile-First** | Optimized untuk penggunaan mobile di lapangan |
-| **Event-Driven** | Changes trigger sync events |
-| **Secure by Default** | RLS, JWT, encryption at rest |
-| **Scalable** | Horizontal scaling via Supabase |
+| Principle | Description | Industry Reference |
+|-----------|-------------|--------------------|
+| **Offline-First** | Local database sebagai source of truth untuk UI | Salesforce Mobile |
+| **Mobile-First** | Optimized untuk penggunaan mobile di lapangan | Enterprise SFA |
+| **Event-Driven** | Changes trigger sync events | Modern CRM Pattern |
+| **Secure by Default** | RLS, JWT, encryption at rest | OWASP MASVS |
+| **Battery-Conscious** | GPS dan sync dioptimalkan untuk battery | Flutter Best Practice |
+| **Scalable** | Horizontal scaling via Supabase | Cloud-Native |
 
 ---
 
@@ -544,6 +545,108 @@ RESPONSE:
 
 ---
 
+## 📍 GPS Tracking Architecture
+
+### GPS Capture Strategy (Enterprise SFA Pattern)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        GPS TRACKING ARCHITECTURE                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                     LOCATION SERVICE                                     ││
+│  │  ┌─────────────────────────────────────────────────────────────────────┐││
+│  │  │ Configuration (Battery-Optimized):                                  │││
+│  │  │   distanceFilter: 10 meters (minimum movement before update)       │││
+│  │  │   desiredAccuracy: LocationAccuracy.high (for activity logging)    │││
+│  │  │   timeInterval: 30 seconds (maximum time between updates)          │││
+│  │  └─────────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────────┘│
+│                               │                                              │
+│                               ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                    ACTIVITY GPS CAPTURE                                  ││
+│  │                                                                          ││
+│  │    Every Activity Logged:                                                ││
+│  │    ┌──────────────────────────────────────────────────────────────────┐ ││
+│  │    │ {                                                                 │ ││
+│  │    │   "latitude": -6.2088,                                           │ ││
+│  │    │   "longitude": 106.8456,                                         │ ││
+│  │    │   "accuracy": 10.5,  // meters                                   │ ││
+│  │    │   "altitude": 25.0,                                              │ ││
+│  │    │   "timestamp": "2025-01-18T10:30:00Z",                          │ ││
+│  │    │   "source": "gps" | "network" | "fused"                         │ ││
+│  │    │ }                                                                 │ ││
+│  │    └──────────────────────────────────────────────────────────────────┘ ││
+│  │                                                                          ││
+│  └──────────────────────────────────────────────────────────────────────────┘│
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                    BATTERY OPTIMIZATION                                  ││
+│  │                                                                          ││
+│  │    ┌────────────────────┐    ┌────────────────────┐                     ││
+│  │    │ Foreground         │    │ Background         │                     ││
+│  │    │ (App Active)       │    │ (App Minimized)    │                     ││
+│  │    ├────────────────────┤    ├────────────────────┤                     ││
+│  │    │ High Accuracy      │    │ Balanced Accuracy  │                     ││
+│  │    │ 10m distance       │    │ 50m distance       │                     ││
+│  │    │ Real-time updates  │    │ Batched updates    │                     ││
+│  │    └────────────────────┘    └────────────────────┘                     ││
+│  │                                                                          ││
+│  └──────────────────────────────────────────────────────────────────────────┘│
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### GPS Service Implementation
+
+```dart
+// LocationService - Single Responsibility Principle
+class LocationService {
+  final Geolocator _geolocator;
+  
+  // Battery-optimized settings
+  static const LocationSettings _foregroundSettings = LocationSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 10,  // meters
+  );
+  
+  static const LocationSettings _backgroundSettings = LocationSettings(
+    accuracy: LocationAccuracy.balanced,
+    distanceFilter: 50,  // meters
+  );
+  
+  /// Get current position for activity logging
+  Future<Position> getCurrentPosition() async {
+    final permission = await _checkPermission();
+    if (!permission) throw LocationPermissionDenied();
+    
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      timeLimit: const Duration(seconds: 15),
+    );
+  }
+  
+  /// Stream for real-time tracking (check-in scenarios)
+  Stream<Position> getPositionStream({bool background = false}) {
+    final settings = background ? _backgroundSettings : _foregroundSettings;
+    return Geolocator.getPositionStream(locationSettings: settings);
+  }
+}
+```
+
+### Privacy & Consent
+
+| Requirement | Implementation |
+|-------------|----------------|
+| User Consent | Permission dialog sebelum akses GPS |
+| Purpose Explanation | Jelaskan GPS untuk verifikasi kunjungan |
+| Data Retention | GPS data disimpan sesuai retention policy (1 tahun) |
+| Access Control | Hanya supervisor dan admin bisa lihat GPS subordinate |
+
+---
+
 ## 📈 Scalability Considerations
 
 | Aspect | Strategy |
@@ -554,6 +657,7 @@ RESPONSE:
 | **Real-time** | Horizontal WebSocket scaling |
 | **Mobile** | Lazy loading, pagination |
 | **Offline** | Incremental sync, delta updates |
+| **GPS** | Batched uploads, compressed payloads |
 
 ---
 
