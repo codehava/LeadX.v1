@@ -372,6 +372,274 @@ INSERT INTO pipelines (id, customer_id, lead_source_id, broker_id) VALUES
 
 ---
 
+## 🔄 Pipeline Referral Relationship
+
+### Konsep
+
+**Pipeline Referral** adalah mekanisme untuk meneruskan prospek ke RM lain (biasanya di cabang/territory berbeda).
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      PIPELINE REFERRAL WORKFLOW                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌───────────────┐         ┌───────────────┐         ┌───────────────┐      │
+│  │   REFERRER    │ ──────▶ │   RECEIVER    │ ──────▶ │   RECEIVER    │      │
+│  │    RM (A)     │ creates │    RM (B)     │ accepts │    BM         │      │
+│  └───────────────┘         └───────────────┘         └───────┬───────┘      │
+│         │                         │                          │ approves     │
+│         │                         │                          ▼              │
+│         │                         │                  ┌───────────────┐      │
+│         │                         │                  │   PIPELINE    │      │
+│         │                         │                  │   (Created)   │      │
+│         │                         │                  └───────┬───────┘      │
+│         │                         │                          │ WON          │
+│         │                         │                          ▼              │
+│         │                         │                  ┌───────────────┐      │
+│         └─────────────────────────┴───────────────── │ REFERRAL      │      │
+│                                   bonus              │ BONUS (10%)   │      │
+│                                                      └───────────────┘      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database Implementation
+
+```sql
+-- Pipeline Referrals table
+CREATE TABLE pipeline_referrals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  
+  -- Source info
+  referrer_id UUID NOT NULL REFERENCES users(id),        -- RM yang mereferensikan
+  customer_id UUID NOT NULL REFERENCES customers(id),    -- Customer yang di-refer
+  cob_id UUID REFERENCES cob(id),
+  lob_id UUID REFERENCES lob(id),
+  estimated_premium DECIMAL(15,2),
+  reason TEXT NOT NULL,                                  -- Alasan referral
+  
+  -- Target info
+  receiver_id UUID NOT NULL REFERENCES users(id),        -- RM penerima
+  receiver_branch_id UUID REFERENCES branches(id),
+  
+  -- Workflow status
+  status VARCHAR(20) DEFAULT 'PENDING',  -- PENDING, ACCEPTED, REJECTED, APPROVED, DECLINED, COMPLETED
+  
+  -- Receiver response
+  receiver_response_at TIMESTAMPTZ,
+  receiver_notes TEXT,
+  
+  -- BM approval
+  approver_id UUID REFERENCES users(id),                 -- BM yang approve
+  approved_at TIMESTAMPTZ,
+  approval_notes TEXT,
+  rejection_reason TEXT,
+  
+  -- Result
+  resulting_pipeline_id UUID REFERENCES pipelines(id),   -- Pipeline yang dibuat
+  bonus_applied BOOLEAN DEFAULT FALSE,
+  bonus_amount DECIMAL(15,2),
+  
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_referrals_referrer ON pipeline_referrals(referrer_id);
+CREATE INDEX idx_referrals_receiver ON pipeline_referrals(receiver_id);
+CREATE INDEX idx_referrals_status ON pipeline_referrals(status);
+```
+
+### Business Rules
+
+| Rule | Description |
+|------|-------------|
+| Referrer ≠ Receiver | Tidak bisa refer ke diri sendiri |
+| Customer must be owned | Hanya bisa refer customer yang di-own |
+| BM approval required | Referral yang di-accept perlu approval BM receiver |
+| Bonus on WON | Referrer mendapat bonus saat pipeline WON |
+
+---
+
+## 🔐 Role & Permission Relationship
+
+### Konsep
+
+**Role-Based Access Control (RBAC)** dengan permission granular per resource dan action.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      ROLE - PERMISSION - USER RELATIONSHIP                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                           PERMISSIONS                                │    │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │    │
+│  │  │customer: │  │pipeline: │  │activity: │  │ report:  │            │    │
+│  │  │ create   │  │ create   │  │ create   │  │ view     │            │    │
+│  │  │ read     │  │ read     │  │ read     │  │ export   │            │    │
+│  │  │ update   │  │ update   │  │ update   │  │          │            │    │
+│  │  │ delete   │  │ delete   │  │ delete   │  │          │            │    │
+│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘            │    │
+│  └───────┼─────────────┼─────────────┼─────────────┼───────────────────┘    │
+│          │             │             │             │                        │
+│          └─────────────┴──────┬──────┴─────────────┘                        │
+│                               │  assigned to                                │
+│                               ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                            ROLES                                     │    │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │    │
+│  │  │    RM    │  │    BH    │  │    BM    │  │  ADMIN   │            │    │
+│  │  │ (system) │  │ (system) │  │ (system) │  │ (system) │            │    │
+│  │  │          │  │          │  │          │  │          │            │    │
+│  │  │ scope:   │  │ scope:   │  │ scope:   │  │ scope:   │            │    │
+│  │  │ OWN      │  │ TEAM     │  │ BRANCH   │  │ ALL      │            │    │
+│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘            │    │
+│  └───────┼─────────────┼─────────────┼─────────────┼───────────────────┘    │
+│          │             │             │             │                        │
+│          └─────────────┴──────┬──────┴─────────────┘                        │
+│                               │  assigned to                                │
+│                               ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                            USERS                                     │    │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │    │
+│  │  │  Budi    │  │  Ani     │  │  Doni    │  │  Admin   │            │    │
+│  │  │ role: RM │  │ role: BH │  │ role: BM │  │role:Admin│            │    │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database Implementation
+
+```sql
+-- Roles table
+CREATE TABLE roles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(50) UNIQUE NOT NULL,         -- RM, BH, BM, ADMIN, CUSTOM_1
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  is_system BOOLEAN DEFAULT FALSE,          -- System roles cannot be deleted
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Permissions table
+CREATE TABLE permissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(100) UNIQUE NOT NULL,        -- customer:create, pipeline:read
+  resource VARCHAR(50) NOT NULL,            -- customer, pipeline, activity
+  action VARCHAR(20) NOT NULL,              -- create, read, update, delete
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Role-Permission mapping (many-to-many)
+CREATE TABLE role_permissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  role_id UUID NOT NULL REFERENCES roles(id),
+  permission_id UUID NOT NULL REFERENCES permissions(id),
+  scope VARCHAR(20) DEFAULT 'OWN',          -- OWN, TEAM, BRANCH, REGIONAL, ALL
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(role_id, permission_id)
+);
+
+-- User role assignment
+ALTER TABLE users ADD COLUMN role_id UUID REFERENCES roles(id);
+
+-- Indexes
+CREATE INDEX idx_role_permissions_role ON role_permissions(role_id);
+CREATE INDEX idx_users_role ON users(role_id);
+```
+
+### Business Rules
+
+| Rule | Description |
+|------|-------------|
+| System roles immutable | RM, BH, BM, ROH, ADMIN, SUPERADMIN tidak bisa diedit/hapus |
+| Scope inheritance | BRANCH includes TEAM, TEAM includes OWN |
+| Permission caching | Permissions di-cache per session (5 min TTL) |
+
+---
+
+## 📝 Activity Audit Logs Relationship
+
+### Konsep
+
+**Activity Audit Logs** mencatat semua perubahan penting untuk traceability.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      AUDIT LOG RELATIONSHIP                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ANY ENTITY (Customer, Pipeline, Activity, etc.)                            │
+│        │                                                                     │
+│        │ CREATE / UPDATE / DELETE                                           │
+│        ▼                                                                     │
+│  ┌───────────────────────────────────────────────────────────────────┐      │
+│  │                    ACTIVITY_AUDIT_LOGS                             │      │
+│  │                                                                    │      │
+│  │  id | entity_type | entity_id | action | old_values | new_values │      │
+│  │  ---|-------------|-----------|--------|------------|----------- │      │
+│  │  1  | customer    | cust-123  | UPDATE | {name:A}   | {name:B}   │      │
+│  │  2  | pipeline    | pip-456   | UPDATE | {stage:P3} | {stage:P2} │      │
+│  │  3  | activity    | act-789   | CREATE | null       | {type:..}  │      │
+│  └───────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database Implementation
+
+```sql
+-- Activity Audit Logs table
+CREATE TABLE activity_audit_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  
+  -- Entity reference (polymorphic)
+  entity_type VARCHAR(50) NOT NULL,         -- customer, pipeline, activity, etc.
+  entity_id UUID NOT NULL,
+  
+  -- Action
+  action VARCHAR(20) NOT NULL,              -- CREATE, UPDATE, DELETE, STAGE_CHANGE
+  
+  -- Change details
+  old_values JSONB,                         -- Previous state (null for CREATE)
+  new_values JSONB,                         -- New state (null for DELETE)
+  changed_fields TEXT[],                    -- Array of field names that changed
+  
+  -- Actor
+  user_id UUID REFERENCES users(id),
+  user_name VARCHAR(200),                   -- Denormalized for performance
+  
+  -- Context
+  ip_address INET,
+  user_agent TEXT,
+  
+  -- Timestamp
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for efficient queries
+CREATE INDEX idx_audit_entity ON activity_audit_logs(entity_type, entity_id);
+CREATE INDEX idx_audit_user ON activity_audit_logs(user_id);
+CREATE INDEX idx_audit_created ON activity_audit_logs(created_at);
+CREATE INDEX idx_audit_action ON activity_audit_logs(action);
+```
+
+### Business Rules
+
+| Rule | Description |
+|------|-------------|
+| Immutable | Audit logs tidak bisa diedit atau dihapus |
+| Performance | Menggunakan JSONB untuk flexibility query |
+| Retention | Data disimpan 2 tahun (configurable) |
+
+---
+
 ## 📊 Summary: Complete Entity Map
 
 ```

@@ -753,6 +753,175 @@ AND items ter-sync ke server
 
 ---
 
+## 📦 FR-016: Pipeline Referral
+
+### Overview
+| ID | FR-016 |
+|-----|--------|
+| **Priority** | P1 |
+| **Roles** | RM, BM |
+| **Dependencies** | FR-003 |
+
+### Requirements
+
+#### FR-016.1: Create Referral
+- RM dapat membuat referral untuk pipeline ke RM lain
+- Form fields:
+  - Customer (required, dari own customers)
+  - COB/LOB (required)
+  - Estimated Premium (required)
+  - Target RM (required, searchable)
+  - Reason/Notes (required)
+- Auto-notify receiver RM
+
+#### FR-016.2: Accept/Reject Referral (Receiver)
+- Receiver RM melihat incoming referrals
+- Accept: dengan notes, lanjut ke BM approval
+- Reject: dengan alasan, notify referrer
+- Deadline response: 3 hari kerja
+
+#### FR-016.3: BM Approval
+- BM receiver dapat approve/reject referral yang sudah di-accept
+- Approve: pipeline otomatis terbuat
+- Reject: dengan alasan, notify kedua RM
+- Pipeline ownership: receiver RM
+
+#### FR-016.4: Referral Tracking
+- Status tracking: PENDING → ACCEPTED/REJECTED → APPROVED/DECLINED → COMPLETED
+- Link ke pipeline setelah approved
+- Referral bonus saat pipeline WON
+
+#### FR-016.5: Referral Bonus
+- Referrer mendapat bonus score saat pipeline WON
+- Bonus percentage configurable (default 10%)
+- Muncul di scoreboard
+
+### Acceptance Criteria
+```gherkin
+GIVEN RM memiliki customer di luar territory-nya
+WHEN RM membuat referral ke RM lain
+THEN referral terkirim dan receiver mendapat notifikasi
+
+GIVEN receiver RM menerima referral
+WHEN receiver tap Accept
+THEN referral maju ke approval BM receiver
+
+GIVEN pipeline dari referral WON
+WHEN status berubah ke ACCEPTED
+THEN referrer mendapat bonus points
+```
+
+---
+
+## 📦 FR-017: Role & Permission Management
+
+### Overview
+| ID | FR-017 |
+|-----|--------|
+| **Priority** | P1 |
+| **Roles** | Admin, Superadmin |
+| **Dependencies** | FR-011 |
+
+### Requirements
+
+#### FR-017.1: View Roles
+- List semua roles (system + custom)
+- Tampilkan: name, description, user count, permissions count
+- Filter: system roles, custom roles
+- System roles: RM, BH, BM, ROH, ADMIN, SUPERADMIN (read-only)
+
+#### FR-017.2: Create Custom Role
+- Admin dapat create custom role
+- Form: name, description, base role (copy from)
+- Assign permissions saat create
+- Maximum 10 custom roles
+
+#### FR-017.3: Permission Assignment
+- Permission categories: Customer, Pipeline, Activity, HVC, Broker, Report, Admin
+- Permission types: CREATE, READ, UPDATE, DELETE, EXPORT
+- Scope: OWN, TEAM, BRANCH, REGIONAL, ALL
+- UI: Checkbox matrix
+
+#### FR-017.4: User-Role Assignment
+- View users per role
+- Bulk assign role ke users
+- Change user role dengan approval (optional)
+
+#### FR-017.5: Permission Validation
+- Real-time permission check di server actions
+- Cache permissions per session
+- Refresh on role change
+
+### Acceptance Criteria
+```gherkin
+GIVEN Admin ingin membuat role baru
+WHEN Admin create role "Senior RM" dengan permissions tertentu
+THEN role tersedia untuk di-assign ke users
+
+GIVEN User dengan custom role
+WHEN User mengakses fitur tanpa permission
+THEN akses ditolak dengan pesan yang jelas
+```
+
+---
+
+## 📦 FR-018: Bulk Upload
+
+### Overview
+| ID | FR-018 |
+|-----|--------|
+| **Priority** | P1 |
+| **Roles** | Admin |
+| **Dependencies** | FR-009, FR-010 |
+
+### Requirements
+
+#### FR-018.1: Template Download
+- Download template Excel/CSV untuk:
+  - HVC
+  - Broker
+  - Customer (future)
+- Template include: header, sample data, validation notes
+
+#### FR-018.2: File Upload
+- Supported formats: .xlsx, .csv
+- Max file size: 5MB
+- Max rows: 1000
+- Progress indicator
+
+#### FR-018.3: Data Validation
+- Pre-process validation:
+  - Required fields check
+  - Data type validation
+  - Duplicate check (code/name)
+  - Reference validation (type_id exists, etc.)
+- Show preview: valid rows, error rows
+- Error detail per row
+
+#### FR-018.4: Bulk Insert
+- Process valid rows only
+- Transaction-based (all or nothing per batch)
+- Batch size: 100 rows
+- Skip duplicates option
+
+#### FR-018.5: Result Report
+- Summary: total, success, failed, skipped
+- Download error report
+- Audit log entry
+
+### Acceptance Criteria
+```gherkin
+GIVEN Admin upload file HVC dengan 100 rows
+WHEN 90 rows valid dan 10 rows error
+THEN preview menampilkan breakdown dan detail error
+
+GIVEN Admin confirm upload
+WHEN proses selesai
+THEN 90 rows ter-insert dan report tersedia
+```
+
+---
+
 ## 📊 Requirements Traceability Matrix
 
 | FR ID | Priority | Module | Depends On | Related Stories |
@@ -772,6 +941,9 @@ AND items ter-sync ke server
 | FR-013 | P1 | Report | All | US-007 |
 | FR-014 | P0 | Offline | - | US-001-006 |
 | FR-015 | P1 | Audit | All | - |
+| FR-016 | P1 | Referral | FR-003 | US-REF-001 to US-REF-005 |
+| FR-017 | P1 | Permission | FR-011 | US-ADMIN-003 |
+| FR-018 | P1 | Bulk Upload | FR-009, FR-010 | US-ADMIN-004, US-ADMIN-005 |
 
 ---
 

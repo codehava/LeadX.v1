@@ -24,6 +24,9 @@ Dokumen ini berisi breakdown sprint untuk pengembangan LeadX CRM MVP menggunakan
 | Sprint 7 | Week 15-16 | Admin Panel | User mgmt, configuration |
 | Sprint 8 | Week 17-18 | Integration & Polish | Sync, performance, bug fixes |
 | Sprint 9 | Week 19-20 | UAT & Launch | Testing, deployment |
+| Sprint 10 | Week 21-22 | Pipeline Referral | Cross-branch referral system |
+| Sprint 11 | Week 23-24 | Role & Permission | Granular access control |
+| Sprint 12 | Week 25-26 | Bulk Upload | Mass data import |
 
 ---
 
@@ -192,6 +195,85 @@ Dokumen ini berisi breakdown sprint untuk pengembangan LeadX CRM MVP menggunakan
 | S9-03 | Production deployment | DevOps |
 | S9-04 | User training materials | PM |
 | S9-05 | Go-live support | All |
+
+---
+
+## 📊 Sprint 10: Pipeline Referral
+
+**Goal**: Cross-branch referral system
+
+### User Stories
+
+| ID | Story | Points |
+|----|-------|--------|
+| S10-01 | Create referral form UI | 5 |
+| S10-02 | Referral API endpoints | 8 |
+| S10-03 | Incoming referrals list (receiver) | 5 |
+| S10-04 | Accept/Reject workflow | 5 |
+| S10-05 | BM approval queue | 5 |
+| S10-06 | Referral bonus calculation | 5 |
+| S10-07 | Notification integration | 3 |
+
+**Capacity**: 36 points
+
+### Definition of Done
+- [ ] RM can create referral to another RM
+- [ ] Receiver can accept/reject referral
+- [ ] BM can approve accepted referrals
+- [ ] Pipeline created upon approval
+- [ ] Bonus applied when pipeline WON
+
+---
+
+## 📊 Sprint 11: Role & Permission
+
+**Goal**: Granular access control system
+
+### User Stories
+
+| ID | Story | Points |
+|----|-------|--------|
+| S11-01 | Roles management UI (Admin) | 8 |
+| S11-02 | Permission matrix UI | 8 |
+| S11-03 | Custom role creation | 5 |
+| S11-04 | User-role assignment | 5 |
+| S11-05 | Permission validation middleware | 8 |
+| S11-06 | Permission caching | 5 |
+
+**Capacity**: 39 points
+
+### Definition of Done
+- [ ] Admin can view all roles
+- [ ] Admin can create custom roles
+- [ ] Permissions assignable per role
+- [ ] RLS enforces scope-based access
+- [ ] Permissions cached per session
+
+---
+
+## 📊 Sprint 12: Bulk Upload
+
+**Goal**: Mass data import capability
+
+### User Stories
+
+| ID | Story | Points |
+|----|-------|--------|
+| S12-01 | Template download endpoint | 3 |
+| S12-02 | File upload UI (Admin) | 5 |
+| S12-03 | HVC bulk upload processor | 8 |
+| S12-04 | Broker bulk upload processor | 8 |
+| S12-05 | Validation preview screen | 8 |
+| S12-06 | Error report generation | 5 |
+
+**Capacity**: 37 points
+
+### Definition of Done
+- [ ] Admin can download templates
+- [ ] File upload with progress
+- [ ] Preview with error highlighting
+- [ ] Batch insert with transaction
+- [ ] Error report downloadable
 
 ---
 
