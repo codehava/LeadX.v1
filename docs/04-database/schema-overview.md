@@ -190,8 +190,22 @@ Kelas bisnis asuransi (e.g., Surety Bond, General Insurance)
 Sub-kategori di dalam COB
 
 ### pipeline_stages
-Stage pipeline dengan probability
+Stage pipeline dengan probability (Configurable in Admin Panel)
 
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id` | UUID | PK | Unique identifier |
+| `code` | VARCHAR(20) | UNIQUE, NOT NULL | Stage code |
+| `name` | VARCHAR(100) | NOT NULL | Stage name |
+| `probability` | INTEGER | NOT NULL | Win probability (0-100) |
+| `sequence` | INTEGER | NOT NULL | Display order |
+| `color` | VARCHAR(20) | | UI color (hex) |
+| `is_final` | BOOLEAN | DEFAULT FALSE | Final stage flag |
+| `is_won` | BOOLEAN | DEFAULT FALSE | Won stage flag |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+
+**Default Stages:**
 | Code | Name | Probability | is_final | is_won |
 |------|------|-------------|----------|--------|
 | NEW | New Lead | 10% | false | false |
@@ -202,10 +216,50 @@ Stage pipeline dengan probability
 | DECLINED | Lost | 0% | true | false |
 
 ### pipeline_statuses
-Status per stage (e.g., P2 → "Proposal Sent", "Negotiation")
+Status per stage - setiap stage HARUS memiliki minimal 1 status
+
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id` | UUID | PK | Unique identifier |
+| `stage_id` | UUID | FK, NOT NULL | Parent stage |
+| `code` | VARCHAR(50) | NOT NULL | Status code |
+| `name` | VARCHAR(100) | NOT NULL | Status name |
+| `description` | TEXT | | Description |
+| `sequence` | INTEGER | NOT NULL | Display order within stage |
+| `is_default` | BOOLEAN | DEFAULT FALSE | Default status for stage |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+
+**Example Status per Stage (Admin Configurable):**
+| Stage | Status Options |
+|-------|---------------|
+| NEW | Initial Contact, Qualified, Not Qualified |
+| P3 | Needs Analysis, Information Gathering |
+| P2 | Proposal Sent, Proposal Reviewed, Negotiation |
+| P1 | Final Negotiation, Awaiting Decision, Contract Review |
+| ACCEPTED | Policy Issued, Premium Paid |
+| DECLINED | Price Issue, Competitor Won, No Budget, Not Interested |
 
 ### lead_sources
-Sumber lead: Direct, Broker, Referral, Event, dll.
+Sumber lead (termasuk REFERRAL untuk referral antar RM)
+
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id` | UUID | PK | Unique identifier |
+| `code` | VARCHAR(20) | UNIQUE, NOT NULL | Source code |
+| `name` | VARCHAR(100) | NOT NULL | Source name |
+| `requires_referrer` | BOOLEAN | DEFAULT FALSE | Needs referrer info |
+| `requires_broker` | BOOLEAN | DEFAULT FALSE | Needs broker info |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Active flag |
+
+**Default Sources:**
+| Code | Name | requires_referrer | requires_broker |
+|------|------|-------------------|-----------------|
+| DIRECT | Direct Prospecting | false | false |
+| BROKER | From Broker/Agent | false | **true** |
+| REFERRAL | Referral from Other RM | **true** | false |
+| EVENT | Event/Exhibition | false | false |
+| INBOUND | Inbound Inquiry | false | false |
 
 ### decline_reasons
 Alasan decline pipeline
@@ -303,11 +357,63 @@ Data pipeline penjualan
 | `notes` | TEXT | | Notes |
 | `is_tender` | BOOLEAN | DEFAULT FALSE | Tender flag |
 | `referred_by_user_id` | UUID | FK → users | Referrer (for scoring) |
+| `referral_id` | UUID | FK → pipeline_referrals | Referral record (if from referral) |
 | `assigned_rm_id` | UUID | FK, NOT NULL | Assigned RM |
 | `created_by` | UUID | FK, NOT NULL | Creator |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
 | `closed_at` | TIMESTAMPTZ | | Closing time |
+
+### pipeline_referrals
+**Mekanisme referral pipeline antar RM dengan handshake dan approval BM**
+
+| Column | Type | Constraint | Description |
+|--------|------|------------|-------------|
+| `id` | UUID | PK | Unique identifier |
+| `code` | VARCHAR(20) | UNIQUE, NOT NULL | Referral code (REF-YYYYMMDD-XXX) |
+| `customer_id` | UUID | FK, NOT NULL | Customer yang di-refer |
+| `cob_id` | UUID | FK, NOT NULL | Class of Business |
+| `lob_id` | UUID | FK, NOT NULL | Line of Business |
+| `potential_premium` | DECIMAL(18,2) | NOT NULL | Estimated premium |
+| `referrer_rm_id` | UUID | FK, NOT NULL | RM yang memberikan referral |
+| `receiver_rm_id` | UUID | FK, NOT NULL | RM yang menerima referral |
+| `referrer_branch_id` | UUID | FK, NOT NULL | Branch referrer |
+| `receiver_branch_id` | UUID | FK, NOT NULL | Branch receiver |
+| `reason` | TEXT | NOT NULL | Alasan referral |
+| `notes` | TEXT | | Catatan tambahan |
+| `status` | VARCHAR(30) | NOT NULL | See status flow below |
+| `referrer_approved_at` | TIMESTAMPTZ | | Timestamp referrer confirm |
+| `receiver_accepted_at` | TIMESTAMPTZ | | Timestamp receiver accept |
+| `receiver_rejected_at` | TIMESTAMPTZ | | Timestamp receiver reject |
+| `receiver_reject_reason` | TEXT | | Alasan ditolak receiver |
+| `bm_approved_at` | TIMESTAMPTZ | | Timestamp BM approval |
+| `bm_approved_by` | UUID | FK → users | BM yang approve |
+| `bm_rejected_at` | TIMESTAMPTZ | | Timestamp BM reject |
+| `bm_reject_reason` | TEXT | | Alasan BM reject |
+| `pipeline_id` | UUID | FK → pipelines | Pipeline yang dibuat setelah approved |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Creation time |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Last update |
+
+**Referral Status Flow:**
+```
+PENDING_RECEIVER → RECEIVER_ACCEPTED → PENDING_BM_APPROVAL → APPROVED → PIPELINE_CREATED
+                 ↘ RECEIVER_REJECTED
+                                     ↘ BM_REJECTED
+```
+
+| Status | Description | Next Steps |
+|--------|-------------|------------|
+| PENDING_RECEIVER | Menunggu receiver RM accept/reject | Receiver menerima/menolak |
+| RECEIVER_ACCEPTED | Receiver sudah accept, menunggu BM | BM approve/reject |
+| RECEIVER_REJECTED | Receiver menolak referral | End state |
+| PENDING_BM_APPROVAL | Menunggu approval BM receiver | BM approve/reject |
+| BM_REJECTED | BM menolak referral | End state |
+| APPROVED | Semua pihak setuju | Create pipeline |
+| PIPELINE_CREATED | Pipeline sudah dibuat | End state |
+
+**Scoring Impact:**
+- Referrer RM mendapat **REFERRAL_BONUS** ketika pipeline dari referral ACCEPTED
+- Bonus dihitung berdasarkan % dari final_premium (configurable di Admin)
 
 ### activities
 Unified activities (scheduled + immediate)

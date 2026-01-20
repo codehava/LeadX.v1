@@ -6,7 +6,175 @@
 
 ## 📋 Overview
 
-Dokumen ini mendefinisikan semua Row Level Security (RLS) policies yang diterapkan di PostgreSQL untuk mengontrol akses data berdasarkan role dan hierarchy user.
+Dokumen ini mendefinisikan semua Row Level Security (RLS) policies dan **Role & Permission** system yang diterapkan di PostgreSQL untuk mengontrol akses data.
+
+---
+
+## 🔐 Role & Permission System
+
+### Roles
+
+| Role | Code | Level | Description |
+|------|------|-------|-------------|
+| Super Admin | SUPERADMIN | 0 | Full system access, all permissions |
+| Admin | ADMIN | 1 | Full operational access, manage all data |
+| Regional Head | ROH | 2 | Regional scope, read all regional data |
+| Branch Manager | BM | 3 | Branch scope, manage branch operations |
+| Branch Head | BH | 4 | Team scope, manage team |
+| Relationship Manager | RM | 5 | Own data only |
+
+### Permission Categories
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PERMISSION CATEGORIES                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  CUSTOMER          PIPELINE          ACTIVITY          HVC/BROKER           │
+│  ├─ view           ├─ view           ├─ view           ├─ view              │
+│  ├─ create         ├─ create         ├─ create         ├─ create (ADMIN)   │
+│  ├─ edit           ├─ edit           ├─ edit           ├─ edit (ADMIN)     │
+│  ├─ delete         ├─ edit_stage     ├─ delete         ├─ delete (ADMIN)   │
+│  └─ assign         └─ delete         └─ approve        └─ bulk_upload      │
+│                                                                              │
+│  REFERRAL          4DX               CADENCE           ADMIN                │
+│  ├─ create         ├─ view_score     ├─ view           ├─ manage_users     │
+│  ├─ accept         ├─ view_team      ├─ submit_form    ├─ manage_roles     │
+│  ├─ reject         ├─ config (ADMIN) ├─ mark_attend    ├─ manage_config    │
+│  └─ approve_bm     └─ set_targets    └─ create_meeting ├─ view_audit       │
+│                                                         └─ bulk_upload      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Permission Matrix
+
+| Permission | RM | BH | BM | ROH | ADMIN |
+|------------|----|----|----|----|-------|
+| **CUSTOMER** |||||
+| customer.view_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| customer.view_subordinate | ❌ | ✅ | ✅ | ✅ | ✅ |
+| customer.view_all | ❌ | ❌ | ❌ | ❌ | ✅ |
+| customer.create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| customer.edit_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| customer.delete | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **PIPELINE** |||||
+| pipeline.view_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| pipeline.view_subordinate | ❌ | ✅ | ✅ | ✅ | ✅ |
+| pipeline.create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| pipeline.edit_stage | ✅ | ✅ | ✅ | ✅ | ✅ |
+| pipeline.delete | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **ACTIVITY** |||||
+| activity.view_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| activity.view_subordinate | ❌ | ✅ | ✅ | ✅ | ✅ |
+| activity.create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| activity.edit_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| activity.view_audit_log | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **HVC** |||||
+| hvc.view | ✅ | ✅ | ✅ | ✅ | ✅ |
+| hvc.create | ❌ | ❌ | ❌ | ❌ | ✅ |
+| hvc.edit | ❌ | ❌ | ❌ | ❌ | ✅ |
+| hvc.delete | ❌ | ❌ | ❌ | ❌ | ✅ |
+| hvc.bulk_upload | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **BROKER/AGENT** |||||
+| broker.view | ✅ | ✅ | ✅ | ✅ | ✅ |
+| broker.create | ❌ | ❌ | ❌ | ❌ | ✅ |
+| broker.edit | ❌ | ❌ | ❌ | ❌ | ✅ |
+| broker.delete | ❌ | ❌ | ❌ | ❌ | ✅ |
+| broker.bulk_upload | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **REFERRAL** |||||
+| referral.create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| referral.accept_reject | ✅ | ✅ | ✅ | ✅ | ✅ |
+| referral.approve_bm | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **4DX** |||||
+| score.view_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| score.view_team | ❌ | ✅ | ✅ | ✅ | ✅ |
+| score.view_all | ❌ | ❌ | ❌ | ❌ | ✅ |
+| score.set_targets | ❌ | ✅ | ✅ | ✅ | ✅ |
+| score.config_measures | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **CADENCE** |||||
+| cadence.view | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cadence.submit_form | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cadence.mark_attendance | ❌ | ✅ | ✅ | ✅ | ✅ |
+| cadence.create_meeting | ❌ | ✅ | ✅ | ✅ | ✅ |
+| cadence.config | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **ADMIN** |||||
+| admin.access_panel | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.manage_users | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.manage_roles | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.manage_config | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.view_all_audit | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.bulk_upload | ❌ | ❌ | ❌ | ❌ | ✅ |
+| admin.export_data | ❌ | ❌ | ✅ | ✅ | ✅ |
+
+### Database Schema for Roles & Permissions
+
+```sql
+CREATE TABLE roles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(20) UNIQUE NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  level INTEGER NOT NULL, -- Lower = higher authority
+  description TEXT,
+  is_system BOOLEAN DEFAULT FALSE, -- Cannot be deleted
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE permissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(100) UNIQUE NOT NULL, -- e.g., 'customer.create'
+  name VARCHAR(200) NOT NULL,
+  category VARCHAR(50) NOT NULL, -- CUSTOMER, PIPELINE, etc
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE role_permissions (
+  role_id UUID REFERENCES roles(id),
+  permission_id UUID REFERENCES permissions(id),
+  granted_at TIMESTAMPTZ DEFAULT NOW(),
+  granted_by UUID REFERENCES users(id),
+  PRIMARY KEY (role_id, permission_id)
+);
+
+-- Function to check permission
+CREATE OR REPLACE FUNCTION has_permission(user_id UUID, permission_code TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM users u
+    JOIN role_permissions rp ON rp.role_id = u.role_id
+    JOIN permissions p ON p.id = rp.permission_id
+    WHERE u.id = user_id AND p.code = permission_code
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+### Bulk Upload (Admin Only)
+
+Admin dapat upload data secara bulk untuk:
+- **HVC**: Upload Excel/CSV dengan kolom (name, type, address, dll)
+- **Broker/Agent**: Upload Excel/CSV dengan kolom (name, type, contact, dll)
+- **Users**: Upload Excel/CSV untuk onboarding batch users
+
+```sql
+CREATE TABLE bulk_uploads (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  entity_type VARCHAR(50) NOT NULL, -- 'HVC', 'BROKER', 'USER'
+  file_name VARCHAR(255) NOT NULL,
+  file_url TEXT NOT NULL,
+  total_rows INTEGER,
+  success_count INTEGER DEFAULT 0,
+  error_count INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, PROCESSING, COMPLETED, FAILED
+  error_details JSONB, -- Array of row errors
+  uploaded_by UUID REFERENCES users(id),
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
 ---
 
