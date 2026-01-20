@@ -1,0 +1,303 @@
+# 🔄 Pipeline Referral System
+
+## Mekanisme Referral Pipeline Antar RM
+
+---
+
+## 📋 Overview
+
+Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke RM lain dengan proses handshake yang memastikan kedua belah pihak setuju, dan approval dari Branch Manager.
+
+### Use Cases
+
+| Scenario | Example |
+|----------|---------|
+| **Territory Mismatch** | Customer lokasi di luar area RM |
+| **Expertise Required** | Butuh RM dengan keahlian COB tertentu |
+| **Capacity Overflow** | RM terlalu banyak pipeline |
+| **Relationship** | RM lain punya hubungan lebih baik dengan customer |
+
+---
+
+## 🔄 Referral Workflow
+
+### Complete Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PIPELINE REFERRAL WORKFLOW                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │ STEP 1: REFERRER RM Creates Referral                                    ││
+│  │                                                                          ││
+│  │  RM Ahmad has a customer outside his territory.                         ││
+│  │  He creates a referral to RM Budi who covers that area.                ││
+│  │                                                                          ││
+│  │  Required info: Customer, COB, LOB, Est. Premium, Target RM, Reason    ││
+│  │                                                                          ││
+│  │  Status: PENDING_RECEIVER                                                ││
+│  └──────────────────────────────────────┬──────────────────────────────────┘│
+│                                         │                                    │
+│                                         ▼                                    │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │ STEP 2: RECEIVER RM Reviews & Responds                                  ││
+│  │                                                                          ││
+│  │  RM Budi receives notification of incoming referral.                    ││
+│  │  He can view customer details and decide:                               ││
+│  │                                                                          ││
+│  │  ┌─────────────────┐         ┌─────────────────┐                        ││
+│  │  │   ❌ REJECT     │         │   ✅ ACCEPT     │                        ││
+│  │  │ (with reason)   │         │                 │                        ││
+│  │  └────────┬────────┘         └────────┬────────┘                        ││
+│  │           │                           │                                  ││
+│  │           ▼                           ▼                                  ││
+│  │  Status: RECEIVER_REJECTED    Status: RECEIVER_ACCEPTED                 ││
+│  │  (END - notify referrer)      (continue to Step 3)                      ││
+│  └──────────────────────────────────────┬──────────────────────────────────┘│
+│                                         │                                    │
+│                                         ▼                                    │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │ STEP 3: BRANCH MANAGER Approval                                          ││
+│  │                                                                          ││
+│  │  BM of receiver's branch receives approval request.                     ││
+│  │  BM reviews the referral details:                                       ││
+│  │                                                                          ││
+│  │  • Customer information                                                  ││
+│  │  • Estimated premium value                                               ││
+│  │  • Referrer confirmation                                                 ││
+│  │  • Receiver acceptance                                                   ││
+│  │                                                                          ││
+│  │  ┌─────────────────┐         ┌─────────────────┐                        ││
+│  │  │   ❌ REJECT     │         │   ✅ APPROVE    │                        ││
+│  │  │ (with reason)   │         │                 │                        ││
+│  │  └────────┬────────┘         └────────┬────────┘                        ││
+│  │           │                           │                                  ││
+│  │           ▼                           ▼                                  ││
+│  │  Status: BM_REJECTED          Status: APPROVED                          ││
+│  │  (END - notify both)          (continue to Step 4)                      ││
+│  └──────────────────────────────────────┬──────────────────────────────────┘│
+│                                         │                                    │
+│                                         ▼                                    │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │ STEP 4: PIPELINE CREATED                                                 ││
+│  │                                                                          ││
+│  │  System automatically creates pipeline:                                  ││
+│  │  • Customer: From referral                                               ││
+│  │  • Assigned RM: Receiver                                                 ││
+│  │  • Lead Source: REFERRAL                                                 ││
+│  │  • Referred By: Referrer RM                                              ││
+│  │  • Initial Stage: NEW                                                    ││
+│  │                                                                          ││
+│  │  Status: PIPELINE_CREATED                                                ││
+│  │                                                                          ││
+│  │  🎁 REFERRER BONUS:                                                     ││
+│  │  When pipeline reaches ACCEPTED (won), referrer gets bonus points       ││
+│  │  based on final_premium × referral_bonus_percentage                     ││
+│  └─────────────────────────────────────────────────────────────────────────┘│
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Status Definitions
+
+| Status | Description | Next Actions |
+|--------|-------------|--------------|
+| `PENDING_RECEIVER` | Referral created, waiting for receiver response | Receiver: Accept/Reject |
+| `RECEIVER_ACCEPTED` | Receiver accepted, waiting for BM approval | BM: Approve/Reject |
+| `RECEIVER_REJECTED` | Receiver declined the referral | **END STATE** |
+| `PENDING_BM_APPROVAL` | Same as RECEIVER_ACCEPTED | BM: Approve/Reject |
+| `BM_REJECTED` | BM declined the referral | **END STATE** |
+| `APPROVED` | All parties agreed | System: Create Pipeline |
+| `PIPELINE_CREATED` | Pipeline has been created | **END STATE** |
+| `CANCELLED` | Referrer cancelled before completion | **END STATE** |
+| `EXPIRED` | No response within timeout period | **END STATE** |
+
+---
+
+## ⏱️ Timeout Rules
+
+| Stage | Timeout | Action |
+|-------|---------|--------|
+| Receiver Response | 48 hours | Auto-cancel, notify referrer |
+| BM Approval | 24 hours | Escalate to ROH notification |
+| Overall | 7 days | Auto-expire referral |
+
+---
+
+## 🎁 Scoring & Bonus
+
+### Referrer Bonus (Configurable in Admin)
+
+When a pipeline from referral is **WON** (stage = ACCEPTED):
+
+```
+Referrer Bonus = Final Premium × Referral Bonus %
+
+Example:
+- Final Premium: Rp 100.000.000
+- Referral Bonus %: 5%
+- Referrer Bonus: Rp 5.000.000 (points equivalent)
+```
+
+### 4DX Impact
+
+| Measure | Referrer | Receiver |
+|---------|----------|----------|
+| NEW_PIPELINE | ❌ | ✅ (counts for receiver) |
+| PIPELINE_WON | ❌ | ✅ (counts for receiver) |
+| PREMIUM_WON | ❌ | ✅ (counts for receiver) |
+| REFERRAL_BONUS | ✅ (bonus score) | ❌ |
+
+---
+
+## 🗄️ Database Schema
+
+```sql
+CREATE TABLE pipeline_referrals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(20) UNIQUE NOT NULL, -- REF-YYYYMMDD-XXX
+  
+  -- Customer & Business Info
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  cob_id UUID NOT NULL REFERENCES cob(id),
+  lob_id UUID NOT NULL REFERENCES lob(id),
+  potential_premium DECIMAL(18,2) NOT NULL,
+  
+  -- Parties Involved
+  referrer_rm_id UUID NOT NULL REFERENCES users(id),
+  receiver_rm_id UUID NOT NULL REFERENCES users(id),
+  referrer_branch_id UUID NOT NULL REFERENCES branches(id),
+  receiver_branch_id UUID NOT NULL REFERENCES branches(id),
+  
+  -- Referral Details
+  reason TEXT NOT NULL,
+  notes TEXT,
+  
+  -- Status Tracking
+  status VARCHAR(30) NOT NULL DEFAULT 'PENDING_RECEIVER',
+  
+  -- Receiver Response
+  receiver_accepted_at TIMESTAMPTZ,
+  receiver_rejected_at TIMESTAMPTZ,
+  receiver_reject_reason TEXT,
+  receiver_notes TEXT,
+  
+  -- BM Approval
+  bm_approved_at TIMESTAMPTZ,
+  bm_approved_by UUID REFERENCES users(id),
+  bm_rejected_at TIMESTAMPTZ,
+  bm_reject_reason TEXT,
+  bm_notes TEXT,
+  
+  -- Result
+  pipeline_id UUID REFERENCES pipelines(id),
+  bonus_calculated BOOLEAN DEFAULT FALSE,
+  bonus_amount DECIMAL(18,2),
+  
+  -- Timestamps
+  expires_at TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  cancel_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_referrals_referrer ON pipeline_referrals(referrer_rm_id);
+CREATE INDEX idx_referrals_receiver ON pipeline_referrals(receiver_rm_id);
+CREATE INDEX idx_referrals_status ON pipeline_referrals(status);
+CREATE INDEX idx_referrals_customer ON pipeline_referrals(customer_id);
+
+-- RLS Policies
+ALTER TABLE pipeline_referrals ENABLE ROW LEVEL SECURITY;
+
+-- Users can see referrals they're involved in
+CREATE POLICY "referral_participant_view" ON pipeline_referrals
+FOR SELECT USING (
+  referrer_rm_id = (SELECT auth.uid())
+  OR receiver_rm_id = (SELECT auth.uid())
+  OR EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND (
+      descendant_id = pipeline_referrals.referrer_rm_id
+      OR descendant_id = pipeline_referrals.receiver_rm_id
+    )
+  )
+);
+```
+
+---
+
+## 📱 UI Components
+
+### Referrer View
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  MY REFERRALS                                      [+ New Referral]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Outgoing (I referred)                                          │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  REF-20250120-001                                         │  │
+│  │  Customer: PT ABC Indonesia                               │  │
+│  │  To: Budi Santoso (JKT-02)                               │  │
+│  │  Premium: Rp 500.000.000                                  │  │
+│  │  Status: ⏳ Waiting BM Approval                           │  │
+│  │  [View Details]                                           │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  Incoming (Referred to me)                                      │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  REF-20250119-003                                         │  │
+│  │  Customer: PT XYZ Corp                                    │  │
+│  │  From: Ahmad (JKT-01)                                     │  │
+│  │  Premium: Rp 200.000.000                                  │  │
+│  │  Status: 📩 Action Required                               │  │
+│  │  [Accept] [Reject]                                        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### BM Approval Dashboard
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  REFERRALS PENDING MY APPROVAL                     [BM Dashboard]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  ⚠️ REF-20250120-001               Pending 2 hours        │  │
+│  │                                                           │  │
+│  │  From: Ahmad (JKT-01) → To: Budi (JKT-02)                │  │
+│  │  Customer: PT ABC Indonesia                               │  │
+│  │  COB: Surety Bond | LOB: Bid Bond                        │  │
+│  │  Premium: Rp 500.000.000                                  │  │
+│  │                                                           │  │
+│  │  Reason: "Customer location outside my territory..."      │  │
+│  │                                                           │  │
+│  │  ✅ Referrer Confirmed | ✅ Receiver Accepted             │  │
+│  │                                                           │  │
+│  │  [View Customer] [❌ Reject] [✅ Approve]                 │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📚 Related Documents
+
+- [Role & Permission](role-permission-system.md)
+- [Schema Overview](../04-database/schema-overview.md)
+- [Screen Flows](../05-ui-ux/screen-flows.md)
+- [4DX Lead-Lag Measures](../07-4dx-framework/lead-lag-measures.md)
+
+---
+
+*Dokumen ini adalah bagian dari LeadX CRM Business Process Documentation.*

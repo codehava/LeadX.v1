@@ -424,6 +424,86 @@ Dokumen ini berisi user stories untuk LeadX CRM, diorganisir berdasarkan modul d
 
 ---
 
+## 🔄 Pipeline Referral Module
+
+### US-REF-001: Create Pipeline Referral
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | RM |
+| **I want to** | Membuat referral pipeline ke RM lain |
+| **So that** | Prospek yang di luar territory saya bisa ditangani RM yang tepat |
+
+**Acceptance Criteria:**
+- [x] Pilih customer yang akan di-refer
+- [x] Pilih COB dan LOB
+- [x] Input estimated premium
+- [x] Search dan pilih target RM
+- [x] Input alasan referral
+- [x] Submit referral
+- [x] Notifikasi terkirim ke receiver RM
+
+### US-REF-002: Accept/Reject Referral (Receiver)
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | RM (receiver) |
+| **I want to** | Accept atau reject referral yang masuk |
+| **So that** | Saya bisa memutuskan apakah akan handle prospek ini |
+
+**Acceptance Criteria:**
+- [x] View incoming referral list
+- [x] Lihat detail customer dan estimated premium
+- [x] Accept dengan notes
+- [x] Reject dengan alasan
+- [x] Notifikasi ke referrer setelah action
+
+### US-REF-003: Approve Referral (BM)
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | BM (receiver's branch) |
+| **I want to** | Approve atau reject referral yang sudah di-accept receiver |
+| **So that** | Ada kontrol atas pipeline yang masuk ke branch |
+
+**Acceptance Criteria:**
+- [x] View pending approval list
+- [x] Lihat status handshake (referrer confirmed, receiver accepted)
+- [x] Approve dengan notes
+- [x] Reject dengan alasan
+- [x] Pipeline otomatis terbuat setelah approve
+- [x] Notifikasi ke kedua RM
+
+### US-REF-004: View Referral Status
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | RM (referrer/receiver) |
+| **I want to** | Melihat status referral saya |
+| **So that** | Saya tahu progress referral |
+
+**Acceptance Criteria:**
+- [x] View outgoing referrals (yang saya buat)
+- [x] View incoming referrals (referred ke saya)
+- [x] Status tracking (pending, accepted, rejected, approved)
+- [x] Link ke pipeline jika sudah dibuat
+
+### US-REF-005: Receive Referral Bonus
+| Field | Value |
+|-------|-------|
+| **Priority** | P2 |
+| **As a** | RM (referrer) |
+| **I want to** | Mendapat bonus saat pipeline dari referral saya WON |
+| **So that** | Saya termotivasi untuk berbagi prospek |
+
+**Acceptance Criteria:**
+- [x] Auto-calculate bonus saat pipeline ACCEPTED
+- [x] Bonus ditambahkan ke score referrer
+- [x] Notifikasi bonus diterima
+- [x] Muncul di scoreboard sebagai referral bonus
+
+---
+
 ## ⚙️ Admin Module
 
 ### US-ADMIN-001: Manage Users
@@ -454,6 +534,85 @@ Dokumen ini berisi user stories untuk LeadX CRM, diorganisir berdasarkan modul d
 - [x] Activate/Deactivate items
 - [x] Bulk import via CSV
 
+### US-ADMIN-003: Manage Roles & Permissions
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | Admin |
+| **I want to** | Mengelola role dan permission |
+| **So that** | Akses user sesuai dengan kebutuhan |
+
+**Acceptance Criteria:**
+- [x] View list roles dengan permission
+- [x] Create custom role (non-system)
+- [x] Assign permissions ke role
+- [x] View users per role
+- [x] Tidak bisa edit system roles (RM, BH, BM, etc)
+
+### US-ADMIN-004: Bulk Upload HVC
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | Admin |
+| **I want to** | Upload batch data HVC via Excel/CSV |
+| **So that** | Penambahan HVC lebih efisien |
+
+**Acceptance Criteria:**
+- [x] Download template Excel/CSV
+- [x] Upload file dengan data HVC
+- [x] Validate data sebelum proses
+- [x] Preview data valid dan error
+- [x] Process valid rows
+- [x] Report hasil (success/failed count)
+
+### US-ADMIN-005: Bulk Upload Broker/Agent
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | Admin |
+| **I want to** | Upload batch data Broker/Agent via Excel/CSV |
+| **So that** | Penambahan Broker lebih efisien |
+
+**Acceptance Criteria:**
+- [x] Download template Excel/CSV
+- [x] Upload file dengan data Broker
+- [x] Validate data sebelum proses
+- [x] Preview data valid dan error
+- [x] Process valid rows
+- [x] Report hasil (success/failed count)
+
+### US-ADMIN-006: Configure Pipeline Stages & Statuses
+| Field | Value |
+|-------|-------|
+| **Priority** | P1 |
+| **As a** | Admin |
+| **I want to** | Mengkonfigurasi stages dan statuses pipeline |
+| **So that** | Workflow pipeline sesuai kebutuhan bisnis |
+
+**Acceptance Criteria:**
+- [x] View list stages dengan probability
+- [x] Edit stage properties (name, color, probability)
+- [x] Add/edit statuses per stage
+- [x] Set default status per stage
+- [x] Reorder stages dan statuses
+- [x] Cannot delete if pipelines exist in stage
+
+### US-ADMIN-007: Configure 4DX Measures
+| Field | Value |
+|-------|-------|
+| **Priority** | P0 |
+| **As a** | Admin |
+| **I want to** | Mengkonfigurasi measures 4DX |
+| **So that** | Scoring sesuai strategi perusahaan |
+
+**Acceptance Criteria:**
+- [x] View list lead dan lag measures
+- [x] Edit target default per measure
+- [x] Edit weight per measure
+- [x] Configure lead/lag ratio (default 60:40)
+- [x] Enable/disable measures
+- [x] Configure bonus rules (GPS verified, photo attached)
+
 ---
 
 ## 📚 Related Documents
@@ -461,7 +620,9 @@ Dokumen ini berisi user stories untuk LeadX CRM, diorganisir berdasarkan modul d
 - [Functional Requirements](functional-requirements.md) - Requirement details
 - [Screen Flows](../05-ui-ux/screen-flows.md) - UI Flows
 - [Acceptance Criteria](acceptance-criteria.md) - Detailed AC
+- [Pipeline Referral System](../03-architecture/pipeline-referral-system.md) - Referral workflow
+- [Role & Permission System](../03-architecture/role-permission-system.md) - Access control
 
 ---
 
-*User stories version 1.0 - January 2025*
+*User stories version 2.0 - January 2025 (Updated with Referral & Admin features)*
