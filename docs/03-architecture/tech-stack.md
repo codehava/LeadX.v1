@@ -244,13 +244,22 @@ docker compose up -d
 - ✅ Tetap dapat fitur Supabase (Auth, Realtime, dll)
 - ⚠️ Tanggung jawab maintenance sendiri
 
-#### Rekomendasi untuk LeadX
+#### Rekomendasi untuk LeadX (FINAL DECISION)
 
-| Fase | Rekomendasi | Alasan |
-|------|-------------|--------|
-| **MVP (Fase 1)** | ✅ Supabase Cloud | Cepat launch, minim overhead |
-| **Growth (400-2000 users)** | Supabase Pro | Masih cost-effective |
-| **Enterprise (2000+ users)** | Evaluate: Self-host atau VPS | Bergantung pada cost vs control |
+> **✅ KEPUTUSAN: Self-Hosted Supabase di VPS Biznet Gio**
+
+| Fase | Infrastructure | Alasan |
+|------|----------------|--------|
+| **All Phases** | Self-Hosted Supabase @ VPS Biznet | Data di Indonesia, full control, compliance ready |
+
+**Detail VPS:**
+- Provider: Biznet Gio Neo Lite
+- Location: Indonesia
+- OS: Ubuntu 22.04 LTS
+- Production: 8GB RAM, 4 vCPU
+- Estimated Cost: ~Rp 400.000/bulan (Production)
+
+Lihat [Deployment Guide](../09-implementation/deployment-guide.md) untuk detail setup.
 
 ### Database Extensions
 
@@ -339,9 +348,21 @@ serve(async (req) => {
 
 | Service | Purpose | Cost |
 |---------|---------|------|
-| **Supabase Pro** | Backend hosting (Singapore) | $25/mo |
+| **VPS Biznet Gio** | Self-Hosted Supabase (Indonesia) | ~Rp 400.000/mo |
 | **Cloudflare Pages** | Web admin hosting | Free |
-| **Cloudflare CDN** | CDN, DDoS protection | Free |
+| **Cloudflare CDN** | CDN, DDoS protection, DNS | Free |
+
+### Server Specifications (Production)
+
+| Spec | Value |
+|------|-------|
+| Provider | Biznet Gio Neo Lite 4 |
+| Location | Indonesia (Jakarta) |
+| RAM | 8 GB |
+| vCPU | 4 cores |
+| Storage | 100 GB SSD |
+| OS | Ubuntu 22.04 LTS |
+| Stack | Docker + Supabase |
 
 ### App Distribution
 
@@ -493,32 +514,46 @@ dev_dependencies:
 
 ## 💰 Cost Estimate (Monthly)
 
-| Service | Tier | Cost |
-|---------|------|------|
-| Supabase | Pro | $25 |
-| Cloudflare | Free | $0 |
-| Sentry | Free | $0 |
-| Google Play | One-time $25 | ~$2/mo |
-| Apple Developer | $99/year | ~$8/mo |
-| **Total** | | **~$35/mo** |
+| Service | Tier | Cost (IDR) | Cost (USD) |
+|---------|------|------------|------------|
+| VPS Biznet (Production) | Neo Lite 4 | Rp 400.000 | ~$25 |
+| VPS Biznet (UAT) | Neo Lite 2 | Rp 200.000 | ~$13 |
+| Cloudflare | Free | Rp 0 | $0 |
+| Sentry | Free | Rp 0 | $0 |
+| Domain (.id) | Annual | ~Rp 15.000/mo | ~$1 |
+| Google Play | One-time $25 | ~Rp 30.000/mo | ~$2 |
+| Apple Developer | $99/year | ~Rp 125.000/mo | ~$8 |
+| **Total** | | **~Rp 770.000/mo** | **~$49/mo** |
+
+> **Note:** Dengan self-hosted Supabase, tidak ada biaya per-request atau bandwidth limits. Cost lebih predictable.
 
 ---
 
-## 📈 Scaling Path
+## 📈 Scaling Path (VPS Biznet)
 
-### Phase 1: Startup (Current)
-- Supabase Pro
-- Single region (Singapore)
-- ~500 users
+### Phase 1: MVP & UAT (Current)
+- VPS Biznet Neo Lite 2 (4GB RAM)
+- Single server (UAT + Development)
+- ~50-100 test users
+- Cost: ~Rp 200.000/mo
 
-### Phase 2: Growth
-- Supabase Pro with add-ons
-- Read replicas (if needed)
-- ~2,000 users
+### Phase 2: Production Launch
+- VPS Biznet Neo Lite 4 (8GB RAM)
+- Dedicated production server
+- ~400-500 users
+- Cost: ~Rp 400.000/mo
 
-### Phase 3: Enterprise
-- Self-hosted Supabase option
-- Multi-region deployment
+### Phase 3: Growth
+- VPS Biznet Neo Lite 8 (16GB RAM) atau
+- Separate DB server + App server
+- Read replicas if needed
+- ~2,000+ users
+- Cost: ~Rp 800.000-1.500.000/mo
+
+### Phase 4: Enterprise (Future)
+- Multiple VPS with load balancer
+- Database clustering (Patroni/PgBouncer)
+- Multi-region if required
 - ~10,000+ users
 
 ---

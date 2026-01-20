@@ -190,21 +190,29 @@ Struktur hierarki bersifat **fleksibel** - beberapa cabang memiliki BH (Business
 |-------|------------|
 | **Mobile App** | Flutter 3.x (iOS + Android) |
 | **Web Admin** | Flutter Web |
-| **Backend** | Supabase (PostgreSQL + PostGIS) |
+| **Backend** | Self-Hosted Supabase (PostgreSQL + PostGIS) |
+| **Hosting** | VPS Biznet Gio (Indonesia) |
 | **Auth** | Supabase GoTrue (JWT) |
 | **Offline Storage** | Drift (SQLite) |
 | **Real-time** | Supabase Realtime (WebSocket) |
-| **File Storage** | Supabase Storage (S3) |
+| **File Storage** | Supabase Storage / MinIO (S3-compatible) |
 
-### Infrastructure Cost Estimate
+### Infrastructure: Self-Hosted di VPS Biznet Gio
 
 | Service | Provider | Cost/Month |
 |---------|----------|------------|
-| Hosting | Supabase Pro (Singapore) | $25 |
-| CDN | Cloudflare (Free) | $0 |
+| Production Server | Biznet Neo Lite 4 (8GB RAM) | Rp 400.000 |
+| UAT Server | Biznet Neo Lite 2 (4GB RAM) | Rp 200.000 |
+| CDN & DNS | Cloudflare (Free) | $0 |
 | Web Hosting | Cloudflare Pages | $0 |
 | Monitoring | Sentry Free | $0 |
-| **Total** | | **~$25/month** |
+| **Total** | | **~Rp 600.000/month** |
+
+**Keuntungan Self-Hosted di Indonesia:**
+- ✅ Data di Indonesia (compliance)
+- ✅ Latency rendah untuk user lokal
+- ✅ Full control & predictable cost
+- ✅ No vendor lock-in
 
 ---
 
