@@ -85,6 +85,8 @@ Tim sales PT Askrindo tersebar di seluruh Indonesia dengan tantangan operasional
 
 ### User Hierarchy
 
+Struktur hierarki bersifat **fleksibel** - beberapa cabang memiliki BH (Business Head), beberapa tidak, dan beberapa hybrid:
+
 ```
                     ┌─────────────────┐
                     │   SUPERADMIN    │  ← System-wide access
@@ -104,14 +106,28 @@ Tim sales PT Askrindo tersebar di seluruh Indonesia dengan tantangan operasional
         │ BM 1-3  │    │ BM 4-6  │    │ BM N    │  ← Branch scope
         └────┬────┘    └────┬────┘    └────┬────┘
              │              │              │
-        ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
-        │BH 1-8   │    │BH 9-16  │    │BH N     │  ← Team scope
-        └────┬────┘    └────┬────┘    └────┬────┘
-             │              │              │
-     ┌───────┴───────┐ ┌───────┴───────┐ ┌───────┴───────┐
-     │RM 1-40        │ │RM 41-80       │ │RM N          │  ← Individual scope
-     └───────────────┘ └───────────────┘ └───────────────┘
+             ├──────────────┼──────────────┤
+             ▼              ▼              ▼
+    ┌────────────────┐ ┌─────────┐ ┌────────────────┐
+    │ Branch Type A  │ │ Type B  │ │ Branch Type C  │
+    │ (dengan BH)    │ │ (Hybrid)│ │ (tanpa BH)     │
+    └───────┬────────┘ └────┬────┘ └───────┬────────┘
+            │               │              │
+       ┌────┴────┐     ┌────┴────┐         │
+       │   BH    │     │BH + RM  │         │  ← BM langsung ke RM
+       └────┬────┘     └────┬────┘         │
+            │               │              │
+       ┌────┴────┐     ┌────┴────┐    ┌────┴────┐
+       │   RM    │     │   RM    │    │   RM    │  ← Individual scope
+       └─────────┘     └─────────┘    └─────────┘
 ```
+
+**Keterangan Tipe Cabang:**
+| Tipe | Struktur | Contoh |
+|------|----------|--------|
+| **Type A** | BM → BH → RM | Cabang besar dengan multiple tim |
+| **Type B** | BM → BH + RM langsung | Cabang hybrid (sebagian via BH) |
+| **Type C** | BM → RM langsung | Cabang kecil tanpa BH |
 
 ---
 

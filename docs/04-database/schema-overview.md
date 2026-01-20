@@ -22,21 +22,25 @@ erDiagram
     USERS ||--o{ CUSTOMERS : "owns (assigned_rm_id)"
     USERS ||--o{ PIPELINES : "owns"
     USERS ||--o{ ACTIVITIES : "performs"
-    USERS }|--|| USERS : "reports to (parent_id)"
+    USERS }|--o| USERS : "reports to (parent_id) - flexible hierarchy"
     USERS }o--|| BRANCHES : "belongs to"
     BRANCHES }o--|| REGIONAL_OFFICES : "belongs to"
     
     CUSTOMERS ||--o{ KEY_PERSONS : "has"
-    CUSTOMERS ||--o{ PIPELINES : "has"
+    CUSTOMERS ||--o{ PIPELINES : "has (1 customer → many pipelines)"
     CUSTOMERS ||--o{ ACTIVITIES : "target of"
-    CUSTOMERS }o--o{ HVC : "linked via CUSTOMER_HVC_LINKS"
+    CUSTOMERS }o--o{ HVC : "OPTIONAL link via CUSTOMER_HVC_LINKS"
+    
+    HVC ||--o{ CUSTOMER_HVC_LINKS : "has many customers"
+    CUSTOMER_HVC_LINKS }o--|| CUSTOMERS : "customer belongs to HVC"
     
     PIPELINES }o--|| PIPELINE_STAGES : "at stage"
-    PIPELINES }o--o| BROKERS : "referred by"
+    PIPELINES }o--o| BROKERS : "referred by (if lead_source=BROKER)"
     PIPELINES ||--o{ ACTIVITIES : "related to"
     
     HVC ||--o{ KEY_PERSONS : "has"
     BROKERS ||--o{ KEY_PERSONS : "has"
+    BROKERS ||--o{ PIPELINES : "sourced pipelines (lead_source=BROKER)"
     
     USERS ||--o{ USER_TARGETS : "has targets"
     USERS ||--o{ USER_SCORES : "has scores"
@@ -46,6 +50,15 @@ erDiagram
     SCORING_PERIODS ||--o{ USER_TARGETS : "period for"
     SCORING_PERIODS ||--o{ USER_SCORES : "period for"
 ```
+
+### Penjelasan Relasi Utama
+
+| Relasi | Tipe | Keterangan |
+|--------|------|------------|
+| **HVC → Customer** | Many-to-Many (Optional) | 1 HVC bisa punya banyak Customer. Customer bisa juga **tidak** terhubung ke HVC manapun. |
+| **Customer → Pipeline** | One-to-Many | 1 Customer bisa punya banyak Pipeline. |
+| **Broker → Pipeline** | One-to-Many | Broker adalah **sumber lead** (lead_source = BROKER). Pipeline yang berasal dari Broker akan memiliki `broker_id`. |
+| **User Hierarchy** | Flexible Parent | BM bisa langsung ke RM (tanpa BH) untuk cabang kecil. |
 
 ---
 

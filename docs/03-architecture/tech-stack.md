@@ -175,6 +175,83 @@ class Customers extends Table {
 - ✅ Self-host option available
 - ✅ Cost-effective (Pro plan ~$25/mo)
 
+### 🔄 Supabase vs VPS PostgreSQL: Perbandingan
+
+Berikut perbandingan antara menggunakan **Supabase (Managed)** vs **VPS PostgreSQL (Self-Hosted)**:
+
+| Aspek | Supabase (Managed) | VPS PostgreSQL |
+|-------|-------------------|----------------|
+| **Setup Time** | 5 menit | 2-4 jam |
+| **Maintenance** | ❌ No maintenance | ✅ Update, patching, monitoring |
+| **Backup** | ✅ Auto daily backup | ⚙️ Manual setup (pg_dump, cron) |
+| **Scaling** | ✅ 1-click upgrade | ⚙️ Manual migration |
+| **High Availability** | ✅ Built-in (Pro+) | ⚙️ Setup sendiri (complex) |
+| **REST API** | ✅ Auto-generated (PostgREST) | ❌ Build sendiri |
+| **Auth** | ✅ Built-in (GoTrue) | ❌ Build sendiri |
+| **Realtime** | ✅ Built-in WebSocket | ❌ Build sendiri |
+| **Storage** | ✅ Built-in S3 | ❌ Setup sendiri |
+| **Edge Functions** | ✅ Built-in (Deno) | ❌ Setup sendiri |
+| **Cost (400 users)** | ~$25/mo | ~$20-50/mo + time |
+| **Control** | ⚠️ Limited | ✅ Full control |
+| **Vendor Lock-in** | ⚠️ Some (mitigated by self-host option) | ❌ None |
+
+#### Kapan Pilih Supabase?
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✅ PILIH SUPABASE JIKA:                                                    │
+│                                                                              │
+│  • Tim kecil (1-3 backend devs)                                             │
+│  • Butuh cepat launch (MVP dalam minggu, bukan bulan)                       │
+│  • Tidak punya dedicated DevOps                                             │
+│  • Budget terbatas untuk infrastructure management                          │
+│  • Butuh fitur standar: Auth, Storage, Realtime                            │
+│  • Prefer managed service untuk fokus ke product                            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Kapan Pilih VPS PostgreSQL?
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✅ PILIH VPS POSTGRESQL JIKA:                                              │
+│                                                                              │
+│  • Punya dedicated DevOps/DBA                                               │
+│  • Compliance requirement yang strict (data harus di Indonesia)             │
+│  • Butuh custom extensions yang tidak tersedia di Supabase                 │
+│  • Volume query sangat tinggi (cost Supabase menjadi mahal)                │
+│  • Sudah punya infrastructure existing                                      │
+│  • Butuh full control atas database performance tuning                     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Hybrid Option: Self-Hosted Supabase
+
+Supabase menyediakan opsi **self-hosted** yang bisa di-deploy ke VPS sendiri:
+
+```bash
+# Deploy Supabase ke VPS menggunakan Docker
+git clone https://github.com/supabase/supabase
+cd supabase/docker
+docker compose up -d
+```
+
+**Keuntungan Hybrid:**
+- ✅ Full control atas server
+- ✅ Data di Indonesia (compliance)
+- ✅ Tetap dapat fitur Supabase (Auth, Realtime, dll)
+- ⚠️ Tanggung jawab maintenance sendiri
+
+#### Rekomendasi untuk LeadX
+
+| Fase | Rekomendasi | Alasan |
+|------|-------------|--------|
+| **MVP (Fase 1)** | ✅ Supabase Cloud | Cepat launch, minim overhead |
+| **Growth (400-2000 users)** | Supabase Pro | Masih cost-effective |
+| **Enterprise (2000+ users)** | Evaluate: Self-host atau VPS | Bergantung pada cost vs control |
+
 ### Database Extensions
 
 | Extension | Purpose |
