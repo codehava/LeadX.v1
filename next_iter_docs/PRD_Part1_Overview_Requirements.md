@@ -43,6 +43,8 @@ PT Askrindo sebagai perusahaan asuransi terkemuka membutuhkan sistem CRM modern 
 Aplikasi ini mendigitalisasi seluruh proses sales dari:
 - Customer prospecting & management
 - Pipeline tracking (NEW → P3 → P2 → P1 → WON/LOST)
+- **High Value Customer (HVC)** management dengan key persons
+- **Broker/Agent** tracking sebagai lead source pipeline
 - Kunjungan lapangan dengan GPS tracking
 - Cadence meeting untuk accountability 4DX
 - Real-time scoreboard & performance ranking
@@ -63,7 +65,7 @@ Aplikasi ini mendigitalisasi seluruh proses sales dari:
 |------|--------|-------------|
 | Relationship Manager (RM) | ~300 | Primary field user, customer CRUD, pipeline |
 | Business Head (BH) | ~50 | Team supervision, target setting |
-| Branch Manager (BM) | ~20 | Branch management, HVC/Broker assignment |
+| Branch Manager (BM) | ~20 | Branch management, branch cadence |
 | Regional Office Head (ROH) | ~5 | Regional supervision, strategic cadence |
 | Admin/Superadmin | ~5 | System configuration |
 
@@ -135,24 +137,115 @@ Tim sales PT Askrindo tersebar di seluruh Indonesia dengan monitoring yang masih
 | **Superadmin** | 0 | IT Administrator | Full system access, user management, system configuration |
 | **Admin** | 0 | Management/HQ staff | Master data, parameter configuration, company-wide reports |
 | **ROH** | 1 | Regional Office Head | Regional monitoring, strategic decisions, regional cadence |
-| **BM** | 2 | Branch Manager | Branch management, HVC/Broker assignment, branch cadence |
+| **BM** | 2 | Branch Manager | Branch management, branch cadence, regional coordination |
 | **BH** | 3 | Business Head | Team supervision, target setting, daily monitoring, team cadence |
 | **RM** | 4 | Relationship Manager | Customer CRUD, pipeline management, visit execution, activity logging |
 
 ### User Stories
 
-| ID | Sebagai... | Saya ingin... | Agar... | Prioritas |
-|----|------------|---------------|---------|-----------|
-| US-001 | RM | menambah dan mengelola data customer | data prospek terdigitalisasi | P0 |
-| US-002 | RM | membuat dan tracking pipeline | dapat memonitor peluang bisnis | P0 |
-| US-003 | RM | menjadwalkan dan melakukan check-in kunjungan | aktivitas lapangan tertrack | P0 |
-| US-004 | RM | melihat scoreboard dan ranking | mengetahui performa saya | P0 |
-| US-005 | BH | mengassign target ke RM | target individual ter-set | P0 |
-| US-006 | BH | melakukan cadence meeting | accountability terjaga | P0 |
-| US-007 | BM | memonitor performa cabang | visibility terhadap team | P0 |
-| US-008 | BM | mengassign HVC/Broker ke RM | distribusi resource teratur | P1 |
-| US-009 | Admin | mengkonfigurasi parameter sistem | sistem sesuai kebutuhan bisnis | P0 |
-| US-010 | Admin | mengelola user dan hierarchy | struktur organisasi ter-manage | P0 |
+---
+
+#### US-001: Customer Management (RM) — P0
+
+**Budi** adalah seorang Relationship Manager (RM) di cabang Jakarta yang baru saja pulang dari kunjungan ke prospek baru. Sambil duduk di kafe, dia membuka LeadX di HP-nya dan menambahkan data customer baru: PT Maju Jaya, sebuah perusahaan konstruksi di daerah industrial Cikarang. Meskipun koneksi internet lemah, data tersimpan di local dan akan sync otomatis ketika online. GPS location tercapture otomatis di background tanpa mengganggu Budi.
+
+**Acceptance:** CRUD customer + key persons, search/filter, GPS auto-capture, offline sync.
+
+---
+
+#### US-002: Pipeline Tracking (RM) — P0
+
+Setelah meeting pertama dengan PT Maju Jaya, **Budi** membuat pipeline baru di LeadX. Dia memilih customer, memasukkan nilai potensial Rp 500 juta untuk produk Surety Bond, dan pipeline otomatis masuk ke stage NEW (10%). Setiap minggu, seiring progres negosiasi, Budi menggeser stage dari P3 → P2 → P1 hingga akhirnya WON. LeadX mencatat seluruh journey ini.
+
+**Acceptance:** Pipeline linked to customer, stage progression (NEW→P3→P2→P1→WON/LOST), value tracking.
+
+---
+
+#### US-003: Activity Scheduling & Check-in (RM) — P0
+
+**Budi** menjadwalkan kunjungan ke PT Maju Jaya untuk Selasa depan jam 10:00. Saat tiba di lokasi, dia membuka LeadX dan tap "Check-in". GPS tercapture otomatis sebagai bukti kehadiran. Setelah meeting, dia menambahkan notes dan foto dokumen. Jika ada halangan, dia bisa reschedule dengan alasan.
+
+**Acceptance:** Planned activity, GPS check-in, multi-type (Visit/Call/Meeting), reschedule/cancel.
+
+---
+
+#### US-004: Scoreboard & Ranking (RM) — P0
+
+Setiap pagi, **Budi** mengecek scoreboard-nya di LeadX. Dia melihat score 78/100 minggu ini, ranking #5 dari 20 RM di cabangnya. Progress bar menunjukkan dia sudah mencapai 80% target kunjungan dan 60% target pipeline. Trend chart menunjukkan peningkatan dari minggu lalu.
+
+**Acceptance:** Personal score card, peer ranking, weekly trend, 4DX progress bars.
+
+---
+
+#### US-005: Target Assignment (BH) — P0
+
+**Ibu Sari** adalah Business Head yang membawahi 8 RM. Di awal bulan, dia login ke LeadX dan assign target ke setiap RM: 10 kunjungan/minggu, 5 pipeline baru/bulan, Rp 2M total pipeline value. Dia bisa copy target dari bulan lalu dan adjust. Setiap RM langsung melihat target mereka di dashboard.
+
+**Acceptance:** Set lead/lag measures per RM, copy template, cascade targets.
+
+---
+
+#### US-006: Cadence Meeting (BH) — P0
+
+Setiap Senin pagi, **Ibu Sari** menjalankan cadence meeting dengan tim-nya. Sebelum meeting, setiap RM mengisi pre-meeting form: apa yang dikomitmenkan minggu lalu dan hasilnya. Saat meeting, LeadX menampilkan summary per RM. Di akhir, komitmen baru tercatat dan attendance ter-track untuk scoring.
+
+**Acceptance:** Weekly cadence, pre-meeting form, attendance tracking, commitment log.
+
+---
+
+#### US-007: Branch Monitoring (BM) — P0
+
+**Pak Rahmat** adalah Branch Manager cabang Jakarta. Dia membuka LeadX dan melihat dashboard cabang: total score 82/100, ranking #3 dari 12 cabang se-regional. Dia drill-down ke performance tiap BH dan RM di bawahnya. Dia identify bahwa team BH Sari perform paling baik, sementara team BH Andi perlu coaching.
+
+**Acceptance:** Aggregated branch scores, drill-down to individuals, branch ranking.
+
+---
+
+#### US-008: HVC Visibility (RM) — P1
+
+**Budi** sedang mengerjakan customer PT Maju Jaya ketika dia melihat badge "HVC" di detail customer. Dia tap badge tersebut dan melihat bahwa PT Maju Jaya ter-link ke **Bank BNI** sebagai High Value Customer. Dia bisa lihat key persons Bank BNI dan memahami bahwa PT Maju Jaya adalah vendor penting bagi Bank BNI. Informasi ini membantu Budi approach dengan strategy berbeda. Budi **hanya bisa melihat** HVC yang terhubung dengan customer-nya — tidak bisa edit.
+
+**Acceptance:** View HVC linked to owned customers, see HVC details + key persons, **read-only access**.
+
+---
+
+#### US-009: Broker as Lead Source (RM) — P1
+
+Saat membuat pipeline baru, **Budi** diminta memilih "Lead Source". Salah satu opsinya adalah Broker. Dia memilih **Broker PT Asuransi Partner** karena referral datang dari sana. LeadX mencatat source ini dan nantinya management bisa track berapa banyak business yang datang dari masing-masing Broker. Budi bisa lihat list semua Broker, tapi **tidak bisa edit** data Broker.
+
+**Acceptance:** View Broker list, select as pipeline lead source, track pipelines by Broker, **read-only access**.
+
+---
+
+#### US-010: HVC Management (Admin) — P1
+
+**Mas Deni** dari tim Admin HQ menerima data HVC baru dari management: **Bank Mandiri** adalah High Value Customer baru dengan 3 key persons. Dia login ke LeadX Admin Panel dan create HVC baru. Kemudian dia link Bank Mandiri ke 15 customer yang merupakan vendor-vendor Bank Mandiri. Sekarang semua RM yang handle customer tersebut bisa melihat bahwa customer mereka terhubung dengan Bank Mandiri.
+
+**Acceptance:** Full CRUD HVC + key persons, link to multiple customers (many-to-many), manage HVC types.
+
+---
+
+#### US-011: Broker Management (Admin) — P1
+
+Management menginformasikan bahwa **PT Broker Sejahtera** adalah partner referral baru. **Mas Deni** menambahkan Broker baru ke sistem dengan contact info lengkap. Ketika Broker tersebut resign dari partnership, Deni tidak menghapus data (karena ada history pipeline), tapi me-nonaktifkan Broker tersebut sehingga tidak muncul di dropdown lagi.
+
+**Acceptance:** Full CRUD Broker, manage types, view originated pipelines, soft delete.
+
+---
+
+#### US-012: System Configuration (Admin) — P0
+
+**Mas Deni** perlu menambahkan LOB baru "Asuransi Syariah" ke sistem. Dia buka Admin Panel → Master Data → LOB dan create entry baru. Dia juga configure 4DX measure definitions untuk periode Q2, menyesuaikan scoring parameters sesuai arahan management.
+
+**Acceptance:** Manage master data, configure 4DX measures, scoring parameters.
+
+---
+
+#### US-013: User & Hierarchy Management (Admin) — P0
+
+Ada RM baru bernama **Andi** yang join cabang Jakarta. **Mas Deni** create user account untuk Andi, assign role RM, dan set hierarchy: report ke BH Sari di cabang Jakarta, regional Jakarta Raya. Andi langsung bisa login dan melihat target-nya.
+
+**Acceptance:** CRUD users, set hierarchy ROH→BM→BH→RM, assign to branch/regional.
 
 ### Analisis Stakeholder
 
@@ -178,8 +271,8 @@ Tim sales PT Askrindo tersebar di seluruh Indonesia dengan monitoring yang masih
 | **FR-006** | Dashboard/Scoreboard | Semua User | P0 | Personal score, ranking, progress bars, weekly trend, 4DX metrics |
 | **FR-007** | Target Assignment | BH, BM, Admin | P0 | Set lead/lag measures, copy templates, cascade targets to subordinates |
 | **FR-008** | Cadence Meeting | BH, BM | P0 | Schedule, pre-meeting form, execution, commitment tracking, attendance scoring |
-| **FR-009** | HVC Management | Admin | P1 | Admin-only CRUD, key persons, visibility based on customer ownership |
-| **FR-010** | Broker/Agent Management | Admin | P1 | Admin-only CRUD, visible to all users, used as Pipeline lead source |
+| **FR-009** | HVC Management | Admin, RM (view) | P1 | Admin-only CRUD, key persons, RM can view HVC linked to their customers |
+| **FR-010** | Broker/Agent Management | Admin, RM (view) | P1 | Admin-only CRUD, visible to all users as Pipeline lead source reference |
 | **FR-011** | Admin Panel | Admin | P0 | User management, master data, configuration, all CRUD operations |
 | **FR-012** | Notifications | Semua User | P1 | In-app notifications via Supabase Realtime, preferences, inbox |
 | **FR-013** | Reporting & Export | BM, ROH, Admin | P1 | Various reports, Excel/PDF export |
