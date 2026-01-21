@@ -471,6 +471,10 @@ Unified activities (scheduled + immediate)
 | `longitude` | DECIMAL(11,8) | | Photo GPS longitude |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | Upload time |
 
+> **Note (Offline-First):** The local Drift database includes additional fields for offline functionality:
+> - `local_path` TEXT - Local file path on device (not synced to Supabase)
+> - `is_pending_upload` BOOLEAN - Sync status flag (not synced to Supabase)
+
 ### activity_audit_logs
 **History log untuk setiap perubahan pada Activity**
 

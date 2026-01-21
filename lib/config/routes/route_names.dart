@@ -40,6 +40,7 @@ abstract class RouteNames {
   static const String activities = 'activities';
   static const String activityDetail = 'activity-detail';
   static const String activityCreate = 'activity-create';
+  static const String activityCalendar = 'activity-calendar';
 
   // ============================================
   // HVC ROUTES
@@ -113,6 +114,7 @@ abstract class RoutePaths {
   static const String activities = '/home/activities';
   static const String activityDetail = '/home/activities/:id';
   static const String activityCreate = '/home/activities/create';
+  static const String activityCalendar = '/activity/calendar';
 
   // HVC
   static const String hvc = '/home/hvc';

@@ -74,6 +74,13 @@ class CustomerForm extends _$CustomerForm {
 - [x] Run SQL files on Supabase ✅
 - [x] Create test user ✅
 - [x] Seed initial master data (in SQL files)
+- [x] Database audit triggers ✅ (SQL: `06_audit_triggers.sql`)
+  - [x] Create `log_entity_changes()` trigger function
+  - [x] Apply trigger to `pipelines` table
+  - [x] Apply trigger to `customers` table
+  - [x] Apply trigger to `pipeline_referrals` table
+  - [x] Create `pipeline_stage_history` table with auto-insert trigger
+  - [x] RLS policies for audit tables (admin + hierarchical access)
 
 ### Week 3: Flutter Project Structure ✅
 - [x] Set up Flutter project with Riverpod
@@ -290,9 +297,10 @@ class CustomerForm extends _$CustomerForm {
     - [x] Add pipeline FAB
     - [x] Quick stage update (via PipelineStageUpdateSheet)
     - [x] Kanban/List toggle view
-  - [ ] **Activities Tab** (Phase 5 - placeholder)
-    - [ ] Activity history list
-    - [ ] Add activity FAB
+  - [x] **Activities Tab** ✅
+    - [x] Activity list grouped by status
+    - [x] Add activity FAB (Log + Schedule)
+    - [x] Execute button for pending activities
   - [x] Quick actions bar
     - [x] Call
     - [x] WhatsApp
@@ -547,7 +555,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 5. Activity Module ⬜
+### 5. Activity Module ✅ 95% COMPLETE
 
 #### Data Layer
 **Drift Tables** ✅
@@ -556,143 +564,149 @@ class CustomerForm extends _$CustomerForm {
 - [x] `activity_audit_logs` table defined
 - [x] `activity_types` master data
 
-**Domain Models** ⬜
-- [ ] Create `Activity` domain entity (Freezed)
-- [ ] Create `ActivityStatus` enum
-- [ ] Create `ActivityPhoto` entity
-- [ ] Create `ActivityAuditLog` entity
-- [ ] Create `ActivityType` entity
-- [ ] Create `ActivityObjectType` enum (CUSTOMER, HVC, BROKER, PIPELINE)
+**Domain Models** ✅
+- [x] Create `Activity` domain entity (Freezed)
+- [x] Create `ActivityStatus` enum
+- [x] Create `ActivityPhoto` entity
+- [x] Create `ActivityAuditLog` entity
+- [x] Create `ActivityType` entity
+- [x] Create `ActivityObjectType` enum (CUSTOMER, HVC, BROKER)
 
-**DTOs** ⬜
-- [ ] Create `ActivityCreateDto` (scheduled)
-- [ ] Create `ImmediateActivityDto` (instant logging)
-- [ ] Create `ActivityExecutionDto`
-- [ ] Create `ActivityRescheduleDto`
+**DTOs** ✅
+- [x] Create `ScheduledActivityDto` (scheduled)
+- [x] Create `ImmediateActivityDto` (instant logging)
+- [x] Create `ActivityExecutionDto`
+- [x] Create `ActivityRescheduleDto`
+- [x] Create `ActivityCancelDto`
 
-**Data Sources** ⬜
-- [ ] Create `ActivityLocalDataSource`
-- [ ] Create `ActivityRemoteDataSource`
+**Data Sources** ✅
+- [x] Create `ActivityLocalDataSource`
+- [x] Create `ActivityRemoteDataSource`
 - [ ] Create `ActivityPhotoLocalDataSource`
 
-#### Repository Layer ⬜
-- [ ] Create `ActivityRepository` interface
-  - [ ] `getUserActivities(userId, dateRange)`
-  - [ ] `getCustomerActivities(customerId)`
+#### Repository Layer ✅
+- [x] Create `ActivityRepository` interface
+  - [x] `getUserActivities(userId, dateRange)`
+  - [x] `getCustomerActivities(customerId)`
   - [ ] `getPipelineActivities(pipelineId)`
   - [ ] `getHvcActivities(hvcId)`
   - [ ] `getBrokerActivities(brokerId)`
-  - [ ] `createActivity(activity)` - Scheduled
-  - [ ] `createImmediateActivity(activity)` - Instant
-  - [ ] `executeActivity(id, execution)` - Mark complete with GPS
-  - [ ] `rescheduleActivity(id, newDateTime, reason)`
-  - [ ] `cancelActivity(id, reason)`
-  - [ ] `getActivityTypes()`
+  - [x] `createActivity(activity)` - Scheduled
+  - [x] `createImmediateActivity(activity)` - Instant
+  - [x] `executeActivity(id, execution)` - Mark complete with GPS
+  - [x] `rescheduleActivity(id, newDateTime, reason)`
+  - [x] `cancelActivity(id, reason)`
+  - [x] `getActivityTypes()`
   - [ ] `getActivityHistory(activityId)` - Audit logs
   - [ ] `addActivityPhoto(activityId, photo)`
   - [ ] `deleteActivityPhoto(photoId)`
-- [ ] Implement `ActivityRepositoryImpl`
+- [x] Implement `ActivityRepositoryImpl`
 
-#### Service Layer ⬜
-- [ ] Implement `GpsService`
-  - [ ] `getCurrentLocation()` - With timeout
-  - [ ] `calculateDistance(lat1, lon1, lat2, lon2)`
-  - [ ] `validateProximity(activityId)` - Check 500m radius
-  - [ ] Permission handling
+#### Service Layer ✅
+- [x] Implement `GpsService`
+  - [x] `getCurrentPosition()` - With timeout
+  - [x] `calculateDistance(lat1, lon1, lat2, lon2)`
+  - [x] `validateProximity()` - Check radius
+  - [x] Permission handling
 
-- [ ] Implement `CameraService`
-  - [ ] `capturePhoto()` - With EXIF data
-  - [ ] `pickFromGallery()`
-  - [ ] `compressImage(path)`
+- [x] Implement `CameraService`
+  - [x] `capturePhoto()` - With EXIF data
+  - [x] `pickFromGallery()`
+  - [x] `compressImage(path)`
   - [ ] Geotag validation
 
-#### Presentation Layer ⬜
-**Providers**
-- [ ] Create `activityListProvider` (StreamProvider.family) - By user/date
-- [ ] Create `activityDetailProvider` (FutureProvider.family)
-- [ ] Create `ActivityCalendarNotifier` (Notifier + @riverpod) - Calendar state
-- [ ] Create `activityTypesProvider` (FutureProvider) - Master data
-- [ ] Create `gpsProvider` (StreamProvider) - Location stream
-- [ ] Create `ActivityFormNotifier` (AsyncNotifier + @riverpod)
-- [ ] Create `ActivityExecutionNotifier` (AsyncNotifier + @riverpod)
+#### Presentation Layer 🔄
+**Providers** ✅
+- [x] Create `userActivitiesProvider` (FutureProvider.family) - By user/date
+- [x] Create `todayActivitiesProvider` (FutureProvider)
+- [x] Create `activityWithDetailsProvider` (FutureProvider.family)
+- [x] Create `customerActivitiesProvider` (FutureProvider.family)
+- [x] Create `selectedDateProvider` - Calendar state
+- [x] Create `calendarViewModeProvider`
+- [x] Create `activityTypesProvider` (FutureProvider) - Master data
+- [x] Create `gpsServiceProvider`
+- [x] Create `ActivityFormNotifier` (StateNotifier)
+- [x] Create `ActivityExecutionNotifier` (StateNotifier)
 
 **Screens**
 
-> [!IMPORTANT]
-> **Phase 5 Priority: CustomerDetailScreen Activity Tab**
-> This integration requires Activity domain/data layer to be complete first.
+> [!NOTE]
+> CustomerDetailScreen Activity Tab is fully integrated.
 
-- [ ] Integrate activity list in `CustomerDetailScreen` activities tab
-  - [ ] Create `customerActivitiesProvider` (StreamProvider.family by customerId)
-  - [ ] Activity card with:
-    - [ ] Activity type icon and name
-    - [ ] Scheduled datetime
-    - [ ] Status badge (PLANNED/COMPLETED/CANCELLED)
-    - [ ] Summary text
-    - [ ] GPS status (if executed)
-  - [ ] Group activities by date
-  - [ ] Add Activity FAB (navigate to ActivityFormScreen with customerId)
-  - [ ] Tap to navigate to ActivityDetailScreen
-  - [ ] Empty state when no activities
-  - [ ] Loading state
+- [x] Integrate activity list in `CustomerDetailScreen` activities tab
+  - [x] Create `customerActivitiesProvider` (FutureProvider.family by customerId)
+  - [x] Activity card with:
+    - [x] Activity type icon and name
+    - [x] Scheduled datetime
+    - [x] Status badge (PLANNED/COMPLETED/CANCELLED)
+    - [x] Summary text
+    - [x] GPS status (if executed)
+  - [x] Group activities by status (Upcoming/Completed/Other)
+  - [x] Add Activity FAB (Log Aktivitas + Jadwalkan)
+  - [x] Tap to navigate to ActivityDetailScreen
+  - [x] Empty state when no activities
+  - [x] Loading state
 
-- [ ] Implement `ActivityCalendarScreen`
-  - [ ] Calendar view toggle (weekly/monthly)
-  - [ ] Activity list by selected date
-  - [ ] Status indicators on calendar
-  - [ ] Quick actions:
-    - [ ] Execute planned activity
-    - [ ] Log immediate activity
-  - [ ] FAB for create scheduled activity
-  - [ ] Pull-to-refresh
+- [x] Implement `ActivityCalendarScreen`
+  - [x] Calendar view toggle (day/week/month)
+  - [x] Activity list by selected date
+  - [x] Status indicators on calendar dates
+  - [ ] Quick actions from calendar
+  - [x] FAB for create scheduled activity
+  - [x] Pull-to-refresh
 
-- [ ] Implement `ActivityDetailScreen`
-  - [ ] Activity info card
-  - [ ] Object info (customer/HVC/broker/pipeline)
-  - [ ] GPS data display
-  - [ ] Map preview (if coordinates available)
-  - [ ] Photos gallery
-  - [ ] History log (audit trail)
-  - [ ] Actions:
-    - [ ] Execute (if planned)
-    - [ ] Reschedule
-    - [ ] Cancel
+- [x] Implement `ActivityDetailScreen`
+  - [x] Activity info card
+  - [x] Object info (customer/HVC/broker)
+  - [x] GPS data display
+  - [x] Map preview (if coordinates available)
+  - [x] Photos gallery (when available)
+  - [x] History log (audit trail)
+  - [x] Actions:
+    - [x] Execute (if planned) - wired to ActivityExecutionSheet
+    - [x] Reschedule - wired to ActivityRescheduleSheet
+    - [x] Cancel - wired to cancel dialog
 
-- [ ] Implement `ActivityFormScreen` (scheduled)
-  - [ ] Object type picker (Customer/HVC/Broker/Pipeline)
-  - [ ] Object picker (based on type)
-  - [ ] Activity type picker
-  - [ ] Date picker
-  - [ ] Time picker
-  - [ ] Summary input
-  - [ ] Notes input
-  - [ ] Form validation
-  - [ ] Save flow
+- [x] Implement `ActivityFormScreen` (scheduled)
+  - [x] Object type picker (Customer/HVC/Broker)
+  - [x] Object picker (based on type)
+  - [x] Activity type picker
+  - [x] Date picker
+  - [x] Time picker
+  - [x] Summary input
+  - [x] Notes input
+  - [x] Form validation
+  - [x] Save flow
 
-- [ ] Implement `ActivityExecutionSheet`
-  - [ ] GPS capture (automatic, silent)
-  - [ ] Distance validation display
-  - [ ] GPS override option (with reason required)
-  - [ ] Notes input
-  - [ ] Photo capture (optional)
-  - [ ] Submit button
-  - [ ] Cancel button
-  - [ ] Loading state
+- [x] Implement `ActivityExecutionSheet`
+  - [x] GPS capture (automatic)
+  - [x] Distance validation display
+  - [x] GPS override option (with reason required)
+  - [x] Notes input
+  - [x] Photo capture (based on ActivityType.requirePhoto)
+  - [x] Submit button
+  - [x] Cancel button
+  - [x] Loading state
 
-- [ ] Implement `ImmediateActivitySheet`
-  - [ ] Quick activity logging
-  - [ ] Object picker
-  - [ ] Activity type quick select
-  - [ ] GPS auto-capture
-  - [ ] Notes (optional)
-  - [ ] Photo capture (optional)
-  - [ ] Submit flow
+- [x] Implement `ImmediateActivitySheet`
+  - [x] Quick activity logging
+  - [x] Object info display
+  - [x] Activity type quick select
+  - [x] GPS auto-capture
+  - [x] Notes (optional)
+  - [x] Photo capture (based on ActivityType.requirePhoto)
+  - [x] Submit flow
 
-- [ ] Implement `ActivityRescheduleSheet`
-  - [ ] New date picker
-  - [ ] New time picker
-  - [ ] Reason input (required)
-  - [ ] Confirm button
+- [x] Implement `ActivityRescheduleSheet`
+  - [x] New date picker
+  - [x] New time picker
+  - [x] Reason input (required)
+  - [x] Confirm button
+
+- [x] Implement `ActivitiesTab` (Home)
+  - [x] Show calendar/list view with week date picker
+  - [x] FAB for schedule/immediate activities
+  - [x] Execute button on pending activities
 
 #### Testing ⬜
 - [ ] Unit tests for `ActivityRepositoryImpl`
@@ -779,9 +793,85 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
+### 7. History Log Module ⬜
+
+> [!NOTE]
+> This module enables viewing historical changes for Pipeline, Customer, and other entities.
+> Database triggers (Phase 0) must be deployed first to capture audit data.
+
+#### Data Layer
+**Domain Models** ⬜
+- [ ] Create `AuditLog` domain entity (Freezed)
+  - [ ] id, userId, userEmail, action, targetTable, targetId
+  - [ ] oldValues, newValues (Map<String, dynamic>)
+  - [ ] createdAt
+- [ ] Create `PipelineStageHistory` domain entity (Freezed)
+  - [ ] id, pipelineId, fromStageId, toStageId
+  - [ ] fromStatusId, toStatusId
+  - [ ] notes, changedBy, changedAt
+  - [ ] latitude, longitude (optional GPS)
+
+**Data Sources** ⬜
+- [ ] Create `AuditLogRemoteDataSource` (fetch only, no push)
+  - [ ] `fetchEntityHistory(table, entityId, since)` - Lazy fetch
+  - [ ] `fetchAdminLogs(filters, pagination)` - For admin panel
+- [ ] Create `PipelineHistoryRemoteDataSource`
+  - [ ] `fetchPipelineHistory(pipelineId)` - With notes
+
+#### Repository Layer ⬜
+- [ ] Create `HistoryLogRepository` interface
+  - [ ] `getEntityHistory(table, entityId)` - Lazy fetch from Supabase
+  - [ ] `getPipelineStageHistory(pipelineId)` - With notes & stage names
+  - [ ] `getAdminAuditLogs(filters, pagination)` - For admin
+- [ ] Implement `HistoryLogRepositoryImpl`
+  - [ ] Lazy fetch on demand (not part of regular sync)
+  - [ ] Cache locally after first fetch
+  - [ ] Invalidate cache when entity is updated
+
+#### Presentation Layer ⬜
+**Providers**
+- [ ] Create `entityHistoryProvider(table, entityId)` - FutureProvider.family
+- [ ] Create `pipelineStageHistoryProvider(pipelineId)` - FutureProvider.family
+- [ ] Create `adminAuditLogsProvider` - AsyncNotifier for admin panel
+
+**Widgets**
+- [ ] Create `HistoryLogCard` widget
+  - [ ] Action icon/badge (CREATE, UPDATE, STAGE_CHANGE)
+  - [ ] User name and timestamp
+  - [ ] Changes summary
+  - [ ] Expandable details view
+- [ ] Create `HistoryTimeline` widget
+  - [ ] Vertical timeline layout
+  - [ ] Grouped by date
+  - [ ] Lazy loading for long histories
+- [ ] Create `StageHistoryCard` widget (Pipeline specific)
+  - [ ] Stage badges (from → to)
+  - [ ] Notes display
+  - [ ] GPS indicator if captured
+
+**Screen Integrations**
+- [ ] Add History tab to `PipelineDetailScreen`
+  - [ ] Stage history timeline with notes
+  - [ ] Filter by stage/date
+- [ ] Add History tab to `CustomerDetailScreen`
+  - [ ] Change history list
+- [ ] Create `AdminAuditLogsScreen`
+  - [ ] Date range filter
+  - [ ] User filter
+  - [ ] Table/entity type filter
+  - [ ] Search by entity ID
+  - [ ] Export to CSV
+
+#### Testing ⬜
+- [ ] Unit tests for `HistoryLogRepositoryImpl`
+- [ ] Widget tests for `HistoryTimeline`
+- [ ] Test lazy fetch behavior
+
+---
+
 ## 🚀 Phase 2: Enhancement Features
 
-### 7. HVC Module ⬜
+### 8. HVC Module ⬜
 
 #### Data Layer ✅
 - [x] `hvcs` table defined
@@ -870,7 +960,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 8. Broker Module ⬜
+### 9. Broker Module ⬜
 
 #### Data Layer ✅
 - [x] `brokers` table defined
@@ -935,7 +1025,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 9. Target Assignment Module ⬜
+### 10. Target Assignment Module ⬜
 
 #### Repository Layer ⬜
 - [ ] Add to `ScoreboardRepository`:
@@ -965,7 +1055,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 10. Cadence Meeting Module ⬜
+### 11. Cadence Meeting Module ⬜
 
 #### Data Layer ✅
 - [x] `cadence_schedule_config` table defined
@@ -1034,7 +1124,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 11. Pipeline Referral Module ⬜
+### 12. Pipeline Referral Module ⬜
 
 #### Data Layer ✅
 - [x] `pipeline_referrals` table defined
@@ -1097,7 +1187,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 12. Admin Panel Module ⬜
+### 13. Admin Panel Module ⬜
 
 #### Presentation Layer ⬜
 **Screens**
@@ -1154,7 +1244,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 13. Notifications Module ⬜
+### 14. Notifications Module ⬜
 
 #### Data Layer ✅
 - [x] `notifications` table defined
@@ -1221,7 +1311,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 14. Profile & Settings Module ⬜
+### 15. Profile & Settings Module ⬜
 
 #### Presentation Layer ⬜
 **Screens**
@@ -1262,7 +1352,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 15. Reporting & Export Module ⬜
+### 16. Reporting & Export Module ⬜
 
 #### Service Layer ⬜
 - [ ] Implement `ReportService`
@@ -1357,26 +1447,27 @@ class CustomerForm extends _$CustomerForm {
 ### Week 5-6: Activity
 4. **Activity Module** - GPS, photos, execution
 
-### Week 7-8: Dashboard & Scoreboard
+### Week 7-8: Dashboard, Scoreboard & History
 5. **Dashboard** - Aggregation layer
 6. **Scoreboard** - 4DX integration
+7. **History Log Module** - Audit trail & notes history
 
 ### Week 9-10: HVC & Broker
-7. **HVC Module** - Simpler, similar to Customer
-8. **Broker Module** - Similar to HVC
+8. **HVC Module** - Simpler, similar to Customer
+9. **Broker Module** - Similar to HVC
 
 ### Week 11-12: Advanced Features
-9. **Target Assignment** - BH+ role feature
-10. **Cadence Meeting** - Team workflows
+10. **Target Assignment** - BH+ role feature
+11. **Cadence Meeting** - Team workflows
 
 ### Week 13-14: Support Features
-11. **Pipeline Referral** - Approval workflow
-12. **Notifications** - Cross-cutting
-13. **Profile & Settings** - User preferences
+12. **Pipeline Referral** - Approval workflow
+14. **Notifications** - Cross-cutting
+15. **Profile & Settings** - User preferences
 
 ### Week 15-16: Admin & Polish
-14. **Admin Panel** - Master data management
-15. **Reporting & Export** - Analytics
+13. **Admin Panel** - Master data management (includes Audit Logs screen)
+16. **Reporting & Export** - Analytics
 
 ---
 

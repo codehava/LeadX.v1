@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/screens/activity/activity_calendar_screen.dart';
+import '../../presentation/screens/activity/activity_detail_screen.dart';
+import '../../presentation/screens/activity/activity_form_screen.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -165,11 +168,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.activityCreate,
-                builder: (context, state) => const Placeholder(
-                  child: Center(child: Text('Create Activity')),
-                ),
+                builder: (context, state) {
+                  final objectType = state.uri.queryParameters['objectType'];
+                  final objectId = state.uri.queryParameters['objectId'];
+                  final objectName = state.uri.queryParameters['objectName'];
+                  final immediate = state.uri.queryParameters['immediate'] == 'true';
+                  return ActivityFormScreen(
+                    objectType: objectType,
+                    objectId: objectId,
+                    objectName: objectName,
+                    isImmediate: immediate,
+                  );
+                },
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.activityDetail,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ActivityDetailScreen(activityId: id);
+                },
               ),
             ],
+          ),
+          
+          // Activity Calendar (top-level route accessible from Dashboard)
+          GoRoute(
+            path: 'activity/calendar',
+            name: RouteNames.activityCalendar,
+            builder: (context, state) => const ActivityCalendarScreen(),
           ),
 
           // HVC

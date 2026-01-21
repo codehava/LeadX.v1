@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/datasources/local/activity_local_data_source.dart';
 import '../../data/datasources/local/customer_local_data_source.dart';
 import '../../data/datasources/local/key_person_local_data_source.dart';
 import '../../data/datasources/local/pipeline_local_data_source.dart';
 import '../../data/datasources/local/sync_queue_local_data_source.dart';
+import '../../data/datasources/remote/activity_remote_data_source.dart';
 import '../../data/datasources/remote/customer_remote_data_source.dart';
 import '../../data/datasources/remote/pipeline_remote_data_source.dart';
+import '../../data/repositories/activity_repository_impl.dart';
 import '../../data/repositories/customer_repository_impl.dart';
 import '../../data/repositories/pipeline_repository_impl.dart';
 import '../../data/services/app_settings_service.dart';
@@ -13,6 +16,7 @@ import '../../data/services/connectivity_service.dart';
 import '../../data/services/initial_sync_service.dart';
 import '../../data/services/sync_service.dart';
 import '../../domain/entities/sync_models.dart';
+import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import 'auth_providers.dart';
@@ -97,12 +101,14 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._syncService,
     this._customerRepository,
     this._pipelineRepository,
+    this._activityRepository,
     this._connectivityService,
   ) : super(const AsyncValue.data(null));
 
   final SyncService _syncService;
   final CustomerRepository _customerRepository;
   final PipelineRepository _pipelineRepository;
+  final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
@@ -119,7 +125,12 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final pushResult = await _syncService.triggerSync();
       print('[SyncNotifier] Push sync complete: ${pushResult.successCount} uploaded');
 
-      // Step 2: Pull - download changes from Supabase
+      // Step 2: Sync pending photos to Supabase Storage
+      print('[SyncNotifier] Starting photo sync...');
+      await _syncPhotos();
+      print('[SyncNotifier] Photo sync complete');
+
+      // Step 3: Pull - download changes from Supabase
       print('[SyncNotifier] Starting pull sync...');
       await _pullFromRemote();
       print('[SyncNotifier] Pull sync complete');
@@ -128,6 +139,15 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     } catch (e, st) {
       print('[SyncNotifier] Sync error: $e');
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Sync pending photos to Supabase Storage.
+  Future<void> _syncPhotos() async {
+    try {
+      await _activityRepository.syncPendingPhotos();
+    } catch (e) {
+      print('[SyncNotifier] Photo sync error: $e');
     }
   }
 
@@ -160,6 +180,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       await _pipelineRepository.syncFromRemote();
     } catch (e) {
       print('[SyncNotifier] Pipeline pull error: $e');
+    }
+
+    // Pull activities
+    try {
+      await _activityRepository.syncFromRemote();
+    } catch (e) {
+      print('[SyncNotifier] Activity pull error: $e');
     }
   }
 
@@ -202,14 +229,15 @@ final syncNotifierProvider =
   final connectivityService = ref.watch(connectivityServiceProvider);
   
   // Import repositories lazily to avoid circular dependencies
-  // These are defined in customer_providers.dart and pipeline_providers.dart
   final customerRepository = ref.watch(_customerRepositoryProvider);
   final pipelineRepository = ref.watch(_pipelineRepositoryProvider);
+  final activityRepository = ref.watch(_activityRepositoryProvider);
   
   return SyncNotifier(
     syncService,
     customerRepository,
     pipelineRepository,
+    activityRepository,
     connectivityService,
   );
 });
@@ -281,3 +309,29 @@ final _pipelineRemoteDataSourceProvider = Provider((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return PipelineRemoteDataSource(supabase);
 });
+
+/// Late-bound provider for activity repository to avoid circular imports.
+final _activityRepositoryProvider = Provider<ActivityRepository>((ref) {
+  final localDataSource = ref.watch(_activityLocalDataSourceProvider);
+  final remoteDataSource = ref.watch(_activityRemoteDataSourceProvider);
+  final syncService = ref.watch(syncServiceProvider);
+  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  
+  return ActivityRepositoryImpl(
+    localDataSource: localDataSource,
+    remoteDataSource: remoteDataSource,
+    syncService: syncService,
+    currentUserId: currentUser?.id ?? '',
+  );
+});
+
+final _activityLocalDataSourceProvider = Provider((ref) {
+  final db = ref.watch(databaseProvider);
+  return ActivityLocalDataSource(db);
+});
+
+final _activityRemoteDataSourceProvider = Provider((ref) {
+  final supabase = ref.watch(supabaseClientProvider);
+  return ActivityRemoteDataSource(supabase);
+});
+

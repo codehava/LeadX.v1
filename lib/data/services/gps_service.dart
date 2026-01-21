@@ -160,6 +160,62 @@ class GpsService {
   Future<bool> openLocationSettings() async {
     return await Geolocator.openLocationSettings();
   }
+
+  /// Validate proximity to target location for activity execution.
+  /// Returns a result with current position, distance, and whether within radius.
+  Future<ProximityValidationResult> validateActivityProximity({
+    required double targetLat,
+    required double targetLon,
+    double radiusMeters = 500,
+  }) async {
+    try {
+      final permissionStatus = await checkAndRequestPermission();
+      if (permissionStatus != LocationPermissionStatus.granted) {
+        return ProximityValidationResult(
+          isWithinRadius: false,
+          distanceMeters: 0,
+          currentPosition: null,
+          errorMessage: 'Location permission not granted: ${permissionStatus.name}',
+        );
+      }
+
+      final position = await getCurrentPosition();
+      if (position == null) {
+        return ProximityValidationResult(
+          isWithinRadius: false,
+          distanceMeters: 0,
+          currentPosition: null,
+          errorMessage: 'Could not get current location',
+        );
+      }
+
+      final distance = calculateDistance(
+        position.latitude,
+        position.longitude,
+        targetLat,
+        targetLon,
+      );
+
+      final withinRadius = distance <= radiusMeters;
+
+      return ProximityValidationResult(
+        isWithinRadius: withinRadius,
+        distanceMeters: distance,
+        currentPosition: position,
+        errorMessage: withinRadius
+            ? null
+            : 'You are ${distance.toInt()}m from the target (max ${radiusMeters.toInt()}m)',
+      );
+    } catch (e) {
+      debugPrint('GPS: Error validating proximity: $e');
+      return ProximityValidationResult(
+        isWithinRadius: false,
+        distanceMeters: 0,
+        currentPosition: null,
+        errorMessage: 'Error validating proximity: $e',
+      );
+    }
+  }
 }
 
 /// GPS position model.
@@ -188,4 +244,31 @@ enum LocationPermissionStatus {
   denied,
   deniedForever,
   serviceDisabled,
+}
+
+/// Result of proximity validation for activity execution.
+class ProximityValidationResult {
+  final bool isWithinRadius;
+  final double distanceMeters;
+  final GpsPosition? currentPosition;
+  final String? errorMessage;
+
+  const ProximityValidationResult({
+    required this.isWithinRadius,
+    required this.distanceMeters,
+    this.currentPosition,
+    this.errorMessage,
+  });
+
+  /// Check if validation was successful (got position, within radius).
+  bool get isValid => currentPosition != null && isWithinRadius;
+
+  /// Check if there was an error getting location.
+  bool get hasError => errorMessage != null && currentPosition == null;
+
+  @override
+  String toString() {
+    if (hasError) return 'ProximityValidationResult(error: $errorMessage)';
+    return 'ProximityValidationResult(distance: ${distanceMeters.toInt()}m, valid: $isWithinRadius)';
+  }
 }

@@ -245,24 +245,37 @@ CREATE INDEX idx_activities_status ON activities(status);
 
 CREATE TABLE activity_photos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
-  file_path TEXT NOT NULL,
-  file_size INTEGER,
-  mime_type VARCHAR(50),
+  activity_id UUID REFERENCES activities(id) ON DELETE CASCADE NOT NULL,
+  photo_url TEXT NOT NULL,
   caption TEXT,
-  uploaded_at TIMESTAMPTZ DEFAULT NOW(),
-  is_synced BOOLEAN DEFAULT false
+  taken_at TIMESTAMPTZ,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE activity_audit_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
   action VARCHAR(50) NOT NULL,
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
   old_values JSONB,
   new_values JSONB,
-  changed_by UUID REFERENCES users(id),
-  changed_at TIMESTAMPTZ DEFAULT NOW()
+  changed_fields JSONB,
+  latitude DECIMAL(10, 7),
+  longitude DECIMAL(10, 7),
+  device_info JSONB,
+  performed_by UUID REFERENCES users(id),
+  performed_at TIMESTAMPTZ DEFAULT NOW(),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_activity_audit_logs_activity ON activity_audit_logs(activity_id);
+CREATE INDEX idx_activity_audit_logs_performed_by ON activity_audit_logs(performed_by);
+CREATE INDEX idx_activity_audit_logs_performed_at ON activity_audit_logs(performed_at DESC);
+CREATE INDEX idx_activity_audit_logs_action ON activity_audit_logs(action);
 
 -- ============================================
 -- TRIGGERS

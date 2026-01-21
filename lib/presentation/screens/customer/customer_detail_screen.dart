@@ -3,13 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/key_person.dart';
+import '../../providers/activity_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/cards/pipeline_card.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
+import '../activity/activity_execution_sheet.dart';
+import '../activity/immediate_activity_sheet.dart';
 import 'key_person_form_sheet.dart';
 
 /// Customer detail screen with tabs for info, key persons, pipelines, activities.
@@ -101,7 +106,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
           _InfoTab(customer: customer),
           _KeyPersonsTab(customerId: customer.id),
           _PipelinesTab(customerId: customer.id),
-          _PlaceholderTab(title: 'Aktivitas'),
+          _ActivitiesTab(customerId: customer.id, customerName: customer.name),
         ],
       ),
       // Quick action buttons
@@ -518,29 +523,296 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
   }
 }
 
+/// Activities tab showing customer activities.
+class _ActivitiesTab extends ConsumerWidget {
+  const _ActivitiesTab({required this.customerId, required this.customerName});
 
-/// Placeholder tab for activities.
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.title});
-
-  final String title;
+  final String customerId;
+  final String customerName;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activitiesAsync = ref.watch(customerActivitiesProvider(customerId));
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: activitiesAsync.when(
+        data: (activities) {
+          if (activities.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.event_note_outlined,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Belum ada aktivitas'),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _showImmediateSheet(context),
+                        icon: const Icon(Icons.flash_on),
+                        label: const Text('Log Aktivitas'),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () => _navigateToSchedule(context),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Jadwalkan'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Group activities by status
+          final upcoming = activities.where((a) =>
+              a.status == ActivityStatus.planned ||
+              a.status == ActivityStatus.inProgress).toList();
+          final completed = activities.where((a) =>
+              a.status == ActivityStatus.completed).toList();
+          final other = activities.where((a) =>
+              a.status == ActivityStatus.cancelled ||
+              a.status == ActivityStatus.rescheduled ||
+              a.status == ActivityStatus.overdue).toList();
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (upcoming.isNotEmpty) ...[
+                Text(
+                  'Mendatang (${upcoming.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                ...upcoming.map((a) => _ActivityTile(
+                      activity: a,
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                      onExecute: a.canExecute
+                          ? () => _executeActivity(context, a)
+                          : null,
+                    )),
+                const SizedBox(height: 16),
+              ],
+              if (completed.isNotEmpty) ...[
+                Text(
+                  'Selesai (${completed.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                ...completed.map((a) => _ActivityTile(
+                      activity: a,
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                    )),
+                const SizedBox(height: 16),
+              ],
+              if (other.isNotEmpty) ...[
+                Text(
+                  'Lainnya (${other.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                ...other.map((a) => _ActivityTile(
+                      activity: a,
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                    )),
+              ],
+            ],
+          );
+        },
+        loading: () => const Center(child: AppLoadingIndicator()),
+        error: (error, _) => Center(child: Text('Error: $error')),
+      ),
+      floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.construction,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          FloatingActionButton.small(
+            heroTag: 'activity_immediate_fab',
+            onPressed: () => _showImmediateSheet(context),
+            backgroundColor: AppColors.tertiary,
+            child: const Icon(Icons.flash_on),
           ),
-          const SizedBox(height: 16),
-          Text('$title - Coming Soon'),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: 'activity_schedule_fab',
+            onPressed: () => _navigateToSchedule(context),
+            child: const Icon(Icons.add),
+          ),
         ],
       ),
     );
+  }
+
+  void _showImmediateSheet(BuildContext context) {
+    ImmediateActivitySheet.show(
+      context,
+      objectType: 'CUSTOMER',
+      objectId: customerId,
+      objectName: customerName,
+    );
+  }
+
+  void _navigateToSchedule(BuildContext context) {
+    context.push(
+      '/home/activities/create?objectType=CUSTOMER&objectId=$customerId&objectName=${Uri.encodeComponent(customerName)}',
+    );
+  }
+
+  void _executeActivity(BuildContext context, Activity activity) {
+    ActivityExecutionSheet.show(
+      context,
+      activity: activity,
+      // targetLat/targetLon would come from customer location if available
+    );
+  }
+}
+
+/// Activity tile for the activities list.
+class _ActivityTile extends StatelessWidget {
+  const _ActivityTile({
+    required this.activity,
+    required this.onTap,
+    this.onExecute,
+  });
+
+  final Activity activity;
+  final VoidCallback onTap;
+  final VoidCallback? onExecute;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: _getStatusColor().withValues(alpha: 0.2),
+                radius: 20,
+                child: Icon(
+                  _getTypeIcon(),
+                  size: 20,
+                  color: _getStatusColor(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.displayName,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      _formatDateTime(activity.scheduledDatetime),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getStatusColor().withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  activity.statusText,
+                  style: TextStyle(
+                    color: _getStatusColor(),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (onExecute != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: onExecute,
+                  icon: const Icon(Icons.play_circle_fill),
+                  color: AppColors.success,
+                  tooltip: 'Eksekusi',
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor() {
+    switch (activity.status) {
+      case ActivityStatus.planned:
+        return AppColors.info;
+      case ActivityStatus.inProgress:
+        return AppColors.warning;
+      case ActivityStatus.completed:
+        return AppColors.success;
+      case ActivityStatus.cancelled:
+        return AppColors.activityCancelled;
+      case ActivityStatus.rescheduled:
+        return AppColors.primary;
+      case ActivityStatus.overdue:
+        return AppColors.error;
+    }
+  }
+
+  IconData _getTypeIcon() {
+    final iconName = activity.activityTypeIcon?.toLowerCase() ?? '';
+    switch (iconName) {
+      case 'visit':
+      case 'place':
+      case 'location':
+        return Icons.place;
+      case 'call':
+      case 'phone':
+        return Icons.phone;
+      case 'meeting':
+      case 'people':
+        return Icons.people;
+      case 'email':
+      case 'mail':
+        return Icons.email;
+      default:
+        return Icons.event;
+    }
+  }
+
+  String _formatDateTime(DateTime dt) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dtDate = DateTime(dt.year, dt.month, dt.day);
+
+    String dateStr;
+    if (dtDate == today) {
+      dateStr = 'Hari ini';
+    } else if (dtDate == today.add(const Duration(days: 1))) {
+      dateStr = 'Besok';
+    } else {
+      dateStr = '${dt.day}/${dt.month}';
+    }
+
+    final timeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    return '$dateStr, $timeStr';
   }
 }
 
