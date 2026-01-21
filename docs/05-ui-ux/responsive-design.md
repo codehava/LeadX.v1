@@ -44,6 +44,179 @@ class Breakpoints {
 
 ---
 
+## 🎯 App Bar / Header Specification
+
+### Header Dimensions
+
+| Breakpoint | Header Height | Logo Size | Action Icon Size |
+|------------|---------------|-----------|------------------|
+| Mobile | 56dp | 32x32dp | 24dp (touch: 48dp) |
+| Tablet | 64dp | 40x40dp | 24dp (touch: 48dp) |
+| Desktop | 64dp | 48x48dp | 24dp |
+
+### Header Content Per Breakpoint
+
+#### Mobile (< 600px)
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [≡]  Logo + "LeadX"     [🔔] [⚡Sync] [👤]                  │
+└─────────────────────────────────────────────────────────────┘
+```
+| Position | Element | Behavior |
+|----------|---------|----------|
+| Left | Hamburger menu (optional) | Opens drawer untuk akses settings |
+| Center-Left | Logo + App name | Tap → kembali ke Dashboard |
+| Right | Notification icon | Badge count jika ada notif baru |
+| Right | Sync button | Rotating saat sync in progress |
+| Right | Profile avatar | Tap → Profile menu dropdown |
+
+#### Tablet (600-1023px)
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Logo + "LeadX CRM"  |  [Search...]  | [🔔] [⚡] [👤 Name ▼] │
+└─────────────────────────────────────────────────────────────┘
+```
+| Position | Element | Behavior |
+|----------|---------|----------|
+| Left | Logo + Full app name | Tap → kembali ke Dashboard |
+| Center | Search bar (expandable) | 200-300px width |
+| Right | Notification icon | Dengan badge count |
+| Right | Sync status indicator | Icon + optional text "Syncing..." |
+| Right | Profile (avatar + nama) | Dropdown menu on tap |
+
+#### Desktop (≥ 1024px)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    [🔍 Search customers, pipelines...]   [🔔 3] [⚡] [👤 Nama User ▼] │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+| Position | Element | Behavior |
+|----------|---------|----------|
+| Left | (Kosong - logo di sidebar) | - |
+| Center | Search bar (expanded) | Min 400px width, global search |
+| Right | Notification icon + count | Dropdown panel on hover/click |
+| Right | Sync indicator | Last sync time + manual sync button |
+| Right | Profile menu | Avatar + full name + role badge |
+
+> **Catatan Desktop:** Logo dan branding pindah ke bagian atas sidebar, bukan di header content area.
+
+---
+
+## 🧭 Navigation Component Specification
+
+### Navigation Type Per Breakpoint
+
+| Breakpoint | Navigasi | Posisi | Lebar/Tinggi | Behavior saat Detail |
+|------------|----------|--------|--------------|----------------------|
+| Mobile (< 600px) | Bottom Navigation | Bottom | 56dp | **Tetap terlihat** (dalam shell) |
+| Tablet (600-1023px) | Navigation Rail | Left | 80dp | **Tetap terlihat** |
+| Desktop (≥ 1024px) | Sidebar | Left | 256-280px | **Tetap terlihat** |
+
+### Mobile: Bottom Navigation (< 600px)
+
+Bottom Navigation berada **dalam shell**, sehingga tetap terlihat saat navigasi ke detail screen.
+
+```
+┌─────────────────────────────────────────────────┐
+│                 Content Area                    │
+│  (Dashboard / CustomerList / CustomerDetail)    │
+├─────────────────────────────────────────────────┤
+│   🏠   │   👥   │   ➕   │   📅   │   👤       │
+│  Home  │Customer│  Add   │Activity│ Profile    │
+└─────────────────────────────────────────────────┘
+```
+
+| Spesifikasi | Nilai |
+|-------------|-------|
+| Tinggi | 56dp |
+| Icon size | 24dp |
+| Label size | 12sp |
+| Touch target | 48dp minimum |
+| Active indicator | Pill shape dengan primary color |
+| Elevation | 8dp |
+
+---
+
+### Tablet: Navigation Rail (600-1023px)
+
+Navigation Rail tetap terlihat di kiri saat navigasi ke detail screen.
+
+```
+┌────────┬────────────────────────────────────────┐
+│  🏠    │                                        │
+│ Home   │          Content Area                  │
+│        │  (List atau Detail, tergantung route)  │
+│  👥    │                                        │
+│Customer│                                        │
+│        │                                        │
+│  ➕    │                                        │
+│  Add   │                                        │
+│        │                                        │
+│  📅    │                                        │
+│Activity│                                        │
+│        │                                        │
+│  👤    │                                        │
+│Profile │                                        │
+├────────┤                                        │
+│  ⋮     │                                        │
+│ More   │                                        │
+└────────┴────────────────────────────────────────┘
+```
+
+| Spesifikasi | Nilai |
+|-------------|-------|
+| Lebar | 80dp |
+| Icon size | 24dp |
+| Label size | 12sp (di bawah icon) |
+| Item height | 56dp |
+| Active indicator | Pill background |
+
+### Drawer Menu Items (via hamburger di Dashboard AppBar)
+- HVC (High Value Customer)
+- Broker
+- Scoreboard
+- Cadence
+- Settings
+- Logout
+- Admin Panel (jika role = ADMIN)
+
+### Desktop Sidebar
+
+```
+┌─────────────────────────┐
+│ [Logo] LeadX CRM        │ ← Branded header
+│ "AI-Powered CRM"        │
+│ PT ABC Company          │
+├─────────────────────────┤
+│ 🏠 Dashboard            │
+│ 👥 Customers            │  ← Pipeline sebagai tab di Customer Detail
+│ 📅 Activities           │
+│ 👤 Profile              │
+├─────────────────────────┤
+│ ⭐ HVC                  │
+│ 🤝 Broker               │
+│ 🏆 Scoreboard           │
+│ � Cadence              │
+├─────────────────────────┤
+│ ⚙️ Settings             │
+│ 🔐 Admin Panel *        │ ← *Hanya jika role=ADMIN
+├─────────────────────────┤
+│ 🚪 Logout               │
+│ © 2025 LeadX            │ ← Footer
+└─────────────────────────┘
+```
+
+| Spesifikasi | Nilai |
+|-------------|-------|
+| Lebar | 256px (Desktop), 280px (Desktop L) |
+| Header height | 80dp (logo + company info) |
+| Item height | 48dp |
+| Icon size | 24dp |
+| Active indicator | Left border 4dp + background highlight |
+| Collapsed mode | Tidak ada (selalu expanded di desktop) |
+
+---
+
 ## 📱 Layout Patterns
 
 ### Mobile Layout (< 600px)
@@ -155,16 +328,37 @@ class ResponsiveGrid extends StatelessWidget {
 
 ```dart
 class ResponsiveNavigation extends StatelessWidget {
+  final Widget child;
+  
   @override
   Widget build(BuildContext context) {
-    if (Breakpoints.isMobile(context)) {
-      return BottomNavigationBar(...);
-    } else {
-      return NavigationRail(...);
+    final width = MediaQuery.of(context).size.width;
+    
+    // Desktop: Sidebar + Content
+    if (width >= 1024) {
+      return Row(
+        children: [
+          SizedBox(
+            width: width >= 1440 ? 280 : 256,
+            child: const DesktopSidebar(),
+          ),
+          Expanded(child: child),
+        ],
+      );
     }
+    
+    // Mobile & Tablet: Content + Bottom Navigation
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: SizedBox(
+        height: width >= 600 ? 64 : 56,
+        child: const AppBottomNavigation(),
+      ),
+    );
   }
 }
 ```
+
 
 ---
 

@@ -1,0 +1,284 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/datasources/local/customer_local_data_source.dart';
+import '../../data/datasources/local/key_person_local_data_source.dart';
+import '../../data/datasources/remote/customer_remote_data_source.dart';
+import '../../data/dtos/customer_dtos.dart';
+import '../../data/repositories/customer_repository_impl.dart';
+import '../../domain/entities/customer.dart' as domain;
+import '../../domain/entities/key_person.dart' as domain;
+import '../../domain/repositories/customer_repository.dart';
+import 'auth_providers.dart';
+import 'database_provider.dart';
+import 'sync_providers.dart';
+
+// ==========================================
+// Data Source Providers
+// ==========================================
+
+/// Provider for the customer local data source.
+final customerLocalDataSourceProvider =
+    Provider<CustomerLocalDataSource>((ref) {
+  final db = ref.watch(databaseProvider);
+  return CustomerLocalDataSource(db);
+});
+
+/// Provider for the key person local data source.
+final keyPersonLocalDataSourceProvider =
+    Provider<KeyPersonLocalDataSource>((ref) {
+  final db = ref.watch(databaseProvider);
+  return KeyPersonLocalDataSource(db);
+});
+
+/// Provider for the customer remote data source.
+final customerRemoteDataSourceProvider =
+    Provider<CustomerRemoteDataSource>((ref) {
+  final supabase = ref.watch(supabaseClientProvider);
+  return CustomerRemoteDataSource(supabase);
+});
+
+// ==========================================
+// Repository Provider
+// ==========================================
+
+/// Provider for the customer repository.
+final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
+  final localDataSource = ref.watch(customerLocalDataSourceProvider);
+  final keyPersonLocalDataSource = ref.watch(keyPersonLocalDataSourceProvider);
+  final remoteDataSource = ref.watch(customerRemoteDataSourceProvider);
+  final syncService = ref.watch(syncServiceProvider);
+  final currentUser = ref.watch(currentUserProvider).value;
+
+  return CustomerRepositoryImpl(
+    localDataSource: localDataSource,
+    keyPersonLocalDataSource: keyPersonLocalDataSource,
+    remoteDataSource: remoteDataSource,
+    syncService: syncService,
+    currentUserId: currentUser?.id ?? '',
+  );
+});
+
+// ==========================================
+// Customer List Providers
+// ==========================================
+
+/// Provider for watching all customers as a stream.
+final customerListStreamProvider =
+    StreamProvider<List<domain.Customer>>((ref) {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.watchAllCustomers();
+});
+
+/// Provider for fetching customers by search query.
+final customerSearchProvider = FutureProvider.family
+    .autoDispose<List<domain.Customer>, String>((ref, query) async {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.searchCustomers(query);
+});
+
+// ==========================================
+// Customer Detail Providers
+// ==========================================
+
+/// Provider for fetching a single customer by ID.
+final customerDetailProvider =
+    FutureProvider.family<domain.Customer?, String>((ref, id) async {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.getCustomerById(id);
+});
+
+/// Provider for fetching key persons of a customer.
+final customerKeyPersonsProvider =
+    FutureProvider.family<List<domain.KeyPerson>, String>((ref, customerId) async {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.getCustomerKeyPersons(customerId);
+});
+
+/// Provider for the primary key person of a customer.
+final primaryKeyPersonProvider =
+    FutureProvider.family<domain.KeyPerson?, String>((ref, customerId) async {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.getPrimaryKeyPerson(customerId);
+});
+
+// ==========================================
+// Form Notifiers
+// ==========================================
+
+/// State for customer form.
+class CustomerFormState {
+  CustomerFormState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.savedCustomer,
+  });
+
+  final bool isLoading;
+  final String? errorMessage;
+  final domain.Customer? savedCustomer;
+
+  CustomerFormState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    domain.Customer? savedCustomer,
+  }) =>
+      CustomerFormState(
+        isLoading: isLoading ?? this.isLoading,
+        errorMessage: errorMessage,
+        savedCustomer: savedCustomer ?? this.savedCustomer,
+      );
+}
+
+/// Notifier for customer form operations.
+class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
+  CustomerFormNotifier(this._repository) : super(CustomerFormState());
+
+  final CustomerRepository _repository;
+
+  /// Create a new customer.
+  Future<void> createCustomer(CustomerCreateDto dto) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.createCustomer(dto);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (customer) => state = state.copyWith(
+        isLoading: false,
+        savedCustomer: customer,
+      ),
+    );
+  }
+
+  /// Update an existing customer.
+  Future<void> updateCustomer(String id, CustomerUpdateDto dto) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.updateCustomer(id, dto);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (customer) => state = state.copyWith(
+        isLoading: false,
+        savedCustomer: customer,
+      ),
+    );
+  }
+
+  /// Reset form state.
+  void reset() {
+    state = CustomerFormState();
+  }
+}
+
+/// Provider for customer form notifier.
+final customerFormNotifierProvider =
+    StateNotifierProvider.autoDispose<CustomerFormNotifier, CustomerFormState>(
+        (ref) {
+  final repository = ref.watch(customerRepositoryProvider);
+  return CustomerFormNotifier(repository);
+});
+
+// ==========================================
+// Key Person Form Notifiers
+// ==========================================
+
+/// State for key person form.
+class KeyPersonFormState {
+  KeyPersonFormState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.savedKeyPerson,
+  });
+
+  final bool isLoading;
+  final String? errorMessage;
+  final domain.KeyPerson? savedKeyPerson;
+
+  KeyPersonFormState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    domain.KeyPerson? savedKeyPerson,
+  }) =>
+      KeyPersonFormState(
+        isLoading: isLoading ?? this.isLoading,
+        errorMessage: errorMessage,
+        savedKeyPerson: savedKeyPerson ?? this.savedKeyPerson,
+      );
+}
+
+/// Notifier for key person form operations.
+class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
+  KeyPersonFormNotifier(this._repository) : super(KeyPersonFormState());
+
+  final CustomerRepository _repository;
+
+  /// Add a new key person.
+  Future<void> addKeyPerson(KeyPersonDto dto) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.addKeyPerson(dto);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (keyPerson) => state = state.copyWith(
+        isLoading: false,
+        savedKeyPerson: keyPerson,
+      ),
+    );
+  }
+
+  /// Update an existing key person.
+  Future<void> updateKeyPerson(String id, KeyPersonDto dto) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.updateKeyPerson(id, dto);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (keyPerson) => state = state.copyWith(
+        isLoading: false,
+        savedKeyPerson: keyPerson,
+      ),
+    );
+  }
+
+  /// Delete a key person.
+  Future<void> deleteKeyPerson(String id) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await _repository.deleteKeyPerson(id);
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (_) => state = state.copyWith(isLoading: false),
+    );
+  }
+
+  /// Reset form state.
+  void reset() {
+    state = KeyPersonFormState();
+  }
+}
+
+/// Provider for key person form notifier.
+final keyPersonFormNotifierProvider = StateNotifierProvider.autoDispose<
+    KeyPersonFormNotifier, KeyPersonFormState>((ref) {
+  final repository = ref.watch(customerRepositoryProvider);
+  return KeyPersonFormNotifier(repository);
+});

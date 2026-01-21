@@ -7,6 +7,8 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
+import '../../presentation/screens/customer/customer_detail_screen.dart';
+import '../../presentation/screens/customer/customer_form_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
 import 'route_names.dart';
 
@@ -101,18 +103,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.customerCreate,
-                builder: (context, state) => const Placeholder(
-                  child: Center(child: Text('Create Customer')),
-                ),
+                builder: (context, state) => const CustomerFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.customerDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return Placeholder(
-                    child: Center(child: Text('Customer Detail: $id')),
-                  );
+                  return CustomerDetailScreen(customerId: id);
                 },
                 routes: [
                   GoRoute(
@@ -120,9 +118,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.customerEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return Placeholder(
-                        child: Center(child: Text('Edit Customer: $id')),
-                      );
+                      return CustomerFormScreen(customerId: id);
                     },
                   ),
                 ],

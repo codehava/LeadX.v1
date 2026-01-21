@@ -5,125 +5,129 @@ import 'package:go_router/go_router.dart';
 import '../../../config/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/sync_providers.dart';
-import '../../widgets/common/sync_status_badge.dart';
-import '../../widgets/layout/responsive_layout.dart';
-import '../../widgets/sync/sync_progress_sheet.dart';
-import 'tabs/activities_tab.dart';
-import 'tabs/customers_tab.dart';
-import 'tabs/dashboard_tab.dart';
-import 'tabs/profile_tab.dart';
-import 'widgets/home_drawer.dart';
-import 'widgets/quick_add_sheet.dart';
+import '../../screens/home/widgets/home_drawer.dart';
+import '../common/sync_status_badge.dart';
+import '../sync/sync_progress_sheet.dart';
+import '../layout/responsive_layout.dart';
 
-/// Home screen with responsive navigation.
+/// Responsive shell that provides navigation based on screen size.
 /// - Mobile: Bottom Navigation
 /// - Tablet: Navigation Rail
 /// - Desktop: Sidebar
-class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+class ResponsiveShell extends ConsumerStatefulWidget {
+  final Widget child;
+  final String currentRoute;
+
+  const ResponsiveShell({
+    super.key,
+    required this.child,
+    required this.currentRoute,
+  });
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<ResponsiveShell> createState() => _ResponsiveShellState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 0;
+class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
+  int _selectedIndex = 0;
 
-  static const List<_NavigationItem> _navigationItems = [
-    _NavigationItem(
+  static const List<_NavItem> _navItems = [
+    _NavItem(
       icon: Icons.home_outlined,
       activeIcon: Icons.home,
       label: 'Home',
+      route: RoutePaths.home,
     ),
-    _NavigationItem(
+    _NavItem(
       icon: Icons.people_outline,
       activeIcon: Icons.people,
-      label: 'Customers',
+      label: 'Customer',
+      route: RoutePaths.home, // Customer tab
     ),
-    _NavigationItem(
+    _NavItem(
       icon: Icons.add_circle_outline,
       activeIcon: Icons.add_circle,
       label: 'Add',
+      route: '', // Special: opens quick add sheet
     ),
-    _NavigationItem(
+    _NavItem(
       icon: Icons.calendar_today_outlined,
       activeIcon: Icons.calendar_today,
-      label: 'Activities',
+      label: 'Activity',
+      route: RoutePaths.home, // Activity tab
     ),
-    _NavigationItem(
+    _NavItem(
       icon: Icons.person_outline,
       activeIcon: Icons.person,
       label: 'Profile',
+      route: RoutePaths.profile,
     ),
   ];
 
-  Widget _buildContent() {
-    return IndexedStack(
-      index: _currentIndex,
-      children: [
-        DashboardTab(
-          onNotificationsTap: () => context.push(RoutePaths.notifications),
-          onSyncTap: _handleSync,
-          onHvcTap: () => context.push(RoutePaths.hvc),
-          onBrokerTap: () => context.push(RoutePaths.brokers),
-          onScoreboardTap: () => context.push(RoutePaths.scoreboard),
-          onCadenceTap: () => context.push(RoutePaths.cadence),
-          onSettingsTap: () => context.push(RoutePaths.settings),
-          onLogoutTap: _handleLogout,
-        ),
-        const CustomersTab(),
-        const SizedBox.shrink(), // Placeholder for Add button
-        const ActivitiesTab(),
-        const ProfileTab(),
-      ],
-    );
+  @override
+  void didUpdateWidget(covariant ResponsiveShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateSelectedIndex();
+  }
+
+  void _updateSelectedIndex() {
+    final route = widget.currentRoute;
+    if (route.contains('/profile')) {
+      _selectedIndex = 4;
+    } else if (route.contains('/activities')) {
+      _selectedIndex = 3;
+    } else if (route.contains('/customers')) {
+      _selectedIndex = 1;
+    } else {
+      _selectedIndex = 0;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _buildMobileLayout(),
-      tablet: _buildTabletLayout(),
-      desktop: _buildDesktopLayout(),
+      mobile: _buildMobileLayout(context),
+      tablet: _buildTabletLayout(context),
+      desktop: _buildDesktopLayout(context),
     );
   }
 
-  /// Mobile: Bottom Navigation
-  Widget _buildMobileLayout() {
+  /// Mobile: Scaffold with bottom navigation
+  Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      drawer: _buildDrawer(),
-      body: _buildContent(),
-      bottomNavigationBar: _buildBottomNav(),
+      appBar: _buildAppBar(context),
+      drawer: _buildDrawer(context),
+      body: widget.child,
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
-  /// Tablet: Navigation Rail
-  Widget _buildTabletLayout() {
+  /// Tablet: Row with navigation rail
+  Widget _buildTabletLayout(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Row(
         children: [
-          _buildNavigationRail(),
+          _buildNavigationRail(context),
           const VerticalDivider(width: 1),
-          Expanded(child: _buildContent()),
+          Expanded(child: widget.child),
         ],
       ),
     );
   }
 
-  /// Desktop: Sidebar
-  Widget _buildDesktopLayout() {
+  /// Desktop: Row with sidebar
+  Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
-          _buildSidebar(),
+          _buildSidebar(context),
           const VerticalDivider(width: 1),
           Expanded(
             child: Column(
               children: [
-                _buildDesktopTopBar(),
-                Expanded(child: _buildContent()),
+                _buildDesktopTopBar(context),
+                Expanded(child: widget.child),
               ],
             ),
           ),
@@ -132,14 +136,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       title: const Text('LeadX CRM'),
       actions: [
         // Sync progress indicator (shows when syncing)
         const SyncProgressIndicator(),
         // Sync status badge with tap to sync
-        _buildSyncButton(),
+        _buildSyncButton(context),
         // Notifications
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
@@ -150,13 +154,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSyncButton() {
+  Widget _buildSyncButton(BuildContext context) {
     final isConnected = ref.watch(connectivityStreamProvider);
     final pendingCount = ref.watch(pendingSyncCountProvider);
     final syncNotifier = ref.watch(syncNotifierProvider);
 
     SyncStatus status;
-    if (!(isConnected.value ?? true)) {
+    if (!isConnected.value!) {
       status = SyncStatus.offline;
     } else if (syncNotifier.isLoading) {
       status = SyncStatus.pending;
@@ -206,12 +210,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: _onTabTapped,
+      currentIndex: _selectedIndex,
+      onTap: _onNavTap,
       type: BottomNavigationBarType.fixed,
-      items: _navigationItems
+      items: _navItems
           .map((item) => BottomNavigationBarItem(
                 icon: Icon(item.icon),
                 activeIcon: Icon(item.activeIcon),
@@ -221,35 +225,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildNavigationRail() {
-    // Filter out Add button for rail, use FAB instead
-    final railItems = _navigationItems
-        .where((item) => item.label != 'Add')
-        .toList();
-    
-    // Adjust index for rail (skip Add button at index 2)
-    int railIndex = _currentIndex;
-    if (_currentIndex > 2) railIndex = _currentIndex - 1;
-    if (_currentIndex == 2) railIndex = 0; // Default to home if on Add
-
+  Widget _buildNavigationRail(BuildContext context) {
     return NavigationRail(
-      selectedIndex: railIndex,
-      onDestinationSelected: (index) {
-        // Convert rail index back to full index
-        int fullIndex = index;
-        if (index >= 2) fullIndex = index + 1;
-        _onTabTapped(fullIndex);
-      },
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: _onNavTap,
       labelType: NavigationRailLabelType.all,
-      leading: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: FloatingActionButton(
-          elevation: 0,
-          onPressed: _showQuickAddSheet,
-          child: const Icon(Icons.add),
-        ),
+      leading: FloatingActionButton(
+        elevation: 0,
+        onPressed: () => _showQuickAddSheet(context),
+        child: const Icon(Icons.add),
       ),
-      destinations: railItems
+      destinations: _navItems
+          .where((item) => item.label != 'Add') // Exclude Add from rail
           .map((item) => NavigationRailDestination(
                 icon: Icon(item.icon),
                 selectedIcon: Icon(item.activeIcon),
@@ -259,7 +246,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar(BuildContext context) {
     final theme = Theme.of(context);
     final width = context.screenWidth >= Breakpoints.widescreen ? 280.0 : 256.0;
 
@@ -271,36 +258,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Branded header
           Container(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.auto_graph,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      'LeadX CRM',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.auto_graph,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
-                    Text(
-                      'AI-Powered CRM',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'LeadX CRM',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'AI-Powered CRM',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -313,21 +305,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                _buildSidebarItem(Icons.home, 'Dashboard', 0),
-                _buildSidebarItem(Icons.people, 'Customers', 1),
-                _buildSidebarItem(Icons.calendar_today, 'Activities', 3),
-                _buildSidebarItem(Icons.person, 'Profile', 4),
+                _buildSidebarItem(context, Icons.home, 'Dashboard', 0),
+                _buildSidebarItem(context, Icons.people, 'Customers', 1),
+                _buildSidebarItem(context, Icons.calendar_today, 'Activities', 2),
+                _buildSidebarItem(context, Icons.person, 'Profile', 3),
                 const Divider(height: 16),
-                _buildSidebarItem(Icons.business, 'HVC', -1,
+                _buildSidebarItem(context, Icons.business, 'HVC', -1, 
                     onTap: () => context.push(RoutePaths.hvc)),
-                _buildSidebarItem(Icons.handshake, 'Broker', -1,
+                _buildSidebarItem(context, Icons.handshake, 'Broker', -1,
                     onTap: () => context.push(RoutePaths.brokers)),
-                _buildSidebarItem(Icons.leaderboard, 'Scoreboard', -1,
+                _buildSidebarItem(context, Icons.leaderboard, 'Scoreboard', -1,
                     onTap: () => context.push(RoutePaths.scoreboard)),
-                _buildSidebarItem(Icons.groups, 'Cadence', -1,
+                _buildSidebarItem(context, Icons.groups, 'Cadence', -1,
                     onTap: () => context.push(RoutePaths.cadence)),
                 const Divider(height: 16),
-                _buildSidebarItem(Icons.settings, 'Settings', -1,
+                _buildSidebarItem(context, Icons.settings, 'Settings', -1,
                     onTap: () => context.push(RoutePaths.settings)),
               ],
             ),
@@ -348,13 +340,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildSidebarItem(
+    BuildContext context,
     IconData icon,
     String label,
     int index, {
     VoidCallback? onTap,
   }) {
     final theme = Theme.of(context);
-    final isSelected = index >= 0 && _currentIndex == index;
+    final isSelected = index >= 0 && _selectedIndex == index;
 
     return ListTile(
       leading: Icon(
@@ -369,7 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       selected: isSelected,
-      onTap: onTap ?? () => _onTabTapped(index),
+      onTap: onTap ?? () => _onNavTap(index),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -377,7 +370,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildDesktopTopBar() {
+  Widget _buildDesktopTopBar(BuildContext context) {
     final theme = Theme.of(context);
 
     return Container(
@@ -419,7 +412,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Actions
           const SyncProgressIndicator(),
           const SizedBox(width: 8),
-          _buildSyncButton(),
+          _buildSyncButton(context),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => context.push(RoutePaths.notifications),
@@ -436,7 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(BuildContext context) {
     return HomeDrawer(
       userName: 'User Name',
       userRole: 'Relationship Manager',
@@ -462,51 +455,78 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       onLogoutTap: () {
         Navigator.pop(context);
-        _handleLogout();
+        context.go(RoutePaths.login);
       },
     );
   }
 
-  void _onTabTapped(int index) {
+  void _onNavTap(int index) {
     if (index == 2) {
-      _showQuickAddSheet();
-    } else {
-      setState(() => _currentIndex = index);
+      // Add button - show quick add sheet
+      _showQuickAddSheet(context);
+      return;
     }
+
+    setState(() => _selectedIndex = index);
+
+    // For now, just update index. In real implementation,
+    // this should use StatefulShellRoute for proper tab persistence.
+    // TODO: Implement proper tab navigation with go_router
   }
 
-  void _showQuickAddSheet() {
-    QuickAddSheet.show(
-      context,
-      onNewCustomer: () => context.push(RoutePaths.customerCreate),
-      onNewPipeline: () {
-        // TODO: Navigate to pipeline create (needs customer selection)
-      },
-      onNewActivity: () => context.push(RoutePaths.activityCreate),
-      onImmediateActivity: () {
-        // TODO: Show immediate activity dialog
-      },
+  void _showQuickAddSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.person_add),
+              title: const Text('New Customer'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(RoutePaths.customerCreate);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_chart),
+              title: const Text('New Pipeline'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to pipeline create
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('New Activity'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(RoutePaths.activityCreate);
+              },
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
+          ],
+        ),
+      ),
     );
-  }
-
-  void _handleSync() {
-    ref.read(syncNotifierProvider.notifier).triggerSync();
-  }
-
-  void _handleLogout() {
-    // TODO: Implement actual logout
-    context.go(RoutePaths.login);
   }
 }
 
-class _NavigationItem {
+class _NavItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
+  final String route;
 
-  const _NavigationItem({
+  const _NavItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
+    required this.route,
   });
 }

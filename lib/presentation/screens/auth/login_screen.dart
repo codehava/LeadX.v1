@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
 import '../../providers/auth_providers.dart';
+import '../../providers/sync_providers.dart';
+import '../../widgets/sync/sync_progress_sheet.dart';
 
 /// Login screen for user authentication.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -35,7 +37,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
 
     if (success && mounted) {
-      context.go(RoutePaths.home);
+      // Check if initial sync is needed
+      final appSettings = ref.read(appSettingsServiceProvider);
+      final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
+
+      if (!hasInitialSynced) {
+        // Show sync progress sheet
+        if (mounted) {
+          await SyncProgressSheet.show(context);
+          // Mark as completed after sync
+          await appSettings.markInitialSyncCompleted();
+        }
+      }
+
+      if (mounted) {
+        context.go(RoutePaths.home);
+      }
     }
   }
 

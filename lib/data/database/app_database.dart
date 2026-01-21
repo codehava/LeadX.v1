@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/activities.dart';
 import 'tables/cadence.dart';
@@ -22,6 +17,9 @@ part 'app_database.g.dart';
 /// 
 /// Uses Drift (SQLite) for offline-first local storage.
 /// Schema matches PostgreSQL backend for sync compatibility.
+/// 
+/// Web: Uses WASM-based SQLite via drift_flutter
+/// Native: Uses native SQLite via sqlite3_flutter_libs
 @DriftDatabase(
   tables: [
     // ============================================
@@ -104,7 +102,7 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   /// Database schema version - increment on schema changes
   @override
@@ -129,20 +127,27 @@ class AppDatabase extends _$AppDatabase {
       );
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // Use web-compatible path for web builds
-    if (kIsWeb) {
-      // Drift uses sql.js for web - requires additional setup
-      return NativeDatabase.memory();
-    }
-    
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'leadx_crm.db'));
-    
-    return NativeDatabase.createInBackground(
-      file,
-      logStatements: kDebugMode,
-    );
-  });
+/// Opens a database connection that works on all platforms.
+/// 
+/// - Native (iOS, Android, Desktop): Uses native SQLite via sqlite3_flutter_libs
+/// - Web: Uses WASM-based SQLite (requires web assets setup)
+QueryExecutor _openConnection() {
+  return driftDatabase(
+    name: 'leadx_crm',
+    native: const DriftNativeOptions(
+      // Share database across isolates for better concurrency
+      shareAcrossIsolates: true,
+    ),
+    web: DriftWebOptions(
+      sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+      driftWorker: Uri.parse('drift_worker.js'),
+      onResult: (result) {
+        if (result.missingFeatures.isNotEmpty) {
+          // ignore: avoid_print
+          print('Using ${result.chosenImplementation} due to '
+              'missing features: ${result.missingFeatures}');
+        }
+      },
+    ),
+  );
 }
