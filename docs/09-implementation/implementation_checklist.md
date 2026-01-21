@@ -285,10 +285,11 @@ class CustomerForm extends _$CustomerForm {
     - [x] Key person list
     - [x] Add key person FAB
     - [x] Edit/delete actions
-  - [ ] **Pipelines Tab** (Phase 5 - placeholder)
-    - [ ] Pipeline list with stage badges
-    - [ ] Add pipeline FAB
-    - [ ] Quick stage update
+  - [x] **Pipelines Tab** ✅
+    - [x] Pipeline list with stage badges
+    - [x] Add pipeline FAB
+    - [x] Quick stage update (via PipelineStageUpdateSheet)
+    - [x] Kanban/List toggle view
   - [ ] **Activities Tab** (Phase 5 - placeholder)
     - [ ] Activity history list
     - [ ] Add activity FAB
@@ -316,7 +317,7 @@ class CustomerForm extends _$CustomerForm {
   - [x] GPS auto-capture on create (GpsService + gps_providers integrated)
   - [x] Form validation
   - [x] Save button
-  - [ ] Discard confirmation
+  - [x] Discard confirmation (PopScope + DiscardConfirmationDialog)
   - [x] Loading state during save
 
 - [x] Implement `KeyPersonFormSheet`
@@ -335,11 +336,11 @@ class CustomerForm extends _$CustomerForm {
 **Widgets** ✅
 - [x] `CustomerCard` widget
 
-#### Testing ⬜
-- [ ] Unit tests for `CustomerRepositoryImpl`
-  - [ ] CRUD operations
-  - [ ] Search functionality
-  - [ ] Offline queue behavior
+#### Testing 🔄
+- [x] Unit tests for `CustomerRepositoryImpl`
+  - [x] CRUD operations
+  - [x] Search functionality
+  - [x] Offline queue behavior
 - [ ] Widget tests for `CustomerListScreen`
   - [ ] List rendering
   - [ ] Search behavior
@@ -396,7 +397,7 @@ class CustomerForm extends _$CustomerForm {
   - [x] Progress callback
   - [x] Master data sync (provinces, cities, etc.)
   - [x] User hierarchy sync (regional_offices, branches, users, user_hierarchy)
-  - [ ] Resume interrupted sync
+  - [x] Resume interrupted sync (via AppSettingsService)
 
 #### Presentation Layer ✅
 **Providers** ✅
@@ -430,110 +431,114 @@ class CustomerForm extends _$CustomerForm {
   - [ ] Queue processing order
   - [ ] Retry logic
   - [ ] Conflict resolution
-- [ ] Unit tests for `ConnectivityService`
-- [ ] Integration tests for offline/online transitions
-
----
-
-### 4. Pipeline Module ⬜
-
-#### Data Layer
 **Drift Tables** ✅
 - [x] `pipelines` table defined
 - [x] `pipeline_referrals` table defined
 - [x] `pipeline_stages` master data
 - [x] `pipeline_statuses` master data
 
-**Domain Models** ⬜
-- [ ] Create `Pipeline` domain entity (Freezed)
-- [ ] Create `PipelineStage` entity
-- [ ] Create `PipelineStatus` entity
-- [ ] Create `PipelineWithCustomer` aggregate
+**Domain Models** ✅
+- [x] Create `Pipeline` domain entity (Freezed)
+  - [x] All fields from Drift table
+  - [x] `stageColor` from pipeline_stages
+  - [x] `stageProbability` from pipeline_stages
+  - [x] `weightedValue` computed
+  - [x] `customerName`, `cobName`, `lobName` for display
+- [x] Create `PipelineStageInfo` entity
+- [x] Create `PipelineStatusInfo` entity
 
-**DTOs** ⬜
-- [ ] Create `PipelineCreateDto`
-- [ ] Create `PipelineUpdateDto`
-- [ ] Create `PipelineStageUpdateDto`
+**DTOs** ✅
+- [x] Create `PipelineCreateDto`
+- [x] Create `PipelineUpdateDto`
+- [x] Create `PipelineStageUpdateDto`
+- [x] Create `PipelineSyncDto`
 
-**Data Sources** ⬜
-- [ ] Create `PipelineLocalDataSource`
-- [ ] Create `PipelineRemoteDataSource`
+**Data Sources** ✅
+- [x] Create `PipelineLocalDataSource`
+- [x] Create `PipelineRemoteDataSource`
 
-#### Repository Layer ⬜
-- [ ] Create `PipelineRepository` interface
-  - [ ] `getCustomerPipelines(customerId)`
-  - [ ] `getPipelineById(id)`
-  - [ ] `getAllPipelines()` - For dashboard
-  - [ ] `createPipeline(pipeline)`
-  - [ ] `updatePipeline(pipeline)`
-  - [ ] `updatePipelineStage(id, stageId, statusId)`
-  - [ ] `deletePipeline(id)` - Soft delete
-  - [ ] `getPipelineStages()` - Master data
-  - [ ] `getPipelineStatuses(stageId)` - Filtered by stage
-- [ ] Implement `PipelineRepositoryImpl`
+#### Repository Layer ✅
+- [x] Create `PipelineRepository` interface
+  - [x] `getCustomerPipelines(customerId)`
+  - [x] `getPipelineById(id)`
+  - [x] `getAllPipelines()` - For dashboard
+  - [x] `createPipeline(pipeline)`
+  - [x] `updatePipeline(pipeline)`
+  - [x] `updatePipelineStage(id, stageId, statusId)`
+  - [x] `deletePipeline(id)` - Soft delete
+  - [x] `getPipelineStages()` - Master data
+  - [x] `getPipelineStatuses(stageId)` - Filtered by stage
+  - [x] `watchAllPipelines()` - Stream
+  - [x] `watchCustomerPipelines(customerId)` - Stream
+- [x] Implement `PipelineRepositoryImpl`
 
-#### Presentation Layer ⬜
-**Providers**
-- [ ] Create `pipelineListProvider` (StreamProvider)
-- [ ] Create `pipelineDetailProvider` (FutureProvider.family)
-- [ ] Create `pipelineStagesProvider` (FutureProvider) - Master data
-- [ ] Create `pipelineStatusesProvider` (FutureProvider.family) - Filtered by stage
-- [ ] Create `PipelineFormNotifier` (AsyncNotifier + @riverpod)
+#### Presentation Layer ✅
+**Providers** ✅
+- [x] Create `pipelineListStreamProvider` (StreamProvider)
+- [x] Create `pipelineDetailProvider` (FutureProvider.family)
+- [x] Create `pipelineStagesProvider` (FutureProvider) - Master data
+- [x] Create `pipelineStatusesByStageProvider` (FutureProvider.family) - Filtered by stage
+- [x] Create `customerPipelinesProvider` (StreamProvider.family)
+- [x] Create `PipelineFormNotifier` (StateNotifier) - TODO: migrate to @riverpod
 
-**Screens**
+**Screens** ✅
 
 > [!IMPORTANT]
 > **Phase 5 Priority: CustomerDetailScreen Pipeline Tab**
 > This integration requires Pipeline domain/data layer to be complete first.
 
-- [ ] Integrate pipeline list in `CustomerDetailScreen` pipelines tab
-  - [ ] Create `customerPipelinesProvider` (StreamProvider.family by customerId)
-  - [ ] Pipeline card with:
-    - [ ] COB/LOB display
-    - [ ] Stage badge with color from `pipeline_stages.color`
-    - [ ] Current status text
-    - [ ] Potential premium display (formatted currency)
-    - [ ] Expected close date
-    - [ ] Sync status indicator
-  - [ ] Quick stage update dropdown (move to next stage)
-  - [ ] Add Pipeline FAB (navigate to PipelineFormScreen with customerId)
-  - [ ] Tap to navigate to PipelineDetailScreen
-  - [ ] Empty state when no pipelines
-  - [ ] Loading state
+- [x] Integrate pipeline list in `CustomerDetailScreen` pipelines tab
+  - [x] Create `customerPipelinesProvider` (StreamProvider.family by customerId)
+  - [x] Pipeline card with:
+    - [x] COB/LOB display
+    - [x] Stage badge with color from `pipeline_stages.color`
+    - [x] Current status text
+    - [x] Potential premium display (formatted currency)
+    - [x] Expected close date
+    - [x] Sync status indicator
+  - [x] Quick stage update dropdown (move to next stage)
+  - [x] Add Pipeline FAB (navigate to PipelineFormScreen with customerId)
+  - [x] Tap to navigate to PipelineDetailScreen
+  - [x] Empty state when no pipelines
+  - [x] Loading state
+  - [x] Kanban/List toggle view (SegmentedButton)
 
-- [ ] Implement `PipelineDetailScreen`
-  - [ ] Pipeline info card
-  - [ ] Stage history timeline
-  - [ ] Customer info
-  - [ ] Broker info (if applicable)
-  - [ ] Related activities list
-  - [ ] Edit button
-  - [ ] Quick stage update
+- [x] Implement `PipelineDetailScreen`
+  - [x] Pipeline info card
+  - [x] Customer info
+  - [x] Edit button
+  - [x] Quick stage update (via PipelineStageUpdateSheet)
+  - [ ] Stage history timeline (future)
+  - [ ] Related activities list (Phase 5)
 
-- [ ] Implement `PipelineFormScreen` (create/edit)
-  - [ ] Customer pre-selected (if from customer)
-  - [ ] Customer picker (if standalone)
-  - [ ] COB picker (required)
-  - [ ] LOB picker (required, filtered by COB)
-  - [ ] Lead source picker (required)
-  - [ ] Broker picker (conditional - if source=BROKER)
-  - [ ] Broker PIC picker (from broker key persons)
-  - [ ] Customer contact picker (from customer key persons)
-  - [ ] TSI input
-  - [ ] Potential premium input (required)
-  - [ ] Expected close date picker
-  - [ ] Is tender toggle
-  - [ ] Notes
-  - [ ] Form validation
-  - [ ] Save flow
+- [x] Implement `PipelineFormScreen` (create/edit)
+  - [x] Customer pre-selected (if from customer)
+  - [x] Customer picker (if standalone)
+  - [x] COB picker (required)
+  - [x] LOB picker (required, filtered by COB)
+  - [x] Lead source picker (required)
+  - [x] Broker picker (conditional - if source=BROKER)
+  - [x] Customer contact picker (from customer key persons)
+  - [x] TSI input
+  - [x] Potential premium input (required)
+  - [x] Expected close date picker
+  - [x] Is tender toggle
+  - [x] Notes
+  - [x] Form validation
+  - [x] Save flow
+  - [ ] Broker PIC picker (deferred to Broker feature)
 
-- [ ] Implement `PipelineStageUpdateSheet`
-  - [ ] Stage picker (P3 → P2 → P1 → Won/Lost)
-  - [ ] Status picker (filtered by stage)
-  - [ ] Notes (required for Lost)
-  - [ ] Decline reason picker (for Lost)
-  - [ ] Final premium input (for Won)
-  - [ ] Policy number input (for Won)
+- [x] Implement `PipelineStageUpdateSheet`
+  - [x] Stage picker (P3 → P2 → P1 → Won/Lost)
+  - [x] Status picker (filtered by stage)
+  - [x] Notes field
+  - [x] Decline reason input (for Lost)
+  - [x] Final premium input (for Won)
+  - [x] Policy number input (for Won)
+
+**Widgets** ✅
+- [x] `PipelineCard` widget
+- [x] `PipelineKanbanBoard` widget
 
 #### Testing ⬜
 - [ ] Unit tests for `PipelineRepositoryImpl`

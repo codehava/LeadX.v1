@@ -183,8 +183,17 @@ class MasterDataLocalDataSource {
   /// Get all active lead sources.
   Future<List<LeadSource>> getLeadSources() async {
     return (_db.select(_db.leadSources)
-          ..where((t) => t.isActive.equals(true)))
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .get();
+  }
+
+  /// Watch all active lead sources.
+  Stream<List<LeadSource>> watchLeadSources() {
+    return (_db.select(_db.leadSources)
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch();
   }
 
   /// Get all active decline reasons.
@@ -212,6 +221,26 @@ class MasterDataLocalDataSource {
     return (_db.select(_db.hvcTypes)
           ..where((t) => t.isActive.equals(true))
           ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+        .watch();
+  }
+
+  // ============================================
+  // BROKERS
+  // ============================================
+
+  /// Get all active brokers.
+  Future<List<Broker>> getBrokers() async {
+    return (_db.select(_db.brokers)
+          ..where((t) => t.isActive.equals(true) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
+  }
+
+  /// Watch all active brokers.
+  Stream<List<Broker>> watchBrokers() {
+    return (_db.select(_db.brokers)
+          ..where((t) => t.isActive.equals(true) & t.deletedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .watch();
   }
 

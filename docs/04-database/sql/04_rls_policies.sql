@@ -34,6 +34,38 @@ RETURNS BOOLEAN AS $$
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
+-- Check if user can access a specific customer (bypasses RLS to prevent recursion)
+CREATE OR REPLACE FUNCTION can_access_customer(p_customer_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM customers c
+    WHERE c.id = p_customer_id
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR c.created_by = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+      OR is_admin()
+    )
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- Check if user has HVC access to a customer (bypasses RLS to prevent recursion)
+CREATE OR REPLACE FUNCTION has_hvc_access_to_customer(p_customer_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM customer_hvc_links chl
+    WHERE chl.customer_id = p_customer_id
+    AND chl.hvc_id IN (
+      SELECT c2.id FROM customers c2 
+      WHERE c2.assigned_rm_id = (SELECT auth.uid())
+    )
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- ============================================
 -- USERS TABLE
 -- ============================================
@@ -85,16 +117,9 @@ FOR SELECT USING (
   )
 );
 
--- Users with related HVC can view customers
+-- Users with related HVC can view customers (uses helper function to prevent recursion)
 CREATE POLICY "customers_select_via_hvc" ON customers
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM customer_hvc_links chl
-    JOIN customers c2 ON c2.id = chl.customer_id
-    WHERE chl.customer_id = customers.id
-    AND c2.assigned_rm_id = (SELECT auth.uid())
-  )
-);
+FOR SELECT USING (has_hvc_access_to_customer(customers.id));
 
 -- Admins have full access
 CREATE POLICY "customers_admin_all" ON customers
@@ -266,22 +291,11 @@ FOR ALL USING (is_admin());
 
 ALTER TABLE key_persons ENABLE ROW LEVEL SECURITY;
 
--- Access based on owner entity
+-- Access based on owner entity (uses helper function to prevent recursion)
 CREATE POLICY "key_persons_customer_owner" ON key_persons
 FOR ALL USING (
-  customer_id IS NOT NULL AND EXISTS (
-    SELECT 1 FROM customers c
-    WHERE c.id = key_persons.customer_id
-    AND (
-      c.assigned_rm_id = (SELECT auth.uid())
-      OR EXISTS (
-        SELECT 1 FROM user_hierarchy
-        WHERE ancestor_id = (SELECT auth.uid())
-        AND descendant_id = c.assigned_rm_id
-      )
-      OR is_admin()
-    )
-  )
+  customer_id IS NOT NULL 
+  AND can_access_customer(key_persons.customer_id)
 );
 
 -- HVC/Broker key persons - admins only for modify

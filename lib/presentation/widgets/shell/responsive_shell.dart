@@ -155,12 +155,17 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   Widget _buildSyncButton(BuildContext context) {
-    final isConnected = ref.watch(connectivityStreamProvider);
+    final connectivityAsync = ref.watch(connectivityStreamProvider);
+    final connectivityService = ref.watch(connectivityServiceProvider);
     final pendingCount = ref.watch(pendingSyncCountProvider);
     final syncNotifier = ref.watch(syncNotifierProvider);
 
+    // Use the stream value if available, otherwise fall back to synchronous check.
+    // The stream only emits on CHANGES, so initial state needs the sync check.
+    final isConnected = connectivityAsync.valueOrNull ?? connectivityService.isConnected;
+
     SyncStatus status;
-    if (!isConnected.value!) {
+    if (!isConnected) {
       status = SyncStatus.offline;
     } else if (syncNotifier.isLoading) {
       status = SyncStatus.pending;
@@ -172,18 +177,62 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
     return Stack(
       children: [
-        IconButton(
-          icon: SyncStatusBadge(status: status),
-          tooltip: 'Sync',
-          onPressed: () {
-            ref.read(syncNotifierProvider.notifier).triggerSync();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Sinkronisasi dimulai...'),
-                duration: Duration(seconds: 1),
+        GestureDetector(
+          onLongPress: () async {
+            // Long press = force re-sync master data
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Re-sync Master Data?'),
+                content: const Text(
+                  'Ini akan mengunduh ulang semua data master (provinsi, kota, tipe perusahaan, dll) dari server.\n\n'
+                  'Gunakan jika dropdown tidak menampilkan data.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Batal'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Re-sync'),
+                  ),
+                ],
               ),
             );
+            if (confirmed == true && context.mounted) {
+              await SyncProgressSheet.show(context);
+            }
           },
+          child: IconButton(
+            icon: SyncStatusBadge(status: status),
+            tooltip: 'Sync (tahan untuk re-sync master data)',
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Sinkronisasi dimulai...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+              await ref.read(syncNotifierProvider.notifier).triggerSync();
+              if (context.mounted) {
+                final result = ref.read(syncNotifierProvider).value;
+                if (result != null) {
+                  final message = result.success
+                      ? result.processedCount > 0
+                          ? 'Sinkronisasi selesai: ${result.successCount} item berhasil'
+                          : 'Tidak ada item untuk disinkronkan'
+                      : 'Sinkronisasi gagal: ${result.errors.firstOrNull ?? "Unknown error"}';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: result.success ? null : Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
         ),
         // Badge for pending count
         if ((pendingCount.value ?? 0) > 0)
@@ -231,6 +280,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       onDestinationSelected: _onNavTap,
       labelType: NavigationRailLabelType.all,
       leading: FloatingActionButton(
+        heroTag: 'shell_nav_rail_fab',
         elevation: 0,
         onPressed: () => _showQuickAddSheet(context),
         child: const Icon(Icons.add),

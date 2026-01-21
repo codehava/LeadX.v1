@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/entities/app_auth_state.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
@@ -10,6 +9,9 @@ import '../../presentation/screens/auth/splash_screen.dart';
 import '../../presentation/screens/customer/customer_detail_screen.dart';
 import '../../presentation/screens/customer/customer_form_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/pipeline/pipeline_detail_screen.dart';
+import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
+import '../../presentation/screens/sync/sync_queue_screen.dart';
 import 'route_names.dart';
 
 /// Provider for the app router.
@@ -92,13 +94,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Customers
+          // Customers (tab route)
           GoRoute(
             path: 'customers',
             name: RouteNames.customers,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Customers')),
-            ),
+            builder: (context, state) => const HomeScreen(initialTab: 1),
             routes: [
               GoRoute(
                 path: 'create',
@@ -126,13 +126,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Activities
+          // Pipelines (standalone routes for navigation from CustomerDetailScreen)
+          GoRoute(
+            path: 'pipelines/new',
+            name: RouteNames.pipelineCreate,
+            builder: (context, state) {
+              final customerId = state.uri.queryParameters['customerId']!;
+              return PipelineFormScreen(customerId: customerId);
+            },
+          ),
+          GoRoute(
+            path: 'pipelines/:id',
+            name: RouteNames.pipelineDetail,
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final customerId = state.uri.queryParameters['customerId'] ?? '';
+              return PipelineDetailScreen(pipelineId: id, customerId: customerId);
+            },
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: RouteNames.pipelineEdit,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  final customerId = state.uri.queryParameters['customerId'] ?? '';
+                  return PipelineFormScreen(customerId: customerId, pipelineId: id);
+                },
+              ),
+            ],
+          ),
+
+          // Activities (tab route)
           GoRoute(
             path: 'activities',
             name: RouteNames.activities,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Activities')),
-            ),
+            builder: (context, state) => const HomeScreen(initialTab: 3),
             routes: [
               GoRoute(
                 path: 'create',
@@ -180,13 +208,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Profile
+          // Profile (tab route)
           GoRoute(
             path: 'profile',
             name: RouteNames.profile,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Profile')),
-            ),
+            builder: (context, state) => const HomeScreen(initialTab: 4),
           ),
 
           // Settings
@@ -205,6 +231,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const Placeholder(
               child: Center(child: Text('Notifications')),
             ),
+          ),
+
+          // Debug: Sync Queue
+          GoRoute(
+            path: 'sync-queue',
+            name: 'syncQueue',
+            builder: (context, state) => const SyncQueueScreen(),
           ),
         ],
       ),

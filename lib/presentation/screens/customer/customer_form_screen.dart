@@ -11,7 +11,7 @@ import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_text_field.dart';
 import '../../widgets/common/discard_confirmation_dialog.dart';
 import '../../widgets/common/loading_indicator.dart';
-import '../../widgets/common/searchable_dropdown.dart';
+import '../../widgets/common/autocomplete_field.dart';
 
 /// Screen for creating or editing a customer.
 class CustomerFormScreen extends ConsumerStatefulWidget {
@@ -231,13 +231,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               children: [
                 Expanded(
                   child: provincesAsync.when(
-                    data: (provinces) => SearchableDropdown<String>(
+                    data: (provinces) => AutocompleteField<String>(
                       label: 'Provinsi *',
-                      hint: 'Pilih provinsi',
-                      modalTitle: 'Pilih Provinsi',
+                      hint: 'Ketik untuk mencari provinsi...',
                       value: _selectedProvinceId,
                       items: provinces
-                          .map((p) => DropdownItem(value: p.id, label: p.name))
+                          .map((p) => AutocompleteItem(value: p.id, label: p.name))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -256,16 +255,15 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: citiesAsync.when(
-                    data: (cities) => SearchableDropdown<String>(
+                    data: (cities) => AutocompleteField<String>(
                       label: 'Kota *',
                       hint: _selectedProvinceId == null
                           ? 'Pilih provinsi dulu'
-                          : 'Pilih kota',
-                      modalTitle: 'Pilih Kota',
+                          : 'Ketik untuk mencari kota...',
                       value: _selectedCityId,
                       enabled: _selectedProvinceId != null,
                       items: cities
-                          .map((c) => DropdownItem(value: c.id, label: c.name))
+                          .map((c) => AutocompleteItem(value: c.id, label: c.name))
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedCityId = value),
@@ -322,13 +320,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               children: [
                 Expanded(
                   child: companyTypesAsync.when(
-                    data: (types) => SearchableDropdown<String>(
+                    data: (types) => AutocompleteField<String>(
                       label: 'Tipe Perusahaan *',
-                      hint: 'Pilih tipe',
-                      modalTitle: 'Tipe Perusahaan',
+                      hint: 'Ketik untuk mencari tipe...',
                       value: _selectedCompanyTypeId,
                       items: types
-                          .map((t) => DropdownItem(value: t.id, label: t.name))
+                          .map((t) => AutocompleteItem(value: t.id, label: t.name))
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedCompanyTypeId = value),
@@ -342,13 +339,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ownershipTypesAsync.when(
-                    data: (types) => SearchableDropdown<String>(
+                    data: (types) => AutocompleteField<String>(
                       label: 'Kepemilikan *',
-                      hint: 'Pilih kepemilikan',
-                      modalTitle: 'Tipe Kepemilikan',
+                      hint: 'Ketik untuk mencari kepemilikan...',
                       value: _selectedOwnershipTypeId,
                       items: types
-                          .map((t) => DropdownItem(value: t.id, label: t.name))
+                          .map((t) => AutocompleteItem(value: t.id, label: t.name))
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedOwnershipTypeId = value),
@@ -363,13 +359,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             ),
             const SizedBox(height: 16),
             industriesAsync.when(
-              data: (industries) => SearchableDropdown<String>(
+              data: (industries) => AutocompleteField<String>(
                 label: 'Industri *',
-                hint: 'Pilih industri',
-                modalTitle: 'Industri',
+                hint: 'Ketik untuk mencari industri...',
                 value: _selectedIndustryId,
                 items: industries
-                    .map((i) => DropdownItem(value: i.id, label: i.name))
+                    .map((i) => AutocompleteItem(value: i.id, label: i.name))
                     .toList(),
                 onChanged: (value) =>
                     setState(() => _selectedIndustryId = value),

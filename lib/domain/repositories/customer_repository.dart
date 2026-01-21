@@ -76,6 +76,9 @@ abstract class CustomerRepository {
   /// Uses incremental sync based on updatedAt timestamp.
   Future<Either<Failure, int>> syncFromRemote({DateTime? since});
 
+  /// Sync key persons from remote to local.
+  Future<Either<Failure, int>> syncKeyPersonsFromRemote({DateTime? since});
+
   /// Mark a customer as synced.
   Future<void> markAsSynced(String id, DateTime syncedAt);
 }

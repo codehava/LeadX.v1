@@ -37,6 +37,13 @@ final customerRemoteDataSourceProvider =
   return CustomerRemoteDataSource(supabase);
 });
 
+/// Provider for the key person remote data source.
+final keyPersonRemoteDataSourceProvider =
+    Provider<KeyPersonRemoteDataSource>((ref) {
+  final supabase = ref.watch(supabaseClientProvider);
+  return KeyPersonRemoteDataSource(supabase);
+});
+
 // ==========================================
 // Repository Provider
 // ==========================================
@@ -46,6 +53,7 @@ final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   final localDataSource = ref.watch(customerLocalDataSourceProvider);
   final keyPersonLocalDataSource = ref.watch(keyPersonLocalDataSourceProvider);
   final remoteDataSource = ref.watch(customerRemoteDataSourceProvider);
+  final keyPersonRemoteDataSource = ref.watch(keyPersonRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).value;
 
@@ -53,6 +61,7 @@ final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
     localDataSource: localDataSource,
     keyPersonLocalDataSource: keyPersonLocalDataSource,
     remoteDataSource: remoteDataSource,
+    keyPersonRemoteDataSource: keyPersonRemoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
   );
@@ -137,7 +146,8 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
 
   /// Create a new customer.
   Future<void> createCustomer(CustomerCreateDto dto) async {
-    state = state.copyWith(isLoading: true);
+    // Clear any previous error and set loading
+    state = CustomerFormState(isLoading: true);
 
     final result = await _repository.createCustomer(dto);
 
@@ -155,7 +165,8 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
 
   /// Update an existing customer.
   Future<void> updateCustomer(String id, CustomerUpdateDto dto) async {
-    state = state.copyWith(isLoading: true);
+    // Clear any previous error and set loading
+    state = CustomerFormState(isLoading: true);
 
     final result = await _repository.updateCustomer(id, dto);
 

@@ -1,0 +1,230 @@
+import 'package:drift/drift.dart';
+
+import '../../database/app_database.dart';
+
+/// Local data source for pipeline operations.
+/// Handles all local database operations for pipelines.
+class PipelineLocalDataSource {
+  PipelineLocalDataSource(this._db);
+
+  final AppDatabase _db;
+
+  // ==========================================
+  // Read Operations
+  // ==========================================
+
+  /// Watch all non-deleted pipelines as a reactive stream.
+  Stream<List<Pipeline>> watchAllPipelines() {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
+  /// Watch pipelines for a specific customer.
+  Stream<List<Pipeline>> watchCustomerPipelines(String customerId) {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.customerId.equals(customerId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
+  /// Watch pipelines by stage.
+  Stream<List<Pipeline>> watchPipelinesByStage(String stageId) {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.stageId.equals(stageId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
+  /// Get all non-deleted pipelines.
+  Future<List<Pipeline>> getAllPipelines() async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.get();
+  }
+
+  /// Get a specific pipeline by ID.
+  Future<Pipeline?> getPipelineById(String id) async {
+    final query = _db.select(_db.pipelines)..where((p) => p.id.equals(id));
+    return query.getSingleOrNull();
+  }
+
+  /// Get a pipeline by code.
+  Future<Pipeline?> getPipelineByCode(String code) async {
+    final query = _db.select(_db.pipelines)..where((p) => p.code.equals(code));
+    return query.getSingleOrNull();
+  }
+
+  /// Get pipelines for a specific customer.
+  Future<List<Pipeline>> getCustomerPipelines(String customerId) async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.customerId.equals(customerId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.get();
+  }
+
+  // ==========================================
+  // Write Operations
+  // ==========================================
+
+  /// Insert a new pipeline.
+  Future<void> insertPipeline(PipelinesCompanion pipeline) =>
+      _db.into(_db.pipelines).insert(pipeline);
+
+  /// Update an existing pipeline.
+  Future<void> updatePipeline(String id, PipelinesCompanion pipeline) =>
+      (_db.update(_db.pipelines)..where((p) => p.id.equals(id))).write(pipeline);
+
+  /// Soft delete a pipeline (set deletedAt).
+  Future<void> softDeletePipeline(String id) async {
+    await (_db.update(_db.pipelines)..where((p) => p.id.equals(id))).write(
+      PipelinesCompanion(
+        deletedAt: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
+        isPendingSync: const Value(true),
+      ),
+    );
+  }
+
+  /// Hard delete a pipeline (permanent removal).
+  Future<int> hardDeletePipeline(String id) =>
+      (_db.delete(_db.pipelines)..where((p) => p.id.equals(id))).go();
+
+  // ==========================================
+  // Search & Filter
+  // ==========================================
+
+  /// Search pipelines by code.
+  Future<List<Pipeline>> searchPipelines(String query) async {
+    final searchPattern = '%${query.toLowerCase()}%';
+    final selectQuery = _db.select(_db.pipelines)
+      ..where((p) =>
+          p.deletedAt.isNull() & p.code.lower().like(searchPattern))
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return selectQuery.get();
+  }
+
+  /// Get pipelines by assigned RM.
+  Future<List<Pipeline>> getPipelinesByAssignedRm(String rmId) async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.assignedRmId.equals(rmId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.get();
+  }
+
+  /// Get pipelines by stage.
+  Future<List<Pipeline>> getPipelinesByStage(String stageId) async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.stageId.equals(stageId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.get();
+  }
+
+  /// Get pipelines that need to be synced.
+  Future<List<Pipeline>> getPendingSyncPipelines() async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.isPendingSync.equals(true))
+      ..orderBy([(p) => OrderingTerm.asc(p.updatedAt)]);
+    return query.get();
+  }
+
+  // ==========================================
+  // Master Data Operations
+  // ==========================================
+
+  /// Get all active pipeline stages ordered by sequence.
+  Future<List<PipelineStage>> getPipelineStages() async {
+    final query = _db.select(_db.pipelineStages)
+      ..where((s) => s.isActive.equals(true))
+      ..orderBy([(s) => OrderingTerm.asc(s.sequence)]);
+    return query.get();
+  }
+
+  /// Get pipeline statuses for a specific stage.
+  Future<List<PipelineStatuse>> getPipelineStatuses({String? stageId}) async {
+    var query = _db.select(_db.pipelineStatuses)
+      ..where((s) => s.isActive.equals(true))
+      ..orderBy([(s) => OrderingTerm.asc(s.sequence)]);
+
+    if (stageId != null) {
+      query = _db.select(_db.pipelineStatuses)
+        ..where((s) => s.isActive.equals(true) & s.stageId.equals(stageId))
+        ..orderBy([(s) => OrderingTerm.asc(s.sequence)]);
+    }
+
+    return query.get();
+  }
+
+  /// Get a specific stage by ID.
+  Future<PipelineStage?> getStageById(String id) async {
+    final query = _db.select(_db.pipelineStages)
+      ..where((s) => s.id.equals(id));
+    return query.getSingleOrNull();
+  }
+
+  /// Get default status for a stage.
+  Future<PipelineStatuse?> getDefaultStatus(String stageId) async {
+    final query = _db.select(_db.pipelineStatuses)
+      ..where((s) =>
+          s.stageId.equals(stageId) &
+          s.isActive.equals(true) &
+          s.isDefault.equals(true));
+    return query.getSingleOrNull();
+  }
+
+  // ==========================================
+  // Sync Operations
+  // ==========================================
+
+  /// Mark a pipeline as synced.
+  Future<void> markAsSynced(String id, DateTime syncedAt) async {
+    await (_db.update(_db.pipelines)..where((p) => p.id.equals(id))).write(
+      PipelinesCompanion(
+        isPendingSync: const Value(false),
+        lastSyncAt: Value(syncedAt),
+      ),
+    );
+  }
+
+  /// Upsert multiple pipelines from remote sync.
+  Future<void> upsertPipelines(List<PipelinesCompanion> pipelines) async {
+    await _db.batch((batch) {
+      batch.insertAllOnConflictUpdate(_db.pipelines, pipelines);
+    });
+  }
+
+  /// Get count of pipelines that need sync.
+  Future<int> getPendingSyncCount() => _db.pipelines
+      .count(where: (p) => p.isPendingSync.equals(true))
+      .getSingle();
+
+  /// Get the last sync timestamp for pipelines.
+  Future<DateTime?> getLastSyncTimestamp() async {
+    final query = _db.selectOnly(_db.pipelines)
+      ..addColumns([_db.pipelines.lastSyncAt.max()]);
+    final result = await query.getSingleOrNull();
+    return result?.read(_db.pipelines.lastSyncAt.max());
+  }
+
+  // ==========================================
+  // Statistics
+  // ==========================================
+
+  /// Get total count of pipelines.
+  Future<int> getTotalCount() =>
+      _db.pipelines.count(where: (p) => p.deletedAt.isNull()).getSingle();
+
+  /// Get count of pipelines by stage.
+  Future<int> getCountByStage(String stageId) => _db.pipelines
+      .count(where: (p) => p.stageId.equals(stageId) & p.deletedAt.isNull())
+      .getSingle();
+
+  /// Get count of pipelines for a customer.
+  Future<int> getCustomerPipelineCount(String customerId) => _db.pipelines
+      .count(
+          where: (p) =>
+              p.customerId.equals(customerId) & p.deletedAt.isNull())
+      .getSingle();
+}

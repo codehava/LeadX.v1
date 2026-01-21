@@ -8,6 +8,7 @@ import '../../providers/sync_providers.dart';
 import '../../widgets/common/sync_status_badge.dart';
 import '../../widgets/layout/responsive_layout.dart';
 import '../../widgets/sync/sync_progress_sheet.dart';
+import '../sync/sync_queue_screen.dart';
 import 'tabs/activities_tab.dart';
 import 'tabs/customers_tab.dart';
 import 'tabs/dashboard_tab.dart';
@@ -20,14 +21,42 @@ import 'widgets/quick_add_sheet.dart';
 /// - Tablet: Navigation Rail
 /// - Desktop: Sidebar
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.initialTab = 0});
+
+  /// Initial tab index: 0=Dashboard, 1=Customers, 3=Activities, 4=Profile
+  final int initialTab;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTab;
+    // Check if initial sync is needed (for cases when login screen was bypassed)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialSync();
+    });
+  }
+
+  /// Check if initial sync has been completed, if not show sync progress sheet.
+  Future<void> _checkInitialSync() async {
+    final appSettings = ref.read(appSettingsServiceProvider);
+    final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
+    
+    print('[HomeScreen] Checking initial sync: hasInitialSynced=$hasInitialSynced');
+    
+    if (!hasInitialSynced && mounted) {
+      print('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
+      await SyncProgressSheet.show(context);
+      await appSettings.markInitialSyncCompleted();
+      print('[HomeScreen] Initial sync completed and marked');
+    }
+  }
 
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
@@ -140,6 +169,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const SyncProgressIndicator(),
         // Sync status badge with tap to sync
         _buildSyncButton(),
+        // Debug: View sync queue
+        IconButton(
+          icon: const Icon(Icons.bug_report_outlined),
+          tooltip: 'Debug: View Sync Queue',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SyncQueueScreen()),
+          ),
+        ),
         // Notifications
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
@@ -168,18 +206,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Stack(
       children: [
-        IconButton(
-          icon: SyncStatusBadge(status: status),
-          tooltip: 'Sync',
-          onPressed: () {
-            ref.read(syncNotifierProvider.notifier).triggerSync();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Sinkronisasi dimulai...'),
-                duration: Duration(seconds: 1),
+        GestureDetector(
+          onLongPress: () async {
+            // Long press = force re-sync master data
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Re-sync Master Data?'),
+                content: const Text(
+                  'Ini akan mengunduh ulang semua data master (provinsi, kota, tipe perusahaan, dll) dari server.\n\n'
+                  'Gunakan jika dropdown tidak menampilkan data.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Batal'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Re-sync'),
+                  ),
+                ],
               ),
             );
+            if (confirmed == true && context.mounted) {
+              await SyncProgressSheet.show(context);
+            }
           },
+          child: IconButton(
+            icon: SyncStatusBadge(status: status),
+            tooltip: 'Sync (tahan untuk re-sync master data)',
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Sinkronisasi dimulai...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+              await ref.read(syncNotifierProvider.notifier).triggerSync();
+              if (context.mounted) {
+                final result = ref.read(syncNotifierProvider).value;
+                if (result != null) {
+                  final message = result.success
+                      ? result.processedCount > 0
+                          ? 'Sinkronisasi selesai: ${result.successCount} item berhasil'
+                          : 'Tidak ada item untuk disinkronkan'
+                      : 'Sinkronisasi gagal: ${result.errors.firstOrNull ?? "Unknown error"}';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: result.success ? null : Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
         ),
         // Badge for pending count
         if ((pendingCount.value ?? 0) > 0)
@@ -244,6 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       leading: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: FloatingActionButton(
+          heroTag: 'home_nav_rail_fab',
           elevation: 0,
           onPressed: _showQuickAddSheet,
           child: const Icon(Icons.add),
@@ -471,7 +554,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (index == 2) {
       _showQuickAddSheet();
     } else {
-      setState(() => _currentIndex = index);
+      // Navigate to actual routes to update browser URL
+      switch (index) {
+        case 0:
+          context.go(RoutePaths.home);
+          break;
+        case 1:
+          context.go(RoutePaths.customers);
+          break;
+        case 3:
+          context.go(RoutePaths.activities);
+          break;
+        case 4:
+          context.go(RoutePaths.profile);
+          break;
+      }
     }
   }
 

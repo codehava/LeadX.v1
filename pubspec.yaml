@@ -63,6 +63,9 @@ dependencies:
   logger: ^2.5.0
   dartz: ^0.10.1
 
+  # Environment Configuration
+  flutter_dotenv: ^5.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -84,11 +87,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets - uncomment when files are added
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
-  #   - assets/fonts/
+  assets:
+    - assets/.env
 
   # Fonts - uncomment when Inter font files are added
   # Download from: https://fonts.google.com/specimen/Inter

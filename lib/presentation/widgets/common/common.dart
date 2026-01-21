@@ -10,4 +10,5 @@ export 'empty_state.dart';
 export 'error_state.dart';
 export 'loading_indicator.dart';
 export 'searchable_dropdown.dart';
+export 'autocomplete_field.dart';
 export 'sync_status_badge.dart';

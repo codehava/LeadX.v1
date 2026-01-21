@@ -95,6 +95,26 @@ final activityTypesStreamProvider = StreamProvider<List<ActivityType>>((ref) {
 });
 
 // ============================================
+// LEAD SOURCE PROVIDERS
+// ============================================
+
+/// Stream of all active lead sources.
+final leadSourcesStreamProvider = StreamProvider<List<LeadSource>>((ref) {
+  final dataSource = ref.watch(masterDataLocalDataSourceProvider);
+  return dataSource.watchLeadSources();
+});
+
+// ============================================
+// BROKER PROVIDERS
+// ============================================
+
+/// Stream of all active brokers.
+final brokersStreamProvider = StreamProvider<List<Broker>>((ref) {
+  final dataSource = ref.watch(masterDataLocalDataSourceProvider);
+  return dataSource.watchBrokers();
+});
+
+// ============================================
 // HVC PROVIDERS
 // ============================================
 

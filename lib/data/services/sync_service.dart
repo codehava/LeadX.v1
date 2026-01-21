@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/sync_models.dart';
@@ -15,13 +16,16 @@ class SyncService {
     required SyncQueueLocalDataSource syncQueueDataSource,
     required ConnectivityService connectivityService,
     required SupabaseClient supabaseClient,
+    required db.AppDatabase database,
   })  : _syncQueueDataSource = syncQueueDataSource,
         _connectivityService = connectivityService,
-        _supabaseClient = supabaseClient;
+        _supabaseClient = supabaseClient,
+        _database = database;
 
   final SyncQueueLocalDataSource _syncQueueDataSource;
   final ConnectivityService _connectivityService;
   final SupabaseClient _supabaseClient;
+  final db.AppDatabase _database;
 
   /// Controller for sync state changes.
   final StreamController<SyncState> _stateController =
@@ -42,8 +46,11 @@ class SyncService {
   /// Base delay for exponential backoff (in milliseconds).
   static const int baseDelayMs = 1000;
 
-  /// Stream of sync state changes.
-  Stream<SyncState> get syncStateStream => _stateController.stream;
+  /// Stream of sync state changes. Starts with current state.
+  Stream<SyncState> get syncStateStream async* {
+    yield _currentState;
+    yield* _stateController.stream;
+  }
 
   /// Current sync state.
   SyncState get currentState => _currentState;
@@ -59,7 +66,10 @@ class SyncService {
 
   /// Process all pending items in the sync queue.
   Future<SyncResult> processQueue() async {
+    print('[SyncService] processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
+    
     if (_isSyncing) {
+      print('[SyncService] Sync already in progress, returning');
       return SyncResult(
         success: false,
         processedCount: 0,
@@ -72,6 +82,7 @@ class SyncService {
 
     // Check connectivity
     if (!_connectivityService.isConnected) {
+      print('[SyncService] Device is offline, returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -94,6 +105,8 @@ class SyncService {
         maxRetries: maxRetries,
       );
 
+      // Debug: Log pending items
+      print('[SyncService] Found ${pendingItems.length} pending items to sync');
       if (pendingItems.isEmpty) {
         _updateState(const SyncState.idle());
         return SyncResult(
@@ -121,10 +134,15 @@ class SyncService {
         ));
 
         try {
+          print('[SyncService] Processing item: ${item.entityType}/${item.entityId} (${item.operation})');
           await _processItem(item);
           await _syncQueueDataSource.markAsCompleted(item.id);
+          // Mark the entity as synced in local database
+          await _markEntityAsSynced(item.entityType, item.entityId);
           successCount++;
+          print('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
         } catch (e) {
+          print('[SyncService] Failed to sync ${item.entityType}/${item.entityId}: $e');
           await _syncQueueDataSource.incrementRetryCount(item.id);
           await _syncQueueDataSource.markAsFailed(item.id, e.toString());
           errors.add('${item.entityType}/${item.entityId}: $e');
@@ -142,9 +160,14 @@ class SyncService {
         syncedAt: DateTime.now(),
       );
 
-      _updateState(
-        success ? SyncState.success(result: result) : const SyncState.idle(),
-      );
+      // Update state based on success and current connectivity
+      if (success) {
+        _updateState(SyncState.success(result: result));
+      } else if (!_connectivityService.isConnected) {
+        _updateState(const SyncState.offline());
+      } else {
+        _updateState(const SyncState.idle());
+      }
 
       return result;
     } catch (e) {
@@ -182,6 +205,45 @@ class SyncService {
         }).eq('id', item.entityId);
       default:
         throw ArgumentError('Unknown operation: ${item.operation}');
+    }
+  }
+
+  /// Mark an entity as synced in local database (set isPendingSync = false).
+  Future<void> _markEntityAsSynced(String entityType, String entityId) async {
+    final syncedAt = DateTime.now();
+    
+    switch (entityType) {
+      case 'customer':
+        await (_database.update(_database.customers)
+              ..where((c) => c.id.equals(entityId)))
+            .write(db.CustomersCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+      case 'keyPerson':
+        // KeyPersons table doesn't have lastSyncAt field
+        await (_database.update(_database.keyPersons)
+              ..where((k) => k.id.equals(entityId)))
+            .write(const db.KeyPersonsCompanion(
+              isPendingSync: Value(false),
+            ));
+      case 'pipeline':
+        await (_database.update(_database.pipelines)
+              ..where((p) => p.id.equals(entityId)))
+            .write(db.PipelinesCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+      case 'activity':
+        // Activities table uses syncedAt instead of lastSyncAt
+        await (_database.update(_database.activities)
+              ..where((a) => a.id.equals(entityId)))
+            .write(db.ActivitiesCompanion(
+              isPendingSync: const Value(false),
+              syncedAt: Value(syncedAt),
+            ));
+      default:
+        print('[SyncService] Unknown entity type for marking synced: $entityType');
     }
   }
 

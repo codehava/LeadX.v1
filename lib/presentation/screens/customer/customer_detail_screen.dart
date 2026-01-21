@@ -6,7 +6,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/key_person.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/pipeline_providers.dart';
+import '../../widgets/cards/pipeline_card.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/pipeline/pipeline_kanban_board.dart';
+import 'key_person_form_sheet.dart';
 
 /// Customer detail screen with tabs for info, key persons, pipelines, activities.
 class CustomerDetailScreen extends ConsumerStatefulWidget {
@@ -96,7 +100,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
         children: [
           _InfoTab(customer: customer),
           _KeyPersonsTab(customerId: customer.id),
-          _PlaceholderTab(title: 'Pipeline'),
+          _PipelinesTab(customerId: customer.id),
           _PlaceholderTab(title: 'Aktivitas'),
         ],
       ),
@@ -295,9 +299,10 @@ class _KeyPersonsTab extends ConsumerWidget {
                 const Text('Belum ada key person'),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Add key person
-                  },
+                  onPressed: () => KeyPersonFormSheet.show(
+                    context,
+                    customerId: customerId,
+                  ),
                   icon: const Icon(Icons.add),
                   label: const Text('Tambah Key Person'),
                 ),
@@ -313,9 +318,10 @@ class _KeyPersonsTab extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Add key person
-                  },
+                  onPressed: () => KeyPersonFormSheet.show(
+                    context,
+                    customerId: customerId,
+                  ),
                   icon: const Icon(Icons.add),
                   label: const Text('Tambah Key Person'),
                 ),
@@ -413,7 +419,107 @@ class _KeyPersonCard extends StatelessWidget {
   }
 }
 
-/// Placeholder tab for pipelines and activities.
+/// Pipelines tab showing customer pipelines with List/Kanban toggle.
+class _PipelinesTab extends ConsumerStatefulWidget {
+  const _PipelinesTab({required this.customerId});
+
+  final String customerId;
+
+  @override
+  ConsumerState<_PipelinesTab> createState() => _PipelinesTabState();
+}
+
+class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
+  bool _isKanbanView = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final pipelinesAsync = ref.watch(customerPipelinesProvider(widget.customerId));
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Pipelines'),
+        actions: [
+          // View toggle
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: false,
+                icon: Icon(Icons.list),
+                label: Text('List'),
+              ),
+              ButtonSegment(
+                value: true,
+                icon: Icon(Icons.view_kanban),
+                label: Text('Kanban'),
+              ),
+            ],
+            selected: {_isKanbanView},
+            onSelectionChanged: (values) {
+              setState(() => _isKanbanView = values.first);
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: pipelinesAsync.when(
+        data: (pipelines) {
+          if (pipelines.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.trending_up_outlined, size: 48, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 16),
+                  const Text('Belum ada pipeline'),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => context.push('/home/pipelines/new?customerId=${widget.customerId}'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Tambah Pipeline'),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          if (_isKanbanView) {
+            return PipelineKanbanBoard(
+              pipelines: pipelines,
+              onPipelineTap: (pipeline) => context.push(
+                '/home/pipelines/${pipeline.id}?customerId=${widget.customerId}',
+              ),
+            );
+          }
+          
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: pipelines.length,
+            itemBuilder: (context, index) {
+              final pipeline = pipelines[index];
+              return PipelineCard(
+                pipeline: pipeline,
+                onTap: () => context.push('/home/pipelines/${pipeline.id}?customerId=${widget.customerId}'),
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: AppLoadingIndicator()),
+        error: (error, _) => Center(child: Text('Error: $error')),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'pipelines_tab_fab',
+        onPressed: () => context.push('/home/pipelines/new?customerId=${widget.customerId}'),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+
+/// Placeholder tab for activities.
 class _PlaceholderTab extends StatelessWidget {
   const _PlaceholderTab({required this.title});
 

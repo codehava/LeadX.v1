@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Service for monitoring network connectivity.
@@ -9,14 +10,17 @@ class ConnectivityService {
     Connectivity? connectivity,
     SupabaseClient? supabaseClient,
   })  : _connectivity = connectivity ?? Connectivity(),
-        _supabaseClient = supabaseClient;
+        _supabaseClient = supabaseClient,
+        // On web, default to online since connectivity_plus has limited support
+        // and the app is running in a browser which requires internet
+        _isConnected = kIsWeb;
 
   final Connectivity _connectivity;
   final SupabaseClient? _supabaseClient;
 
   StreamController<bool>? _controller;
   StreamSubscription<List<ConnectivityResult>>? _subscription;
-  bool _isConnected = false;
+  bool _isConnected;
 
   /// Stream of connectivity status changes.
   Stream<bool> get connectivityStream =>
@@ -35,10 +39,28 @@ class ConnectivityService {
     // Get initial connectivity status
     final results = await _connectivity.checkConnectivity();
     _isConnected = _hasConnection(results);
+    
+    print('[ConnectivityService] Initial connectivity check: results=$results, isConnected=$_isConnected, kIsWeb=$kIsWeb');
+
+    // On web, connectivity_plus has limited support
+    // If we're on web and results show no connection, assume we're online
+    // (since the app is running in a browser which requires internet)
+    if (kIsWeb && !_isConnected) {
+      print('[ConnectivityService] Web platform detected, assuming online');
+      _isConnected = true;
+    }
 
     // Listen for connectivity changes
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
-      final connected = _hasConnection(results);
+      var connected = _hasConnection(results);
+      
+      // On web, if no connection detected, still assume online
+      if (kIsWeb && !connected) {
+        connected = true;
+      }
+      
+      print('[ConnectivityService] Connectivity changed: results=$results, connected=$connected');
+      
       if (connected != _isConnected) {
         _isConnected = connected;
         _controller?.add(_isConnected);
@@ -51,7 +73,8 @@ class ConnectivityService {
         (result) =>
             result == ConnectivityResult.wifi ||
             result == ConnectivityResult.mobile ||
-            result == ConnectivityResult.ethernet,
+            result == ConnectivityResult.ethernet ||
+            result == ConnectivityResult.other, // Add 'other' for web
       );
 
   /// Check if the Supabase server is reachable.

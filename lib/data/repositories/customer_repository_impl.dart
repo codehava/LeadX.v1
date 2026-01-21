@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -20,21 +22,25 @@ class CustomerRepositoryImpl implements CustomerRepository {
     required CustomerLocalDataSource localDataSource,
     required KeyPersonLocalDataSource keyPersonLocalDataSource,
     required CustomerRemoteDataSource remoteDataSource,
+    required KeyPersonRemoteDataSource keyPersonRemoteDataSource,
     required SyncService syncService,
     required String currentUserId,
   })  : _localDataSource = localDataSource,
         _keyPersonLocalDataSource = keyPersonLocalDataSource,
         _remoteDataSource = remoteDataSource,
+        _keyPersonRemoteDataSource = keyPersonRemoteDataSource,
         _syncService = syncService,
         _currentUserId = currentUserId;
 
   final CustomerLocalDataSource _localDataSource;
   final KeyPersonLocalDataSource _keyPersonLocalDataSource;
   final CustomerRemoteDataSource _remoteDataSource;
+  final KeyPersonRemoteDataSource _keyPersonRemoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
 
   static const _uuid = Uuid();
+
 
   // ==========================================
   // Customer CRUD Operations
@@ -78,7 +84,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
         ownershipTypeId: dto.ownershipTypeId,
         industryId: dto.industryId,
         npwp: Value(dto.npwp),
-        assignedRmId: dto.assignedRmId,
+        assignedRmId: dto.assignedRmId.isNotEmpty ? dto.assignedRmId : _currentUserId,
         imageUrl: Value(dto.imageUrl),
         notes: Value(dto.notes),
         createdBy: _currentUserId,
@@ -88,15 +94,21 @@ class CustomerRepositoryImpl implements CustomerRepository {
       );
 
       // Save locally first
+      print('[CustomerRepo] Inserting customer locally: $id');
       await _localDataSource.insertCustomer(companion);
 
       // Queue for sync
+      print('[CustomerRepo] Queueing customer for sync: $id');
       await _syncService.queueOperation(
         entityType: SyncEntityType.customer,
         entityId: id,
         operation: SyncOperation.create,
         payload: _createSyncPayload(id, code, dto, now),
       );
+      print('[CustomerRepo] Customer queued successfully');
+
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
 
       // Return the created customer
       final customer = await getCustomerById(id);
@@ -175,6 +187,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         payload: _createUpdateSyncPayload(updated),
       );
 
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
+
       return Right(_mapToCustomer(updated));
     } catch (e) {
       return Left(DatabaseFailure(
@@ -197,6 +212,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         operation: SyncOperation.delete,
         payload: {'id': id},
       );
+
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
 
       return const Right(null);
     } catch (e) {
@@ -285,6 +303,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         payload: _createKeyPersonSyncPayload(id, dto, now),
       );
 
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
+
       final keyPerson = await _keyPersonLocalDataSource.getKeyPersonById(id);
       return Right(_mapToKeyPerson(keyPerson!));
     } catch (e) {
@@ -335,6 +356,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         payload: _createKeyPersonUpdateSyncPayload(updated),
       );
 
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
+
       return Right(_mapToKeyPerson(updated));
     } catch (e) {
       return Left(DatabaseFailure(
@@ -355,6 +379,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         operation: SyncOperation.delete,
         payload: {'id': id},
       );
+
+      // Trigger sync to upload immediately
+      unawaited(_syncService.triggerSync());
 
       return const Right(null);
     } catch (e) {
@@ -424,6 +451,53 @@ class CustomerRepositoryImpl implements CustomerRepository {
     } catch (e) {
       return Left(SyncFailure(
         message: 'Failed to sync customers from remote: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> syncKeyPersonsFromRemote({DateTime? since}) async {
+    try {
+      final remoteData = await _keyPersonRemoteDataSource.fetchKeyPersons(since: since);
+
+      if (remoteData.isEmpty) {
+        return const Right(0);
+      }
+
+      print('[CustomerRepo] Syncing ${remoteData.length} key persons from remote');
+
+      final companions = remoteData.map((data) {
+        return db.KeyPersonsCompanion(
+          id: Value(data['id'] as String),
+          ownerType: Value(data['owner_type'] as String),
+          customerId: Value(data['customer_id'] as String?),
+          brokerId: Value(data['broker_id'] as String?),
+          hvcId: Value(data['hvc_id'] as String?),
+          name: Value(data['name'] as String),
+          position: Value(data['position'] as String?),
+          department: Value(data['department'] as String?),
+          phone: Value(data['phone'] as String?),
+          email: Value(data['email'] as String?),
+          isPrimary: Value(data['is_primary'] as bool? ?? false),
+          isActive: Value(data['is_active'] as bool? ?? true),
+          notes: Value(data['notes'] as String?),
+          createdBy: Value(data['created_by'] as String),
+          isPendingSync: const Value(false),
+          createdAt: Value(DateTime.parse(data['created_at'] as String)),
+          updatedAt: Value(DateTime.parse(data['updated_at'] as String)),
+          deletedAt: data['deleted_at'] != null
+              ? Value(DateTime.parse(data['deleted_at'] as String))
+              : const Value(null),
+        );
+      }).toList();
+
+      await _keyPersonLocalDataSource.upsertKeyPersons(companions);
+
+      return Right(companions.length);
+    } catch (e) {
+      return Left(SyncFailure(
+        message: 'Failed to sync key persons from remote: $e',
         originalError: e,
       ));
     }
@@ -519,7 +593,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
         'ownership_type_id': dto.ownershipTypeId,
         'industry_id': dto.industryId,
         'npwp': dto.npwp,
-        'assigned_rm_id': dto.assignedRmId,
+        'assigned_rm_id': dto.assignedRmId.isNotEmpty ? dto.assignedRmId : _currentUserId,
         'image_url': dto.imageUrl,
         'notes': dto.notes,
         'is_active': true,

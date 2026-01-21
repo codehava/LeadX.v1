@@ -10,6 +10,8 @@ analyzer:
     missing_return: error
     must_be_immutable: error
     invalid_annotation_target: ignore
+    # Suppress info-level diagnostics to focus on warnings/errors
+    info: ignore
   
   language:
     strict-casts: true

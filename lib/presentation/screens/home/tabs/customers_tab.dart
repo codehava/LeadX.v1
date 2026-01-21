@@ -66,6 +66,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'customers_tab_fab',
         onPressed: () => context.push(RoutePaths.customerCreate),
         child: const Icon(Icons.add),
       ),

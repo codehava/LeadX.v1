@@ -38,10 +38,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
   }
 
   Future<void> _startSync() async {
+    print('[SyncProgressSheet] Starting initial sync...');
     final initialSyncService = ref.read(initialSyncServiceProvider);
     
     // Listen to progress updates
     initialSyncService.progressStream.listen((progress) {
+      print('[SyncProgressSheet] Progress: ${progress.message} (${progress.percentage}%)');
       if (mounted) {
         setState(() {
           _progress = progress;
@@ -58,6 +60,8 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
         // Also handle via callback
       },
     );
+
+    print('[SyncProgressSheet] Sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
 
     if (mounted) {
       setState(() {

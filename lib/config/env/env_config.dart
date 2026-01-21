@@ -1,7 +1,9 @@
 /// Environment configuration for LeadX CRM.
 ///
 /// This class provides access to environment-specific settings
-/// such as Supabase URL and API keys.
+/// such as Supabase URL and API keys loaded from .env file at runtime.
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class EnvConfig {
   EnvConfig._();
 
@@ -15,40 +17,37 @@ class EnvConfig {
   void validate() {
     final errors = <String>[];
 
-    if (supabaseUrl.contains('your-project')) {
-      errors.add('SUPABASE_URL is not configured');
+    if (supabaseUrl.isEmpty || supabaseUrl.contains('your-project')) {
+      errors.add('SUPABASE_URL is not configured in .env file');
     }
 
-    if (supabaseAnonKey == 'your-anon-key') {
-      errors.add('SUPABASE_ANON_KEY is not configured');
+    if (supabaseAnonKey.isEmpty || supabaseAnonKey == 'your-anon-key') {
+      errors.add('SUPABASE_ANON_KEY is not configured in .env file');
     }
 
     if (errors.isNotEmpty) {
       throw StateError(
         'Environment configuration error:\n${errors.join('\n')}\n\n'
-        'Please set environment variables when building:\n'
-        'flutter run --dart-define=SUPABASE_URL=<your-url> --dart-define=SUPABASE_ANON_KEY=<your-key>',
+        'Please create a .env file in the project root with:\n'
+        'SUPABASE_URL=https://your-project.supabase.co\n'
+        'SUPABASE_ANON_KEY=your-anon-key',
       );
     }
   }
 
   /// Whether the environment is properly configured.
   bool get isConfigured {
-    return !supabaseUrl.contains('your-project') &&
+    return supabaseUrl.isNotEmpty && 
+           !supabaseUrl.contains('your-project') &&
+           supabaseAnonKey.isNotEmpty &&
            supabaseAnonKey != 'your-anon-key';
   }
 
-  /// Supabase project URL
-  String get supabaseUrl => const String.fromEnvironment(
-        'SUPABASE_URL',
-        defaultValue: 'https://your-project.supabase.co',
-      );
+  /// Supabase project URL (loaded from .env)
+  String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
 
-  /// Supabase anonymous key (safe to expose in client)
-  String get supabaseAnonKey => const String.fromEnvironment(
-        'SUPABASE_ANON_KEY',
-        defaultValue: 'your-anon-key',
-      );
+  /// Supabase anonymous key (loaded from .env)
+  String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
   /// Whether the app is in debug mode
   bool get isDebug => const bool.fromEnvironment('DEBUG', defaultValue: true);
@@ -71,4 +70,3 @@ class EnvConfig {
   /// Visit distance threshold in meters (for validation)
   int get visitDistanceThreshold => const int.fromEnvironment('VISIT_DISTANCE_THRESHOLD', defaultValue: 500);
 }
-
