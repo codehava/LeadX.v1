@@ -4,6 +4,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/activities.dart';
 import 'tables/cadence.dart';
 import 'tables/customers.dart';
+import 'tables/history_log_tables.dart';
 import 'tables/master_data.dart';
 import 'tables/notifications.dart';
 import 'tables/pipelines.dart';
@@ -94,11 +95,14 @@ part 'app_database.g.dart';
     AnnouncementReads,
     
     // ============================================
-    // SYSTEM (3 tables)
+    // SYSTEM (5 tables)
     // ============================================
     SyncQueueItems,
     AuditLogs,
     AppSettings,
+    // History Log Cache
+    PipelineStageHistoryItems,
+    AuditLogCache,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -106,7 +110,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -114,11 +118,15 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          // Handle future migrations here
-          // Example:
-          // if (from < 2) {
-          //   await m.addColumn(customers, customers.newColumn);
-          // }
+          // Migration from v1 to v2: Add isSynced column to activity_audit_logs
+          if (from < 2) {
+            await m.addColumn(activityAuditLogs, activityAuditLogs.isSynced);
+          }
+          // Migration from v2 to v3: Add history log cache tables
+          if (from < 3) {
+            await m.createTable(pipelineStageHistoryItems);
+            await m.createTable(auditLogCache);
+          }
         },
         beforeOpen: (details) async {
           // Enable foreign keys

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../domain/entities/activity.dart';
 import '../../../providers/activity_providers.dart';
+import '../../../providers/pipeline_providers.dart';
+import '../../../providers/scoreboard_providers.dart';
 import '../widgets/stat_card.dart';
 
 /// Dashboard tab showing today's summary and activities.
@@ -36,6 +38,10 @@ class DashboardTab extends ConsumerWidget {
 
     // Watch today's activities
     final todayActivitiesAsync = ref.watch(todayActivitiesProvider);
+    
+    // Watch pipelines and scoreboard
+    final pipelinesAsync = ref.watch(pipelineListStreamProvider);
+    final dashboardStatsAsync = ref.watch(dashboardStatsProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -86,21 +92,51 @@ class DashboardTab extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
-                    child: StatCard(
-                      label: 'Pipeline Aktif',
-                      value: '12',
-                      icon: Icons.trending_up,
-                      color: AppColors.success,
+                  Expanded(
+                    child: pipelinesAsync.when(
+                      data: (pipelines) => StatCard(
+                        label: 'Pipeline Aktif',
+                        value: '${pipelines.length}',
+                        icon: Icons.trending_up,
+                        color: AppColors.success,
+                      ),
+                      loading: () => const StatCard(
+                        label: 'Pipeline Aktif',
+                        value: '-',
+                        icon: Icons.trending_up,
+                        color: AppColors.success,
+                      ),
+                      error: (_, __) => const StatCard(
+                        label: 'Pipeline Aktif',
+                        value: '0',
+                        icon: Icons.trending_up,
+                        color: AppColors.success,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
-                    child: StatCard(
-                      label: 'Ranking',
-                      value: '#5',
-                      icon: Icons.emoji_events,
-                      color: AppColors.tertiary,
+                  Expanded(
+                    child: dashboardStatsAsync.when(
+                      data: (stats) => StatCard(
+                        label: 'Ranking',
+                        value: stats.userRank != null ? '#${stats.userRank}' : '-',
+                        icon: Icons.emoji_events,
+                        color: AppColors.tertiary,
+                        onTap: () => context.go('/home/scoreboard'),
+                      ),
+                      loading: () => const StatCard(
+                        label: 'Ranking',
+                        value: '-',
+                        icon: Icons.emoji_events,
+                        color: AppColors.tertiary,
+                      ),
+                      error: (_, __) => StatCard(
+                        label: 'Ranking',
+                        value: '-',
+                        icon: Icons.emoji_events,
+                        color: AppColors.tertiary,
+                        onTap: () => context.go('/home/scoreboard'),
+                      ),
                     ),
                   ),
                 ],

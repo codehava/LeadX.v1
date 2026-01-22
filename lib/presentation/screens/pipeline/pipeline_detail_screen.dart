@@ -64,6 +64,7 @@ class PipelineDetailScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, pipeline),
             itemBuilder: (context) => [
+              const PopupMenuItem(value: 'history', child: Text('Riwayat Stage')),
               const PopupMenuItem(value: 'stage', child: Text('Pindah Stage')),
               const PopupMenuItem(value: 'status', child: Text('Update Status')),
               const PopupMenuItem(value: 'delete', child: Text('Hapus')),
@@ -306,6 +307,8 @@ class PipelineDetailScreen extends ConsumerWidget {
     Pipeline pipeline,
   ) {
     switch (action) {
+      case 'history':
+        context.push('/home/pipelines/${pipeline.id}/history?customerId=$customerId');
       case 'delete':
         _showDeleteConfirmation(context, ref, pipeline);
       case 'stage':

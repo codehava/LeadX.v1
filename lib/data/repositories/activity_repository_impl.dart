@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/failures.dart';
@@ -106,6 +107,12 @@ class ActivityRepositoryImpl implements ActivityRepository {
     final typeData = await _localDataSource.getActivityTypeById(data.activityTypeId);
     final photos = await _localDataSource.getActivityPhotos(id);
     final logs = await _localDataSource.getAuditLogs(id);
+    
+    // Debug logging for photos
+    debugPrint('[ActivityRepo] getActivityWithDetails($id): Found ${photos.length} photos');
+    for (final p in photos) {
+      debugPrint('[ActivityRepo] Photo id=${p.id}, photoUrl=${p.photoUrl}, localPath=${p.localPath}');
+    }
 
     return domain.ActivityWithDetails(
       activity: activity,
@@ -796,6 +803,65 @@ class ActivityRepositoryImpl implements ActivityRepository {
   ) =>
       _localDataSource.getCompletedCountInRange(userId, startDate, endDate);
 
+  @override
+  Future<void> syncPendingAuditLogs() async {
+    try {
+      final pendingLogs = await _localDataSource.getPendingSyncAuditLogs();
+      if (pendingLogs.isEmpty) return;
+      
+      debugPrint('[ActivityRepo] Found ${pendingLogs.length} pending audit logs to sync');
+      
+      // Get list of synced activities (not pending sync)
+      final syncedActivities = <String>{};
+      for (final log in pendingLogs) {
+        final activity = await _localDataSource.getActivityById(log.activityId);
+        if (activity != null && !activity.isPendingSync) {
+          syncedActivities.add(log.activityId);
+        }
+      }
+      
+      // Filter logs to only include those for synced activities
+      final logsToSync = pendingLogs.where((l) => syncedActivities.contains(l.activityId)).toList();
+      if (logsToSync.isEmpty) {
+        debugPrint('[ActivityRepo] No audit logs ready to sync (activities not yet synced)');
+        return;
+      }
+      
+      debugPrint('[ActivityRepo] Syncing ${logsToSync.length} audit logs');
+      
+      final syncedIds = <String>[];
+      for (final log in logsToSync) {
+        try {
+          await _remoteDataSource.createAuditLog({
+            'id': log.id,
+            'activity_id': log.activityId,
+            'action': log.action,
+            'old_status': log.oldStatus,
+            'new_status': log.newStatus,
+            'latitude': log.latitude,
+            'longitude': log.longitude,
+            'performed_by': log.performedBy,
+            'performed_at': log.performedAt.toIso8601String(),
+            'notes': log.notes,
+            'created_at': log.performedAt.toIso8601String(),
+          });
+          syncedIds.add(log.id);
+        } catch (e) {
+          debugPrint('[ActivityRepo] Failed to sync audit log ${log.id}: $e');
+          // Continue with other logs
+        }
+      }
+      
+      // Mark synced logs
+      if (syncedIds.isNotEmpty) {
+        await _localDataSource.markAuditLogsAsSynced(syncedIds);
+        debugPrint('[ActivityRepo] Marked ${syncedIds.length} audit logs as synced');
+      }
+    } catch (e) {
+      debugPrint('[ActivityRepo] Error syncing audit logs: $e');
+    }
+  }
+
   // ==========================================
   // Private Helpers
   // ==========================================
@@ -803,6 +869,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
   Future<void> _ensureCachesLoaded() async {
     if (_activityTypeNameCache == null) {
       final types = await _localDataSource.getActivityTypes();
+      debugPrint('[ActivityRepo] Loading activity type cache: found ${types.length} types');
+      for (final t in types) {
+        debugPrint('[ActivityRepo] Type: ${t.id} -> ${t.name}');
+      }
       _activityTypeNameCache = {for (final t in types) t.id: t.name};
       _activityTypeIconCache = {for (final t in types) t.id: t.icon ?? ''};
       _activityTypeColorCache = {for (final t in types) t.id: t.color ?? ''};
@@ -817,6 +887,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
     double? latitude,
     double? longitude,
     String? notes,
+    bool syncToRemote = false, // Only sync if activity is already on remote
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now();
@@ -837,25 +908,27 @@ class ActivityRepositoryImpl implements ActivityRepository {
     // Insert locally first (offline-first)
     await _localDataSource.insertAuditLog(companion);
     
-    // Try to sync to remote (fire and forget, don't block on failure)
-    try {
-      await _remoteDataSource.createAuditLog({
-        'id': id,
-        'activity_id': activityId,
-        'action': action,
-        'old_status': oldStatus,
-        'new_status': newStatus,
-        'latitude': latitude,
-        'longitude': longitude,
-        'performed_by': _currentUserId,
-        'performed_at': now.toIso8601String(),
-        'notes': notes,
-        'created_at': now.toIso8601String(),
-      });
-    } catch (e) {
-      // Remote sync failed - log locally is still valid
-      // Could queue for later sync if needed
-      print('[ActivityRepo] Failed to sync audit log to remote: $e');
+    // Only attempt remote sync if explicitly requested (activity already exists on remote)
+    if (syncToRemote) {
+      try {
+        await _remoteDataSource.createAuditLog({
+          'id': id,
+          'activity_id': activityId,
+          'action': action,
+          'old_status': oldStatus,
+          'new_status': newStatus,
+          'latitude': latitude,
+          'longitude': longitude,
+          'performed_by': _currentUserId,
+          'performed_at': now.toIso8601String(),
+          'notes': notes,
+          'created_at': now.toIso8601String(),
+        });
+        debugPrint('[ActivityRepo] Audit log synced to remote: $action');
+      } catch (e) {
+        // Remote sync failed - log locally is still valid
+        debugPrint('[ActivityRepo] Failed to sync audit log to remote: $e');
+      }
     }
   }
 

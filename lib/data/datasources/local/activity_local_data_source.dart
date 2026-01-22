@@ -258,6 +258,34 @@ class ActivityLocalDataSource {
     return query.get();
   }
 
+  /// Get audit logs that haven't been synced yet.
+  Future<List<ActivityAuditLog>> getPendingSyncAuditLogs() async {
+    final query = _db.select(_db.activityAuditLogs)
+      ..where((l) => l.isSynced.equals(false))
+      ..orderBy([(l) => OrderingTerm.asc(l.performedAt)]);
+    return query.get();
+  }
+
+  /// Get unsynced audit logs for a specific activity.
+  Future<List<ActivityAuditLog>> getPendingSyncAuditLogsForActivity(String activityId) async {
+    final query = _db.select(_db.activityAuditLogs)
+      ..where((l) => l.activityId.equals(activityId) & l.isSynced.equals(false))
+      ..orderBy([(l) => OrderingTerm.asc(l.performedAt)]);
+    return query.get();
+  }
+
+  /// Mark an audit log as synced.
+  Future<void> markAuditLogAsSynced(String id) =>
+      (_db.update(_db.activityAuditLogs)..where((l) => l.id.equals(id)))
+          .write(const ActivityAuditLogsCompanion(isSynced: Value(true)));
+
+  /// Mark multiple audit logs as synced.
+  Future<void> markAuditLogsAsSynced(List<String> ids) async {
+    await (_db.update(_db.activityAuditLogs)
+          ..where((l) => l.id.isIn(ids)))
+        .write(const ActivityAuditLogsCompanion(isSynced: Value(true)));
+  }
+
   // ==========================================
   // Master Data Operations
   // ==========================================

@@ -47,28 +47,57 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       if (mounted) {
         setState(() {
           _progress = progress;
-          if (progress.percentage >= 100) {
-            _isComplete = true;
-          }
+          // Don't mark complete yet - we still need to pull user data
         });
       }
     });
 
-    // Perform sync
+    // Phase 1: Sync master data
     final result = await initialSyncService.performInitialSync(
       onProgress: (progress) {
         // Also handle via callback
       },
     );
 
-    print('[SyncProgressSheet] Sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
+    print('[SyncProgressSheet] Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
+
+    if (!result.success && result.errors.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _isComplete = true;
+          _error = result.errors.first;
+        });
+      }
+      return;
+    }
+
+    // Phase 2: Pull user data (customers, pipelines, activities)
+    if (mounted) {
+      setState(() {
+        _progress = InitialSyncProgress(
+          currentTable: 'user_data',
+          currentTableIndex: 1,
+          totalTables: 1,
+          currentPage: 0,
+          totalRows: 0,
+          percentage: 95,
+          message: 'Mengunduh data pengguna...',
+        );
+      });
+    }
+
+    print('[SyncProgressSheet] Starting user data pull...');
+    try {
+      await ref.read(syncNotifierProvider.notifier).triggerSync();
+      print('[SyncProgressSheet] User data pull complete');
+    } catch (e) {
+      print('[SyncProgressSheet] User data pull error: $e');
+      // Don't fail the whole sync for user data errors - they can retry later
+    }
 
     if (mounted) {
       setState(() {
         _isComplete = true;
-        if (!result.success && result.errors.isNotEmpty) {
-          _error = result.errors.first;
-        }
       });
     }
   }

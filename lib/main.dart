@@ -19,8 +19,8 @@ Future<void> main() async {
   // Use path-based URL strategy for web (removes # from URLs)
   usePathUrlStrategy();
 
-  // Load environment variables from bundled .env file in assets
-  await dotenv.load(fileName: 'assets/.env');
+  // Load environment variables from bundled .env file
+  await dotenv.load(fileName: '.env');
 
   // Get and validate environment configuration
   final envConfig = EnvConfig.instance;

@@ -85,6 +85,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(value, customer),
             itemBuilder: (context) => [
+              const PopupMenuItem(value: 'history', child: Text('Riwayat Perubahan')),
               const PopupMenuItem(value: 'share', child: Text('Bagikan')),
               const PopupMenuItem(value: 'delete', child: Text('Hapus')),
             ],
@@ -166,6 +167,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
 
   void _handleMenuAction(String action, Customer customer) {
     switch (action) {
+      case 'history':
+        context.push('/home/customers/${customer.id}/history');
       case 'delete':
         _showDeleteConfirmation(customer);
       case 'share':

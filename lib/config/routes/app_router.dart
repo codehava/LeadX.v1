@@ -11,9 +11,12 @@ import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
 import '../../presentation/screens/customer/customer_detail_screen.dart';
 import '../../presentation/screens/customer/customer_form_screen.dart';
+import '../../presentation/screens/customer/customer_history_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_detail_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
+import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
+import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
 import 'route_names.dart';
 
@@ -39,14 +42,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final isSplash = state.matchedLocation == RoutePaths.splash;
       final isLogin = state.matchedLocation == RoutePaths.login;
+      final isForgotPassword = state.matchedLocation == RoutePaths.forgotPassword;
 
-      // Still loading - stay on splash
-      if (isLoading && isSplash) {
-        return null;
+      // Still loading - redirect to splash if not already there
+      if (isLoading) {
+        return isSplash ? null : RoutePaths.splash;
       }
 
-      // Not logged in - redirect to login (unless already there)
-      if (!isLoggedIn && !isLogin && !isSplash) {
+      // Not logged in - redirect to login (unless already on auth pages)
+      if (!isLoggedIn && !isLogin && !isSplash && !isForgotPassword) {
         return RoutePaths.login;
       }
 
@@ -124,6 +128,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       return CustomerFormScreen(customerId: id);
                     },
                   ),
+                  GoRoute(
+                    path: 'history',
+                    name: 'customerHistory',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return CustomerHistoryScreen(customerId: id);
+                    },
+                  ),
                 ],
               ),
             ],
@@ -154,6 +166,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final id = state.pathParameters['id']!;
                   final customerId = state.uri.queryParameters['customerId'] ?? '';
                   return PipelineFormScreen(customerId: customerId, pipelineId: id);
+                },
+              ),
+              GoRoute(
+                path: 'history',
+                name: 'pipelineHistory',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return PipelineHistoryScreen(pipelineId: id);
                 },
               ),
             ],
@@ -221,9 +241,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'scoreboard',
             name: RouteNames.scoreboard,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Scoreboard')),
-            ),
+            builder: (context, state) => const ScoreboardScreen(),
           ),
 
           // Cadence

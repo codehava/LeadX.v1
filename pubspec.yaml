@@ -88,7 +88,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/.env
+    - .env
 
   # Fonts - uncomment when Inter font files are added
   # Download from: https://fonts.google.com/specimen/Inter

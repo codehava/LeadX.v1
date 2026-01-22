@@ -74,6 +74,7 @@ class ActivityAuditLogs extends Table {
   TextColumn get performedBy => text().references(Users, #id)();
   DateTimeColumn get performedAt => dateTime()();
   TextColumn get notes => text().nullable()();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))(); // For sync tracking
 
   @override
   Set<Column> get primaryKey => {id};

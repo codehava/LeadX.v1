@@ -7,6 +7,7 @@ import '../../domain/entities/pipeline.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import '../database/app_database.dart' as db;
+import '../datasources/local/customer_local_data_source.dart';
 import '../datasources/local/master_data_local_data_source.dart';
 import '../datasources/local/pipeline_local_data_source.dart';
 import '../datasources/remote/pipeline_remote_data_source.dart';
@@ -18,17 +19,20 @@ class PipelineRepositoryImpl implements PipelineRepository {
   PipelineRepositoryImpl({
     required PipelineLocalDataSource localDataSource,
     required MasterDataLocalDataSource masterDataSource,
+    required CustomerLocalDataSource customerDataSource,
     required PipelineRemoteDataSource remoteDataSource,
     required SyncService syncService,
     required String currentUserId,
   })  : _localDataSource = localDataSource,
         _masterDataSource = masterDataSource,
+        _customerDataSource = customerDataSource,
         _remoteDataSource = remoteDataSource,
         _syncService = syncService,
         _currentUserId = currentUserId;
 
   final PipelineLocalDataSource _localDataSource;
   final MasterDataLocalDataSource _masterDataSource;
+  final CustomerLocalDataSource _customerDataSource;
   final PipelineRemoteDataSource _remoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
@@ -45,6 +49,8 @@ class PipelineRepositoryImpl implements PipelineRepository {
   Map<String, String>? _lobNameCache;
   Map<String, String>? _leadSourceNameCache;
   Map<String, String>? _brokerNameCache;
+  Map<String, String>? _customerNameCache;
+  Map<String, String>? _userNameCache;
 
   // ==========================================
   // Stream Operations
@@ -561,6 +567,12 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final brokers = await _masterDataSource.getBrokers();
       _brokerNameCache = {for (final b in brokers) b.id: b.name};
     }
+    if (_customerNameCache == null) {
+      final customers = await _customerDataSource.getAllCustomers();
+      _customerNameCache = {for (final c in customers) c.id: c.name};
+    }
+    // Note: User names would need a user data source - for now we'll use assigned_rm_id directly
+    // This could be enhanced if a user lookup table is available
   }
 
   /// Get all LOBs from database.
@@ -618,6 +630,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         lobName: _lobNameCache?[data.lobId],
         leadSourceName: _leadSourceNameCache?[data.leadSourceId],
         brokerName: data.brokerId == null ? null : _brokerNameCache?[data.brokerId],
+        customerName: _customerNameCache?[data.customerId],
       );
 
   /// Map Drift PipelineStage to domain PipelineStageInfo.

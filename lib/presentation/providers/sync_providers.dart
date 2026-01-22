@@ -130,7 +130,12 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       await _syncPhotos();
       print('[SyncNotifier] Photo sync complete');
 
-      // Step 3: Pull - download changes from Supabase
+      // Step 3: Sync pending audit logs (after activities are synced)
+      print('[SyncNotifier] Starting audit log sync...');
+      await _syncAuditLogs();
+      print('[SyncNotifier] Audit log sync complete');
+
+      // Step 4: Pull - download changes from Supabase
       print('[SyncNotifier] Starting pull sync...');
       await _pullFromRemote();
       print('[SyncNotifier] Pull sync complete');
@@ -148,6 +153,15 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       await _activityRepository.syncPendingPhotos();
     } catch (e) {
       print('[SyncNotifier] Photo sync error: $e');
+    }
+  }
+
+  /// Sync pending audit logs to Supabase.
+  Future<void> _syncAuditLogs() async {
+    try {
+      await _activityRepository.syncPendingAuditLogs();
+    } catch (e) {
+      print('[SyncNotifier] Audit log sync error: $e');
     }
   }
 

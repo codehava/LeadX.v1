@@ -9,3 +9,6 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   ref.onDispose(db.close);
   return db;
 });
+
+/// Alias for backward compatibility.
+final appDatabaseProvider = databaseProvider;

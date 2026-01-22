@@ -25,6 +25,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   void _handleAuthStateChange(supabase.AuthState data) {
     switch (data.event) {
+      case supabase.AuthChangeEvent.initialSession:
+        // Session restored from storage (e.g., opening new tab)
+        _fetchUserAndNotify(data.session);
+        break;
       case supabase.AuthChangeEvent.signedIn:
         _fetchUserAndNotify(data.session);
         break;

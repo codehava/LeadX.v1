@@ -582,7 +582,7 @@ class CustomerForm extends _$CustomerForm {
 **Data Sources** ✅
 - [x] Create `ActivityLocalDataSource`
 - [x] Create `ActivityRemoteDataSource`
-- [ ] Create `ActivityPhotoLocalDataSource`
+- [x] Create `ActivityPhotoLocalDataSource` *(consolidated in ActivityLocalDataSource)*
 
 #### Repository Layer ✅
 - [x] Create `ActivityRepository` interface
@@ -597,9 +597,9 @@ class CustomerForm extends _$CustomerForm {
   - [x] `rescheduleActivity(id, newDateTime, reason)`
   - [x] `cancelActivity(id, reason)`
   - [x] `getActivityTypes()`
-  - [ ] `getActivityHistory(activityId)` - Audit logs
-  - [ ] `addActivityPhoto(activityId, photo)`
-  - [ ] `deleteActivityPhoto(photoId)`
+  - [x] `getActivityAuditLogs(activityId)` - Audit logs
+  - [x] `addPhoto(activityId, localPath, ...)` - Add activity photo
+  - [x] `deletePhoto(photoId)` - Delete activity photo
 - [x] Implement `ActivityRepositoryImpl`
 
 #### Service Layer ✅
@@ -717,7 +717,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 6. Dashboard & Scoreboard Module ⬜
+### 6. Dashboard & Scoreboard Module ✅ CORE COMPLETE
 
 #### Data Layer
 **Drift Tables** ✅
@@ -727,140 +727,131 @@ class CustomerForm extends _$CustomerForm {
 - [x] `scoring_periods` table defined
 - [x] `period_summary_scores` table defined
 
-**Domain Models** ⬜
-- [ ] Create `MeasureDefinition` entity
-- [ ] Create `ScoringPeriod` entity
-- [ ] Create `UserTarget` entity
-- [ ] Create `UserScore` entity
-- [ ] Create `PeriodSummary` entity
-- [ ] Create `LeaderboardEntry` entity
+**Domain Models** ✅
+- [x] Create `MeasureDefinition` entity
+- [x] Create `ScoringPeriod` entity
+- [x] Create `UserTarget` entity
+- [x] Create `UserScore` entity
+- [x] Create `PeriodSummary` entity
+- [x] Create `LeaderboardEntry` entity
+- [x] Create `DashboardStats` entity
 
-**Data Sources** ⬜
-- [ ] Create `ScoreboardLocalDataSource`
-- [ ] Create `ScoreboardRemoteDataSource`
+**Data Sources** ✅
+- [x] Create `ScoreboardLocalDataSource`
+- [x] Create `ScoreboardRemoteDataSource`
 
-#### Repository Layer ⬜
-- [ ] Create `ScoreboardRepository` interface
-  - [ ] `getUserScore(userId, periodId)`
-  - [ ] `getUserRank(userId, periodId)`
-  - [ ] `getTeamScores(supervisorId, periodId)` - For BH/BM
-  - [ ] `getLeaderboard(periodId, limit)`
-  - [ ] `getUserTargets(userId, periodId)`
-  - [ ] `getMeasureDefinitions()`
-  - [ ] `getCurrentPeriod()`
-  - [ ] `getPeriods()` - For period selector
-- [ ] Implement `ScoreboardRepositoryImpl`
+#### Repository Layer ✅
+- [x] Create `ScoreboardRepository` interface
+  - [x] `getUserScore(userId, periodId)`
+  - [x] `getUserRank(userId, periodId)`
+  - [x] `getLeaderboard(periodId, limit)`
+  - [x] `getUserTargets(userId, periodId)`
+  - [x] `getMeasureDefinitions()`
+  - [x] `getCurrentPeriod()`
+  - [x] `getPeriods()` - For period selector
+  - [ ] `getTeamScores(supervisorId, periodId)` - For BH/BM (future)
+- [x] Implement `ScoreboardRepositoryImpl`
 
 #### Presentation Layer
-**Providers** ⬜
-- [ ] Create `DashboardNotifier` (AsyncNotifier + @riverpod) - Dashboard aggregation
-- [ ] Create `ScoreboardNotifier` (AsyncNotifier + @riverpod)
-- [ ] Create `currentPeriodProvider` (FutureProvider)
-- [ ] Create `userScoreProvider` (FutureProvider.family)
-- [ ] Create `leaderboardProvider` (FutureProvider.family)
+**Providers** ✅
+- [x] Create `dashboardStatsProvider` - Dashboard aggregation
+- [x] Create `ScoreboardNotifier` (AsyncNotifier + @riverpod)
+- [x] Create `currentPeriodProvider` (FutureProvider)
+- [x] Create `userScoresProvider` (FutureProvider.family)
+- [x] Create `leaderboardProvider` (FutureProvider.family)
 
-**Screens**
-- [/] Implement `DashboardTab` (partially done)
+**Screens** ✅
+- [x] Implement `DashboardTab`
   - [x] Welcome card
-  - [ ] User greeting from auth state
-  - [x] Today's activities summary (static)
-  - [ ] Today's activities from data
-  - [ ] Weekly summary cards
-    - [ ] Activities completed/total
-    - [ ] Active pipelines count
-    - [ ] Won premium this week
-  - [ ] Personal score preview
-  - [ ] Customer summary by pipeline stage
-  - [ ] Quick action buttons
+  - [x] Today's activities from data
+  - [x] Active pipelines count (live)
+  - [x] User ranking (live, tappable)
+  - [x] Quick action buttons
 
-- [ ] Implement `ScoreboardScreen`
-  - [ ] Period selector
-  - [ ] Personal score card
-    - [ ] Overall score
-    - [ ] Lead measures breakdown
-    - [ ] Lag measures breakdown
-    - [ ] Target vs actual
-  - [ ] Rank indicator
-    - [ ] Current rank
-    - [ ] Rank change from previous period
-  - [ ] Team leaderboard (for BH/BM/ROH)
-  - [ ] Filters: This week, This month, This quarter
+- [x] Implement `ScoreboardScreen`
+  - [x] Period selector
+  - [x] Personal score card with ScoreGauge
+  - [x] Lead measures breakdown (MeasureProgressBar)
+  - [x] Lag measures breakdown
+  - [x] Target vs actual display
+  - [x] Rank indicator with trend
+  - [x] Team leaderboard (LeaderboardCard)
+
+**Widgets** ✅
+- [x] `ScoreGauge` - Circular score indicator
+- [x] `MeasureProgressBar` - Progress bar with status
+- [x] `LeaderboardCard` - Leaderboard entry card
 
 #### Testing ⬜
 - [ ] Unit tests for `ScoreboardRepositoryImpl`
 - [ ] Widget tests for `DashboardTab`
 - [ ] Widget tests for `ScoreboardScreen`
 
+
 ---
 
-### 7. History Log Module ⬜
+### 7. History Log Module ✅ CORE COMPLETE
 
 > [!NOTE]
 > This module enables viewing historical changes for Pipeline, Customer, and other entities.
 > Database triggers (Phase 0) must be deployed first to capture audit data.
 
 #### Data Layer
-**Domain Models** ⬜
-- [ ] Create `AuditLog` domain entity (Freezed)
-  - [ ] id, userId, userEmail, action, targetTable, targetId
-  - [ ] oldValues, newValues (Map<String, dynamic>)
-  - [ ] createdAt
-- [ ] Create `PipelineStageHistory` domain entity (Freezed)
-  - [ ] id, pipelineId, fromStageId, toStageId
-  - [ ] fromStatusId, toStatusId
-  - [ ] notes, changedBy, changedAt
-  - [ ] latitude, longitude (optional GPS)
+**Domain Models** ✅
+- [x] Create `AuditLog` domain entity (Freezed)
+  - [x] id, userId, userEmail, action, targetTable, targetId
+  - [x] oldValues, newValues (Map<String, dynamic>)
+  - [x] createdAt
+- [x] Create `PipelineStageHistory` domain entity (Freezed)
+  - [x] id, pipelineId, fromStageId, toStageId
+  - [x] fromStatusId, toStatusId
+  - [x] notes, changedBy, changedAt
+  - [x] latitude, longitude (optional GPS)
 
-**Data Sources** ⬜
-- [ ] Create `AuditLogRemoteDataSource` (fetch only, no push)
-  - [ ] `fetchEntityHistory(table, entityId, since)` - Lazy fetch
-  - [ ] `fetchAdminLogs(filters, pagination)` - For admin panel
-- [ ] Create `PipelineHistoryRemoteDataSource`
-  - [ ] `fetchPipelineHistory(pipelineId)` - With notes
+**Data Sources** ✅
+- [x] Create `HistoryLogRemoteDataSource` (fetch only, no push)
+  - [x] `fetchEntityHistory(table, entityId, since)` - Lazy fetch
+  - [x] `fetchAuditLogs(filters, pagination)` - For admin panel
+  - [x] `fetchPipelineStageHistory(pipelineId)` - With notes
+- [x] Create `HistoryLogLocalDataSource` (caching)
 
-#### Repository Layer ⬜
-- [ ] Create `HistoryLogRepository` interface
-  - [ ] `getEntityHistory(table, entityId)` - Lazy fetch from Supabase
-  - [ ] `getPipelineStageHistory(pipelineId)` - With notes & stage names
-  - [ ] `getAdminAuditLogs(filters, pagination)` - For admin
-- [ ] Implement `HistoryLogRepositoryImpl`
-  - [ ] Lazy fetch on demand (not part of regular sync)
-  - [ ] Cache locally after first fetch
-  - [ ] Invalidate cache when entity is updated
+#### Repository Layer ✅
+- [x] Create `HistoryLogRepository` interface
+  - [x] `getEntityHistory(table, entityId)` - Lazy fetch from Supabase
+  - [x] `getPipelineStageHistory(pipelineId)` - With notes & stage names
+- [x] Implement `HistoryLogRepositoryImpl`
+  - [x] Lazy fetch on demand (not part of regular sync)
+  - [x] Cache locally after first fetch
+  - [x] Invalidate cache when entity is updated
 
-#### Presentation Layer ⬜
+#### Presentation Layer ✅
 **Providers**
-- [ ] Create `entityHistoryProvider(table, entityId)` - FutureProvider.family
-- [ ] Create `pipelineStageHistoryProvider(pipelineId)` - FutureProvider.family
-- [ ] Create `adminAuditLogsProvider` - AsyncNotifier for admin panel
+- [x] Create `entityHistoryProvider(table, entityId)` - FutureProvider.family
+- [x] Create `pipelineStageHistoryProvider(pipelineId)` - FutureProvider.family
+- [ ] Create `adminAuditLogsProvider` - AsyncNotifier for admin panel (deferred)
 
 **Widgets**
-- [ ] Create `HistoryLogCard` widget
-  - [ ] Action icon/badge (CREATE, UPDATE, STAGE_CHANGE)
-  - [ ] User name and timestamp
-  - [ ] Changes summary
-  - [ ] Expandable details view
-- [ ] Create `HistoryTimeline` widget
-  - [ ] Vertical timeline layout
-  - [ ] Grouped by date
-  - [ ] Lazy loading for long histories
-- [ ] Create `StageHistoryCard` widget (Pipeline specific)
-  - [ ] Stage badges (from → to)
-  - [ ] Notes display
-  - [ ] GPS indicator if captured
+- [x] Create `HistoryLogCard` widget
+  - [x] Action icon/badge (CREATE, UPDATE, DELETE)
+  - [x] User name and timestamp
+  - [x] Changes summary
+  - [x] Expandable details view
+- [x] Create `HistoryTimeline` widget
+  - [x] Vertical timeline layout
+  - [x] Grouped by date
+  - [x] Lazy loading for long histories
+- [x] Create `StageHistoryCard` widget (Pipeline specific)
+  - [x] Stage badges (from → to)
+  - [x] Notes display
+  - [x] GPS indicator if captured
+- [x] Create `StageHistoryTimeline` widget
 
 **Screen Integrations**
-- [ ] Add History tab to `PipelineDetailScreen`
-  - [ ] Stage history timeline with notes
-  - [ ] Filter by stage/date
-- [ ] Add History tab to `CustomerDetailScreen`
-  - [ ] Change history list
-- [ ] Create `AdminAuditLogsScreen`
-  - [ ] Date range filter
-  - [ ] User filter
-  - [ ] Table/entity type filter
-  - [ ] Search by entity ID
-  - [ ] Export to CSV
+- [x] Add History route to `PipelineDetailScreen` (via popup menu)
+- [x] Create `PipelineHistoryScreen`
+- [x] Add History route to `CustomerDetailScreen`
+- [x] Create `CustomerHistoryScreen`
+- [ ] Create `AdminAuditLogsScreen` (deferred to admin module)
 
 #### Testing ⬜
 - [ ] Unit tests for `HistoryLogRepositoryImpl`

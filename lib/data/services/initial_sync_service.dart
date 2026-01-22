@@ -90,6 +90,9 @@ class InitialSyncService {
     'lead_sources',
     'decline_reasons',
     'hvc_types',
+    // 4DX Scoring (added)
+    'measure_definitions',
+    'scoring_periods',
     // User hierarchy (dependencies first)
     'regional_offices',
     'branches',
@@ -235,6 +238,13 @@ class InitialSyncService {
         break;
       case 'hvc_types':
         await _syncHvcTypes();
+        break;
+      // 4DX Scoring
+      case 'measure_definitions':
+        await _syncMeasureDefinitions();
+        break;
+      case 'scoring_periods':
+        await _syncScoringPeriods();
         break;
       // User hierarchy
       case 'regional_offices':
@@ -463,6 +473,59 @@ class InitialSyncService {
             id: row['id'] as String,
             code: row['code'] as String,
             name: row['name'] as String,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  // ============================================
+  // 4DX SCORING SYNC METHODS
+  // ============================================
+
+  Future<void> _syncMeasureDefinitions() async {
+    final data = await _supabase.from('measure_definitions').select().eq('is_active', true);
+    
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.measureDefinitions,
+          MeasureDefinitionsCompanion.insert(
+            id: row['id'] as String,
+            code: row['code'] as String,
+            name: row['name'] as String,
+            description: Value(row['description'] as String?),
+            measureType: row['measure_type'] as String,
+            dataType: row['unit'] as String? ?? 'COUNT',
+            unit: Value(row['unit'] as String?),
+            sortOrder: Value(row['sort_order'] as int? ?? 0),
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> _syncScoringPeriods() async {
+    final data = await _supabase.from('scoring_periods').select();
+    
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.scoringPeriods,
+          ScoringPeriodsCompanion.insert(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            periodType: row['period_type'] as String,
+            startDate: DateTime.parse(row['start_date'] as String),
+            endDate: DateTime.parse(row['end_date'] as String),
+            isCurrent: Value(row['is_current'] as bool? ?? false),
+            isActive: Value(row['is_locked'] != true), // invert is_locked
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
           ),
           mode: InsertMode.insertOrReplace,
         );

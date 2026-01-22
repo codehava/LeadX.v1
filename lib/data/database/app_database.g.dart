@@ -15785,6 +15785,21 @@ class $ActivityAuditLogsTable extends ActivityAuditLogs
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -15801,6 +15816,7 @@ class $ActivityAuditLogsTable extends ActivityAuditLogs
     performedBy,
     performedAt,
     notes,
+    isSynced,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -15914,6 +15930,12 @@ class $ActivityAuditLogsTable extends ActivityAuditLogs
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
     return context;
   }
 
@@ -15979,6 +16001,10 @@ class $ActivityAuditLogsTable extends ActivityAuditLogs
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
     );
   }
 
@@ -16004,6 +16030,7 @@ class ActivityAuditLog extends DataClass
   final String performedBy;
   final DateTime performedAt;
   final String? notes;
+  final bool isSynced;
   const ActivityAuditLog({
     required this.id,
     required this.activityId,
@@ -16019,6 +16046,7 @@ class ActivityAuditLog extends DataClass
     required this.performedBy,
     required this.performedAt,
     this.notes,
+    required this.isSynced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -16055,6 +16083,7 @@ class ActivityAuditLog extends DataClass
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['is_synced'] = Variable<bool>(isSynced);
     return map;
   }
 
@@ -16092,6 +16121,7 @@ class ActivityAuditLog extends DataClass
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      isSynced: Value(isSynced),
     );
   }
 
@@ -16115,6 +16145,7 @@ class ActivityAuditLog extends DataClass
       performedBy: serializer.fromJson<String>(json['performedBy']),
       performedAt: serializer.fromJson<DateTime>(json['performedAt']),
       notes: serializer.fromJson<String?>(json['notes']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
     );
   }
   @override
@@ -16135,6 +16166,7 @@ class ActivityAuditLog extends DataClass
       'performedBy': serializer.toJson<String>(performedBy),
       'performedAt': serializer.toJson<DateTime>(performedAt),
       'notes': serializer.toJson<String?>(notes),
+      'isSynced': serializer.toJson<bool>(isSynced),
     };
   }
 
@@ -16153,6 +16185,7 @@ class ActivityAuditLog extends DataClass
     String? performedBy,
     DateTime? performedAt,
     Value<String?> notes = const Value.absent(),
+    bool? isSynced,
   }) => ActivityAuditLog(
     id: id ?? this.id,
     activityId: activityId ?? this.activityId,
@@ -16170,6 +16203,7 @@ class ActivityAuditLog extends DataClass
     performedBy: performedBy ?? this.performedBy,
     performedAt: performedAt ?? this.performedAt,
     notes: notes.present ? notes.value : this.notes,
+    isSynced: isSynced ?? this.isSynced,
   );
   ActivityAuditLog copyWithCompanion(ActivityAuditLogsCompanion data) {
     return ActivityAuditLog(
@@ -16197,6 +16231,7 @@ class ActivityAuditLog extends DataClass
           ? data.performedAt.value
           : this.performedAt,
       notes: data.notes.present ? data.notes.value : this.notes,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
     );
   }
 
@@ -16216,7 +16251,8 @@ class ActivityAuditLog extends DataClass
           ..write('deviceInfo: $deviceInfo, ')
           ..write('performedBy: $performedBy, ')
           ..write('performedAt: $performedAt, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('isSynced: $isSynced')
           ..write(')'))
         .toString();
   }
@@ -16237,6 +16273,7 @@ class ActivityAuditLog extends DataClass
     performedBy,
     performedAt,
     notes,
+    isSynced,
   );
   @override
   bool operator ==(Object other) =>
@@ -16255,7 +16292,8 @@ class ActivityAuditLog extends DataClass
           other.deviceInfo == this.deviceInfo &&
           other.performedBy == this.performedBy &&
           other.performedAt == this.performedAt &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.isSynced == this.isSynced);
 }
 
 class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
@@ -16273,6 +16311,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
   final Value<String> performedBy;
   final Value<DateTime> performedAt;
   final Value<String?> notes;
+  final Value<bool> isSynced;
   final Value<int> rowid;
   const ActivityAuditLogsCompanion({
     this.id = const Value.absent(),
@@ -16289,6 +16328,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
     this.performedBy = const Value.absent(),
     this.performedAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ActivityAuditLogsCompanion.insert({
@@ -16306,6 +16346,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
     required String performedBy,
     required DateTime performedAt,
     this.notes = const Value.absent(),
+    this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        activityId = Value(activityId),
@@ -16327,6 +16368,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
     Expression<String>? performedBy,
     Expression<DateTime>? performedAt,
     Expression<String>? notes,
+    Expression<bool>? isSynced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -16344,6 +16386,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
       if (performedBy != null) 'performed_by': performedBy,
       if (performedAt != null) 'performed_at': performedAt,
       if (notes != null) 'notes': notes,
+      if (isSynced != null) 'is_synced': isSynced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -16363,6 +16406,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
     Value<String>? performedBy,
     Value<DateTime>? performedAt,
     Value<String?>? notes,
+    Value<bool>? isSynced,
     Value<int>? rowid,
   }) {
     return ActivityAuditLogsCompanion(
@@ -16380,6 +16424,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
       performedBy: performedBy ?? this.performedBy,
       performedAt: performedAt ?? this.performedAt,
       notes: notes ?? this.notes,
+      isSynced: isSynced ?? this.isSynced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -16429,6 +16474,9 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -16452,6 +16500,7 @@ class ActivityAuditLogsCompanion extends UpdateCompanion<ActivityAuditLog> {
           ..write('performedBy: $performedBy, ')
           ..write('performedAt: $performedAt, ')
           ..write('notes: $notes, ')
+          ..write('isSynced: $isSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -29199,6 +29248,1451 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
+class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
+    with TableInfo<$PipelineStageHistoryItemsTable, PipelineStageHistoryItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PipelineStageHistoryItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pipelineIdMeta = const VerificationMeta(
+    'pipelineId',
+  );
+  @override
+  late final GeneratedColumn<String> pipelineId = GeneratedColumn<String>(
+    'pipeline_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromStageIdMeta = const VerificationMeta(
+    'fromStageId',
+  );
+  @override
+  late final GeneratedColumn<String> fromStageId = GeneratedColumn<String>(
+    'from_stage_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _toStageIdMeta = const VerificationMeta(
+    'toStageId',
+  );
+  @override
+  late final GeneratedColumn<String> toStageId = GeneratedColumn<String>(
+    'to_stage_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromStatusIdMeta = const VerificationMeta(
+    'fromStatusId',
+  );
+  @override
+  late final GeneratedColumn<String> fromStatusId = GeneratedColumn<String>(
+    'from_status_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _toStatusIdMeta = const VerificationMeta(
+    'toStatusId',
+  );
+  @override
+  late final GeneratedColumn<String> toStatusId = GeneratedColumn<String>(
+    'to_status_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _changedByMeta = const VerificationMeta(
+    'changedBy',
+  );
+  @override
+  late final GeneratedColumn<String> changedBy = GeneratedColumn<String>(
+    'changed_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _changedAtMeta = const VerificationMeta(
+    'changedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> changedAt = GeneratedColumn<DateTime>(
+    'changed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    pipelineId,
+    fromStageId,
+    toStageId,
+    fromStatusId,
+    toStatusId,
+    notes,
+    changedBy,
+    changedAt,
+    latitude,
+    longitude,
+    cachedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pipeline_stage_history_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PipelineStageHistoryItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('pipeline_id')) {
+      context.handle(
+        _pipelineIdMeta,
+        pipelineId.isAcceptableOrUnknown(data['pipeline_id']!, _pipelineIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pipelineIdMeta);
+    }
+    if (data.containsKey('from_stage_id')) {
+      context.handle(
+        _fromStageIdMeta,
+        fromStageId.isAcceptableOrUnknown(
+          data['from_stage_id']!,
+          _fromStageIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('to_stage_id')) {
+      context.handle(
+        _toStageIdMeta,
+        toStageId.isAcceptableOrUnknown(data['to_stage_id']!, _toStageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toStageIdMeta);
+    }
+    if (data.containsKey('from_status_id')) {
+      context.handle(
+        _fromStatusIdMeta,
+        fromStatusId.isAcceptableOrUnknown(
+          data['from_status_id']!,
+          _fromStatusIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('to_status_id')) {
+      context.handle(
+        _toStatusIdMeta,
+        toStatusId.isAcceptableOrUnknown(
+          data['to_status_id']!,
+          _toStatusIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('changed_by')) {
+      context.handle(
+        _changedByMeta,
+        changedBy.isAcceptableOrUnknown(data['changed_by']!, _changedByMeta),
+      );
+    }
+    if (data.containsKey('changed_at')) {
+      context.handle(
+        _changedAtMeta,
+        changedAt.isAcceptableOrUnknown(data['changed_at']!, _changedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_changedAtMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PipelineStageHistoryItem map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PipelineStageHistoryItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      pipelineId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pipeline_id'],
+      )!,
+      fromStageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_stage_id'],
+      ),
+      toStageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_stage_id'],
+      )!,
+      fromStatusId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_status_id'],
+      ),
+      toStatusId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_status_id'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      changedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}changed_by'],
+      ),
+      changedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}changed_at'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PipelineStageHistoryItemsTable createAlias(String alias) {
+    return $PipelineStageHistoryItemsTable(attachedDatabase, alias);
+  }
+}
+
+class PipelineStageHistoryItem extends DataClass
+    implements Insertable<PipelineStageHistoryItem> {
+  final String id;
+  final String pipelineId;
+  final String? fromStageId;
+  final String toStageId;
+  final String? fromStatusId;
+  final String? toStatusId;
+  final String? notes;
+  final String? changedBy;
+  final DateTime changedAt;
+  final double? latitude;
+  final double? longitude;
+  final DateTime cachedAt;
+  const PipelineStageHistoryItem({
+    required this.id,
+    required this.pipelineId,
+    this.fromStageId,
+    required this.toStageId,
+    this.fromStatusId,
+    this.toStatusId,
+    this.notes,
+    this.changedBy,
+    required this.changedAt,
+    this.latitude,
+    this.longitude,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['pipeline_id'] = Variable<String>(pipelineId);
+    if (!nullToAbsent || fromStageId != null) {
+      map['from_stage_id'] = Variable<String>(fromStageId);
+    }
+    map['to_stage_id'] = Variable<String>(toStageId);
+    if (!nullToAbsent || fromStatusId != null) {
+      map['from_status_id'] = Variable<String>(fromStatusId);
+    }
+    if (!nullToAbsent || toStatusId != null) {
+      map['to_status_id'] = Variable<String>(toStatusId);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || changedBy != null) {
+      map['changed_by'] = Variable<String>(changedBy);
+    }
+    map['changed_at'] = Variable<DateTime>(changedAt);
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  PipelineStageHistoryItemsCompanion toCompanion(bool nullToAbsent) {
+    return PipelineStageHistoryItemsCompanion(
+      id: Value(id),
+      pipelineId: Value(pipelineId),
+      fromStageId: fromStageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fromStageId),
+      toStageId: Value(toStageId),
+      fromStatusId: fromStatusId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fromStatusId),
+      toStatusId: toStatusId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toStatusId),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      changedBy: changedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(changedBy),
+      changedAt: Value(changedAt),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory PipelineStageHistoryItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PipelineStageHistoryItem(
+      id: serializer.fromJson<String>(json['id']),
+      pipelineId: serializer.fromJson<String>(json['pipelineId']),
+      fromStageId: serializer.fromJson<String?>(json['fromStageId']),
+      toStageId: serializer.fromJson<String>(json['toStageId']),
+      fromStatusId: serializer.fromJson<String?>(json['fromStatusId']),
+      toStatusId: serializer.fromJson<String?>(json['toStatusId']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      changedBy: serializer.fromJson<String?>(json['changedBy']),
+      changedAt: serializer.fromJson<DateTime>(json['changedAt']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'pipelineId': serializer.toJson<String>(pipelineId),
+      'fromStageId': serializer.toJson<String?>(fromStageId),
+      'toStageId': serializer.toJson<String>(toStageId),
+      'fromStatusId': serializer.toJson<String?>(fromStatusId),
+      'toStatusId': serializer.toJson<String?>(toStatusId),
+      'notes': serializer.toJson<String?>(notes),
+      'changedBy': serializer.toJson<String?>(changedBy),
+      'changedAt': serializer.toJson<DateTime>(changedAt),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  PipelineStageHistoryItem copyWith({
+    String? id,
+    String? pipelineId,
+    Value<String?> fromStageId = const Value.absent(),
+    String? toStageId,
+    Value<String?> fromStatusId = const Value.absent(),
+    Value<String?> toStatusId = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    Value<String?> changedBy = const Value.absent(),
+    DateTime? changedAt,
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    DateTime? cachedAt,
+  }) => PipelineStageHistoryItem(
+    id: id ?? this.id,
+    pipelineId: pipelineId ?? this.pipelineId,
+    fromStageId: fromStageId.present ? fromStageId.value : this.fromStageId,
+    toStageId: toStageId ?? this.toStageId,
+    fromStatusId: fromStatusId.present ? fromStatusId.value : this.fromStatusId,
+    toStatusId: toStatusId.present ? toStatusId.value : this.toStatusId,
+    notes: notes.present ? notes.value : this.notes,
+    changedBy: changedBy.present ? changedBy.value : this.changedBy,
+    changedAt: changedAt ?? this.changedAt,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  PipelineStageHistoryItem copyWithCompanion(
+    PipelineStageHistoryItemsCompanion data,
+  ) {
+    return PipelineStageHistoryItem(
+      id: data.id.present ? data.id.value : this.id,
+      pipelineId: data.pipelineId.present
+          ? data.pipelineId.value
+          : this.pipelineId,
+      fromStageId: data.fromStageId.present
+          ? data.fromStageId.value
+          : this.fromStageId,
+      toStageId: data.toStageId.present ? data.toStageId.value : this.toStageId,
+      fromStatusId: data.fromStatusId.present
+          ? data.fromStatusId.value
+          : this.fromStatusId,
+      toStatusId: data.toStatusId.present
+          ? data.toStatusId.value
+          : this.toStatusId,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      changedBy: data.changedBy.present ? data.changedBy.value : this.changedBy,
+      changedAt: data.changedAt.present ? data.changedAt.value : this.changedAt,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PipelineStageHistoryItem(')
+          ..write('id: $id, ')
+          ..write('pipelineId: $pipelineId, ')
+          ..write('fromStageId: $fromStageId, ')
+          ..write('toStageId: $toStageId, ')
+          ..write('fromStatusId: $fromStatusId, ')
+          ..write('toStatusId: $toStatusId, ')
+          ..write('notes: $notes, ')
+          ..write('changedBy: $changedBy, ')
+          ..write('changedAt: $changedAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    pipelineId,
+    fromStageId,
+    toStageId,
+    fromStatusId,
+    toStatusId,
+    notes,
+    changedBy,
+    changedAt,
+    latitude,
+    longitude,
+    cachedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PipelineStageHistoryItem &&
+          other.id == this.id &&
+          other.pipelineId == this.pipelineId &&
+          other.fromStageId == this.fromStageId &&
+          other.toStageId == this.toStageId &&
+          other.fromStatusId == this.fromStatusId &&
+          other.toStatusId == this.toStatusId &&
+          other.notes == this.notes &&
+          other.changedBy == this.changedBy &&
+          other.changedAt == this.changedAt &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.cachedAt == this.cachedAt);
+}
+
+class PipelineStageHistoryItemsCompanion
+    extends UpdateCompanion<PipelineStageHistoryItem> {
+  final Value<String> id;
+  final Value<String> pipelineId;
+  final Value<String?> fromStageId;
+  final Value<String> toStageId;
+  final Value<String?> fromStatusId;
+  final Value<String?> toStatusId;
+  final Value<String?> notes;
+  final Value<String?> changedBy;
+  final Value<DateTime> changedAt;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const PipelineStageHistoryItemsCompanion({
+    this.id = const Value.absent(),
+    this.pipelineId = const Value.absent(),
+    this.fromStageId = const Value.absent(),
+    this.toStageId = const Value.absent(),
+    this.fromStatusId = const Value.absent(),
+    this.toStatusId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.changedBy = const Value.absent(),
+    this.changedAt = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PipelineStageHistoryItemsCompanion.insert({
+    required String id,
+    required String pipelineId,
+    this.fromStageId = const Value.absent(),
+    required String toStageId,
+    this.fromStatusId = const Value.absent(),
+    this.toStatusId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.changedBy = const Value.absent(),
+    required DateTime changedAt,
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       pipelineId = Value(pipelineId),
+       toStageId = Value(toStageId),
+       changedAt = Value(changedAt),
+       cachedAt = Value(cachedAt);
+  static Insertable<PipelineStageHistoryItem> custom({
+    Expression<String>? id,
+    Expression<String>? pipelineId,
+    Expression<String>? fromStageId,
+    Expression<String>? toStageId,
+    Expression<String>? fromStatusId,
+    Expression<String>? toStatusId,
+    Expression<String>? notes,
+    Expression<String>? changedBy,
+    Expression<DateTime>? changedAt,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (pipelineId != null) 'pipeline_id': pipelineId,
+      if (fromStageId != null) 'from_stage_id': fromStageId,
+      if (toStageId != null) 'to_stage_id': toStageId,
+      if (fromStatusId != null) 'from_status_id': fromStatusId,
+      if (toStatusId != null) 'to_status_id': toStatusId,
+      if (notes != null) 'notes': notes,
+      if (changedBy != null) 'changed_by': changedBy,
+      if (changedAt != null) 'changed_at': changedAt,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PipelineStageHistoryItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? pipelineId,
+    Value<String?>? fromStageId,
+    Value<String>? toStageId,
+    Value<String?>? fromStatusId,
+    Value<String?>? toStatusId,
+    Value<String?>? notes,
+    Value<String?>? changedBy,
+    Value<DateTime>? changedAt,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return PipelineStageHistoryItemsCompanion(
+      id: id ?? this.id,
+      pipelineId: pipelineId ?? this.pipelineId,
+      fromStageId: fromStageId ?? this.fromStageId,
+      toStageId: toStageId ?? this.toStageId,
+      fromStatusId: fromStatusId ?? this.fromStatusId,
+      toStatusId: toStatusId ?? this.toStatusId,
+      notes: notes ?? this.notes,
+      changedBy: changedBy ?? this.changedBy,
+      changedAt: changedAt ?? this.changedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (pipelineId.present) {
+      map['pipeline_id'] = Variable<String>(pipelineId.value);
+    }
+    if (fromStageId.present) {
+      map['from_stage_id'] = Variable<String>(fromStageId.value);
+    }
+    if (toStageId.present) {
+      map['to_stage_id'] = Variable<String>(toStageId.value);
+    }
+    if (fromStatusId.present) {
+      map['from_status_id'] = Variable<String>(fromStatusId.value);
+    }
+    if (toStatusId.present) {
+      map['to_status_id'] = Variable<String>(toStatusId.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (changedBy.present) {
+      map['changed_by'] = Variable<String>(changedBy.value);
+    }
+    if (changedAt.present) {
+      map['changed_at'] = Variable<DateTime>(changedAt.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PipelineStageHistoryItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('pipelineId: $pipelineId, ')
+          ..write('fromStageId: $fromStageId, ')
+          ..write('toStageId: $toStageId, ')
+          ..write('fromStatusId: $fromStatusId, ')
+          ..write('toStatusId: $toStatusId, ')
+          ..write('notes: $notes, ')
+          ..write('changedBy: $changedBy, ')
+          ..write('changedAt: $changedAt, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AuditLogCacheTable extends AuditLogCache
+    with TableInfo<$AuditLogCacheTable, AuditLogCacheData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AuditLogCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userEmailMeta = const VerificationMeta(
+    'userEmail',
+  );
+  @override
+  late final GeneratedColumn<String> userEmail = GeneratedColumn<String>(
+    'user_email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _actionMeta = const VerificationMeta('action');
+  @override
+  late final GeneratedColumn<String> action = GeneratedColumn<String>(
+    'action',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTableMeta = const VerificationMeta(
+    'targetTable',
+  );
+  @override
+  late final GeneratedColumn<String> targetTable = GeneratedColumn<String>(
+    'target_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _oldValuesMeta = const VerificationMeta(
+    'oldValues',
+  );
+  @override
+  late final GeneratedColumn<String> oldValues = GeneratedColumn<String>(
+    'old_values',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _newValuesMeta = const VerificationMeta(
+    'newValues',
+  );
+  @override
+  late final GeneratedColumn<String> newValues = GeneratedColumn<String>(
+    'new_values',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ipAddressMeta = const VerificationMeta(
+    'ipAddress',
+  );
+  @override
+  late final GeneratedColumn<String> ipAddress = GeneratedColumn<String>(
+    'ip_address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userAgentMeta = const VerificationMeta(
+    'userAgent',
+  );
+  @override
+  late final GeneratedColumn<String> userAgent = GeneratedColumn<String>(
+    'user_agent',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    userEmail,
+    action,
+    targetTable,
+    targetId,
+    oldValues,
+    newValues,
+    ipAddress,
+    userAgent,
+    createdAt,
+    cachedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'audit_log_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AuditLogCacheData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('user_email')) {
+      context.handle(
+        _userEmailMeta,
+        userEmail.isAcceptableOrUnknown(data['user_email']!, _userEmailMeta),
+      );
+    }
+    if (data.containsKey('action')) {
+      context.handle(
+        _actionMeta,
+        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionMeta);
+    }
+    if (data.containsKey('target_table')) {
+      context.handle(
+        _targetTableMeta,
+        targetTable.isAcceptableOrUnknown(
+          data['target_table']!,
+          _targetTableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTableMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('old_values')) {
+      context.handle(
+        _oldValuesMeta,
+        oldValues.isAcceptableOrUnknown(data['old_values']!, _oldValuesMeta),
+      );
+    }
+    if (data.containsKey('new_values')) {
+      context.handle(
+        _newValuesMeta,
+        newValues.isAcceptableOrUnknown(data['new_values']!, _newValuesMeta),
+      );
+    }
+    if (data.containsKey('ip_address')) {
+      context.handle(
+        _ipAddressMeta,
+        ipAddress.isAcceptableOrUnknown(data['ip_address']!, _ipAddressMeta),
+      );
+    }
+    if (data.containsKey('user_agent')) {
+      context.handle(
+        _userAgentMeta,
+        userAgent.isAcceptableOrUnknown(data['user_agent']!, _userAgentMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AuditLogCacheData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AuditLogCacheData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      userEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_email'],
+      ),
+      action: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action'],
+      )!,
+      targetTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_table'],
+      )!,
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_id'],
+      )!,
+      oldValues: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}old_values'],
+      ),
+      newValues: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}new_values'],
+      ),
+      ipAddress: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ip_address'],
+      ),
+      userAgent: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_agent'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AuditLogCacheTable createAlias(String alias) {
+    return $AuditLogCacheTable(attachedDatabase, alias);
+  }
+}
+
+class AuditLogCacheData extends DataClass
+    implements Insertable<AuditLogCacheData> {
+  final String id;
+  final String? userId;
+  final String? userEmail;
+  final String action;
+  final String targetTable;
+  final String targetId;
+  final String? oldValues;
+  final String? newValues;
+  final String? ipAddress;
+  final String? userAgent;
+  final DateTime createdAt;
+  final DateTime cachedAt;
+  const AuditLogCacheData({
+    required this.id,
+    this.userId,
+    this.userEmail,
+    required this.action,
+    required this.targetTable,
+    required this.targetId,
+    this.oldValues,
+    this.newValues,
+    this.ipAddress,
+    this.userAgent,
+    required this.createdAt,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || userEmail != null) {
+      map['user_email'] = Variable<String>(userEmail);
+    }
+    map['action'] = Variable<String>(action);
+    map['target_table'] = Variable<String>(targetTable);
+    map['target_id'] = Variable<String>(targetId);
+    if (!nullToAbsent || oldValues != null) {
+      map['old_values'] = Variable<String>(oldValues);
+    }
+    if (!nullToAbsent || newValues != null) {
+      map['new_values'] = Variable<String>(newValues);
+    }
+    if (!nullToAbsent || ipAddress != null) {
+      map['ip_address'] = Variable<String>(ipAddress);
+    }
+    if (!nullToAbsent || userAgent != null) {
+      map['user_agent'] = Variable<String>(userAgent);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  AuditLogCacheCompanion toCompanion(bool nullToAbsent) {
+    return AuditLogCacheCompanion(
+      id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      userEmail: userEmail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userEmail),
+      action: Value(action),
+      targetTable: Value(targetTable),
+      targetId: Value(targetId),
+      oldValues: oldValues == null && nullToAbsent
+          ? const Value.absent()
+          : Value(oldValues),
+      newValues: newValues == null && nullToAbsent
+          ? const Value.absent()
+          : Value(newValues),
+      ipAddress: ipAddress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ipAddress),
+      userAgent: userAgent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userAgent),
+      createdAt: Value(createdAt),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory AuditLogCacheData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AuditLogCacheData(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      userEmail: serializer.fromJson<String?>(json['userEmail']),
+      action: serializer.fromJson<String>(json['action']),
+      targetTable: serializer.fromJson<String>(json['targetTable']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+      oldValues: serializer.fromJson<String?>(json['oldValues']),
+      newValues: serializer.fromJson<String?>(json['newValues']),
+      ipAddress: serializer.fromJson<String?>(json['ipAddress']),
+      userAgent: serializer.fromJson<String?>(json['userAgent']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
+      'userEmail': serializer.toJson<String?>(userEmail),
+      'action': serializer.toJson<String>(action),
+      'targetTable': serializer.toJson<String>(targetTable),
+      'targetId': serializer.toJson<String>(targetId),
+      'oldValues': serializer.toJson<String?>(oldValues),
+      'newValues': serializer.toJson<String?>(newValues),
+      'ipAddress': serializer.toJson<String?>(ipAddress),
+      'userAgent': serializer.toJson<String?>(userAgent),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  AuditLogCacheData copyWith({
+    String? id,
+    Value<String?> userId = const Value.absent(),
+    Value<String?> userEmail = const Value.absent(),
+    String? action,
+    String? targetTable,
+    String? targetId,
+    Value<String?> oldValues = const Value.absent(),
+    Value<String?> newValues = const Value.absent(),
+    Value<String?> ipAddress = const Value.absent(),
+    Value<String?> userAgent = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? cachedAt,
+  }) => AuditLogCacheData(
+    id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
+    userEmail: userEmail.present ? userEmail.value : this.userEmail,
+    action: action ?? this.action,
+    targetTable: targetTable ?? this.targetTable,
+    targetId: targetId ?? this.targetId,
+    oldValues: oldValues.present ? oldValues.value : this.oldValues,
+    newValues: newValues.present ? newValues.value : this.newValues,
+    ipAddress: ipAddress.present ? ipAddress.value : this.ipAddress,
+    userAgent: userAgent.present ? userAgent.value : this.userAgent,
+    createdAt: createdAt ?? this.createdAt,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  AuditLogCacheData copyWithCompanion(AuditLogCacheCompanion data) {
+    return AuditLogCacheData(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      userEmail: data.userEmail.present ? data.userEmail.value : this.userEmail,
+      action: data.action.present ? data.action.value : this.action,
+      targetTable: data.targetTable.present
+          ? data.targetTable.value
+          : this.targetTable,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      oldValues: data.oldValues.present ? data.oldValues.value : this.oldValues,
+      newValues: data.newValues.present ? data.newValues.value : this.newValues,
+      ipAddress: data.ipAddress.present ? data.ipAddress.value : this.ipAddress,
+      userAgent: data.userAgent.present ? data.userAgent.value : this.userAgent,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuditLogCacheData(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('userEmail: $userEmail, ')
+          ..write('action: $action, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('targetId: $targetId, ')
+          ..write('oldValues: $oldValues, ')
+          ..write('newValues: $newValues, ')
+          ..write('ipAddress: $ipAddress, ')
+          ..write('userAgent: $userAgent, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    userEmail,
+    action,
+    targetTable,
+    targetId,
+    oldValues,
+    newValues,
+    ipAddress,
+    userAgent,
+    createdAt,
+    cachedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AuditLogCacheData &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.userEmail == this.userEmail &&
+          other.action == this.action &&
+          other.targetTable == this.targetTable &&
+          other.targetId == this.targetId &&
+          other.oldValues == this.oldValues &&
+          other.newValues == this.newValues &&
+          other.ipAddress == this.ipAddress &&
+          other.userAgent == this.userAgent &&
+          other.createdAt == this.createdAt &&
+          other.cachedAt == this.cachedAt);
+}
+
+class AuditLogCacheCompanion extends UpdateCompanion<AuditLogCacheData> {
+  final Value<String> id;
+  final Value<String?> userId;
+  final Value<String?> userEmail;
+  final Value<String> action;
+  final Value<String> targetTable;
+  final Value<String> targetId;
+  final Value<String?> oldValues;
+  final Value<String?> newValues;
+  final Value<String?> ipAddress;
+  final Value<String?> userAgent;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const AuditLogCacheCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.userEmail = const Value.absent(),
+    this.action = const Value.absent(),
+    this.targetTable = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.oldValues = const Value.absent(),
+    this.newValues = const Value.absent(),
+    this.ipAddress = const Value.absent(),
+    this.userAgent = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AuditLogCacheCompanion.insert({
+    required String id,
+    this.userId = const Value.absent(),
+    this.userEmail = const Value.absent(),
+    required String action,
+    required String targetTable,
+    required String targetId,
+    this.oldValues = const Value.absent(),
+    this.newValues = const Value.absent(),
+    this.ipAddress = const Value.absent(),
+    this.userAgent = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       action = Value(action),
+       targetTable = Value(targetTable),
+       targetId = Value(targetId),
+       createdAt = Value(createdAt),
+       cachedAt = Value(cachedAt);
+  static Insertable<AuditLogCacheData> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? userEmail,
+    Expression<String>? action,
+    Expression<String>? targetTable,
+    Expression<String>? targetId,
+    Expression<String>? oldValues,
+    Expression<String>? newValues,
+    Expression<String>? ipAddress,
+    Expression<String>? userAgent,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (userEmail != null) 'user_email': userEmail,
+      if (action != null) 'action': action,
+      if (targetTable != null) 'target_table': targetTable,
+      if (targetId != null) 'target_id': targetId,
+      if (oldValues != null) 'old_values': oldValues,
+      if (newValues != null) 'new_values': newValues,
+      if (ipAddress != null) 'ip_address': ipAddress,
+      if (userAgent != null) 'user_agent': userAgent,
+      if (createdAt != null) 'created_at': createdAt,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AuditLogCacheCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? userId,
+    Value<String?>? userEmail,
+    Value<String>? action,
+    Value<String>? targetTable,
+    Value<String>? targetId,
+    Value<String?>? oldValues,
+    Value<String?>? newValues,
+    Value<String?>? ipAddress,
+    Value<String?>? userAgent,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return AuditLogCacheCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      userEmail: userEmail ?? this.userEmail,
+      action: action ?? this.action,
+      targetTable: targetTable ?? this.targetTable,
+      targetId: targetId ?? this.targetId,
+      oldValues: oldValues ?? this.oldValues,
+      newValues: newValues ?? this.newValues,
+      ipAddress: ipAddress ?? this.ipAddress,
+      userAgent: userAgent ?? this.userAgent,
+      createdAt: createdAt ?? this.createdAt,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (userEmail.present) {
+      map['user_email'] = Variable<String>(userEmail.value);
+    }
+    if (action.present) {
+      map['action'] = Variable<String>(action.value);
+    }
+    if (targetTable.present) {
+      map['target_table'] = Variable<String>(targetTable.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (oldValues.present) {
+      map['old_values'] = Variable<String>(oldValues.value);
+    }
+    if (newValues.present) {
+      map['new_values'] = Variable<String>(newValues.value);
+    }
+    if (ipAddress.present) {
+      map['ip_address'] = Variable<String>(ipAddress.value);
+    }
+    if (userAgent.present) {
+      map['user_agent'] = Variable<String>(userAgent.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AuditLogCacheCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('userEmail: $userEmail, ')
+          ..write('action: $action, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('targetId: $targetId, ')
+          ..write('oldValues: $oldValues, ')
+          ..write('newValues: $newValues, ')
+          ..write('ipAddress: $ipAddress, ')
+          ..write('userAgent: $userAgent, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -29260,6 +30754,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncQueueItemsTable syncQueueItems = $SyncQueueItemsTable(this);
   late final $AuditLogsTable auditLogs = $AuditLogsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $PipelineStageHistoryItemsTable pipelineStageHistoryItems =
+      $PipelineStageHistoryItemsTable(this);
+  late final $AuditLogCacheTable auditLogCache = $AuditLogCacheTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -29307,6 +30804,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncQueueItems,
     auditLogs,
     appSettings,
+    pipelineStageHistoryItems,
+    auditLogCache,
   ];
 }
 
@@ -41758,6 +43257,7 @@ typedef $$ActivityAuditLogsTableCreateCompanionBuilder =
       required String performedBy,
       required DateTime performedAt,
       Value<String?> notes,
+      Value<bool> isSynced,
       Value<int> rowid,
     });
 typedef $$ActivityAuditLogsTableUpdateCompanionBuilder =
@@ -41776,6 +43276,7 @@ typedef $$ActivityAuditLogsTableUpdateCompanionBuilder =
       Value<String> performedBy,
       Value<DateTime> performedAt,
       Value<String?> notes,
+      Value<bool> isSynced,
       Value<int> rowid,
     });
 
@@ -41900,6 +43401,11 @@ class $$ActivityAuditLogsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ActivitiesTableFilterComposer get activityId {
     final $$ActivitiesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -42016,6 +43522,11 @@ class $$ActivityAuditLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ActivitiesTableOrderingComposer get activityId {
     final $$ActivitiesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -42114,6 +43625,9 @@ class $$ActivityAuditLogsTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
   $$ActivitiesTableAnnotationComposer get activityId {
     final $$ActivitiesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -42208,6 +43722,7 @@ class $$ActivityAuditLogsTableTableManager
                 Value<String> performedBy = const Value.absent(),
                 Value<DateTime> performedAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityAuditLogsCompanion(
                 id: id,
@@ -42224,6 +43739,7 @@ class $$ActivityAuditLogsTableTableManager
                 performedBy: performedBy,
                 performedAt: performedAt,
                 notes: notes,
+                isSynced: isSynced,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -42242,6 +43758,7 @@ class $$ActivityAuditLogsTableTableManager
                 required String performedBy,
                 required DateTime performedAt,
                 Value<String?> notes = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivityAuditLogsCompanion.insert(
                 id: id,
@@ -42258,6 +43775,7 @@ class $$ActivityAuditLogsTableTableManager
                 performedBy: performedBy,
                 performedAt: performedAt,
                 notes: notes,
+                isSynced: isSynced,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -52216,6 +53734,705 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSetting,
       PrefetchHooks Function()
     >;
+typedef $$PipelineStageHistoryItemsTableCreateCompanionBuilder =
+    PipelineStageHistoryItemsCompanion Function({
+      required String id,
+      required String pipelineId,
+      Value<String?> fromStageId,
+      required String toStageId,
+      Value<String?> fromStatusId,
+      Value<String?> toStatusId,
+      Value<String?> notes,
+      Value<String?> changedBy,
+      required DateTime changedAt,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$PipelineStageHistoryItemsTableUpdateCompanionBuilder =
+    PipelineStageHistoryItemsCompanion Function({
+      Value<String> id,
+      Value<String> pipelineId,
+      Value<String?> fromStageId,
+      Value<String> toStageId,
+      Value<String?> fromStatusId,
+      Value<String?> toStatusId,
+      Value<String?> notes,
+      Value<String?> changedBy,
+      Value<DateTime> changedAt,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$PipelineStageHistoryItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $PipelineStageHistoryItemsTable> {
+  $$PipelineStageHistoryItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pipelineId => $composableBuilder(
+    column: $table.pipelineId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromStageId => $composableBuilder(
+    column: $table.fromStageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toStageId => $composableBuilder(
+    column: $table.toStageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromStatusId => $composableBuilder(
+    column: $table.fromStatusId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toStatusId => $composableBuilder(
+    column: $table.toStatusId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get changedBy => $composableBuilder(
+    column: $table.changedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get changedAt => $composableBuilder(
+    column: $table.changedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PipelineStageHistoryItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PipelineStageHistoryItemsTable> {
+  $$PipelineStageHistoryItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pipelineId => $composableBuilder(
+    column: $table.pipelineId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromStageId => $composableBuilder(
+    column: $table.fromStageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toStageId => $composableBuilder(
+    column: $table.toStageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromStatusId => $composableBuilder(
+    column: $table.fromStatusId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toStatusId => $composableBuilder(
+    column: $table.toStatusId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get changedBy => $composableBuilder(
+    column: $table.changedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get changedAt => $composableBuilder(
+    column: $table.changedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PipelineStageHistoryItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PipelineStageHistoryItemsTable> {
+  $$PipelineStageHistoryItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get pipelineId => $composableBuilder(
+    column: $table.pipelineId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fromStageId => $composableBuilder(
+    column: $table.fromStageId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toStageId =>
+      $composableBuilder(column: $table.toStageId, builder: (column) => column);
+
+  GeneratedColumn<String> get fromStatusId => $composableBuilder(
+    column: $table.fromStatusId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toStatusId => $composableBuilder(
+    column: $table.toStatusId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get changedBy =>
+      $composableBuilder(column: $table.changedBy, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get changedAt =>
+      $composableBuilder(column: $table.changedAt, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$PipelineStageHistoryItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PipelineStageHistoryItemsTable,
+          PipelineStageHistoryItem,
+          $$PipelineStageHistoryItemsTableFilterComposer,
+          $$PipelineStageHistoryItemsTableOrderingComposer,
+          $$PipelineStageHistoryItemsTableAnnotationComposer,
+          $$PipelineStageHistoryItemsTableCreateCompanionBuilder,
+          $$PipelineStageHistoryItemsTableUpdateCompanionBuilder,
+          (
+            PipelineStageHistoryItem,
+            BaseReferences<
+              _$AppDatabase,
+              $PipelineStageHistoryItemsTable,
+              PipelineStageHistoryItem
+            >,
+          ),
+          PipelineStageHistoryItem,
+          PrefetchHooks Function()
+        > {
+  $$PipelineStageHistoryItemsTableTableManager(
+    _$AppDatabase db,
+    $PipelineStageHistoryItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PipelineStageHistoryItemsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$PipelineStageHistoryItemsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PipelineStageHistoryItemsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> pipelineId = const Value.absent(),
+                Value<String?> fromStageId = const Value.absent(),
+                Value<String> toStageId = const Value.absent(),
+                Value<String?> fromStatusId = const Value.absent(),
+                Value<String?> toStatusId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> changedBy = const Value.absent(),
+                Value<DateTime> changedAt = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PipelineStageHistoryItemsCompanion(
+                id: id,
+                pipelineId: pipelineId,
+                fromStageId: fromStageId,
+                toStageId: toStageId,
+                fromStatusId: fromStatusId,
+                toStatusId: toStatusId,
+                notes: notes,
+                changedBy: changedBy,
+                changedAt: changedAt,
+                latitude: latitude,
+                longitude: longitude,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String pipelineId,
+                Value<String?> fromStageId = const Value.absent(),
+                required String toStageId,
+                Value<String?> fromStatusId = const Value.absent(),
+                Value<String?> toStatusId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> changedBy = const Value.absent(),
+                required DateTime changedAt,
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PipelineStageHistoryItemsCompanion.insert(
+                id: id,
+                pipelineId: pipelineId,
+                fromStageId: fromStageId,
+                toStageId: toStageId,
+                fromStatusId: fromStatusId,
+                toStatusId: toStatusId,
+                notes: notes,
+                changedBy: changedBy,
+                changedAt: changedAt,
+                latitude: latitude,
+                longitude: longitude,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PipelineStageHistoryItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PipelineStageHistoryItemsTable,
+      PipelineStageHistoryItem,
+      $$PipelineStageHistoryItemsTableFilterComposer,
+      $$PipelineStageHistoryItemsTableOrderingComposer,
+      $$PipelineStageHistoryItemsTableAnnotationComposer,
+      $$PipelineStageHistoryItemsTableCreateCompanionBuilder,
+      $$PipelineStageHistoryItemsTableUpdateCompanionBuilder,
+      (
+        PipelineStageHistoryItem,
+        BaseReferences<
+          _$AppDatabase,
+          $PipelineStageHistoryItemsTable,
+          PipelineStageHistoryItem
+        >,
+      ),
+      PipelineStageHistoryItem,
+      PrefetchHooks Function()
+    >;
+typedef $$AuditLogCacheTableCreateCompanionBuilder =
+    AuditLogCacheCompanion Function({
+      required String id,
+      Value<String?> userId,
+      Value<String?> userEmail,
+      required String action,
+      required String targetTable,
+      required String targetId,
+      Value<String?> oldValues,
+      Value<String?> newValues,
+      Value<String?> ipAddress,
+      Value<String?> userAgent,
+      required DateTime createdAt,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$AuditLogCacheTableUpdateCompanionBuilder =
+    AuditLogCacheCompanion Function({
+      Value<String> id,
+      Value<String?> userId,
+      Value<String?> userEmail,
+      Value<String> action,
+      Value<String> targetTable,
+      Value<String> targetId,
+      Value<String?> oldValues,
+      Value<String?> newValues,
+      Value<String?> ipAddress,
+      Value<String?> userAgent,
+      Value<DateTime> createdAt,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$AuditLogCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $AuditLogCacheTable> {
+  $$AuditLogCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userEmail => $composableBuilder(
+    column: $table.userEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get oldValues => $composableBuilder(
+    column: $table.oldValues,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get newValues => $composableBuilder(
+    column: $table.newValues,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ipAddress => $composableBuilder(
+    column: $table.ipAddress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userAgent => $composableBuilder(
+    column: $table.userAgent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AuditLogCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $AuditLogCacheTable> {
+  $$AuditLogCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userEmail => $composableBuilder(
+    column: $table.userEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get action => $composableBuilder(
+    column: $table.action,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get oldValues => $composableBuilder(
+    column: $table.oldValues,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get newValues => $composableBuilder(
+    column: $table.newValues,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ipAddress => $composableBuilder(
+    column: $table.ipAddress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userAgent => $composableBuilder(
+    column: $table.userAgent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AuditLogCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AuditLogCacheTable> {
+  $$AuditLogCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get userEmail =>
+      $composableBuilder(column: $table.userEmail, builder: (column) => column);
+
+  GeneratedColumn<String> get action =>
+      $composableBuilder(column: $table.action, builder: (column) => column);
+
+  GeneratedColumn<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<String> get oldValues =>
+      $composableBuilder(column: $table.oldValues, builder: (column) => column);
+
+  GeneratedColumn<String> get newValues =>
+      $composableBuilder(column: $table.newValues, builder: (column) => column);
+
+  GeneratedColumn<String> get ipAddress =>
+      $composableBuilder(column: $table.ipAddress, builder: (column) => column);
+
+  GeneratedColumn<String> get userAgent =>
+      $composableBuilder(column: $table.userAgent, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$AuditLogCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AuditLogCacheTable,
+          AuditLogCacheData,
+          $$AuditLogCacheTableFilterComposer,
+          $$AuditLogCacheTableOrderingComposer,
+          $$AuditLogCacheTableAnnotationComposer,
+          $$AuditLogCacheTableCreateCompanionBuilder,
+          $$AuditLogCacheTableUpdateCompanionBuilder,
+          (
+            AuditLogCacheData,
+            BaseReferences<
+              _$AppDatabase,
+              $AuditLogCacheTable,
+              AuditLogCacheData
+            >,
+          ),
+          AuditLogCacheData,
+          PrefetchHooks Function()
+        > {
+  $$AuditLogCacheTableTableManager(_$AppDatabase db, $AuditLogCacheTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AuditLogCacheTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AuditLogCacheTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AuditLogCacheTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<String?> userEmail = const Value.absent(),
+                Value<String> action = const Value.absent(),
+                Value<String> targetTable = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<String?> oldValues = const Value.absent(),
+                Value<String?> newValues = const Value.absent(),
+                Value<String?> ipAddress = const Value.absent(),
+                Value<String?> userAgent = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AuditLogCacheCompanion(
+                id: id,
+                userId: userId,
+                userEmail: userEmail,
+                action: action,
+                targetTable: targetTable,
+                targetId: targetId,
+                oldValues: oldValues,
+                newValues: newValues,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
+                createdAt: createdAt,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> userId = const Value.absent(),
+                Value<String?> userEmail = const Value.absent(),
+                required String action,
+                required String targetTable,
+                required String targetId,
+                Value<String?> oldValues = const Value.absent(),
+                Value<String?> newValues = const Value.absent(),
+                Value<String?> ipAddress = const Value.absent(),
+                Value<String?> userAgent = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AuditLogCacheCompanion.insert(
+                id: id,
+                userId: userId,
+                userEmail: userEmail,
+                action: action,
+                targetTable: targetTable,
+                targetId: targetId,
+                oldValues: oldValues,
+                newValues: newValues,
+                ipAddress: ipAddress,
+                userAgent: userAgent,
+                createdAt: createdAt,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AuditLogCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AuditLogCacheTable,
+      AuditLogCacheData,
+      $$AuditLogCacheTableFilterComposer,
+      $$AuditLogCacheTableOrderingComposer,
+      $$AuditLogCacheTableAnnotationComposer,
+      $$AuditLogCacheTableCreateCompanionBuilder,
+      $$AuditLogCacheTableUpdateCompanionBuilder,
+      (
+        AuditLogCacheData,
+        BaseReferences<_$AppDatabase, $AuditLogCacheTable, AuditLogCacheData>,
+      ),
+      AuditLogCacheData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -52301,4 +54518,11 @@ class $AppDatabaseManager {
       $$AuditLogsTableTableManager(_db, _db.auditLogs);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$PipelineStageHistoryItemsTableTableManager get pipelineStageHistoryItems =>
+      $$PipelineStageHistoryItemsTableTableManager(
+        _db,
+        _db.pipelineStageHistoryItems,
+      );
+  $$AuditLogCacheTableTableManager get auditLogCache =>
+      $$AuditLogCacheTableTableManager(_db, _db.auditLogCache);
 }

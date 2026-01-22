@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
@@ -65,7 +66,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              activity.displayName,
+                              details.activityType?.name ?? activity.displayName,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -191,18 +192,24 @@ class ActivityDetailScreen extends ConsumerWidget {
                             final photo = details.photos![index];
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  photo.photoUrl,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: 100,
-                                    height: 100,
-                                    color: Colors.grey[200],
-                                    child: const Icon(Icons.broken_image),
+                              child: GestureDetector(
+                                onTap: () => _showPhotoViewer(context, photo, index, details.photos!.length),
+                                child: Hero(
+                                  tag: 'photo_${photo.id}',
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      photo.photoUrl,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 100,
+                                        height: 100,
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.broken_image),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -425,6 +432,143 @@ class ActivityDetailScreen extends ConsumerWidget {
       ),
     );
   }
+  /// Show fullscreen photo viewer with download option.
+  void _showPhotoViewer(
+      BuildContext context, ActivityPhoto photo, int index, int total) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Photo
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Hero(
+                  tag: 'photo_${photo.id}',
+                  child: Image.network(
+                    photo.photoUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 64,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Top bar with close and actions
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black54,
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${index + 1} / $total',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.download, color: Colors.white),
+                      tooltip: 'Download',
+                      onPressed: () async {
+                        final uri = Uri.parse(photo.photoUrl);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Bottom info
+            if (photo.takenAt != null || photo.caption != null)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black54,
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (photo.caption != null)
+                        Text(
+                          photo.caption!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      if (photo.takenAt != null)
+                        Text(
+                          'Diambil: ${_formatAuditDateTime(photo.takenAt!)}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Color _getStatusColor(ActivityStatus status) {
     switch (status) {
@@ -486,19 +630,21 @@ class ActivityDetailScreen extends ConsumerWidget {
   }
 
   String _formatDateTime(DateTime dt) {
+    // Ensure we display in local time
+    final localDt = dt.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final dtDate = DateTime(dt.year, dt.month, dt.day);
+    final dtDate = DateTime(localDt.year, localDt.month, localDt.day);
 
     String dateStr;
     if (dtDate == today) {
       dateStr = 'Hari ini';
     } else {
-      dateStr = '${dt.day}/${dt.month}/${dt.year}';
+      dateStr = '${localDt.day}/${localDt.month}/${localDt.year}';
     }
 
     final timeStr =
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        '${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
     return '$dateStr pukul $timeStr';
   }
 
@@ -634,8 +780,10 @@ class ActivityDetailScreen extends ConsumerWidget {
   }
 
   String _formatAuditDateTime(DateTime dt) {
+    // Ensure we display in local time
+    final localDt = dt.toLocal();
     final now = DateTime.now();
-    final diff = now.difference(dt);
+    final diff = now.difference(localDt);
     
     if (diff.inMinutes < 1) {
       return 'Baru saja';
@@ -646,7 +794,7 @@ class ActivityDetailScreen extends ConsumerWidget {
     } else if (diff.inDays < 7) {
       return '${diff.inDays} hari yang lalu';
     } else {
-      return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      return '${localDt.day}/${localDt.month}/${localDt.year} ${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
     }
   }
 }

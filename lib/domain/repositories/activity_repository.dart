@@ -145,6 +145,10 @@ abstract class ActivityRepository {
   /// Uploads photos with isPendingUpload=true, creates DB records, marks as uploaded.
   Future<void> syncPendingPhotos();
 
+  /// Sync pending audit logs to Supabase.
+  /// Only syncs logs for activities that have already been synced (are on remote).
+  Future<void> syncPendingAuditLogs();
+
   /// Mark an activity as synced.
   Future<void> markAsSynced(String id, DateTime syncedAt);
 
