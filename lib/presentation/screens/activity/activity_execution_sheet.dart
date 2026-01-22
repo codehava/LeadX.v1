@@ -588,12 +588,8 @@ class _ActivityExecutionSheetState
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
     );
 
-    // Execute the activity first
-    await ref
-        .read(activityFormNotifierProvider.notifier)
-        .executeActivity(widget.activity.id, dto);
-    
-    // Save captured photos if any
+    // Save captured photos FIRST (before executing activity)
+    // This ensures photos are saved before the UI pops due to execution success
     if (_capturedPhotos.isNotEmpty) {
       // Use addPhotosWithBytes which handles both web (bytes) and mobile (paths)
       await ref
@@ -605,6 +601,11 @@ class _ActivityExecutionSheetState
             longitude: state.position?.longitude,
           );
     }
+
+    // Then execute the activity (this triggers UI pop via listener)
+    await ref
+        .read(activityFormNotifierProvider.notifier)
+        .executeActivity(widget.activity.id, dto);
   }
 }
 

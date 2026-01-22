@@ -705,6 +705,8 @@ class ActivityDetailScreen extends ConsumerWidget {
                     backgroundColor: AppColors.success,
                   ),
                 );
+                // Navigate back to previous screen after cancellation
+                context.pop();
               }
             },
             style: FilledButton.styleFrom(

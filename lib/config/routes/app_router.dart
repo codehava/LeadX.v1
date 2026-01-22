@@ -16,6 +16,9 @@ import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/hvc/hvc_detail_screen.dart';
 import '../../presentation/screens/hvc/hvc_form_screen.dart';
 import '../../presentation/screens/hvc/hvc_list_screen.dart';
+import '../../presentation/screens/broker/broker_detail_screen.dart';
+import '../../presentation/screens/broker/broker_form_screen.dart';
+import '../../presentation/screens/broker/broker_list_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_detail_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
@@ -294,9 +297,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'brokers',
             name: RouteNames.brokers,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Brokers')),
+            builder: (context, state) => ResponsiveShell(
+              currentRoute: state.matchedLocation,
+              child: const BrokerListScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: RouteNames.brokerCreate,
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const BrokerFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.brokerDetail,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: BrokerDetailScreen(brokerId: id),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: RouteNames.brokerEdit,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: BrokerFormScreen(brokerId: id),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Scoreboard

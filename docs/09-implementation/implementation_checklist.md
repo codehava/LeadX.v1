@@ -862,7 +862,7 @@ class CustomerForm extends _$CustomerForm {
 
 ## 🚀 Phase 2: Enhancement Features
 
-### 8. HVC Module ⬜
+### 8. HVC Module ✅ 95% COMPLETE
 
 #### Data Layer ✅
 - [x] `hvcs` table defined
@@ -870,79 +870,109 @@ class CustomerForm extends _$CustomerForm {
 - [x] `customer_hvc_links` junction table defined
 - [x] `key_persons` (owner_type=HVC) support
 
-**Domain Models** ⬜
-- [ ] Create `Hvc` domain entity (Freezed)
-- [ ] Create `HvcType` entity
-- [ ] Create `CustomerHvcLink` entity
-- [ ] Create `HvcWithDetails` aggregate
+**Domain Models** ✅
+- [x] Create `Hvc` domain entity (Freezed)
+- [x] Create `HvcType` entity
+- [x] Create `CustomerHvcLink` entity
+- [x] Create `HvcWithDetails` aggregate
 
-**Data Sources** ⬜
-- [ ] Create `HvcLocalDataSource`
-- [ ] Create `HvcRemoteDataSource`
+**Data Sources** ✅
+- [x] Create `HvcLocalDataSource`
+- [x] Create `HvcRemoteDataSource`
 
-#### Repository Layer ⬜
-- [ ] Create `HvcRepository` interface
-  - [ ] `getAllHvcs()` - Stream
-  - [ ] `getHvcById(id)`
-  - [ ] `createHvc(hvc)` - Admin only
-  - [ ] `updateHvc(hvc)` - Admin only
-  - [ ] `deleteHvc(id)` - Admin only, soft delete
-  - [ ] `getHvcKeyPersons(hvcId)`
-  - [ ] `addHvcKeyPerson(keyPerson)`
-  - [ ] `updateHvcKeyPerson(keyPerson)`
-  - [ ] `deleteHvcKeyPerson(id)`
-  - [ ] `getLinkedCustomers(hvcId)`
-  - [ ] `linkCustomerToHvc(customerId, hvcId)`
-  - [ ] `unlinkCustomerFromHvc(customerId, hvcId)`
-  - [ ] `getCustomerHvcs(customerId)` - For customer detail
-- [ ] Implement `HvcRepositoryImpl`
+#### Repository Layer ✅
+- [x] Create `HvcRepository` interface
+  - [x] `watchAllHvcs()` - Stream
+  - [x] `getAllHvcs()`
+  - [x] `getHvcById(id)`
+  - [x] `createHvc(hvc)` - Admin only
+  - [x] `updateHvc(hvc)` - Admin only
+  - [x] `deleteHvc(id)` - Admin only, soft delete
+  - [x] `searchHvcs(query)`
+  - [x] `getHvcTypes()` - Master data
+  - [x] `getHvcKeyPersons(hvcId)` - Uses KeyPerson with ownerType=HVC
+  - [x] `watchLinkedCustomers(hvcId)` - Stream
+  - [x] `getLinkedCustomers(hvcId)`
+  - [x] `watchCustomerHvcs(customerId)` - Stream
+  - [x] `getCustomerHvcs(customerId)` - For customer detail
+  - [x] `linkCustomerToHvc(dto)`
+  - [x] `unlinkCustomerFromHvc(linkId)`
+  - [x] `syncFromRemote({since})` - Incremental sync
+  - [x] `syncLinksFromRemote({since})` - Link sync
+- [x] Implement `HvcRepositoryImpl`
 
-#### Presentation Layer ⬜
-**Providers**
-- [ ] Create `hvcListProvider` (StreamProvider)
-- [ ] Create `hvcDetailProvider` (FutureProvider.family)
-- [ ] Create `hvcTypesProvider` (FutureProvider) - Master data
-- [ ] Create `customerHvcLinksProvider` (StreamProvider.family)
-- [ ] Create `HvcFormNotifier` (AsyncNotifier + @riverpod)
+#### Presentation Layer ✅
+**Providers** ✅
+- [x] Create `hvcListStreamProvider` (StreamProvider)
+- [x] Create `hvcDetailProvider` (FutureProvider.family)
+- [x] Create `hvcTypesProvider` (FutureProvider) - Master data
+- [x] Create `hvcSearchProvider` (FutureProvider.family)
+- [x] Create `hvcKeyPersonsProvider` (FutureProvider.family)
+- [x] Create `linkedCustomerCountProvider` (FutureProvider.family)
+- [x] Create `linkedCustomersProvider` (StreamProvider.family)
+- [x] Create `customerHvcsProvider` (StreamProvider.family)
+- [x] Create `HvcFormNotifier` (StateNotifier)
+- [x] Create `CustomerHvcLinkNotifier` (StateNotifier)
 
-**Screens**
-- [ ] Implement `HvcListScreen`
-  - [ ] AppBar with search
-  - [ ] HVC cards with type badge
-  - [ ] Linked customers count
-  - [ ] FAB for create (Admin only)
+**Screens** ✅
+- [x] Implement `HvcListScreen`
+  - [x] AppBar with search toggle
+  - [x] HVC cards with type badge
+  - [x] Linked customers count (via `linkedCustomerCountProvider`)
+  - [x] FAB for create (Admin only check via `isAdminProvider`)
+  - [x] Search results view
+  - [x] Pull-to-refresh
 
-- [ ] Implement `HvcDetailScreen`
-  - [ ] Tabs: Summary | Key Persons | Linked Customers | Activities
-  - [ ] **Summary Tab**
-    - [ ] HVC info card
-    - [ ] Type info
-    - [ ] Address with map
-    - [ ] Contact info
-    - [ ] Edit button (Admin)
-  - [ ] **Key Persons Tab**
-    - [ ] Key person list (HVC-level)
-    - [ ] Add button (Admin)
-  - [ ] **Linked Customers Tab**
-    - [ ] Customer list
-    - [ ] Relationship type
-    - [ ] Add link button
-    - [ ] Unlink action
-  - [ ] **Activities Tab**
-    - [ ] Activity history
+- [x] Implement `HvcDetailScreen`
+  - [x] Tabs: Info | Key Persons | Linked Customers | Activities
+  - [x] **Info Tab**
+    - [x] HVC info card with name, code, type
+    - [x] Address display
+    - [x] GPS coordinates if available
+    - [x] Potential value display
+    - [x] Edit button (Admin only popup menu)
+    - [x] Delete option (Admin only)
+  - [x] **Key Persons Tab**
+    - [x] Key person list (HVC-level via `hvcKeyPersonsProvider`)
+    - [x] Add key person FAB
+    - [x] Edit/delete actions via popup menu
+    - [x] Uses `KeyPersonFormSheet` (reused from Customer)
+  - [x] **Linked Customers Tab**
+    - [x] Customer list with relationship type
+    - [x] Add customer link via `HvcCustomerLinkSheet`
+    - [x] Unlink action with confirmation dialog
+    - [x] Navigate to customer detail on tap
+  - [x] **Activities Tab**
+    - [x] Activity history via `hvcActivitiesProvider`
+    - [x] Grouped by status (Upcoming/Completed/Past)
+    - [x] Add activity FAB (Log + Schedule)
+    - [x] Execute activity action
 
-- [ ] Implement `HvcFormScreen` (Admin only)
-  - [ ] HVC type picker
-  - [ ] Name input
-  - [ ] Address input
-  - [ ] Contact info
-  - [ ] Notes
+- [x] Implement `HvcFormScreen` (Admin only)
+  - [x] HVC type picker (SearchableDropdown)
+  - [x] Name input
+  - [x] Description input
+  - [x] Address input
+  - [x] GPS capture button with auto-capture option
+  - [x] Radius configuration
+  - [x] Potential value input
+  - [x] Form validation
+  - [x] Create/Update flow
 
-- [ ] Implement `CustomerHvcLinkSheet`
-  - [ ] HVC picker (searchable)
-  - [ ] Relationship type (TENANT, SUBSIDIARY, AFFILIATE, etc.)
-  - [ ] Notes
-  - [ ] Save button
+- [x] Implement `CustomerHvcLinkSheet` (from Customer side)
+  - [x] HVC picker (searchable via `hvcListStreamProvider`)
+  - [x] Relationship type (HOLDING, SUBSIDIARY, AFFILIATE, JV, TENANT, MEMBER, SUPPLIER, CONTRACTOR, DISTRIBUTOR)
+  - [x] Notes field
+  - [x] Save button with loading state
+
+- [x] Implement `HvcCustomerLinkSheet` (from HVC side)
+  - [x] Customer picker (searchable via `customerListStreamProvider`)
+  - [x] Relationship type picker
+  - [x] Notes field
+  - [x] Save button with loading state
+
+**Widgets** ✅
+- [x] `HvcCard` widget with sync status indicator
 
 #### Testing ⬜
 - [ ] Unit tests for `HvcRepositoryImpl`
@@ -951,68 +981,82 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 9. Broker Module ⬜
+### 9. Broker Module ✅ 95% COMPLETE
 
 #### Data Layer ✅
 - [x] `brokers` table defined
 - [x] `key_persons` (owner_type=BROKER) support
 
-**Domain Models** ⬜
-- [ ] Create `Broker` domain entity (Freezed)
-- [ ] Create `BrokerWithDetails` aggregate
+**Domain Models** ✅
+- [x] Create `Broker` domain entity (Freezed)
+- [x] Create `BrokerWithDetails` aggregate
 
-**Data Sources** ⬜
-- [ ] Create `BrokerLocalDataSource`
-- [ ] Create `BrokerRemoteDataSource`
+**Data Sources** ✅
+- [x] Create `BrokerLocalDataSource`
+- [x] Create `BrokerRemoteDataSource`
 
-#### Repository Layer ⬜
-- [ ] Create `BrokerRepository` interface
-  - [ ] `getAllBrokers()` - Stream
-  - [ ] `getBrokerById(id)`
-  - [ ] `createBroker(broker)` - Admin only
-  - [ ] `updateBroker(broker)` - Admin only
-  - [ ] `deleteBroker(id)` - Admin only
-  - [ ] `getBrokerKeyPersons(brokerId)` - PICs
-  - [ ] `addBrokerKeyPerson(keyPerson)`
-  - [ ] `getBrokerPipelines(brokerId)` - Referred pipelines
-- [ ] Implement `BrokerRepositoryImpl`
+#### Repository Layer ✅
+- [x] Create `BrokerRepository` interface
+  - [x] `getAllBrokers()` - Stream
+  - [x] `getBrokerById(id)`
+  - [x] `createBroker(broker)` - Admin only
+  - [x] `updateBroker(broker)` - Admin only
+  - [x] `deleteBroker(id)` - Admin only
+  - [x] `getBrokerKeyPersons(brokerId)` - PICs
+  - [x] `addBrokerKeyPerson(keyPerson)`
+  - [x] `getBrokerPipelines(brokerId)` - Referred pipelines
+- [x] Implement `BrokerRepositoryImpl`
 
-#### Presentation Layer ⬜
-**Providers**
-- [ ] Create `brokerListProvider` (StreamProvider)
-- [ ] Create `brokerDetailProvider` (FutureProvider.family)
-- [ ] Create `BrokerFormNotifier` (AsyncNotifier + @riverpod)
+#### Presentation Layer ✅
+**Providers** ✅
+- [x] Create `brokerListStreamProvider` (StreamProvider)
+- [x] Create `brokerDetailProvider` (FutureProvider.family)
+- [x] Create `BrokerFormNotifier` (StateNotifier)
 
-**Screens**
-- [ ] Implement `BrokerListScreen`
-  - [ ] AppBar with search
-  - [ ] Broker cards
-  - [ ] Pipeline count
-  - [ ] FAB for create (Admin only)
+**Screens** ✅
+- [x] Implement `BrokerListScreen`
+  - [x] AppBar with search
+  - [x] Broker cards
+  - [x] Pipeline count
+  - [x] FAB for create (Admin only)
 
-- [ ] Implement `BrokerDetailScreen`
-  - [ ] Tabs: Summary | Key Persons | Pipelines | Activities
-  - [ ] **Summary Tab**
-    - [ ] Broker info card
-    - [ ] Address with map
-    - [ ] Contact info
-  - [ ] **Key Persons Tab**
-    - [ ] PIC list
-    - [ ] Add button (Admin)
-  - [ ] **Pipelines Tab**
-    - [ ] Referred pipelines list
-  - [ ] **Activities Tab**
-    - [ ] Activity history
+- [x] Implement `BrokerDetailScreen`
+  - [x] Tabs: Info | Key Persons | Pipelines | Activities
+  - [x] **Info Tab**
+    - [x] Broker info card
+    - [x] Address with GPS
+    - [x] Contact info
+  - [x] **Key Persons Tab**
+    - [x] PIC list
+    - [x] Add button (Admin only)
+  - [x] **Pipelines Tab**
+    - [x] Referred pipelines list (placeholder)
+  - [x] **Activities Tab**
+    - [x] Activity history
 
-- [ ] Implement `BrokerFormScreen` (Admin only)
-  - [ ] Name input
-  - [ ] Address input
-  - [ ] Phone/email
-  - [ ] Notes
+- [x] Implement `BrokerFormScreen` (Admin only)
+  - [x] Name input
+  - [x] Company name input
+  - [x] License number input
+  - [x] Address input
+  - [x] Phone/email/website
+  - [x] Commission rate
+  - [x] GPS capture
+  - [x] Notes
+
+**Widgets** ✅
+- [x] `BrokerCard` widget with pipeline count and sync status
+
+#### Integration ✅
+- [x] Routes in `app_router.dart` (list, detail, create, edit)
+- [x] Route names in `route_names.dart`
+- [x] Navigation rail/sidebar/drawer items in `responsive_shell.dart`
+- [x] `_syncBrokers()` in `InitialSyncService`
 
 #### Testing ⬜
 - [ ] Unit tests for `BrokerRepositoryImpl`
 - [ ] Widget tests for `BrokerListScreen`
+- [ ] Admin-only access tests
 
 ---
 

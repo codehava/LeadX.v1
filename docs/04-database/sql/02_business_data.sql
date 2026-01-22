@@ -98,7 +98,6 @@ CREATE TABLE brokers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code VARCHAR(20) UNIQUE NOT NULL,
   name VARCHAR(200) NOT NULL,
-  company_name VARCHAR(200),
   license_number VARCHAR(50),
   address TEXT,
   province_id UUID REFERENCES provinces(id),

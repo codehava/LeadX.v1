@@ -174,6 +174,14 @@ DROP TRIGGER IF EXISTS pipelines_stage_history_trigger ON pipelines;
 DROP TRIGGER IF EXISTS hvc_audit_trigger ON hvcs;
 DROP TRIGGER IF EXISTS customer_hvc_links_audit_trigger ON customer_hvc_links;
 
+
+-- Add broker audit trigger
+DROP TRIGGER IF EXISTS brokers_audit_trigger ON brokers;
+CREATE TRIGGER brokers_audit_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON brokers
+  FOR EACH ROW
+  EXECUTE FUNCTION log_entity_changes();
+
 -- Customers audit trigger
 CREATE TRIGGER customers_audit_trigger
   AFTER INSERT OR UPDATE OR DELETE ON customers

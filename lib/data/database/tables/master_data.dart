@@ -249,14 +249,18 @@ class Brokers extends Table {
   TextColumn get id => text()();
   TextColumn get code => text().unique()();
   TextColumn get name => text()();
-  TextColumn get type => text()(); // 'BROKER'/'AGENT'
+  TextColumn get licenseNumber => text().nullable()();
   TextColumn get address => text().nullable()();
+  TextColumn get provinceId => text().nullable().references(Provinces, #id)();
+  TextColumn get cityId => text().nullable().references(Cities, #id)();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
   TextColumn get phone => text().nullable()();
   TextColumn get email => text().nullable()();
-  TextColumn get bankName => text().nullable()();
-  TextColumn get bankAccountNumber => text().nullable()();
-  TextColumn get bankAccountName => text().nullable()();
+  TextColumn get website => text().nullable()();
+  RealColumn get commissionRate => real().nullable()();
   TextColumn get imageUrl => text().nullable()();
+  TextColumn get notes => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get createdBy => text().references(Users, #id)();
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
@@ -267,3 +271,4 @@ class Brokers extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+

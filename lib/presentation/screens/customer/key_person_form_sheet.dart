@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/dtos/customer_dtos.dart';
 import '../../../domain/entities/key_person.dart';
+import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/hvc_providers.dart';
 import '../../widgets/common/app_button.dart';
@@ -385,6 +386,8 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
     if (widget.customerId != null) {
       ref.invalidate(customerKeyPersonsProvider(widget.customerId!));
     }
-    // Note: broker key persons provider can be added when implemented
+    if (widget.brokerId != null) {
+      ref.invalidate(brokerKeyPersonsProvider(widget.brokerId!));
+    }
   }
 }

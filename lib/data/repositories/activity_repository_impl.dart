@@ -413,7 +413,19 @@ class ActivityRepositoryImpl implements ActivityRepository {
         longitude: dto.longitude,
       );
 
-      // Queue both for sync
+      // Queue CREATE for the NEW rescheduled activity FIRST
+      // This ensures the new activity exists on remote before we reference it
+      final newActivity = await _localDataSource.getActivityById(newId);
+      if (newActivity != null) {
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: newId,
+          operation: SyncOperation.create,
+          payload: _createUpdateSyncPayload(newActivity),
+        );
+      }
+
+      // Then queue UPDATE for original activity with rescheduled_to_id
       await _syncService.queueOperation(
         entityType: SyncEntityType.activity,
         entityId: id,

@@ -18551,14 +18551,16 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  static const VerificationMeta _licenseNumberMeta = const VerificationMeta(
+    'licenseNumber',
+  );
   @override
-  late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
+  late final GeneratedColumn<String> licenseNumber = GeneratedColumn<String>(
+    'license_number',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _addressMeta = const VerificationMeta(
     'address',
@@ -18569,6 +18571,54 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     aliasedName,
     true,
     type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _provinceIdMeta = const VerificationMeta(
+    'provinceId',
+  );
+  @override
+  late final GeneratedColumn<String> provinceId = GeneratedColumn<String>(
+    'province_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES provinces (id)',
+    ),
+  );
+  static const VerificationMeta _cityIdMeta = const VerificationMeta('cityId');
+  @override
+  late final GeneratedColumn<String> cityId = GeneratedColumn<String>(
+    'city_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES cities (id)',
+    ),
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
@@ -18589,38 +18639,26 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _bankNameMeta = const VerificationMeta(
-    'bankName',
+  static const VerificationMeta _websiteMeta = const VerificationMeta(
+    'website',
   );
   @override
-  late final GeneratedColumn<String> bankName = GeneratedColumn<String>(
-    'bank_name',
+  late final GeneratedColumn<String> website = GeneratedColumn<String>(
+    'website',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _bankAccountNumberMeta = const VerificationMeta(
-    'bankAccountNumber',
+  static const VerificationMeta _commissionRateMeta = const VerificationMeta(
+    'commissionRate',
   );
   @override
-  late final GeneratedColumn<String> bankAccountNumber =
-      GeneratedColumn<String>(
-        'bank_account_number',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _bankAccountNameMeta = const VerificationMeta(
-    'bankAccountName',
-  );
-  @override
-  late final GeneratedColumn<String> bankAccountName = GeneratedColumn<String>(
-    'bank_account_name',
+  late final GeneratedColumn<double> commissionRate = GeneratedColumn<double>(
+    'commission_rate',
     aliasedName,
     true,
-    type: DriftSqlType.string,
+    type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _imageUrlMeta = const VerificationMeta(
@@ -18629,6 +18667,15 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
   @override
   late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
     'image_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -18716,14 +18763,18 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     id,
     code,
     name,
-    type,
+    licenseNumber,
     address,
+    provinceId,
+    cityId,
+    latitude,
+    longitude,
     phone,
     email,
-    bankName,
-    bankAccountNumber,
-    bankAccountName,
+    website,
+    commissionRate,
     imageUrl,
+    notes,
     isActive,
     createdBy,
     isPendingSync,
@@ -18764,18 +18815,43 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('type')) {
+    if (data.containsKey('license_number')) {
       context.handle(
-        _typeMeta,
-        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+        _licenseNumberMeta,
+        licenseNumber.isAcceptableOrUnknown(
+          data['license_number']!,
+          _licenseNumberMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_typeMeta);
     }
     if (data.containsKey('address')) {
       context.handle(
         _addressMeta,
         address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    }
+    if (data.containsKey('province_id')) {
+      context.handle(
+        _provinceIdMeta,
+        provinceId.isAcceptableOrUnknown(data['province_id']!, _provinceIdMeta),
+      );
+    }
+    if (data.containsKey('city_id')) {
+      context.handle(
+        _cityIdMeta,
+        cityId.isAcceptableOrUnknown(data['city_id']!, _cityIdMeta),
+      );
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
       );
     }
     if (data.containsKey('phone')) {
@@ -18790,27 +18866,18 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
         email.isAcceptableOrUnknown(data['email']!, _emailMeta),
       );
     }
-    if (data.containsKey('bank_name')) {
+    if (data.containsKey('website')) {
       context.handle(
-        _bankNameMeta,
-        bankName.isAcceptableOrUnknown(data['bank_name']!, _bankNameMeta),
+        _websiteMeta,
+        website.isAcceptableOrUnknown(data['website']!, _websiteMeta),
       );
     }
-    if (data.containsKey('bank_account_number')) {
+    if (data.containsKey('commission_rate')) {
       context.handle(
-        _bankAccountNumberMeta,
-        bankAccountNumber.isAcceptableOrUnknown(
-          data['bank_account_number']!,
-          _bankAccountNumberMeta,
-        ),
-      );
-    }
-    if (data.containsKey('bank_account_name')) {
-      context.handle(
-        _bankAccountNameMeta,
-        bankAccountName.isAcceptableOrUnknown(
-          data['bank_account_name']!,
-          _bankAccountNameMeta,
+        _commissionRateMeta,
+        commissionRate.isAcceptableOrUnknown(
+          data['commission_rate']!,
+          _commissionRateMeta,
         ),
       );
     }
@@ -18818,6 +18885,12 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
       context.handle(
         _imageUrlMeta,
         imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
     if (data.containsKey('is_active')) {
@@ -18886,13 +18959,29 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
-      type: attachedDatabase.typeMapping.read(
+      licenseNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}type'],
-      )!,
+        data['${effectivePrefix}license_number'],
+      ),
       address: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}address'],
+      ),
+      provinceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}province_id'],
+      ),
+      cityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}city_id'],
+      ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
       ),
       phone: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -18902,21 +18991,21 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
         DriftSqlType.string,
         data['${effectivePrefix}email'],
       ),
-      bankName: attachedDatabase.typeMapping.read(
+      website: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}bank_name'],
+        data['${effectivePrefix}website'],
       ),
-      bankAccountNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}bank_account_number'],
-      ),
-      bankAccountName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}bank_account_name'],
+      commissionRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}commission_rate'],
       ),
       imageUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}image_url'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
       ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -18955,14 +19044,18 @@ class Broker extends DataClass implements Insertable<Broker> {
   final String id;
   final String code;
   final String name;
-  final String type;
+  final String? licenseNumber;
   final String? address;
+  final String? provinceId;
+  final String? cityId;
+  final double? latitude;
+  final double? longitude;
   final String? phone;
   final String? email;
-  final String? bankName;
-  final String? bankAccountNumber;
-  final String? bankAccountName;
+  final String? website;
+  final double? commissionRate;
   final String? imageUrl;
+  final String? notes;
   final bool isActive;
   final String createdBy;
   final bool isPendingSync;
@@ -18973,14 +19066,18 @@ class Broker extends DataClass implements Insertable<Broker> {
     required this.id,
     required this.code,
     required this.name,
-    required this.type,
+    this.licenseNumber,
     this.address,
+    this.provinceId,
+    this.cityId,
+    this.latitude,
+    this.longitude,
     this.phone,
     this.email,
-    this.bankName,
-    this.bankAccountNumber,
-    this.bankAccountName,
+    this.website,
+    this.commissionRate,
     this.imageUrl,
+    this.notes,
     required this.isActive,
     required this.createdBy,
     required this.isPendingSync,
@@ -18994,9 +19091,23 @@ class Broker extends DataClass implements Insertable<Broker> {
     map['id'] = Variable<String>(id);
     map['code'] = Variable<String>(code);
     map['name'] = Variable<String>(name);
-    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || licenseNumber != null) {
+      map['license_number'] = Variable<String>(licenseNumber);
+    }
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
+    }
+    if (!nullToAbsent || provinceId != null) {
+      map['province_id'] = Variable<String>(provinceId);
+    }
+    if (!nullToAbsent || cityId != null) {
+      map['city_id'] = Variable<String>(cityId);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
     }
     if (!nullToAbsent || phone != null) {
       map['phone'] = Variable<String>(phone);
@@ -19004,17 +19115,17 @@ class Broker extends DataClass implements Insertable<Broker> {
     if (!nullToAbsent || email != null) {
       map['email'] = Variable<String>(email);
     }
-    if (!nullToAbsent || bankName != null) {
-      map['bank_name'] = Variable<String>(bankName);
+    if (!nullToAbsent || website != null) {
+      map['website'] = Variable<String>(website);
     }
-    if (!nullToAbsent || bankAccountNumber != null) {
-      map['bank_account_number'] = Variable<String>(bankAccountNumber);
-    }
-    if (!nullToAbsent || bankAccountName != null) {
-      map['bank_account_name'] = Variable<String>(bankAccountName);
+    if (!nullToAbsent || commissionRate != null) {
+      map['commission_rate'] = Variable<double>(commissionRate);
     }
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
     }
     map['is_active'] = Variable<bool>(isActive);
     map['created_by'] = Variable<String>(createdBy);
@@ -19032,28 +19143,42 @@ class Broker extends DataClass implements Insertable<Broker> {
       id: Value(id),
       code: Value(code),
       name: Value(name),
-      type: Value(type),
+      licenseNumber: licenseNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(licenseNumber),
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
+      provinceId: provinceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(provinceId),
+      cityId: cityId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cityId),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
       phone: phone == null && nullToAbsent
           ? const Value.absent()
           : Value(phone),
       email: email == null && nullToAbsent
           ? const Value.absent()
           : Value(email),
-      bankName: bankName == null && nullToAbsent
+      website: website == null && nullToAbsent
           ? const Value.absent()
-          : Value(bankName),
-      bankAccountNumber: bankAccountNumber == null && nullToAbsent
+          : Value(website),
+      commissionRate: commissionRate == null && nullToAbsent
           ? const Value.absent()
-          : Value(bankAccountNumber),
-      bankAccountName: bankAccountName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(bankAccountName),
+          : Value(commissionRate),
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
       isActive: Value(isActive),
       createdBy: Value(createdBy),
       isPendingSync: Value(isPendingSync),
@@ -19074,16 +19199,18 @@ class Broker extends DataClass implements Insertable<Broker> {
       id: serializer.fromJson<String>(json['id']),
       code: serializer.fromJson<String>(json['code']),
       name: serializer.fromJson<String>(json['name']),
-      type: serializer.fromJson<String>(json['type']),
+      licenseNumber: serializer.fromJson<String?>(json['licenseNumber']),
       address: serializer.fromJson<String?>(json['address']),
+      provinceId: serializer.fromJson<String?>(json['provinceId']),
+      cityId: serializer.fromJson<String?>(json['cityId']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
       phone: serializer.fromJson<String?>(json['phone']),
       email: serializer.fromJson<String?>(json['email']),
-      bankName: serializer.fromJson<String?>(json['bankName']),
-      bankAccountNumber: serializer.fromJson<String?>(
-        json['bankAccountNumber'],
-      ),
-      bankAccountName: serializer.fromJson<String?>(json['bankAccountName']),
+      website: serializer.fromJson<String?>(json['website']),
+      commissionRate: serializer.fromJson<double?>(json['commissionRate']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      notes: serializer.fromJson<String?>(json['notes']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdBy: serializer.fromJson<String>(json['createdBy']),
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
@@ -19099,14 +19226,18 @@ class Broker extends DataClass implements Insertable<Broker> {
       'id': serializer.toJson<String>(id),
       'code': serializer.toJson<String>(code),
       'name': serializer.toJson<String>(name),
-      'type': serializer.toJson<String>(type),
+      'licenseNumber': serializer.toJson<String?>(licenseNumber),
       'address': serializer.toJson<String?>(address),
+      'provinceId': serializer.toJson<String?>(provinceId),
+      'cityId': serializer.toJson<String?>(cityId),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
       'phone': serializer.toJson<String?>(phone),
       'email': serializer.toJson<String?>(email),
-      'bankName': serializer.toJson<String?>(bankName),
-      'bankAccountNumber': serializer.toJson<String?>(bankAccountNumber),
-      'bankAccountName': serializer.toJson<String?>(bankAccountName),
+      'website': serializer.toJson<String?>(website),
+      'commissionRate': serializer.toJson<double?>(commissionRate),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'notes': serializer.toJson<String?>(notes),
       'isActive': serializer.toJson<bool>(isActive),
       'createdBy': serializer.toJson<String>(createdBy),
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
@@ -19120,14 +19251,18 @@ class Broker extends DataClass implements Insertable<Broker> {
     String? id,
     String? code,
     String? name,
-    String? type,
+    Value<String?> licenseNumber = const Value.absent(),
     Value<String?> address = const Value.absent(),
+    Value<String?> provinceId = const Value.absent(),
+    Value<String?> cityId = const Value.absent(),
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
     Value<String?> phone = const Value.absent(),
     Value<String?> email = const Value.absent(),
-    Value<String?> bankName = const Value.absent(),
-    Value<String?> bankAccountNumber = const Value.absent(),
-    Value<String?> bankAccountName = const Value.absent(),
+    Value<String?> website = const Value.absent(),
+    Value<double?> commissionRate = const Value.absent(),
     Value<String?> imageUrl = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
     bool? isActive,
     String? createdBy,
     bool? isPendingSync,
@@ -19138,18 +19273,22 @@ class Broker extends DataClass implements Insertable<Broker> {
     id: id ?? this.id,
     code: code ?? this.code,
     name: name ?? this.name,
-    type: type ?? this.type,
+    licenseNumber: licenseNumber.present
+        ? licenseNumber.value
+        : this.licenseNumber,
     address: address.present ? address.value : this.address,
+    provinceId: provinceId.present ? provinceId.value : this.provinceId,
+    cityId: cityId.present ? cityId.value : this.cityId,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
     phone: phone.present ? phone.value : this.phone,
     email: email.present ? email.value : this.email,
-    bankName: bankName.present ? bankName.value : this.bankName,
-    bankAccountNumber: bankAccountNumber.present
-        ? bankAccountNumber.value
-        : this.bankAccountNumber,
-    bankAccountName: bankAccountName.present
-        ? bankAccountName.value
-        : this.bankAccountName,
+    website: website.present ? website.value : this.website,
+    commissionRate: commissionRate.present
+        ? commissionRate.value
+        : this.commissionRate,
     imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+    notes: notes.present ? notes.value : this.notes,
     isActive: isActive ?? this.isActive,
     createdBy: createdBy ?? this.createdBy,
     isPendingSync: isPendingSync ?? this.isPendingSync,
@@ -19162,18 +19301,24 @@ class Broker extends DataClass implements Insertable<Broker> {
       id: data.id.present ? data.id.value : this.id,
       code: data.code.present ? data.code.value : this.code,
       name: data.name.present ? data.name.value : this.name,
-      type: data.type.present ? data.type.value : this.type,
+      licenseNumber: data.licenseNumber.present
+          ? data.licenseNumber.value
+          : this.licenseNumber,
       address: data.address.present ? data.address.value : this.address,
+      provinceId: data.provinceId.present
+          ? data.provinceId.value
+          : this.provinceId,
+      cityId: data.cityId.present ? data.cityId.value : this.cityId,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
       phone: data.phone.present ? data.phone.value : this.phone,
       email: data.email.present ? data.email.value : this.email,
-      bankName: data.bankName.present ? data.bankName.value : this.bankName,
-      bankAccountNumber: data.bankAccountNumber.present
-          ? data.bankAccountNumber.value
-          : this.bankAccountNumber,
-      bankAccountName: data.bankAccountName.present
-          ? data.bankAccountName.value
-          : this.bankAccountName,
+      website: data.website.present ? data.website.value : this.website,
+      commissionRate: data.commissionRate.present
+          ? data.commissionRate.value
+          : this.commissionRate,
       imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      notes: data.notes.present ? data.notes.value : this.notes,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       isPendingSync: data.isPendingSync.present
@@ -19191,14 +19336,18 @@ class Broker extends DataClass implements Insertable<Broker> {
           ..write('id: $id, ')
           ..write('code: $code, ')
           ..write('name: $name, ')
-          ..write('type: $type, ')
+          ..write('licenseNumber: $licenseNumber, ')
           ..write('address: $address, ')
+          ..write('provinceId: $provinceId, ')
+          ..write('cityId: $cityId, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('phone: $phone, ')
           ..write('email: $email, ')
-          ..write('bankName: $bankName, ')
-          ..write('bankAccountNumber: $bankAccountNumber, ')
-          ..write('bankAccountName: $bankAccountName, ')
+          ..write('website: $website, ')
+          ..write('commissionRate: $commissionRate, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('notes: $notes, ')
           ..write('isActive: $isActive, ')
           ..write('createdBy: $createdBy, ')
           ..write('isPendingSync: $isPendingSync, ')
@@ -19210,25 +19359,29 @@ class Broker extends DataClass implements Insertable<Broker> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     code,
     name,
-    type,
+    licenseNumber,
     address,
+    provinceId,
+    cityId,
+    latitude,
+    longitude,
     phone,
     email,
-    bankName,
-    bankAccountNumber,
-    bankAccountName,
+    website,
+    commissionRate,
     imageUrl,
+    notes,
     isActive,
     createdBy,
     isPendingSync,
     createdAt,
     updatedAt,
     deletedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -19236,14 +19389,18 @@ class Broker extends DataClass implements Insertable<Broker> {
           other.id == this.id &&
           other.code == this.code &&
           other.name == this.name &&
-          other.type == this.type &&
+          other.licenseNumber == this.licenseNumber &&
           other.address == this.address &&
+          other.provinceId == this.provinceId &&
+          other.cityId == this.cityId &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
           other.phone == this.phone &&
           other.email == this.email &&
-          other.bankName == this.bankName &&
-          other.bankAccountNumber == this.bankAccountNumber &&
-          other.bankAccountName == this.bankAccountName &&
+          other.website == this.website &&
+          other.commissionRate == this.commissionRate &&
           other.imageUrl == this.imageUrl &&
+          other.notes == this.notes &&
           other.isActive == this.isActive &&
           other.createdBy == this.createdBy &&
           other.isPendingSync == this.isPendingSync &&
@@ -19256,14 +19413,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
   final Value<String> id;
   final Value<String> code;
   final Value<String> name;
-  final Value<String> type;
+  final Value<String?> licenseNumber;
   final Value<String?> address;
+  final Value<String?> provinceId;
+  final Value<String?> cityId;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
   final Value<String?> phone;
   final Value<String?> email;
-  final Value<String?> bankName;
-  final Value<String?> bankAccountNumber;
-  final Value<String?> bankAccountName;
+  final Value<String?> website;
+  final Value<double?> commissionRate;
   final Value<String?> imageUrl;
+  final Value<String?> notes;
   final Value<bool> isActive;
   final Value<String> createdBy;
   final Value<bool> isPendingSync;
@@ -19275,14 +19436,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     this.id = const Value.absent(),
     this.code = const Value.absent(),
     this.name = const Value.absent(),
-    this.type = const Value.absent(),
+    this.licenseNumber = const Value.absent(),
     this.address = const Value.absent(),
+    this.provinceId = const Value.absent(),
+    this.cityId = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.phone = const Value.absent(),
     this.email = const Value.absent(),
-    this.bankName = const Value.absent(),
-    this.bankAccountNumber = const Value.absent(),
-    this.bankAccountName = const Value.absent(),
+    this.website = const Value.absent(),
+    this.commissionRate = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.notes = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdBy = const Value.absent(),
     this.isPendingSync = const Value.absent(),
@@ -19295,14 +19460,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     required String id,
     required String code,
     required String name,
-    required String type,
+    this.licenseNumber = const Value.absent(),
     this.address = const Value.absent(),
+    this.provinceId = const Value.absent(),
+    this.cityId = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.phone = const Value.absent(),
     this.email = const Value.absent(),
-    this.bankName = const Value.absent(),
-    this.bankAccountNumber = const Value.absent(),
-    this.bankAccountName = const Value.absent(),
+    this.website = const Value.absent(),
+    this.commissionRate = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.notes = const Value.absent(),
     this.isActive = const Value.absent(),
     required String createdBy,
     this.isPendingSync = const Value.absent(),
@@ -19313,7 +19482,6 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
   }) : id = Value(id),
        code = Value(code),
        name = Value(name),
-       type = Value(type),
        createdBy = Value(createdBy),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
@@ -19321,14 +19489,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     Expression<String>? id,
     Expression<String>? code,
     Expression<String>? name,
-    Expression<String>? type,
+    Expression<String>? licenseNumber,
     Expression<String>? address,
+    Expression<String>? provinceId,
+    Expression<String>? cityId,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
     Expression<String>? phone,
     Expression<String>? email,
-    Expression<String>? bankName,
-    Expression<String>? bankAccountNumber,
-    Expression<String>? bankAccountName,
+    Expression<String>? website,
+    Expression<double>? commissionRate,
     Expression<String>? imageUrl,
+    Expression<String>? notes,
     Expression<bool>? isActive,
     Expression<String>? createdBy,
     Expression<bool>? isPendingSync,
@@ -19341,14 +19513,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
       if (id != null) 'id': id,
       if (code != null) 'code': code,
       if (name != null) 'name': name,
-      if (type != null) 'type': type,
+      if (licenseNumber != null) 'license_number': licenseNumber,
       if (address != null) 'address': address,
+      if (provinceId != null) 'province_id': provinceId,
+      if (cityId != null) 'city_id': cityId,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       if (phone != null) 'phone': phone,
       if (email != null) 'email': email,
-      if (bankName != null) 'bank_name': bankName,
-      if (bankAccountNumber != null) 'bank_account_number': bankAccountNumber,
-      if (bankAccountName != null) 'bank_account_name': bankAccountName,
+      if (website != null) 'website': website,
+      if (commissionRate != null) 'commission_rate': commissionRate,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (notes != null) 'notes': notes,
       if (isActive != null) 'is_active': isActive,
       if (createdBy != null) 'created_by': createdBy,
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
@@ -19363,14 +19539,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     Value<String>? id,
     Value<String>? code,
     Value<String>? name,
-    Value<String>? type,
+    Value<String?>? licenseNumber,
     Value<String?>? address,
+    Value<String?>? provinceId,
+    Value<String?>? cityId,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
     Value<String?>? phone,
     Value<String?>? email,
-    Value<String?>? bankName,
-    Value<String?>? bankAccountNumber,
-    Value<String?>? bankAccountName,
+    Value<String?>? website,
+    Value<double?>? commissionRate,
     Value<String?>? imageUrl,
+    Value<String?>? notes,
     Value<bool>? isActive,
     Value<String>? createdBy,
     Value<bool>? isPendingSync,
@@ -19383,14 +19563,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
       id: id ?? this.id,
       code: code ?? this.code,
       name: name ?? this.name,
-      type: type ?? this.type,
+      licenseNumber: licenseNumber ?? this.licenseNumber,
       address: address ?? this.address,
+      provinceId: provinceId ?? this.provinceId,
+      cityId: cityId ?? this.cityId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       phone: phone ?? this.phone,
       email: email ?? this.email,
-      bankName: bankName ?? this.bankName,
-      bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
-      bankAccountName: bankAccountName ?? this.bankAccountName,
+      website: website ?? this.website,
+      commissionRate: commissionRate ?? this.commissionRate,
       imageUrl: imageUrl ?? this.imageUrl,
+      notes: notes ?? this.notes,
       isActive: isActive ?? this.isActive,
       createdBy: createdBy ?? this.createdBy,
       isPendingSync: isPendingSync ?? this.isPendingSync,
@@ -19413,11 +19597,23 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (type.present) {
-      map['type'] = Variable<String>(type.value);
+    if (licenseNumber.present) {
+      map['license_number'] = Variable<String>(licenseNumber.value);
     }
     if (address.present) {
       map['address'] = Variable<String>(address.value);
+    }
+    if (provinceId.present) {
+      map['province_id'] = Variable<String>(provinceId.value);
+    }
+    if (cityId.present) {
+      map['city_id'] = Variable<String>(cityId.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
     }
     if (phone.present) {
       map['phone'] = Variable<String>(phone.value);
@@ -19425,17 +19621,17 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     if (email.present) {
       map['email'] = Variable<String>(email.value);
     }
-    if (bankName.present) {
-      map['bank_name'] = Variable<String>(bankName.value);
+    if (website.present) {
+      map['website'] = Variable<String>(website.value);
     }
-    if (bankAccountNumber.present) {
-      map['bank_account_number'] = Variable<String>(bankAccountNumber.value);
-    }
-    if (bankAccountName.present) {
-      map['bank_account_name'] = Variable<String>(bankAccountName.value);
+    if (commissionRate.present) {
+      map['commission_rate'] = Variable<double>(commissionRate.value);
     }
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -19467,14 +19663,18 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
           ..write('id: $id, ')
           ..write('code: $code, ')
           ..write('name: $name, ')
-          ..write('type: $type, ')
+          ..write('licenseNumber: $licenseNumber, ')
           ..write('address: $address, ')
+          ..write('provinceId: $provinceId, ')
+          ..write('cityId: $cityId, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('phone: $phone, ')
           ..write('email: $email, ')
-          ..write('bankName: $bankName, ')
-          ..write('bankAccountNumber: $bankAccountNumber, ')
-          ..write('bankAccountName: $bankAccountName, ')
+          ..write('website: $website, ')
+          ..write('commissionRate: $commissionRate, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('notes: $notes, ')
           ..write('isActive: $isActive, ')
           ..write('createdBy: $createdBy, ')
           ..write('isPendingSync: $isPendingSync, ')
@@ -34201,6 +34401,25 @@ final class $$ProvincesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$BrokersTable, List<Broker>> _brokersRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.brokers,
+    aliasName: $_aliasNameGenerator(db.provinces.id, db.brokers.provinceId),
+  );
+
+  $$BrokersTableProcessedTableManager get brokersRefs {
+    final manager = $$BrokersTableTableManager(
+      $_db,
+      $_db.brokers,
+    ).filter((f) => f.provinceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_brokersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ProvincesTableFilterComposer
@@ -34248,6 +34467,31 @@ class $$ProvincesTableFilterComposer
           }) => $$CitiesTableFilterComposer(
             $db: $db,
             $table: $db.cities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> brokersRefs(
+    Expression<bool> Function($$BrokersTableFilterComposer f) f,
+  ) {
+    final $$BrokersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.brokers,
+      getReferencedColumn: (t) => t.provinceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BrokersTableFilterComposer(
+            $db: $db,
+            $table: $db.brokers,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -34333,6 +34577,31 @@ class $$ProvincesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> brokersRefs<T extends Object>(
+    Expression<T> Function($$BrokersTableAnnotationComposer a) f,
+  ) {
+    final $$BrokersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.brokers,
+      getReferencedColumn: (t) => t.provinceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BrokersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.brokers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProvincesTableTableManager
@@ -34348,7 +34617,7 @@ class $$ProvincesTableTableManager
           $$ProvincesTableUpdateCompanionBuilder,
           (Province, $$ProvincesTableReferences),
           Province,
-          PrefetchHooks Function({bool citiesRefs})
+          PrefetchHooks Function({bool citiesRefs, bool brokersRefs})
         > {
   $$ProvincesTableTableManager(_$AppDatabase db, $ProvincesTable table)
     : super(
@@ -34397,10 +34666,13 @@ class $$ProvincesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({citiesRefs = false}) {
+          prefetchHooksCallback: ({citiesRefs = false, brokersRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (citiesRefs) db.cities],
+              explicitlyWatchedTables: [
+                if (citiesRefs) db.cities,
+                if (brokersRefs) db.brokers,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -34411,6 +34683,21 @@ class $$ProvincesTableTableManager
                           ._citiesRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $$ProvincesTableReferences(db, table, p0).citiesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.provinceId == item.id),
+                      typedResults: items,
+                    ),
+                  if (brokersRefs)
+                    await $_getPrefetchedData<
+                      Province,
+                      $ProvincesTable,
+                      Broker
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ProvincesTableReferences
+                          ._brokersRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ProvincesTableReferences(db, table, p0).brokersRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.provinceId == item.id),
                       typedResults: items,
@@ -34435,7 +34722,7 @@ typedef $$ProvincesTableProcessedTableManager =
       $$ProvincesTableUpdateCompanionBuilder,
       (Province, $$ProvincesTableReferences),
       Province,
-      PrefetchHooks Function({bool citiesRefs})
+      PrefetchHooks Function({bool citiesRefs, bool brokersRefs})
     >;
 typedef $$CitiesTableCreateCompanionBuilder =
     CitiesCompanion Function({
@@ -34474,6 +34761,25 @@ final class $$CitiesTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$BrokersTable, List<Broker>> _brokersRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.brokers,
+    aliasName: $_aliasNameGenerator(db.cities.id, db.brokers.cityId),
+  );
+
+  $$BrokersTableProcessedTableManager get brokersRefs {
+    final manager = $$BrokersTableTableManager(
+      $_db,
+      $_db.brokers,
+    ).filter((f) => f.cityId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_brokersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -34528,6 +34834,31 @@ class $$CitiesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> brokersRefs(
+    Expression<bool> Function($$BrokersTableFilterComposer f) f,
+  ) {
+    final $$BrokersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.brokers,
+      getReferencedColumn: (t) => t.cityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BrokersTableFilterComposer(
+            $db: $db,
+            $table: $db.brokers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -34627,6 +34958,31 @@ class $$CitiesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> brokersRefs<T extends Object>(
+    Expression<T> Function($$BrokersTableAnnotationComposer a) f,
+  ) {
+    final $$BrokersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.brokers,
+      getReferencedColumn: (t) => t.cityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BrokersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.brokers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CitiesTableTableManager
@@ -34642,7 +34998,7 @@ class $$CitiesTableTableManager
           $$CitiesTableUpdateCompanionBuilder,
           (City, $$CitiesTableReferences),
           City,
-          PrefetchHooks Function({bool provinceId})
+          PrefetchHooks Function({bool provinceId, bool brokersRefs})
         > {
   $$CitiesTableTableManager(_$AppDatabase db, $CitiesTable table)
     : super(
@@ -34693,10 +35049,10 @@ class $$CitiesTableTableManager
                     (e.readTable(table), $$CitiesTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({provinceId = false}) {
+          prefetchHooksCallback: ({provinceId = false, brokersRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [if (brokersRefs) db.brokers],
               addJoins:
                   <
                     T extends TableManagerState<
@@ -34730,7 +35086,19 @@ class $$CitiesTableTableManager
                     return state;
                   },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (brokersRefs)
+                    await $_getPrefetchedData<City, $CitiesTable, Broker>(
+                      currentTable: table,
+                      referencedTable: $$CitiesTableReferences
+                          ._brokersRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CitiesTableReferences(db, table, p0).brokersRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.cityId == item.id),
+                      typedResults: items,
+                    ),
+                ];
               },
             );
           },
@@ -34750,7 +35118,7 @@ typedef $$CitiesTableProcessedTableManager =
       $$CitiesTableUpdateCompanionBuilder,
       (City, $$CitiesTableReferences),
       City,
-      PrefetchHooks Function({bool provinceId})
+      PrefetchHooks Function({bool provinceId, bool brokersRefs})
     >;
 typedef $$CompanyTypesTableCreateCompanionBuilder =
     CompanyTypesCompanion Function({
@@ -45442,14 +45810,18 @@ typedef $$BrokersTableCreateCompanionBuilder =
       required String id,
       required String code,
       required String name,
-      required String type,
+      Value<String?> licenseNumber,
       Value<String?> address,
+      Value<String?> provinceId,
+      Value<String?> cityId,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String?> phone,
       Value<String?> email,
-      Value<String?> bankName,
-      Value<String?> bankAccountNumber,
-      Value<String?> bankAccountName,
+      Value<String?> website,
+      Value<double?> commissionRate,
       Value<String?> imageUrl,
+      Value<String?> notes,
       Value<bool> isActive,
       required String createdBy,
       Value<bool> isPendingSync,
@@ -45463,14 +45835,18 @@ typedef $$BrokersTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> code,
       Value<String> name,
-      Value<String> type,
+      Value<String?> licenseNumber,
       Value<String?> address,
+      Value<String?> provinceId,
+      Value<String?> cityId,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String?> phone,
       Value<String?> email,
-      Value<String?> bankName,
-      Value<String?> bankAccountNumber,
-      Value<String?> bankAccountName,
+      Value<String?> website,
+      Value<double?> commissionRate,
       Value<String?> imageUrl,
+      Value<String?> notes,
       Value<bool> isActive,
       Value<String> createdBy,
       Value<bool> isPendingSync,
@@ -45483,6 +45859,43 @@ typedef $$BrokersTableUpdateCompanionBuilder =
 final class $$BrokersTableReferences
     extends BaseReferences<_$AppDatabase, $BrokersTable, Broker> {
   $$BrokersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProvincesTable _provinceIdTable(_$AppDatabase db) =>
+      db.provinces.createAlias(
+        $_aliasNameGenerator(db.brokers.provinceId, db.provinces.id),
+      );
+
+  $$ProvincesTableProcessedTableManager? get provinceId {
+    final $_column = $_itemColumn<String>('province_id');
+    if ($_column == null) return null;
+    final manager = $$ProvincesTableTableManager(
+      $_db,
+      $_db.provinces,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_provinceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CitiesTable _cityIdTable(_$AppDatabase db) => db.cities.createAlias(
+    $_aliasNameGenerator(db.brokers.cityId, db.cities.id),
+  );
+
+  $$CitiesTableProcessedTableManager? get cityId {
+    final $_column = $_itemColumn<String>('city_id');
+    if ($_column == null) return null;
+    final manager = $$CitiesTableTableManager(
+      $_db,
+      $_db.cities,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cityIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static $UsersTable _createdByTable(_$AppDatabase db) => db.users.createAlias(
     $_aliasNameGenerator(db.brokers.createdBy, db.users.id),
@@ -45527,13 +45940,23 @@ class $$BrokersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get type => $composableBuilder(
-    column: $table.type,
+  ColumnFilters<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get address => $composableBuilder(
     column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -45547,23 +45970,23 @@ class $$BrokersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get bankName => $composableBuilder(
-    column: $table.bankName,
+  ColumnFilters<String> get website => $composableBuilder(
+    column: $table.website,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get bankAccountNumber => $composableBuilder(
-    column: $table.bankAccountNumber,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get bankAccountName => $composableBuilder(
-    column: $table.bankAccountName,
+  ColumnFilters<double> get commissionRate => $composableBuilder(
+    column: $table.commissionRate,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get imageUrl => $composableBuilder(
     column: $table.imageUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -45591,6 +46014,52 @@ class $$BrokersTableFilterComposer
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ProvincesTableFilterComposer get provinceId {
+    final $$ProvincesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.provinceId,
+      referencedTable: $db.provinces,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProvincesTableFilterComposer(
+            $db: $db,
+            $table: $db.provinces,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CitiesTableFilterComposer get cityId {
+    final $$CitiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cityId,
+      referencedTable: $db.cities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CitiesTableFilterComposer(
+            $db: $db,
+            $table: $db.cities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$UsersTableFilterComposer get createdBy {
     final $$UsersTableFilterComposer composer = $composerBuilder(
@@ -45640,13 +46109,23 @@ class $$BrokersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
+  ColumnOrderings<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get address => $composableBuilder(
     column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -45660,23 +46139,23 @@ class $$BrokersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get bankName => $composableBuilder(
-    column: $table.bankName,
+  ColumnOrderings<String> get website => $composableBuilder(
+    column: $table.website,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get bankAccountNumber => $composableBuilder(
-    column: $table.bankAccountNumber,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get bankAccountName => $composableBuilder(
-    column: $table.bankAccountName,
+  ColumnOrderings<double> get commissionRate => $composableBuilder(
+    column: $table.commissionRate,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get imageUrl => $composableBuilder(
     column: $table.imageUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -45704,6 +46183,52 @@ class $$BrokersTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProvincesTableOrderingComposer get provinceId {
+    final $$ProvincesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.provinceId,
+      referencedTable: $db.provinces,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProvincesTableOrderingComposer(
+            $db: $db,
+            $table: $db.provinces,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CitiesTableOrderingComposer get cityId {
+    final $$CitiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cityId,
+      referencedTable: $db.cities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CitiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.cities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$UsersTableOrderingComposer get createdBy {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
@@ -45747,11 +46272,19 @@ class $$BrokersTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
+  GeneratedColumn<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
 
   GeneratedColumn<String> get phone =>
       $composableBuilder(column: $table.phone, builder: (column) => column);
@@ -45759,21 +46292,19 @@ class $$BrokersTableAnnotationComposer
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
 
-  GeneratedColumn<String> get bankName =>
-      $composableBuilder(column: $table.bankName, builder: (column) => column);
+  GeneratedColumn<String> get website =>
+      $composableBuilder(column: $table.website, builder: (column) => column);
 
-  GeneratedColumn<String> get bankAccountNumber => $composableBuilder(
-    column: $table.bankAccountNumber,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get bankAccountName => $composableBuilder(
-    column: $table.bankAccountName,
+  GeneratedColumn<double> get commissionRate => $composableBuilder(
+    column: $table.commissionRate,
     builder: (column) => column,
   );
 
   GeneratedColumn<String> get imageUrl =>
       $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
@@ -45791,6 +46322,52 @@ class $$BrokersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$ProvincesTableAnnotationComposer get provinceId {
+    final $$ProvincesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.provinceId,
+      referencedTable: $db.provinces,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProvincesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.provinces,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CitiesTableAnnotationComposer get cityId {
+    final $$CitiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cityId,
+      referencedTable: $db.cities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CitiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $$UsersTableAnnotationComposer get createdBy {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
@@ -45829,7 +46406,7 @@ class $$BrokersTableTableManager
           $$BrokersTableUpdateCompanionBuilder,
           (Broker, $$BrokersTableReferences),
           Broker,
-          PrefetchHooks Function({bool createdBy})
+          PrefetchHooks Function({bool provinceId, bool cityId, bool createdBy})
         > {
   $$BrokersTableTableManager(_$AppDatabase db, $BrokersTable table)
     : super(
@@ -45847,14 +46424,18 @@ class $$BrokersTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> code = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<String> type = const Value.absent(),
+                Value<String?> licenseNumber = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> provinceId = const Value.absent(),
+                Value<String?> cityId = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> email = const Value.absent(),
-                Value<String?> bankName = const Value.absent(),
-                Value<String?> bankAccountNumber = const Value.absent(),
-                Value<String?> bankAccountName = const Value.absent(),
+                Value<String?> website = const Value.absent(),
+                Value<double?> commissionRate = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<String> createdBy = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
@@ -45866,14 +46447,18 @@ class $$BrokersTableTableManager
                 id: id,
                 code: code,
                 name: name,
-                type: type,
+                licenseNumber: licenseNumber,
                 address: address,
+                provinceId: provinceId,
+                cityId: cityId,
+                latitude: latitude,
+                longitude: longitude,
                 phone: phone,
                 email: email,
-                bankName: bankName,
-                bankAccountNumber: bankAccountNumber,
-                bankAccountName: bankAccountName,
+                website: website,
+                commissionRate: commissionRate,
                 imageUrl: imageUrl,
+                notes: notes,
                 isActive: isActive,
                 createdBy: createdBy,
                 isPendingSync: isPendingSync,
@@ -45887,14 +46472,18 @@ class $$BrokersTableTableManager
                 required String id,
                 required String code,
                 required String name,
-                required String type,
+                Value<String?> licenseNumber = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> provinceId = const Value.absent(),
+                Value<String?> cityId = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> email = const Value.absent(),
-                Value<String?> bankName = const Value.absent(),
-                Value<String?> bankAccountNumber = const Value.absent(),
-                Value<String?> bankAccountName = const Value.absent(),
+                Value<String?> website = const Value.absent(),
+                Value<double?> commissionRate = const Value.absent(),
                 Value<String?> imageUrl = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required String createdBy,
                 Value<bool> isPendingSync = const Value.absent(),
@@ -45906,14 +46495,18 @@ class $$BrokersTableTableManager
                 id: id,
                 code: code,
                 name: name,
-                type: type,
+                licenseNumber: licenseNumber,
                 address: address,
+                provinceId: provinceId,
+                cityId: cityId,
+                latitude: latitude,
+                longitude: longitude,
                 phone: phone,
                 email: email,
-                bankName: bankName,
-                bankAccountNumber: bankAccountNumber,
-                bankAccountName: bankAccountName,
+                website: website,
+                commissionRate: commissionRate,
                 imageUrl: imageUrl,
+                notes: notes,
                 isActive: isActive,
                 createdBy: createdBy,
                 isPendingSync: isPendingSync,
@@ -45930,47 +46523,74 @@ class $$BrokersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({createdBy = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (createdBy) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.createdBy,
-                                referencedTable: $$BrokersTableReferences
-                                    ._createdByTable(db),
-                                referencedColumn: $$BrokersTableReferences
-                                    ._createdByTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({provinceId = false, cityId = false, createdBy = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (provinceId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.provinceId,
+                                    referencedTable: $$BrokersTableReferences
+                                        ._provinceIdTable(db),
+                                    referencedColumn: $$BrokersTableReferences
+                                        ._provinceIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (cityId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.cityId,
+                                    referencedTable: $$BrokersTableReferences
+                                        ._cityIdTable(db),
+                                    referencedColumn: $$BrokersTableReferences
+                                        ._cityIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (createdBy) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.createdBy,
+                                    referencedTable: $$BrokersTableReferences
+                                        ._createdByTable(db),
+                                    referencedColumn: $$BrokersTableReferences
+                                        ._createdByTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -45987,7 +46607,7 @@ typedef $$BrokersTableProcessedTableManager =
       $$BrokersTableUpdateCompanionBuilder,
       (Broker, $$BrokersTableReferences),
       Broker,
-      PrefetchHooks Function({bool createdBy})
+      PrefetchHooks Function({bool provinceId, bool cityId, bool createdBy})
     >;
 typedef $$MeasureDefinitionsTableCreateCompanionBuilder =
     MeasureDefinitionsCompanion Function({

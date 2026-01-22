@@ -99,6 +99,8 @@ class InitialSyncService {
     // HVC transactional data
     'hvcs',
     'customer_hvc_links',
+    // Brokers
+    'brokers',
     // 4DX Scoring (added)
     'measure_definitions',
     'scoring_periods',
@@ -264,6 +266,9 @@ class InitialSyncService {
         break;
       case 'customer_hvc_links':
         await _syncCustomerHvcLinks();
+        break;
+      case 'brokers':
+        await _syncBrokers();
         break;
       // 4DX Scoring
       case 'measure_definitions':
@@ -563,6 +568,45 @@ class InitialSyncService {
             isPendingSync: const Value(false),
             createdAt: linkedAt,
             updatedAt: linkedAt,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  // ============================================
+  // BROKER SYNC METHOD
+  // ============================================
+
+  Future<void> _syncBrokers() async {
+    final data = await _supabase.from('brokers').select().isFilter('deleted_at', null);
+    
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.brokers,
+          BrokersCompanion.insert(
+            id: row['id'] as String,
+            code: row['code'] as String,
+            name: row['name'] as String,
+            licenseNumber: Value(row['license_number'] as String?),
+            address: Value(row['address'] as String?),
+            provinceId: Value(row['province_id'] as String?),
+            cityId: Value(row['city_id'] as String?),
+            latitude: Value((row['latitude'] as num?)?.toDouble()),
+            longitude: Value((row['longitude'] as num?)?.toDouble()),
+            phone: Value(row['phone'] as String?),
+            email: Value(row['email'] as String?),
+            website: Value(row['website'] as String?),
+            commissionRate: Value((row['commission_rate'] as num?)?.toDouble()),
+            imageUrl: Value(row['image_url'] as String?),
+            notes: Value(row['notes'] as String?),
+            isActive: Value(row['is_active'] as bool? ?? true),
+            isPendingSync: const Value(false),
+            createdBy: row['created_by'] as String,
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
           ),
           mode: InsertMode.insertOrReplace,
         );

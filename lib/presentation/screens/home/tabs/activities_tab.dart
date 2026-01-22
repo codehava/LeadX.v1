@@ -277,12 +277,12 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
   }
 
   void _showImmediateSheet() {
-    // Show immediate activity sheet without pre-selected object
+    // Show object selector for immediate activity
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => const _ObjectSelectorSheet(),
+      builder: (context) => const _ObjectSelectorSheet(isImmediate: true),
     );
   }
 
@@ -472,9 +472,13 @@ class _ActivityListTile extends StatelessWidget {
   }
 }
 
-/// Sheet for selecting object type and object for immediate activity.
+/// Sheet for selecting object type for activity creation.
+/// For immediate activities, navigates to object search then shows ImmediateActivitySheet.
+/// For scheduled activities, navigates to activity create form with object type pre-selected.
 class _ObjectSelectorSheet extends ConsumerStatefulWidget {
-  const _ObjectSelectorSheet();
+  final bool isImmediate;
+  
+  const _ObjectSelectorSheet({this.isImmediate = false});
 
   @override
   ConsumerState<_ObjectSelectorSheet> createState() =>
@@ -485,11 +489,12 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isImmediate = widget.isImmediate;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.4,
+      initialChildSize: 0.5,
       minChildSize: 0.3,
-      maxChildSize: 0.6,
+      maxChildSize: 0.7,
       expand: false,
       builder: (context, scrollController) {
         return Container(
@@ -518,7 +523,7 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Pilih Tipe Objek',
+                        isImmediate ? 'Log Aktivitas Sekarang' : 'Jadwalkan Aktivitas',
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
@@ -529,6 +534,30 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
                   ],
                 ),
               ),
+
+              // Info for immediate mode
+              if (isImmediate)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Card(
+                    color: AppColors.info.withValues(alpha: 0.1),
+                    child: const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: AppColors.info),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Pilih tipe objek, lalu pilih objek spesifik untuk log aktivitas segera.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
               const Divider(),
 
@@ -541,33 +570,71 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
                     _ObjectTypeCard(
                       icon: Icons.business,
                       title: 'Customer',
-                      subtitle: 'Log aktivitas untuk customer',
+                      subtitle: isImmediate 
+                          ? 'Pilih customer untuk log aktivitas' 
+                          : 'Jadwalkan aktivitas untuk customer',
                       onTap: () {
                         Navigator.pop(context);
-                        context.push(
-                            '${RoutePaths.activityCreate}?objectType=CUSTOMER');
+                        if (isImmediate) {
+                          // Navigate to customers list - user can tap a customer then use immediate sheet
+                          context.push('/home/customers');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Pilih customer, lalu gunakan tombol flash untuk log aktivitas'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        } else {
+                          context.push(
+                              '${RoutePaths.activityCreate}?objectType=CUSTOMER');
+                        }
                       },
                     ),
                     const SizedBox(height: 8),
                     _ObjectTypeCard(
                       icon: Icons.star,
                       title: 'HVC',
-                      subtitle: 'Log aktivitas untuk High Value Customer',
+                      subtitle: isImmediate 
+                          ? 'Pilih HVC untuk log aktivitas' 
+                          : 'Jadwalkan aktivitas untuk High Value Customer',
                       onTap: () {
                         Navigator.pop(context);
-                        context
-                            .push('${RoutePaths.activityCreate}?objectType=HVC');
+                        if (isImmediate) {
+                          // Navigate to HVC list
+                          context.push('/home/hvc');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Pilih HVC, lalu gunakan tombol flash untuk log aktivitas'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        } else {
+                          context.push('${RoutePaths.activityCreate}?objectType=HVC');
+                        }
                       },
                     ),
                     const SizedBox(height: 8),
                     _ObjectTypeCard(
                       icon: Icons.handshake,
                       title: 'Broker',
-                      subtitle: 'Log aktivitas untuk Broker',
+                      subtitle: isImmediate 
+                          ? 'Pilih broker untuk log aktivitas' 
+                          : 'Jadwalkan aktivitas untuk Broker',
                       onTap: () {
                         Navigator.pop(context);
-                        context.push(
-                            '${RoutePaths.activityCreate}?objectType=BROKER');
+                        if (isImmediate) {
+                          // Navigate to brokers list
+                          context.push('/home/brokers');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Pilih broker, lalu gunakan tombol flash untuk log aktivitas'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        } else {
+                          context.push(
+                              '${RoutePaths.activityCreate}?objectType=BROKER');
+                        }
                       },
                     ),
                   ],
