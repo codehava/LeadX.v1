@@ -21,6 +21,7 @@ import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
+import '../../presentation/widgets/shell/responsive_shell.dart';
 import 'route_names.dart';
 
 /// Stores the intended location when user navigates directly via URL bar
@@ -249,19 +250,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'hvcs',
             name: RouteNames.hvc,
-            builder: (context, state) => const HvcListScreen(),
+            builder: (context, state) => ResponsiveShell(
+              currentRoute: state.matchedLocation,
+              child: const HvcListScreen(),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
                 name: RouteNames.hvcCreate,
-                builder: (context, state) => const HvcFormScreen(),
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const HvcFormScreen(),
+                ),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.hvcDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return HvcDetailScreen(hvcId: id);
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: HvcDetailScreen(hvcId: id),
+                  );
                 },
                 routes: [
                   GoRoute(
@@ -269,7 +279,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.hvcEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return HvcFormScreen(hvcId: id);
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: HvcFormScreen(hvcId: id),
+                      );
                     },
                   ),
                 ],

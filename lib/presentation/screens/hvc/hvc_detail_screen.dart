@@ -9,6 +9,7 @@ import '../../../domain/entities/key_person.dart';
 import '../../providers/activity_providers.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/hvc_providers.dart';
+import '../../providers/customer_providers.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_state.dart';
 import '../activity/activity_execution_sheet.dart';
@@ -155,10 +156,12 @@ class _HvcDetailScreenState extends ConsumerState<HvcDetailScreen>
               final notifier = ref.read(hvcFormNotifierProvider.notifier);
               final success = await notifier.deleteHvc(hvc.id);
               if (success && mounted) {
-                context.pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('HVC berhasil dihapus')),
-                );
+                if (context.mounted) context.pop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('HVC berhasil dihapus')),
+                  );
+                }
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -331,16 +334,50 @@ class _LinkedCustomersTab extends ConsumerWidget {
             itemCount: links.length,
             itemBuilder: (context, index) {
               final link = links[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.business),
+              return Dismissible(
+                key: Key(link.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  title: Text(link.customerName ?? 'Unknown'),
-                  subtitle: Text(link.relationshipDisplayName),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/home/customers/${link.customerId}'),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                confirmDismiss: (direction) => _confirmUnlink(
+                  context,
+                  ref,
+                  link.id,
+                  link.customerName ?? 'Pelanggan',
+                ),
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.business),
+                    ),
+                    title: Text(link.customerName ?? 'Pelanggan'),
+                    subtitle: Text(link.relationshipDisplayName),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.link_off, color: Colors.red),
+                          tooltip: 'Hapus Link',
+                          onPressed: () => _confirmUnlink(
+                            context,
+                            ref,
+                            link.id,
+                            link.customerName ?? 'Pelanggan',
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => context.push('/home/customers/${link.customerId}'),
+                  ),
                 ),
               );
             },
@@ -358,6 +395,45 @@ class _LinkedCustomersTab extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<bool> _confirmUnlink(
+    BuildContext context,
+    WidgetRef ref,
+    String linkId,
+    String customerName,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Link'),
+        content: Text('Hapus hubungan dengan "$customerName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (result ?? false) {
+      final notifier = ref.read(customerHvcLinkNotifierProvider.notifier);
+      final success = await notifier.unlinkCustomerFromHvc(linkId);
+      if (success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Link berhasil dihapus')),
+        );
+        ref.invalidate(linkedCustomersProvider(hvcId));
+      }
+      return success;
+    }
+    return false;
   }
 
   void _addCustomer(BuildContext context) {
@@ -417,7 +493,11 @@ class _KeyPersonsTab extends ConsumerWidget {
             itemCount: keyPersons.length,
             itemBuilder: (context, index) {
               final keyPerson = keyPersons[index];
-              return _KeyPersonCard(keyPerson: keyPerson);
+              return _KeyPersonCard(
+                keyPerson: keyPerson,
+                onEdit: isAdmin ? () => _handleEdit(context, keyPerson) : null,
+                onDelete: isAdmin ? () => _handleDelete(context, ref, keyPerson) : null,
+              );
             },
           ),
           floatingActionButton: isAdmin
@@ -443,13 +523,76 @@ class _KeyPersonsTab extends ConsumerWidget {
       hvcId: hvcId,
     );
   }
+
+  void _handleEdit(BuildContext context, KeyPerson keyPerson) {
+    KeyPersonFormSheet.show(
+      context,
+      hvcId: hvcId,
+      keyPerson: keyPerson,
+    );
+  }
+
+  Future<void> _handleDelete(
+    BuildContext context,
+    WidgetRef ref,
+    KeyPerson keyPerson,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Key Person'),
+        content: Text('Hapus "${keyPerson.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed ?? false) {
+      // We use CustomerRepository for key persons as it handles the generic key person table
+      final repo = ref.read(customerRepositoryProvider);
+      final result = await repo.deleteKeyPerson(keyPerson.id);
+      
+      result.fold(
+        (failure) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
+            );
+          }
+        },
+        (_) {
+          if (context.mounted) {
+            ref.invalidate(hvcKeyPersonsProvider(hvcId));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Key person berhasil dihapus')),
+            );
+          }
+        },
+      );
+    }
+  }
 }
 
 /// Card widget for displaying key person info.
 class _KeyPersonCard extends StatelessWidget {
-  const _KeyPersonCard({required this.keyPerson});
+  const _KeyPersonCard({
+    required this.keyPerson,
+    this.onEdit,
+    this.onDelete,
+  });
 
   final KeyPerson keyPerson;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -525,13 +668,50 @@ class _KeyPersonCard extends StatelessWidget {
                   // TODO: Launch phone
                 },
               ),
-            if (keyPerson.email != null)
-              IconButton(
-                icon: const Icon(Icons.email),
-                tooltip: keyPerson.email,
-                onPressed: () {
-                  // TODO: Launch email
+            // if (keyPerson.email != null)
+            //   IconButton(
+            //     icon: const Icon(Icons.email),
+            //     tooltip: keyPerson.email,
+            //     onPressed: () {
+            //       // TODO: Launch email
+            //     },
+            //   ),
+            if (onEdit != null || onDelete != null)
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      onEdit?.call();
+                      break;
+                    case 'delete':
+                      onDelete?.call();
+                      break;
+                  }
                 },
+                itemBuilder: (context) => [
+                  if (onEdit != null)
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                  if (onDelete != null)
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Hapus', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                ],
               ),
           ],
         ),

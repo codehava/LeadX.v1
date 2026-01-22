@@ -78,6 +78,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       _selectedIndex = 3;
     } else if (route.contains('/customers')) {
       _selectedIndex = 1;
+    } else if (route.contains('/hvcs') || route.contains('/brokers') || 
+               route.contains('/scoreboard') || route.contains('/cadence')) {
+      // These are sidebar items, not main nav items
+      // Set to -1 so no bottom nav item is highlighted
+      _selectedIndex = -1;
     } else {
       _selectedIndex = 0;
     }
@@ -137,6 +142,8 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return AppBar(
       title: const Text('LeadX CRM'),
       actions: [
@@ -149,6 +156,19 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           icon: const Icon(Icons.notifications_outlined),
           tooltip: 'Notifications',
           onPressed: () => context.push(RoutePaths.notifications),
+        ),
+        const SizedBox(width: 4),
+        // Profile avatar
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () => context.push(RoutePaths.profile),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: theme.colorScheme.primary,
+              child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
+            ),
+          ),
         ),
       ],
     );
@@ -261,7 +281,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
   Widget _buildBottomNav(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: _selectedIndex,
+      currentIndex: _selectedIndex >= 0 ? _selectedIndex : 0,
       onTap: _onNavTap,
       type: BottomNavigationBarType.fixed,
       items: _navItems
@@ -275,8 +295,12 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   Widget _buildNavigationRail(BuildContext context) {
+    final theme = Theme.of(context);
+    // Ensure we have a valid selected index for NavigationRail
+    final effectiveIndex = _selectedIndex >= 0 ? _selectedIndex : 0;
+    
     return NavigationRail(
-      selectedIndex: _selectedIndex,
+      selectedIndex: effectiveIndex,
       onDestinationSelected: _onNavTap,
       labelType: NavigationRailLabelType.all,
       leading: FloatingActionButton(
@@ -284,6 +308,97 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
         elevation: 0,
         onPressed: () => _showQuickAddSheet(context),
         child: const Icon(Icons.add),
+      ),
+      // Trailing section with additional menu items
+      // Trailing section with additional menu items
+      trailing: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const SizedBox(height: 16), // Spacing after destinations
+              const Divider(),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.business,
+                label: 'HVC',
+                isSelected: widget.currentRoute.contains('/hvcs'),
+                onTap: () => context.push(RoutePaths.hvc),
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.handshake,
+                label: 'Broker',
+                isSelected: widget.currentRoute.contains('/brokers'),
+                onTap: () => context.push(RoutePaths.brokers),
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.leaderboard,
+                label: 'Score',
+                isSelected: widget.currentRoute.contains('/scoreboard'),
+                onTap: () => context.push(RoutePaths.scoreboard),
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.track_changes,
+                label: 'Targets',
+                isSelected: widget.currentRoute.contains('/targets'),
+                onTap: () => context.push(RoutePaths.targets),
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.groups,
+                label: 'Cadence',
+                isSelected: widget.currentRoute.contains('/cadence'),
+                onTap: () => context.push(RoutePaths.cadence),
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.analytics_outlined,
+                label: 'Reports',
+                isSelected: false,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reports coming soon')),
+                  );
+                },
+              ),
+              const Divider(),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.help_outline,
+                label: 'Help',
+                isSelected: false,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Help & FAQ coming soon')),
+                  );
+                },
+              ),
+              _buildRailTrailingItem(
+                context,
+                icon: Icons.settings,
+                label: 'Settings',
+                isSelected: widget.currentRoute.contains('/settings'),
+                onTap: () => context.push(RoutePaths.settings),
+              ),
+              // Admin Panel (if applicable, adding for consistency)
+              // TODO: Check admin status
+              /*
+              if (isAdmin)
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.admin_panel_settings,
+                  label: 'Admin',
+                  isSelected: widget.currentRoute.contains('/admin'),
+                  onTap: () => context.push(RoutePaths.admin),
+                ),
+              */
+            ],
+          ),
+        ),
       ),
       destinations: _navItems
           .where((item) => item.label != 'Add') // Exclude Add from rail
@@ -293,6 +408,50 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 label: Text(item.label),
               ))
           .toList(),
+    );
+  }
+
+  /// Helper widget for NavigationRail trailing items
+  Widget _buildRailTrailingItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
+    
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                )
+              : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: color,
+                  fontWeight: isSelected ? FontWeight.w600 : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -375,18 +534,23 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 const SizedBox(height: 8),
                 _buildSectionHeader(context, 'AKUN'),
                 _buildSidebarItem(context, Icons.business, 'HVC', -1,
+                    routePattern: '/hvcs',
                     onTap: () => context.push(RoutePaths.hvc)),
                 _buildSidebarItem(context, Icons.handshake, 'Broker', -1,
+                    routePattern: '/brokers',
                     onTap: () => context.push(RoutePaths.brokers)),
 
                 // 4DX & PERFORMANCE
                 const SizedBox(height: 8),
                 _buildSectionHeader(context, '4DX & PERFORMA'),
                 _buildSidebarItem(context, Icons.leaderboard, 'Scoreboard', -1,
+                    routePattern: '/scoreboard',
                     onTap: () => context.push(RoutePaths.scoreboard)),
                 _buildSidebarItem(context, Icons.track_changes, 'Targets', -1,
+                    routePattern: '/targets',
                     onTap: () => context.push(RoutePaths.targets)),
                 _buildSidebarItem(context, Icons.groups, 'Cadence', -1,
+                    routePattern: '/cadence',
                     onTap: () => context.push(RoutePaths.cadence)),
 
                 // TOOLS
@@ -460,9 +624,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     String label,
     int index, {
     VoidCallback? onTap,
+    String? routePattern,
   }) {
     final theme = Theme.of(context);
-    final isSelected = index >= 0 && _selectedIndex == index;
+    // For main nav items (index >= 0), use selectedIndex
+    // For sidebar-only items (index == -1), check route pattern
+    final isSelected = index >= 0 
+        ? _selectedIndex == index
+        : routePattern != null && widget.currentRoute.contains(routePattern);
 
     return ListTile(
       leading: Icon(

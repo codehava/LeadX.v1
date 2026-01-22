@@ -332,7 +332,62 @@ FOR SELECT USING (
   OR is_admin()
 );
 
--- Only admins can modify
+-- Users can insert links for customers they own/supervise
+CREATE POLICY "customer_hvc_links_insert" ON customer_hvc_links
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM customers c
+    WHERE c.id = customer_hvc_links.customer_id
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR c.created_by = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  )
+  OR is_admin()
+);
+
+-- Users can update links for customers they own/supervise
+CREATE POLICY "customer_hvc_links_update" ON customer_hvc_links
+FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM customers c
+    WHERE c.id = customer_hvc_links.customer_id
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  )
+  OR is_admin()
+);
+
+-- Users can delete links for customers they own/supervise
+CREATE POLICY "customer_hvc_links_delete" ON customer_hvc_links
+FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM customers c
+    WHERE c.id = customer_hvc_links.customer_id
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  )
+  OR is_admin()
+);
+
+-- Admins have full access (fallback)
 CREATE POLICY "customer_hvc_links_admin" ON customer_hvc_links
 FOR ALL USING (is_admin());
 

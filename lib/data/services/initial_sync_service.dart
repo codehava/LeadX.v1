@@ -76,6 +76,12 @@ class InitialSyncService {
 
   /// Tables to sync in order (dependencies first).
   static const List<String> _tablesToSync = [
+    // User hierarchy (Must be first as Users are referenced by created_by in other tables)
+    'regional_offices',
+    'branches',
+    'users',
+    'user_hierarchy',
+    
     // Master data
     'provinces',
     'cities',
@@ -96,11 +102,6 @@ class InitialSyncService {
     // 4DX Scoring (added)
     'measure_definitions',
     'scoring_periods',
-    // User hierarchy (dependencies first)
-    'regional_offices',
-    'branches',
-    'users',
-    'user_hierarchy',
   ];
 
   /// Stream controller for progress updates.
@@ -137,9 +138,25 @@ class InitialSyncService {
     var failedCount = 0;
 
     // Determine starting index (for resume)
+    // Determine starting index (for resume)
     int startIndex = 0;
     if (!forceRestart && _appSettings != null) {
       startIndex = await _appSettings!.getResumeSyncIndex();
+
+      // Safety check: if resuming but Users table is empty, we must restart
+      // because Users are now required early in the process (moved to top).
+      if (startIndex > 0) {
+        // Check if users table is empty
+        final userCountIdx = _db.users.id.count();
+        final userCount = await (_db.selectOnly(_db.users)..addColumns([userCountIdx]))
+            .map((row) => row.read(userCountIdx))
+            .getSingle();
+            
+        if (userCount == 0) {
+          startIndex = 0; // Force restart to ensure users are synced
+        }
+      }
+
       await _appSettings!.markSyncStarted();
     }
 

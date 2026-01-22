@@ -137,8 +137,15 @@ class SyncService {
           print('[SyncService] Processing item: ${item.entityType}/${item.entityId} (${item.operation})');
           await _processItem(item);
           await _syncQueueDataSource.markAsCompleted(item.id);
-          // Mark the entity as synced in local database
-          await _markEntityAsSynced(item.entityType, item.entityId);
+          
+          // For delete operations on hard-delete entities, remove from local DB
+          if (item.operation == 'delete' && item.entityType == 'customerHvcLink') {
+            await _hardDeleteLocal(item.entityType, item.entityId);
+          } else {
+            // Mark the entity as synced in local database
+            await _markEntityAsSynced(item.entityType, item.entityId);
+          }
+          
           successCount++;
           print('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
         } catch (e) {
@@ -199,10 +206,15 @@ class SyncService {
             .update(payload)
             .eq('id', item.entityId);
       case 'delete':
-        // Soft delete - update deleted_at
-        await _supabaseClient.from(tableName).update({
-          'deleted_at': DateTime.now().toIso8601String(),
-        }).eq('id', item.entityId);
+        // Hard delete for tables without deleted_at column (e.g., customer_hvc_links)
+        // Soft delete for others
+        if (item.entityType == 'customerHvcLink') {
+          await _supabaseClient.from(tableName).delete().eq('id', item.entityId);
+        } else {
+          await _supabaseClient.from(tableName).update({
+            'deleted_at': DateTime.now().toIso8601String(),
+          }).eq('id', item.entityId);
+        }
       default:
         throw ArgumentError('Unknown operation: ${item.operation}');
     }
@@ -260,6 +272,20 @@ class SyncService {
     }
   }
 
+  /// Hard delete entity from local database after successful remote delete.
+  /// Used for entities that don't support soft delete in remote (e.g., customer_hvc_links).
+  Future<void> _hardDeleteLocal(String entityType, String entityId) async {
+    switch (entityType) {
+      case 'customerHvcLink':
+        await (_database.delete(_database.customerHvcLinks)
+              ..where((l) => l.id.equals(entityId)))
+            .go();
+        print('[SyncService] Hard deleted customerHvcLink locally: $entityId');
+      default:
+        print('[SyncService] Unknown entity type for hard delete: $entityType');
+    }
+  }
+
   /// Get table name from entity type.
   String _getTableName(String entityType) {
     switch (entityType) {
@@ -275,6 +301,8 @@ class SyncService {
         return 'hvcs';
       case 'broker':
         return 'brokers';
+      case 'customerHvcLink':
+        return 'customer_hvc_links';
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }

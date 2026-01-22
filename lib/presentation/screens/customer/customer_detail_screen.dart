@@ -335,7 +335,11 @@ class _KeyPersonsTab extends ConsumerWidget {
                 ),
               );
             }
-            return _KeyPersonCard(keyPerson: keyPersons[index]);
+            return _KeyPersonCard(
+              keyPerson: keyPersons[index],
+              onEdit: () => _handleEdit(context, keyPersons[index]),
+              onDelete: () => _handleDelete(context, ref, keyPersons[index]),
+            );
           },
         );
       },
@@ -343,15 +347,77 @@ class _KeyPersonsTab extends ConsumerWidget {
       error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
+
+  void _handleEdit(BuildContext context, KeyPerson keyPerson) {
+    KeyPersonFormSheet.show(
+      context,
+      customerId: customerId,
+      keyPerson: keyPerson,
+    );
+  }
+
+  Future<void> _handleDelete(
+    BuildContext context,
+    WidgetRef ref,
+    KeyPerson keyPerson,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Key Person'),
+        content: Text('Hapus "${keyPerson.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final repo = ref.read(customerRepositoryProvider);
+      final result = await repo.deleteKeyPerson(keyPerson.id);
+      
+      result.fold(
+        (failure) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
+            );
+          }
+        },
+        (_) {
+          if (context.mounted) {
+            ref.invalidate(customerKeyPersonsProvider(customerId));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Key person berhasil dihapus')),
+            );
+          }
+        },
+      );
+    }
+  }
 }
 
-class _KeyPersonCard extends StatelessWidget {
-  const _KeyPersonCard({required this.keyPerson});
+  class _KeyPersonCard extends ConsumerWidget {
+  const _KeyPersonCard({
+    required this.keyPerson,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   final KeyPerson keyPerson;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Card(
@@ -413,13 +479,47 @@ class _KeyPersonCard extends StatelessWidget {
                   // TODO: Call
                 },
               ),
-            if (keyPerson.email != null)
-              IconButton(
-                icon: const Icon(Icons.email),
-                onPressed: () {
-                  // TODO: Email
-                },
-              ),
+            // if (keyPerson.email != null)
+            //   IconButton(
+            //     icon: const Icon(Icons.email),
+            //     onPressed: () {
+            //       // TODO: Email
+            //     },
+            //   ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    onEdit();
+                    break;
+                  case 'delete':
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, size: 20, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Hapus', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

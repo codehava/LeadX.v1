@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/dtos/customer_dtos.dart';
 import '../../../domain/entities/key_person.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_text_field.dart';
 
@@ -324,6 +325,8 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
           },
           (keyPerson) {
             if (mounted) {
+              // Invalidate the appropriate provider to refresh the list
+              _invalidateKeyPersonProviders();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Key person berhasil diupdate')),
@@ -348,6 +351,8 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
           },
           (keyPerson) {
             if (mounted) {
+              // Invalidate the appropriate provider to refresh the list
+              _invalidateKeyPersonProviders();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Key person berhasil ditambahkan')),
@@ -370,5 +375,16 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  /// Invalidate key person providers to refresh the list.
+  void _invalidateKeyPersonProviders() {
+    if (widget.hvcId != null) {
+      ref.invalidate(hvcKeyPersonsProvider(widget.hvcId!));
+    }
+    if (widget.customerId != null) {
+      ref.invalidate(customerKeyPersonsProvider(widget.customerId!));
+    }
+    // Note: broker key persons provider can be added when implemented
   }
 }

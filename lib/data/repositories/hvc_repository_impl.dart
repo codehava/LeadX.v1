@@ -10,6 +10,7 @@ import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/hvc_repository.dart';
 import '../database/app_database.dart' as db;
+import '../datasources/local/customer_local_data_source.dart';
 import '../datasources/local/hvc_local_data_source.dart';
 import '../datasources/local/key_person_local_data_source.dart';
 import '../datasources/remote/hvc_remote_data_source.dart';
@@ -22,17 +23,20 @@ class HvcRepositoryImpl implements HvcRepository {
     required HvcLocalDataSource localDataSource,
     required HvcRemoteDataSource remoteDataSource,
     required KeyPersonLocalDataSource keyPersonLocalDataSource,
+    required CustomerLocalDataSource customerLocalDataSource,
     required SyncService syncService,
     required String currentUserId,
   })  : _localDataSource = localDataSource,
         _remoteDataSource = remoteDataSource,
         _keyPersonLocalDataSource = keyPersonLocalDataSource,
+        _customerLocalDataSource = customerLocalDataSource,
         _syncService = syncService,
         _currentUserId = currentUserId;
 
   final HvcLocalDataSource _localDataSource;
   final HvcRemoteDataSource _remoteDataSource;
   final KeyPersonLocalDataSource _keyPersonLocalDataSource;
+  final CustomerLocalDataSource _customerLocalDataSource;
   final SyncService _syncService;
   final String _currentUserId;
 
@@ -242,14 +246,30 @@ class HvcRepositoryImpl implements HvcRepository {
 
   @override
   Stream<List<domain.CustomerHvcLink>> watchLinkedCustomers(String hvcId) =>
-      _localDataSource.watchLinkedCustomers(hvcId).map(
-            (links) => links.map(_mapToCustomerHvcLink).toList(),
-          );
+      _localDataSource.watchLinkedCustomers(hvcId).asyncMap(
+        (links) => _enrichLinksWithCustomerData(links),
+      );
 
   @override
   Future<List<domain.CustomerHvcLink>> getLinkedCustomers(String hvcId) async {
     final links = await _localDataSource.getLinkedCustomers(hvcId);
-    return links.map(_mapToCustomerHvcLink).toList();
+    return _enrichLinksWithCustomerData(links);
+  }
+
+  /// Enrich links with customer names by looking up from customer table.
+  Future<List<domain.CustomerHvcLink>> _enrichLinksWithCustomerData(
+      List<db.CustomerHvcLink> links) async {
+    final enrichedLinks = <domain.CustomerHvcLink>[];
+    for (final link in links) {
+      final customer =
+          await _customerLocalDataSource.getCustomerById(link.customerId);
+      enrichedLinks.add(_mapToCustomerHvcLink(
+        link,
+        customerName: customer?.name,
+        customerCode: customer?.code,
+      ));
+    }
+    return enrichedLinks;
   }
 
   @override
@@ -461,7 +481,11 @@ class HvcRepositoryImpl implements HvcRepository {
       );
 
   /// Map Drift CustomerHvcLink to domain entity.
-  domain.CustomerHvcLink _mapToCustomerHvcLink(db.CustomerHvcLink data) =>
+  domain.CustomerHvcLink _mapToCustomerHvcLink(
+    db.CustomerHvcLink data, {
+    String? customerName,
+    String? customerCode,
+  }) =>
       domain.CustomerHvcLink(
         id: data.id,
         customerId: data.customerId,
@@ -473,6 +497,8 @@ class HvcRepositoryImpl implements HvcRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        customerName: customerName,
+        customerCode: customerCode,
       );
 
   /// Map Drift KeyPerson to domain entity.
@@ -543,6 +569,7 @@ class HvcRepositoryImpl implements HvcRepository {
       };
 
   /// Create sync payload for customer-HVC link.
+  /// Note: Supabase schema uses linked_at/linked_by instead of created_at/created_by
   Map<String, dynamic> _createLinkSyncPayload(
     String id,
     CustomerHvcLinkDto dto,
@@ -553,9 +580,7 @@ class HvcRepositoryImpl implements HvcRepository {
         'customer_id': dto.customerId,
         'hvc_id': dto.hvcId,
         'relationship_type': dto.relationshipType,
-        'is_active': true,
-        'created_by': _currentUserId,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'linked_by': _currentUserId,
+        'linked_at': now.toIso8601String(),
       };
 }
