@@ -261,14 +261,14 @@ FOR SELECT USING (
 -- HVC TABLE (Admin managed, read by all authenticated)
 -- ============================================
 
-ALTER TABLE hvc ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hvcs ENABLE ROW LEVEL SECURITY;
 
 -- All authenticated users can view HVC
-CREATE POLICY "hvc_select_authenticated" ON hvc
+CREATE POLICY "hvcs_select_authenticated" ON hvcs
 FOR SELECT USING (auth.uid() IS NOT NULL);
 
 -- Only admins can modify
-CREATE POLICY "hvc_admin_all" ON hvc
+CREATE POLICY "hvcs_admin_all" ON hvcs
 FOR ALL USING (is_admin());
 
 -- ============================================

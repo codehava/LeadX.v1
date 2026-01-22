@@ -242,6 +242,19 @@ class SyncService {
               isPendingSync: const Value(false),
               syncedAt: Value(syncedAt),
             ));
+      case 'hvc':
+        // Hvcs table doesn't have lastSyncAt field
+        await (_database.update(_database.hvcs)
+              ..where((h) => h.id.equals(entityId)))
+            .write(const db.HvcsCompanion(
+              isPendingSync: Value(false),
+            ));
+      case 'customerHvcLink':
+        await (_database.update(_database.customerHvcLinks)
+              ..where((l) => l.id.equals(entityId)))
+            .write(const db.CustomerHvcLinksCompanion(
+              isPendingSync: Value(false),
+            ));
       default:
         print('[SyncService] Unknown entity type for marking synced: $entityType');
     }

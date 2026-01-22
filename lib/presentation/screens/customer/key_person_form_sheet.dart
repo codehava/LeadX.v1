@@ -11,12 +11,23 @@ import '../../widgets/common/app_text_field.dart';
 class KeyPersonFormSheet extends ConsumerStatefulWidget {
   const KeyPersonFormSheet({
     super.key,
-    required this.customerId,
+    this.customerId,
+    this.hvcId,
+    this.brokerId,
     this.keyPerson,
-  });
+  }) : assert(
+          customerId != null || hvcId != null || brokerId != null,
+          'Must provide exactly one owner ID',
+        );
 
   /// Customer ID to associate the key person with.
-  final String customerId;
+  final String? customerId;
+
+  /// HVC ID to associate the key person with.
+  final String? hvcId;
+
+  /// Broker ID to associate the key person with.
+  final String? brokerId;
 
   /// Existing key person for editing, null for creating new.
   final KeyPerson? keyPerson;
@@ -24,9 +35,15 @@ class KeyPersonFormSheet extends ConsumerStatefulWidget {
   /// Show the key person form sheet.
   static Future<void> show(
     BuildContext context, {
-    required String customerId,
+    String? customerId,
+    String? hvcId,
+    String? brokerId,
     KeyPerson? keyPerson,
   }) {
+    assert(
+      customerId != null || hvcId != null || brokerId != null,
+      'Must provide exactly one owner ID',
+    );
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -36,6 +53,8 @@ class KeyPersonFormSheet extends ConsumerStatefulWidget {
       ),
       builder: (context) => KeyPersonFormSheet(
         customerId: customerId,
+        hvcId: hvcId,
+        brokerId: brokerId,
         keyPerson: keyPerson,
       ),
     );
@@ -265,12 +284,21 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
 
     try {
       final customerRepo = ref.read(customerRepositoryProvider);
+      
+      String ownerType = 'CUSTOMER';
+      if (widget.hvcId != null) {
+        ownerType = 'HVC';
+      } else if (widget.brokerId != null) {
+        ownerType = 'BROKER';
+      }
 
       // Create DTO for both create and update
       final dto = KeyPersonDto(
-        ownerType: 'CUSTOMER',
+        ownerType: ownerType,
         name: _nameController.text,
         customerId: widget.customerId,
+        hvcId: widget.hvcId,
+        brokerId: widget.brokerId,
         position: _positionController.text.isEmpty ? null : _positionController.text,
         department: _departmentController.text.isEmpty ? null : _departmentController.text,
         phone: _phoneController.text.isEmpty ? null : _phoneController.text,

@@ -23,12 +23,14 @@ class PipelineRepositoryImpl implements PipelineRepository {
     required PipelineRemoteDataSource remoteDataSource,
     required SyncService syncService,
     required String currentUserId,
+    required db.AppDatabase database,
   })  : _localDataSource = localDataSource,
         _masterDataSource = masterDataSource,
         _customerDataSource = customerDataSource,
         _remoteDataSource = remoteDataSource,
         _syncService = syncService,
-        _currentUserId = currentUserId;
+        _currentUserId = currentUserId,
+        _database = database;
 
   final PipelineLocalDataSource _localDataSource;
   final MasterDataLocalDataSource _masterDataSource;
@@ -36,6 +38,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
   final PipelineRemoteDataSource _remoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
+  final db.AppDatabase _database;
   final _uuid = const Uuid();
 
   // Lookup caches for efficient name resolution
@@ -476,18 +479,18 @@ class PipelineRepositoryImpl implements PipelineRepository {
           id: Value(data['id'] as String),
           code: Value(data['code'] as String),
           customerId: Value(data['customer_id'] as String),
-          stageId: Value(data['stage_id'] as String),
-          statusId: Value(data['status_id'] as String),
-          cobId: Value(data['cob_id'] as String),
-          lobId: Value(data['lob_id'] as String),
-          leadSourceId: Value(data['lead_source_id'] as String),
+          stageId: Value(data['stage_id'] as String? ?? ''),
+          statusId: Value(data['status_id'] as String? ?? ''),
+          cobId: Value(data['cob_id'] as String? ?? ''),
+          lobId: Value(data['lob_id'] as String? ?? ''),
+          leadSourceId: Value(data['lead_source_id'] as String? ?? ''),
           brokerId: Value(data['broker_id'] as String?),
           brokerPicId: Value(data['broker_pic_id'] as String?),
           customerContactId: Value(data['customer_contact_id'] as String?),
-          tsi: Value(data['tsi'] as double?),
-          potentialPremium: Value(data['potential_premium'] as double),
-          finalPremium: Value(data['final_premium'] as double?),
-          weightedValue: Value(data['weighted_value'] as double?),
+          tsi: Value((data['tsi'] as num?)?.toDouble()),
+          potentialPremium: Value((data['potential_premium'] as num?)?.toDouble() ?? 0.0),
+          finalPremium: Value((data['final_premium'] as num?)?.toDouble()),
+          weightedValue: Value((data['weighted_value'] as num?)?.toDouble()),
           expectedCloseDate: data['expected_close_date'] != null
               ? Value(DateTime.parse(data['expected_close_date'] as String))
               : const Value(null),
@@ -497,8 +500,8 @@ class PipelineRepositoryImpl implements PipelineRepository {
           isTender: Value(data['is_tender'] as bool? ?? false),
           referredByUserId: Value(data['referred_by_user_id'] as String?),
           referralId: Value(data['referral_id'] as String?),
-          assignedRmId: Value(data['assigned_rm_id'] as String),
-          createdBy: Value(data['created_by'] as String),
+          assignedRmId: Value(data['assigned_rm_id'] as String? ?? ''),
+          createdBy: Value(data['created_by'] as String? ?? ''),
           isPendingSync: const Value(false),
           createdAt: Value(DateTime.parse(data['created_at'] as String)),
           updatedAt: Value(DateTime.parse(data['updated_at'] as String)),
@@ -544,35 +547,61 @@ class PipelineRepositoryImpl implements PipelineRepository {
       _stageProbabilityCache = {for (final s in stages) s.id: s.probability};
       _stageIsFinalCache = {for (final s in stages) s.id: s.isFinal};
       _stageIsWonCache = {for (final s in stages) s.id: s.isWon};
+      print('[PipelineRepo] Loaded ${stages.length} stages');
     }
     if (_statusNameCache == null) {
       final statuses = await _localDataSource.getPipelineStatuses();
       _statusNameCache = {for (final s in statuses) s.id: s.name};
+      print('[PipelineRepo] Loaded ${statuses.length} statuses');
     }
     if (_cobNameCache == null) {
       final cobs = await _masterDataSource.getCobs();
       _cobNameCache = {for (final c in cobs) c.id: c.name};
+      print('[PipelineRepo] Loaded ${cobs.length} COBs');
     }
     if (_lobNameCache == null) {
-      final lobs = await _masterDataSource.getLobsByCob('');
       // Get all LOBs by not filtering by COB
       final allLobs = await _getAllLobs();
       _lobNameCache = {for (final l in allLobs) l.id: l.name};
+      print('[PipelineRepo] Loaded ${allLobs.length} LOBs');
     }
     if (_leadSourceNameCache == null) {
       final sources = await _masterDataSource.getLeadSources();
       _leadSourceNameCache = {for (final s in sources) s.id: s.name};
+      print('[PipelineRepo] Loaded ${sources.length} lead sources');
     }
     if (_brokerNameCache == null) {
       final brokers = await _masterDataSource.getBrokers();
       _brokerNameCache = {for (final b in brokers) b.id: b.name};
+      print('[PipelineRepo] Loaded ${brokers.length} brokers');
     }
     if (_customerNameCache == null) {
       final customers = await _customerDataSource.getAllCustomers();
       _customerNameCache = {for (final c in customers) c.id: c.name};
+      print('[PipelineRepo] Loaded ${customers.length} customers');
     }
-    // Note: User names would need a user data source - for now we'll use assigned_rm_id directly
-    // This could be enhanced if a user lookup table is available
+    if (_userNameCache == null) {
+      final users = await _database.select(_database.users).get();
+      _userNameCache = {for (final u in users) u.id: u.name};
+      print('[PipelineRepo] Loaded ${users.length} users');
+    }
+  }
+
+  /// Invalidate all caches (call after sync to refresh lookups).
+  void invalidateCaches() {
+    _stageNameCache = null;
+    _stageColorCache = null;
+    _stageProbabilityCache = null;
+    _stageIsFinalCache = null;
+    _stageIsWonCache = null;
+    _statusNameCache = null;
+    _cobNameCache = null;
+    _lobNameCache = null;
+    _leadSourceNameCache = null;
+    _brokerNameCache = null;
+    _customerNameCache = null;
+    _userNameCache = null;
+    print('[PipelineRepo] Caches invalidated');
   }
 
   /// Get all LOBs from database.
@@ -631,6 +660,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         leadSourceName: _leadSourceNameCache?[data.leadSourceId],
         brokerName: data.brokerId == null ? null : _brokerNameCache?[data.brokerId],
         customerName: _customerNameCache?[data.customerId],
+        assignedRmName: _userNameCache?[data.assignedRmId],
       );
 
   /// Map Drift PipelineStage to domain PipelineStageInfo.

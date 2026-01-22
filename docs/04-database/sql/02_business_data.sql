@@ -66,11 +66,11 @@ CREATE INDEX idx_key_persons_customer ON key_persons(customer_id);
 -- HVC & BROKERS
 -- ============================================
 
-CREATE TABLE hvc (
+CREATE TABLE hvcs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code VARCHAR(20) UNIQUE NOT NULL,
   name VARCHAR(200) NOT NULL,
-  hvc_type_id UUID REFERENCES hvc_types(id),
+  type_id UUID REFERENCES hvc_types(id),
   description TEXT,
   address TEXT,
   province_id UUID REFERENCES provinces(id),
@@ -84,8 +84,11 @@ CREATE TABLE hvc (
   image_url TEXT,
   notes TEXT,
   visit_frequency_days INTEGER DEFAULT 30,
+  potential_value DECIMAL(18, 2), -- Added to match Dart entity/Supabase schema seen usage
+  radius_meters INTEGER DEFAULT 500, -- Added to match Dart entity/Supabase schema seen usage
   is_active BOOLEAN DEFAULT true,
   created_by UUID REFERENCES users(id),
+  is_pending_sync BOOLEAN DEFAULT false, -- Standard offline-sync field
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
@@ -119,7 +122,7 @@ CREATE TABLE brokers (
 CREATE TABLE customer_hvc_links (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
-  hvc_id UUID REFERENCES hvc(id) ON DELETE CASCADE,
+  hvc_id UUID REFERENCES hvcs(id) ON DELETE CASCADE,
   relationship_type VARCHAR(50),
   notes TEXT,
   linked_at TIMESTAMPTZ DEFAULT NOW(),
@@ -129,7 +132,7 @@ CREATE TABLE customer_hvc_links (
 
 -- Update key_persons FKs
 ALTER TABLE key_persons ADD CONSTRAINT fk_key_persons_broker FOREIGN KEY (broker_id) REFERENCES brokers(id);
-ALTER TABLE key_persons ADD CONSTRAINT fk_key_persons_hvc FOREIGN KEY (hvc_id) REFERENCES hvc(id);
+ALTER TABLE key_persons ADD CONSTRAINT fk_key_persons_hvc FOREIGN KEY (hvc_id) REFERENCES hvcs(id);
 
 -- ============================================
 -- PIPELINES & REFERRALS
@@ -212,7 +215,7 @@ CREATE TABLE activities (
   created_by UUID REFERENCES users(id),
   object_type VARCHAR(20) NOT NULL CHECK (object_type IN ('CUSTOMER', 'HVC', 'BROKER', 'PIPELINE')),
   customer_id UUID REFERENCES customers(id),
-  hvc_id UUID REFERENCES hvc(id),
+  hvc_id UUID REFERENCES hvcs(id),
   broker_id UUID REFERENCES brokers(id),
   pipeline_id UUID REFERENCES pipelines(id),
   activity_type_id UUID REFERENCES activity_types(id),
@@ -283,7 +286,7 @@ CREATE INDEX idx_activity_audit_logs_action ON activity_audit_logs(action);
 
 CREATE TRIGGER customers_updated_at BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER key_persons_updated_at BEFORE UPDATE ON key_persons FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-CREATE TRIGGER hvc_updated_at BEFORE UPDATE ON hvc FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER hvc_updated_at BEFORE UPDATE ON hvcs FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER brokers_updated_at BEFORE UPDATE ON brokers FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER pipelines_updated_at BEFORE UPDATE ON pipelines FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER activities_updated_at BEFORE UPDATE ON activities FOR EACH ROW EXECUTE FUNCTION update_updated_at();

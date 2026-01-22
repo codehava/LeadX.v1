@@ -34,14 +34,14 @@ See: [activities.md](activities.md)
 | email | VARCHAR(100) | Email |
 | is_primary | BOOLEAN | Primary contact |
 
-### hvc (High Value Customers)
+### hvcs (High Value Customers)
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
 | code | VARCHAR(20) | HVC code |
 | name | VARCHAR(200) | HVC name |
-| hvc_type_id | UUID | FK to hvc_types |
+| type_id | UUID | FK to hvc_types |
 | address | TEXT | Address |
 | is_active | BOOLEAN | Status |
 

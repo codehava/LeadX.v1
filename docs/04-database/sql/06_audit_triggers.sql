@@ -171,6 +171,8 @@ DROP TRIGGER IF EXISTS customers_audit_trigger ON customers;
 DROP TRIGGER IF EXISTS pipelines_audit_trigger ON pipelines;
 DROP TRIGGER IF EXISTS pipeline_referrals_audit_trigger ON pipeline_referrals;
 DROP TRIGGER IF EXISTS pipelines_stage_history_trigger ON pipelines;
+DROP TRIGGER IF EXISTS hvc_audit_trigger ON hvcs;
+DROP TRIGGER IF EXISTS customer_hvc_links_audit_trigger ON customer_hvc_links;
 
 -- Customers audit trigger
 CREATE TRIGGER customers_audit_trigger
@@ -195,6 +197,18 @@ CREATE TRIGGER pipelines_stage_history_trigger
   AFTER UPDATE ON pipelines
   FOR EACH ROW
   EXECUTE FUNCTION log_pipeline_stage_change();
+
+-- HVC audit trigger
+CREATE TRIGGER hvc_audit_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON hvcs
+  FOR EACH ROW
+  EXECUTE FUNCTION log_entity_changes();
+
+-- Customer-HVC links audit trigger
+CREATE TRIGGER customer_hvc_links_audit_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON customer_hvc_links
+  FOR EACH ROW
+  EXECUTE FUNCTION log_entity_changes();
 
 -- ============================================
 -- 6. RLS POLICIES FOR AUDIT TABLES

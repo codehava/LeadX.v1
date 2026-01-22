@@ -6,6 +6,7 @@ import '../../data/dtos/pipeline_dtos.dart';
 import '../../data/repositories/pipeline_repository_impl.dart';
 import '../../domain/entities/pipeline.dart' as domain;
 import 'auth_providers.dart';
+import 'customer_providers.dart';
 import 'database_provider.dart';
 import 'master_data_providers.dart';
 import 'sync_providers.dart';
@@ -35,16 +36,20 @@ final pipelineRemoteDataSourceProvider =
 final pipelineRepositoryProvider = Provider<PipelineRepositoryImpl>((ref) {
   final localDataSource = ref.watch(pipelineLocalDataSourceProvider);
   final masterDataSource = ref.watch(masterDataLocalDataSourceProvider);
+  final customerDataSource = ref.watch(customerLocalDataSourceProvider);
   final remoteDataSource = ref.watch(pipelineRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final database = ref.watch(databaseProvider);
 
   return PipelineRepositoryImpl(
     localDataSource: localDataSource,
     masterDataSource: masterDataSource,
+    customerDataSource: customerDataSource,
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 

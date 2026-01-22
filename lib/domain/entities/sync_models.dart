@@ -10,7 +10,7 @@ enum SyncOperation { create, update, delete }
 enum SyncStatus { pending, inProgress, completed, failed }
 
 /// Represents the entity types that can be synced.
-enum SyncEntityType { customer, keyPerson, pipeline, activity, hvc, broker }
+enum SyncEntityType { customer, keyPerson, pipeline, activity, hvc, broker, customerHvcLink }
 
 /// Represents an item in the sync queue.
 @freezed

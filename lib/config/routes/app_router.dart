@@ -13,12 +13,19 @@ import '../../presentation/screens/customer/customer_detail_screen.dart';
 import '../../presentation/screens/customer/customer_form_screen.dart';
 import '../../presentation/screens/customer/customer_history_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/hvc/hvc_detail_screen.dart';
+import '../../presentation/screens/hvc/hvc_form_screen.dart';
+import '../../presentation/screens/hvc/hvc_list_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_detail_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
 import 'route_names.dart';
+
+/// Stores the intended location when user navigates directly via URL bar
+/// This is used to restore the location after authentication check completes
+String? _pendingDeepLink;
 
 /// Provider for the app router.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -40,25 +47,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
-      final isSplash = state.matchedLocation == RoutePaths.splash;
-      final isLogin = state.matchedLocation == RoutePaths.login;
-      final isForgotPassword = state.matchedLocation == RoutePaths.forgotPassword;
+      final currentLocation = state.matchedLocation;
+      final fullUri = state.uri.toString();
+      final isSplash = currentLocation == RoutePaths.splash;
+      final isLogin = currentLocation == RoutePaths.login;
+      final isForgotPassword = currentLocation == RoutePaths.forgotPassword;
+      final isAuthPage = isSplash || isLogin || isForgotPassword;
 
-      // Still loading - redirect to splash if not already there
+      // Still loading - save intended location and redirect to splash
       if (isLoading) {
+        // Only save the deep link if it's not an auth page
+        if (!isAuthPage && _pendingDeepLink == null) {
+          _pendingDeepLink = fullUri;
+        }
         return isSplash ? null : RoutePaths.splash;
       }
 
       // Not logged in - redirect to login (unless already on auth pages)
-      if (!isLoggedIn && !isLogin && !isSplash && !isForgotPassword) {
+      if (!isLoggedIn && !isAuthPage) {
+        // Save intended location for after login
+        _pendingDeepLink = fullUri;
         return RoutePaths.login;
       }
 
-      // Logged in but on login/splash - go to home
+      // Logged in but on login/splash - check for pending deep link first
       if (isLoggedIn && (isLogin || isSplash)) {
+        final pendingLink = _pendingDeepLink;
+        _pendingDeepLink = null; // Clear pending link after use
+        
+        // If there's a pending deep link, go there instead of home
+        if (pendingLink != null && pendingLink != RoutePaths.splash && pendingLink != RoutePaths.login) {
+          return pendingLink;
+        }
         return RoutePaths.home;
       }
 
+      // Clear pending link if we've reached a valid destination
+      _pendingDeepLink = null;
+      
       return null;
     },
 
@@ -221,11 +247,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           // HVC
           GoRoute(
-            path: 'hvc',
+            path: 'hvcs',
             name: RouteNames.hvc,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('HVC')),
-            ),
+            builder: (context, state) => const HvcListScreen(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: RouteNames.hvcCreate,
+                builder: (context, state) => const HvcFormScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.hvcDetail,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return HvcDetailScreen(hvcId: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: RouteNames.hvcEdit,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return HvcFormScreen(hvcId: id);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Brokers

@@ -49,7 +49,7 @@ abstract class ApiConstants {
   static const String tableActivityPhotos = 'activity_photos';
   
   // HVC & Broker
-  static const String tableHvc = 'hvc';
+  static const String tableHvc = 'hvcs';
   static const String tableHvcTypes = 'hvc_types';
   static const String tableCustomerHvcLinks = 'customer_hvc_links';
   static const String tableBrokers = 'brokers';

@@ -299,6 +299,8 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   Widget _buildSidebar(BuildContext context) {
     final theme = Theme.of(context);
     final width = context.screenWidth >= Breakpoints.widescreen ? 280.0 : 256.0;
+    // TODO: Get actual admin status from auth provider
+    const bool isAdmin = false;
 
     return Container(
       width: width,
@@ -317,7 +319,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.primaryContainer,
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -355,22 +364,63 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
+                // MAIN NAVIGATION
+                _buildSectionHeader(context, 'MAIN'),
                 _buildSidebarItem(context, Icons.home, 'Dashboard', 0),
                 _buildSidebarItem(context, Icons.people, 'Customers', 1),
                 _buildSidebarItem(context, Icons.calendar_today, 'Activities', 2),
                 _buildSidebarItem(context, Icons.person, 'Profile', 3),
-                const Divider(height: 16),
-                _buildSidebarItem(context, Icons.business, 'HVC', -1, 
+
+                // ACCOUNT MANAGEMENT
+                const SizedBox(height: 8),
+                _buildSectionHeader(context, 'AKUN'),
+                _buildSidebarItem(context, Icons.business, 'HVC', -1,
                     onTap: () => context.push(RoutePaths.hvc)),
                 _buildSidebarItem(context, Icons.handshake, 'Broker', -1,
                     onTap: () => context.push(RoutePaths.brokers)),
+
+                // 4DX & PERFORMANCE
+                const SizedBox(height: 8),
+                _buildSectionHeader(context, '4DX & PERFORMA'),
                 _buildSidebarItem(context, Icons.leaderboard, 'Scoreboard', -1,
                     onTap: () => context.push(RoutePaths.scoreboard)),
+                _buildSidebarItem(context, Icons.track_changes, 'Targets', -1,
+                    onTap: () => context.push(RoutePaths.targets)),
                 _buildSidebarItem(context, Icons.groups, 'Cadence', -1,
                     onTap: () => context.push(RoutePaths.cadence)),
-                const Divider(height: 16),
-                _buildSidebarItem(context, Icons.settings, 'Settings', -1,
+
+                // TOOLS
+                const SizedBox(height: 8),
+                _buildSectionHeader(context, 'TOOLS'),
+                _buildSidebarItem(context, Icons.analytics_outlined, 'Reports', -1,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Reports coming soon')),
+                      );
+                    }),
+                _buildSidebarItem(context, Icons.notifications_outlined, 'Notifikasi', -1,
+                    onTap: () => context.push(RoutePaths.notifications)),
+
+                // ADMIN (only visible for admins)
+                if (isAdmin) ...[
+                  const SizedBox(height: 8),
+                  _buildSectionHeader(context, 'ADMIN'),
+                  _buildSidebarItem(context, Icons.admin_panel_settings, 'Admin Panel', -1,
+                      onTap: () => context.push(RoutePaths.admin)),
+                ],
+
+                // SETTINGS
+                const SizedBox(height: 8),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                _buildSidebarItem(context, Icons.settings, 'Pengaturan', -1,
                     onTap: () => context.push(RoutePaths.settings)),
+                _buildSidebarItem(context, Icons.help_outline, 'Bantuan', -1,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Help & FAQ coming soon')),
+                      );
+                    }),
               ],
             ),
           ),
@@ -385,6 +435,21 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Text(
+        title,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
@@ -480,9 +545,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   Widget _buildDrawer(BuildContext context) {
+    // TODO: Get actual user info from auth provider
     return HomeDrawer(
       userName: 'User Name',
       userRole: 'Relationship Manager',
+      isAdmin: false, // TODO: Get from user role
       onHvcTap: () {
         Navigator.pop(context);
         context.push(RoutePaths.hvc);
@@ -495,13 +562,39 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
         Navigator.pop(context);
         context.push(RoutePaths.scoreboard);
       },
+      onTargetsTap: () {
+        Navigator.pop(context);
+        context.push(RoutePaths.targets);
+      },
       onCadenceTap: () {
         Navigator.pop(context);
         context.push(RoutePaths.cadence);
       },
+      onReportsTap: () {
+        Navigator.pop(context);
+        // TODO: Add reports route when available
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reports coming soon')),
+        );
+      },
+      onNotificationsTap: () {
+        Navigator.pop(context);
+        context.push(RoutePaths.notifications);
+      },
       onSettingsTap: () {
         Navigator.pop(context);
         context.push(RoutePaths.settings);
+      },
+      onHelpTap: () {
+        Navigator.pop(context);
+        // TODO: Add help route when available
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Help & FAQ coming soon')),
+        );
+      },
+      onAdminPanelTap: () {
+        Navigator.pop(context);
+        context.push(RoutePaths.admin);
       },
       onLogoutTap: () {
         Navigator.pop(context);

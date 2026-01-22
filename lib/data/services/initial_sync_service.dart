@@ -90,6 +90,9 @@ class InitialSyncService {
     'lead_sources',
     'decline_reasons',
     'hvc_types',
+    // HVC transactional data
+    'hvcs',
+    'customer_hvc_links',
     // 4DX Scoring (added)
     'measure_definitions',
     'scoring_periods',
@@ -238,6 +241,12 @@ class InitialSyncService {
         break;
       case 'hvc_types':
         await _syncHvcTypes();
+        break;
+      case 'hvcs':
+        await _syncHvcs();
+        break;
+      case 'customer_hvc_links':
+        await _syncCustomerHvcLinks();
         break;
       // 4DX Scoring
       case 'measure_definitions':
@@ -473,6 +482,70 @@ class InitialSyncService {
             id: row['id'] as String,
             code: row['code'] as String,
             name: row['name'] as String,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> _syncHvcs() async {
+    final data = await _supabase.from('hvcs').select().isFilter('deleted_at', null);
+    
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.hvcs,
+          HvcsCompanion.insert(
+            id: row['id'] as String,
+            code: row['code'] as String,
+            name: row['name'] as String,
+            typeId: row['type_id'] as String,
+            description: Value(row['description'] as String?),
+            address: Value(row['address'] as String?),
+            latitude: Value((row['latitude'] as num?)?.toDouble()),
+            longitude: Value((row['longitude'] as num?)?.toDouble()),
+            radiusMeters: Value(row['radius_meters'] as int? ?? 500),
+            potentialValue: Value((row['potential_value'] as num?)?.toDouble()),
+            imageUrl: Value(row['image_url'] as String?),
+            isActive: Value(row['is_active'] as bool? ?? true),
+            createdBy: row['created_by'] as String,
+            isPendingSync: const Value(false),
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> _syncCustomerHvcLinks() async {
+    // Note: Supabase table has different schema than local table
+    // Supabase: id, customer_id, hvc_id, relationship_type, notes, linked_at, linked_by
+    // Local: adds is_active, is_pending_sync, created_at, updated_at, deleted_at
+    final data = await _supabase.from('customer_hvc_links').select();
+    
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        // Map Supabase linked_at/linked_by to local created_at/created_by
+        final linkedAt = row['linked_at'] != null 
+            ? DateTime.parse(row['linked_at'] as String) 
+            : DateTime.now();
+        final linkedBy = row['linked_by'] as String? ?? 'system';
+        
+        batch.insert(
+          _db.customerHvcLinks,
+          CustomerHvcLinksCompanion.insert(
+            id: row['id'] as String,
+            customerId: row['customer_id'] as String,
+            hvcId: row['hvc_id'] as String,
+            relationshipType: row['relationship_type'] as String? ?? 'MEMBER',
+            isActive: const Value(true), // Default, not in Supabase schema
+            createdBy: linkedBy,
+            isPendingSync: const Value(false),
+            createdAt: linkedAt,
+            updatedAt: linkedAt,
           ),
           mode: InsertMode.insertOrReplace,
         );

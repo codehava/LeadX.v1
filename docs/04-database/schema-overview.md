@@ -29,16 +29,16 @@ erDiagram
     CUSTOMERS ||--o{ KEY_PERSONS : "has"
     CUSTOMERS ||--o{ PIPELINES : "has (1 customer → many pipelines)"
     CUSTOMERS ||--o{ ACTIVITIES : "target of"
-    CUSTOMERS }o--o{ HVC : "OPTIONAL link via CUSTOMER_HVC_LINKS"
+    CUSTOMERS }o--o{ HVCS : "OPTIONAL link via CUSTOMER_HVC_LINKS"
     
-    HVC ||--o{ CUSTOMER_HVC_LINKS : "has many customers"
+    HVCS ||--o{ CUSTOMER_HVC_LINKS : "has many customers"
     CUSTOMER_HVC_LINKS }o--|| CUSTOMERS : "customer belongs to HVC"
     
     PIPELINES }o--|| PIPELINE_STAGES : "at stage"
     PIPELINES }o--o| BROKERS : "referred by (if lead_source=BROKER)"
     PIPELINES ||--o{ ACTIVITIES : "related to"
     
-    HVC ||--o{ KEY_PERSONS : "has"
+    HVCS ||--o{ KEY_PERSONS : "has"
     BROKERS ||--o{ KEY_PERSONS : "has"
     BROKERS ||--o{ PIPELINES : "sourced pipelines (lead_source=BROKER)"
     
@@ -323,7 +323,7 @@ Unified key persons untuk Customer, Broker, HVC
 | `owner_type` | VARCHAR(20) | NOT NULL | 'CUSTOMER'/'BROKER'/'HVC' |
 | `customer_id` | UUID | FK → customers(id) | If owner_type = CUSTOMER |
 | `broker_id` | UUID | FK → brokers(id) | If owner_type = BROKER |
-| `hvc_id` | UUID | FK → hvc(id) | If owner_type = HVC |
+| `hvc_id` | UUID | FK → hvcs(id) | If owner_type = HVC |
 | `name` | VARCHAR(100) | NOT NULL | Contact name |
 | `position` | VARCHAR(100) | | Job title |
 | `department` | VARCHAR(100) | | Department |
@@ -547,7 +547,7 @@ FOR EACH ROW EXECUTE FUNCTION log_activity_changes();
 ### hvc_types
 Tipe HVC: Industrial Estate, Bank, BUMN Group, dll.
 
-### hvc
+### hvcs
 High Value Customer data
 
 | Column | Type | Constraint | Description |

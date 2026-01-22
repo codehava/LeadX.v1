@@ -70,7 +70,7 @@ Dokumen ini mendefinisikan semua Row Level Security (RLS) policies dan **Role & 
 | activity.create | ✅ | ✅ | ✅ | ✅ | ✅ |
 | activity.edit_own | ✅ | ✅ | ✅ | ✅ | ✅ |
 | activity.view_audit_log | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **HVC** |||||
+| **HVCS** |||||
 | hvc.view | ✅ | ✅ | ✅ | ✅ | ✅ |
 | hvc.create | ❌ | ❌ | ❌ | ❌ | ✅ |
 | hvc.edit | ❌ | ❌ | ❌ | ❌ | ✅ |

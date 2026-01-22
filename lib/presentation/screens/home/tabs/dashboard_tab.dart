@@ -348,6 +348,57 @@ class DashboardTab extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // Quick Access to Features
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fitur Lainnya',
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    children: [
+                      _QuickAccessItem(
+                        icon: Icons.star,
+                        label: 'HVC',
+                        color: AppColors.tertiary,
+                        onTap: onHvcTap ?? () => context.go('/home/hvcs'),
+                      ),
+                      _QuickAccessItem(
+                        icon: Icons.handshake,
+                        label: 'Broker',
+                        color: AppColors.info,
+                        onTap: onBrokerTap ?? () => context.go('/home/brokers'),
+                      ),
+                      _QuickAccessItem(
+                        icon: Icons.leaderboard,
+                        label: 'Scoreboard',
+                        color: AppColors.success,
+                        onTap: onScoreboardTap ?? () => context.go('/home/scoreboard'),
+                      ),
+                      _QuickAccessItem(
+                        icon: Icons.groups,
+                        label: 'Cadence',
+                        color: AppColors.warning,
+                        onTap: onCadenceTap ?? () => context.go('/home/cadence'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -440,5 +491,53 @@ class _DashboardActivityCard extends StatelessWidget {
 
   String _formatTime(DateTime dt) {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Quick access item for feature navigation.
+class _QuickAccessItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAccessItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

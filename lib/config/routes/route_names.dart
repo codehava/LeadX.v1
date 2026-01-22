@@ -117,10 +117,10 @@ abstract class RoutePaths {
   static const String activityCalendar = '/activity/calendar';
 
   // HVC
-  static const String hvc = '/home/hvc';
-  static const String hvcDetail = '/home/hvc/:id';
-  static const String hvcCreate = '/home/hvc/create';
-  static const String hvcEdit = '/home/hvc/:id/edit';
+  static const String hvc = '/home/hvcs';
+  static const String hvcDetail = '/home/hvcs/:id';
+  static const String hvcCreate = '/home/hvcs/new';
+  static const String hvcEdit = '/home/hvcs/:id/edit';
 
   // Brokers
   static const String brokers = '/home/brokers';

@@ -280,16 +280,20 @@ final _customerRepositoryProvider = Provider<CustomerRepository>((ref) {
 final _pipelineRepositoryProvider = Provider<PipelineRepository>((ref) {
   final localDataSource = ref.watch(_pipelineLocalDataSourceProvider);
   final masterDataSource = ref.watch(masterDataLocalDataSourceProvider);
+  final customerDataSource = ref.watch(_customerLocalDataSourceProvider);
   final remoteDataSource = ref.watch(_pipelineRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final database = ref.watch(databaseProvider);
   
   return PipelineRepositoryImpl(
     localDataSource: localDataSource,
     masterDataSource: masterDataSource,
+    customerDataSource: customerDataSource,
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 
