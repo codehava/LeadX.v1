@@ -22,6 +22,10 @@ import '../../presentation/screens/broker/broker_list_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_detail_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_form_screen.dart';
 import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
+import '../../presentation/screens/profile/about_screen.dart';
+import '../../presentation/screens/profile/change_password_screen.dart';
+import '../../presentation/screens/profile/edit_profile_screen.dart';
+import '../../presentation/screens/profile/settings_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
 import '../../presentation/widgets/shell/responsive_shell.dart';
@@ -463,6 +467,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 child: const HomeScreen(initialTab: 3),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: RouteNames.editProfile,
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const EditProfileScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'change-password',
+                name: RouteNames.changePassword,
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const ChangePasswordScreen(),
+                ),
+              ),
+            ],
           ),
 
           // Settings
@@ -472,9 +494,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('Settings')),
-                ),
+                child: const SettingsScreen(),
+              ),
+            ),
+          ),
+
+          // About
+          GoRoute(
+            path: 'about',
+            name: RouteNames.about,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const AboutScreen(),
               ),
             ),
           ),

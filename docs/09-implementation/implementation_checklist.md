@@ -1060,41 +1060,46 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 10. Profile & Settings Module ⬜
+### 10. Profile & Settings Module ✅ COMPLETE
 
-#### Presentation Layer ⬜
+#### Presentation Layer ✅
 **Screens**
-- [ ] Implement `ProfileScreen`
-  - [ ] Profile avatar
-  - [ ] User info (name, email, role, branch)
-  - [ ] Edit profile action
-  - [ ] Change password action
-  - [ ] Logout action
+- [x] Implement `ProfileTab`
+  - [x] Profile avatar (shows photoUrl or initials)
+  - [x] User info (name, email, role, phone)
+  - [x] Edit profile action
+  - [x] Change password action
+  - [x] Logout action with confirmation
 
-- [ ] Implement `EditProfileScreen`
-  - [ ] Name edit
-  - [ ] Avatar upload
-  - [ ] Phone edit
+- [x] Implement `EditProfileScreen`
+  - [x] Name edit
+  - [ ] Avatar upload (deferred - requires Supabase Storage)
+  - [x] Phone edit
 
-- [ ] Implement `ChangePasswordScreen`
-  - [ ] Current password input
-  - [ ] New password input
-  - [ ] Confirm password input
-  - [ ] Strength indicator
-  - [ ] Submit
+- [x] Implement `ChangePasswordScreen`
+  - [x] Current password input
+  - [x] New password input
+  - [x] Confirm password input
+  - [x] Strength indicator
+  - [x] Submit with AuthRepository.updatePassword
 
-- [ ] Implement `SettingsScreen`
-  - [ ] Theme toggle (light/dark/system)
-  - [ ] Language selector - defer
-  - [ ] Notification settings link
-  - [ ] Sync settings link
-  - [ ] About
+- [x] Implement `SettingsScreen`
+  - [x] Theme toggle (light/dark/system) with persistence
+  - [ ] Language selector - deferred
+  - [x] Notification settings link (placeholder)
+  - [x] Sync settings link
+  - [x] About
 
-- [ ] Implement `AboutScreen`
-  - [ ] App version
-  - [ ] Terms of service link
-  - [ ] Privacy policy link
-  - [ ] Contact support
+- [x] Implement `AboutScreen`
+  - [x] App version (package_info_plus)
+  - [x] Terms of service link
+  - [x] Privacy policy link
+  - [x] Contact support
+
+#### Infrastructure ✅
+- [x] `settings_providers.dart` with ThemeModeNotifier
+- [x] Theme persistence via AppSettingsService
+- [x] Routes integration (editProfile, changePassword, about)
 
 #### Testing ⬜
 - [ ] Widget tests for profile screens

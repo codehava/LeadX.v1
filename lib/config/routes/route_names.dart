@@ -74,7 +74,10 @@ abstract class RouteNames {
   // ============================================
   
   static const String profile = 'profile';
+  static const String editProfile = 'edit-profile';
+  static const String changePassword = 'change-password';
   static const String settings = 'settings';
+  static const String about = 'about';
   static const String notifications = 'notifications';
 
   // ============================================
@@ -136,7 +139,10 @@ abstract class RoutePaths {
 
   // Profile & Settings
   static const String profile = '/home/profile';
+  static const String editProfile = '/home/profile/edit';
+  static const String changePassword = '/home/profile/change-password';
   static const String settings = '/home/settings';
+  static const String about = '/home/about';
   static const String notifications = '/home/notifications';
 
   // Admin

@@ -156,7 +156,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
         Padding(
           padding: const EdgeInsets.only(right: 8),
           child: GestureDetector(
-            onTap: () => context.push(RoutePaths.profile),
+            onTap: () => context.go(RoutePaths.profile),
             child: CircleAvatar(
               radius: 16,
               backgroundColor: theme.colorScheme.primary,
@@ -569,7 +569,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 _buildSidebarItem(context, Icons.home, 'Dashboard', 0),
                 _buildSidebarItem(context, Icons.people, 'Customers', 1),
                 _buildSidebarItem(context, Icons.calendar_today, 'Activities', 2),
-                _buildSidebarItem(context, Icons.person, 'Profile', 3),
+                // Profile is accessed via top bar avatar in desktop mode
 
                 // ACCOUNT MANAGEMENT
                 const SizedBox(height: 8),
@@ -743,11 +743,20 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             onPressed: () => context.push(RoutePaths.notifications),
           ),
           const SizedBox(width: 8),
-          // Profile
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: theme.colorScheme.primary,
-            child: const Text('U', style: TextStyle(color: Colors.white)),
+          // Profile avatar with tap feedback
+          Material(
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.go(RoutePaths.profile),
+              customBorder: const CircleBorder(),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: theme.colorScheme.primary,
+                child: const Text('U', style: TextStyle(color: Colors.white)),
+              ),
+            ),
           ),
         ],
       ),
