@@ -23,6 +23,9 @@ class AppSettingsService {
   /// Key for sync in progress flag.
   static const String keySyncInProgress = 'sync_in_progress';
 
+  /// Key for theme mode preference.
+  static const String keyThemeMode = 'theme_mode';
+
   /// Get a setting value by key.
   Future<String?> get(String key) async {
     final setting = await (_db.select(_db.appSettings)

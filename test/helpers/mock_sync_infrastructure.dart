@@ -40,6 +40,9 @@ class FakeConnectivityService implements ConnectivityService {
   bool get isConnected => _isConnected;
 
   @override
+  bool get isOffline => !_isConnected;
+
+  @override
   Stream<bool> get connectivityStream => _connectivityController.stream;
 
   /// Set the connection state for testing.
@@ -58,6 +61,16 @@ class FakeConnectivityService implements ConnectivityService {
 
   @override
   Future<bool> checkConnectivity() async => _isConnected;
+
+  @override
+  Future<bool> checkServerReachability() async => _isConnected;
+
+  @override
+  Future<void> waitForConnectivity({Duration? timeout}) async {
+    if (_isConnected) return;
+    // In tests, just complete immediately or wait for stream
+    await _connectivityController.stream.firstWhere((connected) => connected);
+  }
 }
 
 /// A tracking implementation of SyncQueueLocalDataSource for integration tests.

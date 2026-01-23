@@ -174,7 +174,7 @@ void main() {
 
       test('items exceeding maxRetries are not processed', () async {
         // Arrange - add item with retryCount at max
-        trackingQueueDataSource._items.add(createTestSyncQueueItem(
+        trackingQueueDataSource.addItemDirectly(createTestSyncQueueItem(
           id: 1,
           entityType: 'customer',
           entityId: 'cust-1',
@@ -194,7 +194,7 @@ void main() {
 
       test('items below maxRetries are processed', () async {
         // Arrange - add item with retryCount below max
-        trackingQueueDataSource._items.add(createTestSyncQueueItem(
+        trackingQueueDataSource.addItemDirectly(createTestSyncQueueItem(
           id: 1,
           entityType: 'customer',
           entityId: 'cust-1',

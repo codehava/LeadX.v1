@@ -11,16 +11,20 @@ class ConnectivityService {
     SupabaseClient? supabaseClient,
   })  : _connectivity = connectivity ?? Connectivity(),
         _supabaseClient = supabaseClient,
-        // On web, default to online since connectivity_plus has limited support
-        // and the app is running in a browser which requires internet
-        _isConnected = kIsWeb;
+        // Default to true to avoid showing offline indicator immediately.
+        // Will be properly updated by initialize() with actual connectivity check.
+        _isConnected = true;
 
   final Connectivity _connectivity;
   final SupabaseClient? _supabaseClient;
 
   StreamController<bool>? _controller;
   StreamSubscription<List<ConnectivityResult>>? _subscription;
+  Timer? _pollTimer;
   bool _isConnected;
+  
+  /// Polling interval for connectivity checks (30 seconds).
+  static const Duration _pollInterval = Duration(seconds: 30);
 
   /// Stream of connectivity status changes.
   Stream<bool> get connectivityStream =>
@@ -66,6 +70,26 @@ class ConnectivityService {
         _controller?.add(_isConnected);
       }
     });
+
+    // Start periodic polling for mobile platforms (connectivity_plus can miss events)
+    if (!kIsWeb) {
+      _startPeriodicPolling();
+    }
+  }
+
+  /// Start periodic connectivity polling.
+  void _startPeriodicPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) async {
+      final results = await _connectivity.checkConnectivity();
+      final connected = _hasConnection(results);
+      
+      if (connected != _isConnected) {
+        print('[ConnectivityService] Poll detected change: $connected');
+        _isConnected = connected;
+        _controller?.add(_isConnected);
+      }
+    });
   }
 
   /// Check if any connectivity result indicates an active connection.
@@ -74,7 +98,9 @@ class ConnectivityService {
             result == ConnectivityResult.wifi ||
             result == ConnectivityResult.mobile ||
             result == ConnectivityResult.ethernet ||
-            result == ConnectivityResult.other, // Add 'other' for web
+            result == ConnectivityResult.bluetooth ||
+            result == ConnectivityResult.vpn ||
+            result == ConnectivityResult.other,
       );
 
   /// Check if the Supabase server is reachable.
@@ -131,6 +157,7 @@ class ConnectivityService {
 
   /// Dispose of resources.
   void dispose() {
+    _pollTimer?.cancel();
     _subscription?.cancel();
     _controller?.close();
   }

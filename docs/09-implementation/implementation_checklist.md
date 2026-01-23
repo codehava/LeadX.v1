@@ -1060,7 +1060,105 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 10. Target Assignment Module ⬜
+### 10. Profile & Settings Module ⬜
+
+#### Presentation Layer ⬜
+**Screens**
+- [ ] Implement `ProfileScreen`
+  - [ ] Profile avatar
+  - [ ] User info (name, email, role, branch)
+  - [ ] Edit profile action
+  - [ ] Change password action
+  - [ ] Logout action
+
+- [ ] Implement `EditProfileScreen`
+  - [ ] Name edit
+  - [ ] Avatar upload
+  - [ ] Phone edit
+
+- [ ] Implement `ChangePasswordScreen`
+  - [ ] Current password input
+  - [ ] New password input
+  - [ ] Confirm password input
+  - [ ] Strength indicator
+  - [ ] Submit
+
+- [ ] Implement `SettingsScreen`
+  - [ ] Theme toggle (light/dark/system)
+  - [ ] Language selector - defer
+  - [ ] Notification settings link
+  - [ ] Sync settings link
+  - [ ] About
+
+- [ ] Implement `AboutScreen`
+  - [ ] App version
+  - [ ] Terms of service link
+  - [ ] Privacy policy link
+  - [ ] Contact support
+
+#### Testing ⬜
+- [ ] Widget tests for profile screens
+
+---
+
+### 11. Admin Panel Module ⬜
+
+#### Presentation Layer ⬜
+**Screens**
+- [ ] Implement `AdminPanelScreen` (entry point)
+  - [ ] Menu grid: Users, Master Data, 4DX, Cadence, Bulk Upload
+  - [ ] Role guard (ADMIN only)
+
+**User Management**
+- [ ] Implement `UserManagementScreen`
+  - [ ] User list with search/filter
+  - [ ] Role filter
+  - [ ] Branch filter
+  - [ ] Status filter (active/inactive)
+
+- [ ] Implement `UserFormScreen`
+  - [ ] Name, email
+  - [ ] Role picker
+  - [ ] Branch picker
+  - [ ] Supervisor picker
+  - [ ] Activate/deactivate toggle
+  - [ ] Create/update flow
+
+**Master Data Management**
+- [ ] Implement `MasterDataScreen`
+  - [ ] Category selector (Pipeline Stages, Activity Types, etc.)
+  - [ ] List with CRUD actions
+
+- [ ] Implement `MasterDataFormScreen` (generic)
+  - [ ] Dynamic form based on category
+  - [ ] Validation
+  - [ ] Save flow
+
+**4DX Configuration**
+- [ ] Implement `MeasureDefinitionsScreen`
+  - [ ] Measure list
+  - [ ] Add/edit measure
+
+- [ ] Implement `ScoringPeriodsScreen`
+  - [ ] Period list
+  - [ ] Add/edit period
+  - [ ] Mark current period
+
+**Bulk Upload**
+- [ ] Implement `BulkUploadScreen`
+  - [ ] Template download buttons (Customer, Pipeline, User)
+  - [ ] File picker
+  - [ ] Preview table with validation
+  - [ ] Error highlighting
+  - [ ] Confirm upload
+
+#### Testing ⬜
+- [ ] Widget tests for admin screens
+- [ ] Role guard tests
+
+---
+
+### 12. Target Assignment Module ⬜
 
 #### Repository Layer ⬜
 - [ ] Add to `ScoreboardRepository`:
@@ -1090,7 +1188,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 11. Cadence Meeting Module ⬜
+### 13. Cadence Meeting Module ⬜
 
 #### Data Layer ✅
 - [x] `cadence_schedule_config` table defined
@@ -1159,7 +1257,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 12. Pipeline Referral Module ⬜
+### 14. Pipeline Referral Module ⬜
 
 #### Data Layer ✅
 - [x] `pipeline_referrals` table defined
@@ -1222,64 +1320,7 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 13. Admin Panel Module ⬜
-
-#### Presentation Layer ⬜
-**Screens**
-- [ ] Implement `AdminPanelScreen` (entry point)
-  - [ ] Menu grid: Users, Master Data, 4DX, Cadence, Bulk Upload
-  - [ ] Role guard (ADMIN only)
-
-**User Management**
-- [ ] Implement `UserManagementScreen`
-  - [ ] User list with search/filter
-  - [ ] Role filter
-  - [ ] Branch filter
-  - [ ] Status filter (active/inactive)
-
-- [ ] Implement `UserFormScreen`
-  - [ ] Name, email
-  - [ ] Role picker
-  - [ ] Branch picker
-  - [ ] Supervisor picker
-  - [ ] Activate/deactivate toggle
-  - [ ] Create/update flow
-
-**Master Data Management**
-- [ ] Implement `MasterDataScreen`
-  - [ ] Category selector (Pipeline Stages, Activity Types, etc.)
-  - [ ] List with CRUD actions
-
-- [ ] Implement `MasterDataFormScreen` (generic)
-  - [ ] Dynamic form based on category
-  - [ ] Validation
-  - [ ] Save flow
-
-**4DX Configuration**
-- [ ] Implement `MeasureDefinitionsScreen`
-  - [ ] Measure list
-  - [ ] Add/edit measure
-
-- [ ] Implement `ScoringPeriodsScreen`
-  - [ ] Period list
-  - [ ] Add/edit period
-  - [ ] Mark current period
-
-**Bulk Upload**
-- [ ] Implement `BulkUploadScreen`
-  - [ ] Template download buttons (Customer, Pipeline, User)
-  - [ ] File picker
-  - [ ] Preview table with validation
-  - [ ] Error highlighting
-  - [ ] Confirm upload
-
-#### Testing ⬜
-- [ ] Widget tests for admin screens
-- [ ] Role guard tests
-
----
-
-### 14. Notifications Module ⬜
+### 15. Notifications Module ⬜
 
 #### Data Layer ✅
 - [x] `notifications` table defined
@@ -1343,47 +1384,6 @@ class CustomerForm extends _$CustomerForm {
 #### Testing ⬜
 - [ ] Unit tests for `NotificationService`
 - [ ] Widget tests for notification screens
-
----
-
-### 15. Profile & Settings Module ⬜
-
-#### Presentation Layer ⬜
-**Screens**
-- [ ] Implement `ProfileScreen`
-  - [ ] Profile avatar
-  - [ ] User info (name, email, role, branch)
-  - [ ] Edit profile action
-  - [ ] Change password action
-  - [ ] Logout action
-
-- [ ] Implement `EditProfileScreen`
-  - [ ] Name edit
-  - [ ] Avatar upload
-  - [ ] Phone edit
-
-- [ ] Implement `ChangePasswordScreen`
-  - [ ] Current password input
-  - [ ] New password input
-  - [ ] Confirm password input
-  - [ ] Strength indicator
-  - [ ] Submit
-
-- [ ] Implement `SettingsScreen`
-  - [ ] Theme toggle (light/dark/system)
-  - [ ] Language selector
-  - [ ] Notification settings link
-  - [ ] Sync settings link
-  - [ ] About
-
-- [ ] Implement `AboutScreen`
-  - [ ] App version
-  - [ ] Terms of service link
-  - [ ] Privacy policy link
-  - [ ] Contact support
-
-#### Testing ⬜
-- [ ] Widget tests for profile screens
 
 ---
 
@@ -1491,17 +1491,17 @@ class CustomerForm extends _$CustomerForm {
 8. **HVC Module** - Simpler, similar to Customer
 9. **Broker Module** - Similar to HVC
 
-### Week 11-12: Advanced Features
-10. **Target Assignment** - BH+ role feature
-11. **Cadence Meeting** - Team workflows
+### Week 11-12: Profile, Settings & Admin
+10. **Profile & Settings** - User preferences
+11. **Admin Panel** - Master data management (includes Audit Logs screen)
 
-### Week 13-14: Support Features
-12. **Pipeline Referral** - Approval workflow
-14. **Notifications** - Cross-cutting
-15. **Profile & Settings** - User preferences
+### Week 13-14: Advanced Features
+12. **Target Assignment** - BH+ role feature
+13. **Cadence Meeting** - Team workflows
 
-### Week 15-16: Admin & Polish
-13. **Admin Panel** - Master data management (includes Audit Logs screen)
+### Week 15-16: Support Features & Polish
+14. **Pipeline Referral** - Approval workflow
+15. **Notifications** - Cross-cutting
 16. **Reporting & Export** - Analytics
 
 ---

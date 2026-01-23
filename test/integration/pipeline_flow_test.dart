@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leadx_crm/data/database/app_database.dart';
+import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/master_data_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/pipeline_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/remote/pipeline_remote_data_source.dart';
@@ -17,6 +18,7 @@ import '../helpers/mock_sync_infrastructure.dart';
 @GenerateMocks([
   PipelineLocalDataSource,
   MasterDataLocalDataSource,
+  CustomerLocalDataSource,
   PipelineRemoteDataSource,
   AppDatabase,
   SupabaseClient,
@@ -27,6 +29,7 @@ void main() {
   late PipelineRepositoryImpl repository;
   late MockPipelineLocalDataSource mockLocalDataSource;
   late MockMasterDataLocalDataSource mockMasterDataSource;
+  late MockCustomerLocalDataSource mockCustomerDataSource;
   late MockPipelineRemoteDataSource mockRemoteDataSource;
   late TrackingSyncQueueDataSource trackingQueueDataSource;
   late FakeConnectivityService fakeConnectivityService;
@@ -39,6 +42,7 @@ void main() {
   setUp(() {
     mockLocalDataSource = MockPipelineLocalDataSource();
     mockMasterDataSource = MockMasterDataLocalDataSource();
+    mockCustomerDataSource = MockCustomerLocalDataSource();
     mockRemoteDataSource = MockPipelineRemoteDataSource();
     trackingQueueDataSource = TrackingSyncQueueDataSource();
     fakeConnectivityService = FakeConnectivityService();
@@ -55,9 +59,11 @@ void main() {
     repository = PipelineRepositoryImpl(
       localDataSource: mockLocalDataSource,
       masterDataSource: mockMasterDataSource,
+      customerDataSource: mockCustomerDataSource,
       remoteDataSource: mockRemoteDataSource,
       syncService: syncService,
       currentUserId: testUserId,
+      database: mockDatabase,
     );
   });
 
@@ -78,13 +84,13 @@ void main() {
           potentialPremium: 100000000,
         );
 
-        // Setup mocks for stage and status
-        when(mockMasterDataSource.getAllPipelineStages())
+        // Setup mocks for stage and status - use PipelineLocalDataSource methods
+        when(mockLocalDataSource.getPipelineStages())
             .thenAnswer((_) async => [_createTestDbStage()]);
-        when(mockMasterDataSource.getPipelineStatusesByStage(any))
-            .thenAnswer((_) async => [_createTestDbStatus()]);
+        when(mockLocalDataSource.getDefaultStatus(any))
+            .thenAnswer((_) async => _createTestDbStatus());
         when(mockLocalDataSource.insertPipeline(any))
-            .thenAnswer((_) async => 1);
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.createPipeline(dto);
@@ -110,12 +116,12 @@ void main() {
           potentialPremium: 50000000,
         );
 
-        when(mockMasterDataSource.getAllPipelineStages())
+        when(mockLocalDataSource.getPipelineStages())
             .thenAnswer((_) async => [_createTestDbStage()]);
-        when(mockMasterDataSource.getPipelineStatusesByStage(any))
-            .thenAnswer((_) async => [_createTestDbStatus()]);
+        when(mockLocalDataSource.getDefaultStatus(any))
+            .thenAnswer((_) async => _createTestDbStatus());
         when(mockLocalDataSource.insertPipeline(any))
-            .thenAnswer((_) async => 1);
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.createPipeline(dto);
@@ -139,15 +145,12 @@ void main() {
         // Setup mocks
         when(mockLocalDataSource.getPipelineById(pipelineId))
             .thenAnswer((_) async => _createTestDbPipeline(id: pipelineId));
-        when(mockMasterDataSource.getAllPipelineStages())
-            .thenAnswer((_) async => [
-              _createTestDbStage(id: 'stage-new', code: 'NEW', probability: 10),
-              _createTestDbStage(id: 'stage-p3', code: 'P3', probability: 25),
-            ]);
-        when(mockMasterDataSource.getPipelineStatusesByStage('stage-p3'))
-            .thenAnswer((_) async => [_createTestDbStatus(stageId: 'stage-p3')]);
-        when(mockLocalDataSource.updatePipeline(any))
-            .thenAnswer((_) async => true);
+        when(mockLocalDataSource.getStageById(any))
+            .thenAnswer((_) async => _createTestDbStage(id: 'stage-p3', code: 'P3', probability: 25));
+        when(mockLocalDataSource.getDefaultStatus('stage-p3'))
+            .thenAnswer((_) async => _createTestDbStatus(stageId: 'stage-p3'));
+        when(mockLocalDataSource.updatePipeline(any, any))
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.updatePipelineStage(pipelineId, dto);
@@ -173,23 +176,18 @@ void main() {
 
         when(mockLocalDataSource.getPipelineById(pipelineId))
             .thenAnswer((_) async => _createTestDbPipeline(id: pipelineId));
-        when(mockMasterDataSource.getAllPipelineStages())
-            .thenAnswer((_) async => [
-              _createTestDbStage(id: 'stage-new', code: 'NEW'),
-              _createTestDbStage(
-                id: 'stage-won',
-                code: 'WON',
-                isFinal: true,
-                isWon: true,
-                probability: 100,
-              ),
-            ]);
-        when(mockMasterDataSource.getPipelineStatusesByStage('stage-won'))
-            .thenAnswer((_) async => [
-              _createTestDbStatus(stageId: 'stage-won', code: 'CLOSED'),
-            ]);
-        when(mockLocalDataSource.updatePipeline(any))
-            .thenAnswer((_) async => true);
+        when(mockLocalDataSource.getStageById('stage-won'))
+            .thenAnswer((_) async => _createTestDbStage(
+              id: 'stage-won',
+              code: 'WON',
+              isFinal: true,
+              isWon: true,
+              probability: 100,
+            ));
+        when(mockLocalDataSource.getDefaultStatus('stage-won'))
+            .thenAnswer((_) async => _createTestDbStatus(stageId: 'stage-won', code: 'CLOSED'));
+        when(mockLocalDataSource.updatePipeline(any, any))
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.updatePipelineStage(pipelineId, dto);
@@ -210,8 +208,8 @@ void main() {
 
         when(mockLocalDataSource.getPipelineById(pipelineId))
             .thenAnswer((_) async => _createTestDbPipeline(id: pipelineId));
-        when(mockLocalDataSource.updatePipeline(any))
-            .thenAnswer((_) async => true);
+        when(mockLocalDataSource.updatePipeline(any, any))
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.updatePipelineStatus(pipelineId, dto);
@@ -231,7 +229,7 @@ void main() {
         when(mockLocalDataSource.getPipelineById(pipelineId))
             .thenAnswer((_) async => _createTestDbPipeline(id: pipelineId));
         when(mockLocalDataSource.softDeletePipeline(pipelineId))
-            .thenAnswer((_) async => true);
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.deletePipeline(pipelineId);
@@ -316,7 +314,6 @@ PipelineStage _createTestDbStage({
     color: '#4CAF50',
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
-    description: null,
   );
 }
 

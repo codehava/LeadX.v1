@@ -288,13 +288,6 @@ class PipelineDetailScreen extends ConsumerWidget {
               label: const Text('Update Status'),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton.filled(
-            onPressed: () => context.push(
-              '/home/pipelines/${pipeline.id}/edit?customerId=$customerId',
-            ),
-            icon: const Icon(Icons.edit),
-          ),
         ],
       ),
     );

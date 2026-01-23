@@ -164,6 +164,14 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i4.Future<List<_i5.Pipeline>>);
 
   @override
+  _i4.Future<List<_i5.Pipeline>> getBrokerPipelines(String? brokerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBrokerPipelines, [brokerId]),
+            returnValue: _i4.Future<List<_i5.Pipeline>>.value(<_i5.Pipeline>[]),
+          )
+          as _i4.Future<List<_i5.Pipeline>>);
+
+  @override
   _i4.Future<List<_i5.Pipeline>> getPendingSyncPipelines() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingSyncPipelines, []),

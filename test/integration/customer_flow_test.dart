@@ -142,8 +142,8 @@ void main() {
         // Setup mock for existing customer
         when(mockLocalDataSource.getCustomerById(customerId))
             .thenAnswer((_) async => _createTestDbCustomer(id: customerId));
-        when(mockLocalDataSource.updateCustomer(any))
-            .thenAnswer((_) async => true);
+        when(mockLocalDataSource.updateCustomer(any, any))
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.updateCustomer(customerId, dto);
@@ -164,8 +164,8 @@ void main() {
 
         when(mockLocalDataSource.getCustomerById(customerId))
             .thenAnswer((_) async => _createTestDbCustomer(id: customerId));
-        when(mockLocalDataSource.updateCustomer(any))
-            .thenAnswer((_) async => true);
+        when(mockLocalDataSource.updateCustomer(any, any))
+            .thenAnswer((_) async {});
 
         // Act - perform multiple updates
         await repository.updateCustomer(

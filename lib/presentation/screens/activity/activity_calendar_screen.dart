@@ -16,12 +16,13 @@ class ActivityCalendarScreen extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final viewMode = ref.watch(calendarViewModeProvider);
 
-    // Get start/end of selected month for activity query
-    final startOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
-    final endOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0, 23, 59, 59);
+    // Get start/end of 31-day range for activity query (15 days before today to 15 days after)
+    final today = DateTime.now();
+    final startOfRange = DateTime(today.year, today.month, today.day).subtract(const Duration(days: 15));
+    final endOfRange = DateTime(today.year, today.month, today.day, 23, 59, 59).add(const Duration(days: 15));
 
     final activitiesAsync = ref.watch(
-      userActivitiesProvider((startDate: startOfMonth, endDate: endOfMonth)),
+      userActivitiesProvider((startDate: startOfRange, endDate: endOfRange)),
     );
 
     return Scaffold(
@@ -113,7 +114,7 @@ class ActivityCalendarScreen extends ConsumerWidget {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    ref.invalidate(userActivitiesProvider((startDate: startOfMonth, endDate: endOfMonth)));
+                    ref.invalidate(userActivitiesProvider((startDate: startOfRange, endDate: endOfRange)));
                   },
                   child: dayActivities.isEmpty
                       ? ListView(
@@ -183,101 +184,32 @@ class ActivityCalendarScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final today = DateTime.now();
     
-    // Get the week containing the selected date
-    final startOfWeek = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+    // 31 days view: 15 days before today + today + 15 days after
+    const totalDays = 31;
+    const todayIndex = 15; // Today is at index 15 (0-indexed, center of 31 days)
+    final startDate = DateTime(today.year, today.month, today.day).subtract(const Duration(days: todayIndex));
     
-    // Count activities per day
-    Map<int, int> activityCountByDay = {};
+    // Count activities per day (using date string as key for cross-month support)
+    Map<String, int> activityCountByDate = {};
     if (activities != null) {
       for (final activity in activities) {
-        final day = activity.scheduledDatetime.day;
-        activityCountByDay[day] = (activityCountByDay[day] ?? 0) + 1;
+        final d = activity.scheduledDatetime;
+        final key = '${d.year}-${d.month}-${d.day}';
+        activityCountByDate[key] = (activityCountByDate[key] ?? 0) + 1;
       }
     }
     
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      itemCount: 7,
-      itemBuilder: (context, index) {
-        final date = startOfWeek.add(Duration(days: index));
-        final isSelected = date.day == selectedDate.day &&
-            date.month == selectedDate.month &&
-            date.year == selectedDate.year;
-        final isToday = date.day == today.day &&
-            date.month == today.month &&
-            date.year == today.year;
-        final activityCount = activityCountByDay[date.day] ?? 0;
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: GestureDetector(
-            onTap: () {
-              ref.read(selectedDateProvider.notifier).state = date;
-            },
-            child: Container(
-              width: 48,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : isToday
-                        ? theme.colorScheme.primaryContainer
-                        : null,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _getDayName(date.weekday),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date.day.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : isToday
-                              ? theme.colorScheme.primary
-                              : null,
-                    ),
-                  ),
-                  // Activity indicator dots
-                  const SizedBox(height: 2),
-                  if (activityCount > 0)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (int i = 0; i < (activityCount > 3 ? 3 : activityCount); i++)
-                          Container(
-                            width: 4,
-                            height: 4,
-                            margin: const EdgeInsets.symmetric(horizontal: 1),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isSelected
-                                  ? theme.colorScheme.onPrimary
-                                  : AppColors.primary,
-                            ),
-                          ),
-                      ],
-                    )
-                  else
-                    const SizedBox(height: 4),
-                ],
-              ),
-            ),
-          ),
-        );
+    return _ScrollableDayPicker(
+      totalDays: totalDays,
+      todayIndex: todayIndex,
+      startDate: startDate,
+      selectedDate: selectedDate,
+      today: today,
+      activityCountByDate: activityCountByDate,
+      onDateSelected: (date) {
+        ref.read(selectedDateProvider.notifier).state = date;
       },
+      getDayName: _getDayName,
     );
   }
 
@@ -408,5 +340,156 @@ class _ActivityListTile extends StatelessWidget {
 
   String _formatTime(DateTime dt) {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Scrollable day picker widget with 31 days centered on today.
+class _ScrollableDayPicker extends StatefulWidget {
+  final int totalDays;
+  final int todayIndex;
+  final DateTime startDate;
+  final DateTime selectedDate;
+  final DateTime today;
+  final Map<String, int> activityCountByDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final String Function(int) getDayName;
+
+  const _ScrollableDayPicker({
+    required this.totalDays,
+    required this.todayIndex,
+    required this.startDate,
+    required this.selectedDate,
+    required this.today,
+    required this.activityCountByDate,
+    required this.onDateSelected,
+    required this.getDayName,
+  });
+
+  @override
+  State<_ScrollableDayPicker> createState() => _ScrollableDayPickerState();
+}
+
+class _ScrollableDayPickerState extends State<_ScrollableDayPicker> {
+  late ScrollController _scrollController;
+  static const double _itemWidth = 56.0; // 48 width + 8 padding
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToToday();
+    });
+  }
+
+  void _scrollToToday() {
+    if (!_scrollController.hasClients) return;
+    
+    // Calculate the offset to center today
+    final viewportWidth = _scrollController.position.viewportDimension;
+    final todayOffset = widget.todayIndex * _itemWidth;
+    final centeredOffset = todayOffset - (viewportWidth / 2) + (_itemWidth / 2);
+    
+    _scrollController.jumpTo(
+      centeredOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return ListView.builder(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: widget.totalDays,
+      itemBuilder: (context, index) {
+        final date = widget.startDate.add(Duration(days: index));
+        final isSelected = date.day == widget.selectedDate.day &&
+            date.month == widget.selectedDate.month &&
+            date.year == widget.selectedDate.year;
+        final isToday = date.day == widget.today.day &&
+            date.month == widget.today.month &&
+            date.year == widget.today.year;
+        final dateKey = '${date.year}-${date.month}-${date.day}';
+        final activityCount = widget.activityCountByDate[dateKey] ?? 0;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: GestureDetector(
+            onTap: () {
+              widget.onDateSelected(date);
+            },
+            child: Container(
+              width: 48,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : isToday
+                        ? theme.colorScheme.primaryContainer
+                        : null,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.getDayName(date.weekday),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : isToday
+                              ? theme.colorScheme.primary
+                              : null,
+                    ),
+                  ),
+                  // Activity indicator dots
+                  const SizedBox(height: 2),
+                  if (activityCount > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (int i = 0; i < (activityCount > 3 ? 3 : activityCount); i++)
+                          Container(
+                            width: 4,
+                            height: 4,
+                            margin: const EdgeInsets.symmetric(horizontal: 1),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected
+                                  ? theme.colorScheme.onPrimary
+                                  : AppColors.primary,
+                            ),
+                          ),
+                      ],
+                    )
+                  else
+                    const SizedBox(height: 4),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

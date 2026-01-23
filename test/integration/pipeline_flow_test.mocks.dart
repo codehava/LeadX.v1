@@ -8,14 +8,16 @@ import 'dart:async' as _i5;
 import 'package:drift/drift.dart' as _i2;
 import 'package:drift/src/runtime/executor/stream_queries.dart' as _i4;
 import 'package:leadx_crm/data/database/app_database.dart' as _i3;
+import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart'
+    as _i9;
 import 'package:leadx_crm/data/datasources/local/master_data_local_data_source.dart'
     as _i8;
 import 'package:leadx_crm/data/datasources/local/pipeline_local_data_source.dart'
     as _i7;
 import 'package:leadx_crm/data/datasources/remote/pipeline_remote_data_source.dart'
-    as _i9;
+    as _i10;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i10;
+import 'package:mockito/src/dummies.dart' as _i11;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i6;
 
 // ignore_for_file: type=lint
@@ -587,6 +589,14 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i5.Future<List<_i3.Pipeline>>);
 
   @override
+  _i5.Future<List<_i3.Pipeline>> getBrokerPipelines(String? brokerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBrokerPipelines, [brokerId]),
+            returnValue: _i5.Future<List<_i3.Pipeline>>.value(<_i3.Pipeline>[]),
+          )
+          as _i5.Future<List<_i3.Pipeline>>);
+
+  @override
   _i5.Future<List<_i3.Pipeline>> getPendingSyncPipelines() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingSyncPipelines, []),
@@ -970,11 +980,181 @@ class MockMasterDataLocalDataSource extends _i1.Mock
           as _i5.Future<void>);
 }
 
+/// A class which mocks [CustomerLocalDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCustomerLocalDataSource extends _i1.Mock
+    implements _i9.CustomerLocalDataSource {
+  MockCustomerLocalDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i5.Stream<List<_i3.Customer>> watchAllCustomers() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchAllCustomers, []),
+            returnValue: _i5.Stream<List<_i3.Customer>>.empty(),
+          )
+          as _i5.Stream<List<_i3.Customer>>);
+
+  @override
+  _i5.Stream<List<_i3.Customer>> watchCustomersByRm(String? rmId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchCustomersByRm, [rmId]),
+            returnValue: _i5.Stream<List<_i3.Customer>>.empty(),
+          )
+          as _i5.Stream<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<List<_i3.Customer>> getAllCustomers() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllCustomers, []),
+            returnValue: _i5.Future<List<_i3.Customer>>.value(<_i3.Customer>[]),
+          )
+          as _i5.Future<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<_i3.Customer?> getCustomerById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCustomerById, [id]),
+            returnValue: _i5.Future<_i3.Customer?>.value(),
+          )
+          as _i5.Future<_i3.Customer?>);
+
+  @override
+  _i5.Future<_i3.Customer?> getCustomerByCode(String? code) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCustomerByCode, [code]),
+            returnValue: _i5.Future<_i3.Customer?>.value(),
+          )
+          as _i5.Future<_i3.Customer?>);
+
+  @override
+  _i5.Future<void> insertCustomer(_i3.CustomersCompanion? customer) =>
+      (super.noSuchMethod(
+            Invocation.method(#insertCustomer, [customer]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateCustomer(
+    String? id,
+    _i3.CustomersCompanion? customer,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateCustomer, [id, customer]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> softDeleteCustomer(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#softDeleteCustomer, [id]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<int> hardDeleteCustomer(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#hardDeleteCustomer, [id]),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<List<_i3.Customer>> searchCustomers(String? query) =>
+      (super.noSuchMethod(
+            Invocation.method(#searchCustomers, [query]),
+            returnValue: _i5.Future<List<_i3.Customer>>.value(<_i3.Customer>[]),
+          )
+          as _i5.Future<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<List<_i3.Customer>> getCustomersByAssignedRm(String? rmId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCustomersByAssignedRm, [rmId]),
+            returnValue: _i5.Future<List<_i3.Customer>>.value(<_i3.Customer>[]),
+          )
+          as _i5.Future<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<List<_i3.Customer>> getPendingSyncCustomers() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPendingSyncCustomers, []),
+            returnValue: _i5.Future<List<_i3.Customer>>.value(<_i3.Customer>[]),
+          )
+          as _i5.Future<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<List<_i3.Customer>> getActiveCustomers() =>
+      (super.noSuchMethod(
+            Invocation.method(#getActiveCustomers, []),
+            returnValue: _i5.Future<List<_i3.Customer>>.value(<_i3.Customer>[]),
+          )
+          as _i5.Future<List<_i3.Customer>>);
+
+  @override
+  _i5.Future<void> markAsSynced(String? id, DateTime? syncedAt) =>
+      (super.noSuchMethod(
+            Invocation.method(#markAsSynced, [id, syncedAt]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> upsertCustomers(List<_i3.CustomersCompanion>? customers) =>
+      (super.noSuchMethod(
+            Invocation.method(#upsertCustomers, [customers]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<int> getPendingSyncCount() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPendingSyncCount, []),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<DateTime?> getLastSyncTimestamp() =>
+      (super.noSuchMethod(
+            Invocation.method(#getLastSyncTimestamp, []),
+            returnValue: _i5.Future<DateTime?>.value(),
+          )
+          as _i5.Future<DateTime?>);
+
+  @override
+  _i5.Future<int> getTotalCount() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTotalCount, []),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<int> getActiveCount() =>
+      (super.noSuchMethod(
+            Invocation.method(#getActiveCount, []),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+}
+
 /// A class which mocks [PipelineRemoteDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPipelineRemoteDataSource extends _i1.Mock
-    implements _i9.PipelineRemoteDataSource {
+    implements _i10.PipelineRemoteDataSource {
   MockPipelineRemoteDataSource() {
     _i1.throwOnMissingStub(this);
   }
@@ -1654,7 +1834,7 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
   _i2.SqlTypes get typeMapping =>
       (super.noSuchMethod(
             Invocation.getter(#typeMapping),
-            returnValue: _i10.dummyValue<_i2.SqlTypes>(
+            returnValue: _i11.dummyValue<_i2.SqlTypes>(
               this,
               Invocation.getter(#typeMapping),
             ),
@@ -1740,7 +1920,7 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
   T alias<T, D>(_i2.ResultSetImplementation<T, D>? table, String? alias) =>
       (super.noSuchMethod(
             Invocation.method(#alias, [table, alias]),
-            returnValue: _i10.dummyValue<T>(
+            returnValue: _i11.dummyValue<T>(
               this,
               Invocation.method(#alias, [table, alias]),
             ),
@@ -1777,8 +1957,8 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       (super.noSuchMethod(
             Invocation.method(#doWhenOpened, [fn]),
             returnValue:
-                _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#doWhenOpened, [fn]),
                   ),
@@ -1993,8 +2173,8 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
               {#requireNew: requireNew},
             ),
             returnValue:
-                _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #transaction,
@@ -2020,8 +2200,8 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       (super.noSuchMethod(
             Invocation.method(#exclusively, [action]),
             returnValue:
-                _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#exclusively, [action]),
                   ),
@@ -2055,8 +2235,8 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
               {#interceptor: interceptor},
             ),
             returnValue:
-                _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #runWithInterceptor,
@@ -2130,7 +2310,7 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
   String $expandVar(int? start, int? amount) =>
       (super.noSuchMethod(
             Invocation.method(#$expandVar, [start, amount]),
-            returnValue: _i10.dummyValue<String>(
+            returnValue: _i11.dummyValue<String>(
               this,
               Invocation.method(#$expandVar, [start, amount]),
             ),
@@ -2300,7 +2480,7 @@ class MockSupabaseClient extends _i1.Mock implements _i6.SupabaseClient {
       (super.noSuchMethod(
             Invocation.method(#removeChannel, [channel]),
             returnValue: _i5.Future<String>.value(
-              _i10.dummyValue<String>(
+              _i11.dummyValue<String>(
                 this,
                 Invocation.method(#removeChannel, [channel]),
               ),

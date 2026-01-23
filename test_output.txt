@@ -1,0 +1,1284 @@
+﻿00:00 +0: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart
+flutter : test/data/repositories/auth_reposit
+ory_impl_test.dart:351:27: Error: 
+'AppAuthStateUnauthenticated' isn't a type.
+At line:1 char:1
++ flutter test 2>&1 | Out-File -FilePath 
+test_output.txt -Encoding utf8
++ ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (test/data/repos...' isn't a type.:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+        expect(state, 
+isA<AppAuthStateUnauthenticated>());
+                          
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test/data/repositories/auth_repository_impl_t
+est.dart:369:27: Error: 
+'AppAuthStateAuthenticated' isn't a type.
+        expect(state, 
+isA<AppAuthStateAuthenticated>());
+                          
+^^^^^^^^^^^^^^^^^^^^^^^^^
+test/data/repositories/auth_repository_impl_t
+est.dart:77:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:80:53: Error: The argument type 
+'Future<Map<String, Object?>> 
+Function(Invocation)' can't be assigned to 
+the parameter type 
+'PostgrestTransformBuilder<Map<String, 
+dynamic>> Function(Invocation)'.
+ - 'Future' is from 'dart:async'.
+ - 'Map' is from 'dart:core'.
+ - 'Object' is from 'dart:core'.
+ - 'Invocation' is from 'dart:core'.
+ - 'PostgrestTransformBuilder' is from 'packa
+ge:postgrest/src/postgrest_builder.dart' ('..
+/../AppData/Local/Pub/Cache/hosted/pub.dev/po
+stgrest-2.6.0/lib/src/postgrest_builder.dart'
+).
+        when(mockFilterBuilder.single()).then
+Answer((_) async => testUserJson);
+                                             
+       ^
+test/data/repositories/auth_repository_impl_t
+est.dart:145:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:149:25: Error: The argument type 
+'Future<Map<String, dynamic>> 
+Function(Invocation)' can't be assigned to 
+the parameter type 
+'PostgrestTransformBuilder<Map<String, 
+dynamic>> Function(Invocation)'.
+ - 'Future' is from 'dart:async'.
+ - 'Map' is from 'dart:core'.
+ - 'Invocation' is from 'dart:core'.
+ - 'PostgrestTransformBuilder' is from 'packa
+ge:postgrest/src/postgrest_builder.dart' ('..
+/../AppData/Local/Pub/Cache/hosted/pub.dev/po
+stgrest-2.6.0/lib/src/postgrest_builder.dart'
+).
+            .thenAnswer((_) async => 
+inactiveUserJson);
+                        ^
+test/data/repositories/auth_repository_impl_t
+est.dart:245:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:248:53: Error: The argument type 
+'Future<Map<String, Object?>> 
+Function(Invocation)' can't be assigned to 
+the parameter type 
+'PostgrestTransformBuilder<Map<String, 
+dynamic>> Function(Invocation)'.
+ - 'Future' is from 'dart:async'.
+ - 'Map' is from 'dart:core'.
+ - 'Object' is from 'dart:core'.
+ - 'Invocation' is from 'dart:core'.
+ - 'PostgrestTransformBuilder' is from 'packa
+ge:postgrest/src/postgrest_builder.dart' ('..
+/../AppData/Local/Pub/Cache/hosted/pub.dev/po
+stgrest-2.6.0/lib/src/postgrest_builder.dart'
+).
+        when(mockFilterBuilder.single()).then
+Answer((_) async => testUserJson);
+                                             
+       ^
+test/data/repositories/auth_repository_impl_t
+est.dart:265:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:291:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:294:53: Error: The argument type 
+'Future<Map<String, Object?>> 
+Function(Invocation)' can't be assigned to 
+the parameter type 
+'PostgrestTransformBuilder<Map<String, 
+dynamic>> Function(Invocation)'.
+ - 'Future' is from 'dart:async'.
+ - 'Map' is from 'dart:core'.
+ - 'Object' is from 'dart:core'.
+ - 'Invocation' is from 'dart:core'.
+ - 'PostgrestTransformBuilder' is from 'packa
+ge:postgrest/src/postgrest_builder.dart' ('..
+/../AppData/Local/Pub/Cache/hosted/pub.dev/po
+stgrest-2.6.0/lib/src/postgrest_builder.dart'
+).
+        when(mockFilterBuilder.single()).then
+Answer((_) async => testUserJson);
+                                             
+       ^
+test/data/repositories/auth_repository_impl_t
+est.dart:360:52: Error: The argument type 
+'MockPostgrestFilterBuilder<dynamic>' can't 
+be assigned to the parameter type 
+'PostgrestFilterBuilder<List<Map<String, 
+dynamic>>>'.
+ - 'MockPostgrestFilterBuilder' is from 'test
+/data/repositories/auth_repository_impl_test.
+mocks.dart'.
+ - 'PostgrestFilterBuilder' is from 'package:
+postgrest/src/postgrest_builder.dart' ('../..
+/AppData/Local/Pub/Cache/hosted/pub.dev/postg
+rest-2.6.0/lib/src/postgrest_builder.dart').
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+        when(mockQueryBuilder.select()).thenR
+eturn(mockFilterBuilder);
+                                             
+      ^
+test/data/repositories/auth_repository_impl_t
+est.dart:363:53: Error: The argument type 
+'Future<Map<String, Object?>> 
+Function(Invocation)' can't be assigned to 
+the parameter type 
+'PostgrestTransformBuilder<Map<String, 
+dynamic>> Function(Invocation)'.
+ - 'Future' is from 'dart:async'.
+ - 'Map' is from 'dart:core'.
+ - 'Object' is from 'dart:core'.
+ - 'Invocation' is from 'dart:core'.
+ - 'PostgrestTransformBuilder' is from 'packa
+ge:postgrest/src/postgrest_builder.dart' ('..
+/../AppData/Local/Pub/Cache/hosted/pub.dev/po
+stgrest-2.6.0/lib/src/postgrest_builder.dart'
+).
+        when(mockFilterBuilder.single()).then
+Answer((_) async => testUserJson);
+                                             
+       ^
+test/data/repositories/auth_repository_impl_t
+est.dart:414:5: Error: No named parameter 
+with the name 'expiresAt'.
+    expiresAt: DateTime.now().add(const 
+Duration(hours: 1)).millisecondsSinceEpoch 
+~/ 1000,
+    ^^^^^^^^^
+../../AppData/Local/Pub/Cache/hosted/pub.dev/
+gotrue-2.18.0/lib/src/types/session.dart:18:3
+: Context: Found this candidate, but the 
+arguments don't match.
+  Session({
+  ^^^^^^^
+00:00 +0 -1: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart: test/data/repositories/auth_repository_impl_test.dart:351:27: Error: 'AppAuthStateUnauthenticated' isn't a type.
+          expect(state, isA<AppAuthStateUnauthenticated>());
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/data/repositories/auth_repository_impl_test.dart:369:27: Error: 'AppAuthStateAuthenticated' isn't a type.
+          expect(state, isA<AppAuthStateAuthenticated>());
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/data/repositories/auth_repository_impl_test.dart:77:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:80:53: Error: The argument type 'Future<Map<String, Object?>> Function(Invocation)' can't be assigned to the parameter type 'PostgrestTransformBuilder<Map<String, dynamic>> Function(Invocation)'.
+   - 'Future' is from 'dart:async'.
+   - 'Map' is from 'dart:core'.
+   - 'Object' is from 'dart:core'.
+   - 'Invocation' is from 'dart:core'.
+   - 'PostgrestTransformBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+          when(mockFilterBuilder.single()).thenAnswer((_) async => testUserJson);
+                                                      ^
+  test/data/repositories/auth_repository_impl_test.dart:145:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:149:25: Error: The argument type 'Future<Map<String, dynamic>> Function(Invocation)' can't be assigned to the parameter type 'PostgrestTransformBuilder<Map<String, dynamic>> Function(Invocation)'.
+   - 'Future' is from 'dart:async'.
+   - 'Map' is from 'dart:core'.
+   - 'Invocation' is from 'dart:core'.
+   - 'PostgrestTransformBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+              .thenAnswer((_) async => inactiveUserJson);
+                          ^
+  test/data/repositories/auth_repository_impl_test.dart:245:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:248:53: Error: The argument type 'Future<Map<String, Object?>> Function(Invocation)' can't be assigned to the parameter type 'PostgrestTransformBuilder<Map<String, dynamic>> Function(Invocation)'.
+   - 'Future' is from 'dart:async'.
+   - 'Map' is from 'dart:core'.
+   - 'Object' is from 'dart:core'.
+   - 'Invocation' is from 'dart:core'.
+   - 'PostgrestTransformBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+          when(mockFilterBuilder.single()).thenAnswer((_) async => testUserJson);
+                                                      ^
+  test/data/repositories/auth_repository_impl_test.dart:265:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:291:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:294:53: Error: The argument type 'Future<Map<String, Object?>> Function(Invocation)' can't be assigned to the parameter type 'PostgrestTransformBuilder<Map<String, dynamic>> Function(Invocation)'.
+   - 'Future' is from 'dart:async'.
+   - 'Map' is from 'dart:core'.
+   - 'Object' is from 'dart:core'.
+   - 'Invocation' is from 'dart:core'.
+   - 'PostgrestTransformBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+          when(mockFilterBuilder.single()).thenAnswer((_) async => testUserJson);
+                                                      ^
+  test/data/repositories/auth_repository_impl_test.dart:360:52: Error: The argument type 'MockPostgrestFilterBuilder<dynamic>' can't be assigned to the parameter type 'PostgrestFilterBuilder<List<Map<String, dynamic>>>'.
+   - 'MockPostgrestFilterBuilder' is from 'test/data/repositories/auth_repository_impl_test.mocks.dart'.
+   - 'PostgrestFilterBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+          when(mockQueryBuilder.select()).thenReturn(mockFilterBuilder);
+                                                     ^
+  test/data/repositories/auth_repository_impl_test.dart:363:53: Error: The argument type 'Future<Map<String, Object?>> Function(Invocation)' can't be assigned to the parameter type 'PostgrestTransformBuilder<Map<String, dynamic>> Function(Invocation)'.
+   - 'Future' is from 'dart:async'.
+   - 'Map' is from 'dart:core'.
+   - 'Object' is from 'dart:core'.
+   - 'Invocation' is from 'dart:core'.
+   - 'PostgrestTransformBuilder' is from 'package:postgrest/src/postgrest_builder.dart' ('../../AppData/Local/Pub/Cache/hosted/pub.dev/postgrest-2.6.0/lib/src/postgrest_builder.dart').
+          when(mockFilterBuilder.single()).thenAnswer((_) async => testUserJson);
+                                                      ^
+  test/data/repositories/auth_repository_impl_test.dart:414:5: Error: No named parameter with the name 'expiresAt'.
+      expiresAt: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
+      ^^^^^^^^^
+  ../../AppData/Local/Pub/Cache/hosted/pub.dev/gotrue-2.18.0/lib/src/types/session.dart:18:3: Context: Found this candidate, but the arguments don't match.
+    Session({
+    ^^^^^^^
+  .
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+test/data/repositories/pipeline_repository_im
+pl_test.dart:164:40: Error: Required named 
+parameter 'customerDataSource' must be 
+provided.
+    repository = PipelineRepositoryImpl(
+                                       ^
+lib/data/repositories/pipeline_repository_imp
+l.dart:19:3: Context: Found this candidate, 
+but the arguments don't match.
+  PipelineRepositoryImpl({
+  ^^^^^^^^^^^^^^^^^^^^^^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:189:24: Error: 'isNotNull' is 
+imported from both 'package:drift/src/runtime
+/query_builder/query_builder.dart' and 
+'package:matcher/src/core_matchers.dart'.
+        expect(result, isNotNull);
+                       ^^^^^^^^^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:204:24: Error: 'isNull' is 
+imported from both 'package:drift/src/runtime
+/query_builder/query_builder.dart' and 
+'package:matcher/src/core_matchers.dart'.
+        expect(result, isNull);
+                       ^^^^^^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:227:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:306:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:307:56: Error: A non-null value 
+must be returned since the return type 
+'SyncResult' doesn't allow null.
+ - 'SyncResult' is from 'package:leadx_crm/do
+main/entities/sync_models.dart' 
+('lib/domain/entities/sync_models.dart').
+        when(mockSyncService.triggerSync()).t
+henAnswer((_) async {});
+                                             
+          ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:391:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:392:56: Error: A non-null value 
+must be returned since the return type 
+'SyncResult' doesn't allow null.
+ - 'SyncResult' is from 'package:leadx_crm/do
+main/entities/sync_models.dart' 
+('lib/domain/entities/sync_models.dart').
+        when(mockSyncService.triggerSync()).t
+henAnswer((_) async {});
+                                             
+          ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:476:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:477:56: Error: A non-null value 
+must be returned since the return type 
+'SyncResult' doesn't allow null.
+ - 'SyncResult' is from 'package:leadx_crm/do
+main/entities/sync_models.dart' 
+('lib/domain/entities/sync_models.dart').
+        when(mockSyncService.triggerSync()).t
+henAnswer((_) async {});
+                                             
+          ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:514:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:515:56: Error: A non-null value 
+must be returned since the return type 
+'SyncResult' doesn't allow null.
+ - 'SyncResult' is from 'package:leadx_crm/do
+main/entities/sync_models.dart' 
+('lib/domain/entities/sync_models.dart').
+        when(mockSyncService.triggerSync()).t
+henAnswer((_) async {});
+                                             
+          ^
+test/data/repositories/pipeline_repository_im
+pl_test.dart:571:23: Error: A non-null value 
+must be returned since the return type 'int' 
+doesn't allow null.
+        )).thenAnswer((_) async {});
+                      ^
+00:00 +0 -2: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/pipeline_repository_impl_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/pipeline_repository_impl_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/pipeline_repository_impl_test.dart: test/data/repositories/pipeline_repository_impl_test.dart:164:40: Error: Required named parameter 'customerDataSource' must be provided.
+      repository = PipelineRepositoryImpl(
+                                         ^
+  lib/data/repositories/pipeline_repository_impl.dart:19:3: Context: Found this candidate, but the arguments don't match.
+    PipelineRepositoryImpl({
+    ^^^^^^^^^^^^^^^^^^^^^^
+  test/data/repositories/pipeline_repository_impl_test.dart:189:24: Error: 'isNotNull' is imported from both 'package:drift/src/runtime/query_builder/query_builder.dart' and 'package:matcher/src/core_matchers.dart'.
+          expect(result, isNotNull);
+                         ^^^^^^^^^
+  test/data/repositories/pipeline_repository_impl_test.dart:204:24: Error: 'isNull' is imported from both 'package:drift/src/runtime/query_builder/query_builder.dart' and 'package:matcher/src/core_matchers.dart'.
+          expect(result, isNull);
+                         ^^^^^^
+  test/data/repositories/pipeline_repository_impl_test.dart:227:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  test/data/repositories/pipeline_repository_impl_test.dart:306:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  test/data/repositories/pipeline_repository_impl_test.dart:307:56: Error: A non-null value must be returned since the return type 'SyncResult' doesn't allow null.
+   - 'SyncResult' is from 'package:leadx_crm/domain/entities/sync_models.dart' ('lib/domain/entities/sync_models.dart').
+          when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+                                                         ^
+  test/data/repositories/pipeline_repository_impl_test.dart:391:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  test/data/repositories/pipeline_repository_impl_test.dart:392:56: Error: A non-null value must be returned since the return type 'SyncResult' doesn't allow null.
+   - 'SyncResult' is from 'package:leadx_crm/domain/entities/sync_models.dart' ('lib/domain/entities/sync_models.dart').
+          when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+                                                         ^
+  test/data/repositories/pipeline_repository_impl_test.dart:476:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  test/data/repositories/pipeline_repository_impl_test.dart:477:56: Error: A non-null value must be returned since the return type 'SyncResult' doesn't allow null.
+   - 'SyncResult' is from 'package:leadx_crm/domain/entities/sync_models.dart' ('lib/domain/entities/sync_models.dart').
+          when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+                                                         ^
+  test/data/repositories/pipeline_repository_impl_test.dart:514:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  test/data/repositories/pipeline_repository_impl_test.dart:515:56: Error: A non-null value must be returned since the return type 'SyncResult' doesn't allow null.
+   - 'SyncResult' is from 'package:leadx_crm/domain/entities/sync_models.dart' ('lib/domain/entities/sync_models.dart').
+          when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+                                                         ^
+  test/data/repositories/pipeline_repository_impl_test.dart:571:23: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          )).thenAnswer((_) async {});
+                        ^
+  .
+00:00 +0 -2: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+00:00 +0 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl getCustomerById returns Customer when found
+00:00 +1 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl getCustomerById returns null when not found
+00:00 +2 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl createCustomer returns Customer on successful create
+[CustomerRepo] Inserting customer locally: 3fd5f47e-ab3c-4f53-9ad0-b7bad03a3f92
+[CustomerRepo] Queueing customer for sync: 3fd5f47e-ab3c-4f53-9ad0-b7bad03a3f92
+[CustomerRepo] Customer queued successfully
+00:00 +3 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl createCustomer returns DatabaseFailure when insert fails
+[CustomerRepo] Inserting customer locally: 2ef1c374-210b-4990-8036-8a2438bd96ce
+00:00 +4 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl updateCustomer returns updated Customer on success
+00:00 +5 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl updateCustomer returns NotFoundFailure when customer not found
+00:00 +6 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl deleteCustomer returns Right(null) on successful soft delete
+00:00 +7 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl deleteCustomer returns DatabaseFailure when delete fails
+00:00 +8 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl searchCustomers returns list of matching customers
+00:00 +9 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl searchCustomers returns empty list when no matches
+00:00 +10 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl getCustomersByAssignedRm returns customers assigned to specific RM
+00:00 +11 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl getPendingSyncCustomers returns customers pending sync
+00:00 +12 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl watchAllCustomers returns stream of customers
+00:00 +13 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl syncFromRemote returns count of synced customers
+00:00 +14 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl syncFromRemote returns 0 when no remote data
+00:00 +15 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl syncFromRemote returns SyncFailure when fetch fails
+00:00 +16 -2: C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/customer_repository_impl_test.dart: CustomerRepositoryImpl markAsSynced calls local data source markAsSynced
+test/helpers/mock_sync_infrastructure.dart:35
+:7: Error: The non-abstract class 
+'FakeConnectivityService' is missing 
+implementations for these members:
+ - 
+ConnectivityService.checkServerReachability
+ - ConnectivityService.isOffline
+ - ConnectivityService.waitForConnectivity
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a 
+superclass or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class FakeConnectivityService implements 
+ConnectivityService {
+      ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+08:16: Context: 'ConnectivityService.checkSer
+verReachability' is defined here.
+  Future<bool> checkServerReachability() 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:3
+7:12: Context: 
+'ConnectivityService.isOffline' is defined 
+here.
+  bool get isOffline => !_isConnected;
+           ^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+29:16: Context: 
+'ConnectivityService.waitForConnectivity' is 
+defined here.
+  Future<void> 
+waitForConnectivity({Duration? timeout}) 
+async {
+               ^^^^^^^^^^^^^^^^^^^
+00:01 +17 -3: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/services/sync_service_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/data/services/sync_service_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/data/services/sync_service_test.dart: test/helpers/mock_sync_infrastructure.dart:35:7: Error: The non-abstract class 'FakeConnectivityService' is missing implementations for these members:
+   - ConnectivityService.checkServerReachability
+   - ConnectivityService.isOffline
+   - ConnectivityService.waitForConnectivity
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class FakeConnectivityService implements ConnectivityService {
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:108:16: Context: 'ConnectivityService.checkServerReachability' is defined here.
+    Future<bool> checkServerReachability() async {
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:37:12: Context: 'ConnectivityService.isOffline' is defined here.
+    bool get isOffline => !_isConnected;
+             ^^^^^^^^^
+  lib/data/services/connectivity_service.dart:129:16: Context: 'ConnectivityService.waitForConnectivity' is defined here.
+    Future<void> waitForConnectivity({Duration? timeout}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  .
+00:01 +17 -3: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+test/helpers/mock_sync_infrastructure.dart:35
+:7: Error: The non-abstract class 
+'FakeConnectivityService' is missing 
+implementations for these members:
+ - 
+ConnectivityService.checkServerReachability
+ - ConnectivityService.isOffline
+ - ConnectivityService.waitForConnectivity
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a 
+superclass or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class FakeConnectivityService implements 
+ConnectivityService {
+      ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+08:16: Context: 'ConnectivityService.checkSer
+verReachability' is defined here.
+  Future<bool> checkServerReachability() 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:3
+7:12: Context: 
+'ConnectivityService.isOffline' is defined 
+here.
+  bool get isOffline => !_isConnected;
+           ^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+29:16: Context: 
+'ConnectivityService.waitForConnectivity' is 
+defined here.
+  Future<void> 
+waitForConnectivity({Duration? timeout}) 
+async {
+               ^^^^^^^^^^^^^^^^^^^
+test/integration/customer_flow_test.dart:145:
+48: Error: Too few positional arguments: 2 
+required, 1 given.
+        
+when(mockLocalDataSource.updateCustomer(any))
+                                             
+  ^
+test/integration/customer_flow_test.dart:167:
+48: Error: Too few positional arguments: 2 
+required, 1 given.
+        
+when(mockLocalDataSource.updateCustomer(any))
+                                             
+  ^
+00:03 +17 -4: loading C:/Users/cartr/git_stuff/LeadX.v1/test/integration/customer_flow_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/integration/customer_flow_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/integration/customer_flow_test.dart: test/helpers/mock_sync_infrastructure.dart:35:7: Error: The non-abstract class 'FakeConnectivityService' is missing implementations for these members:
+   - ConnectivityService.checkServerReachability
+   - ConnectivityService.isOffline
+   - ConnectivityService.waitForConnectivity
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class FakeConnectivityService implements ConnectivityService {
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:108:16: Context: 'ConnectivityService.checkServerReachability' is defined here.
+    Future<bool> checkServerReachability() async {
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:37:12: Context: 'ConnectivityService.isOffline' is defined here.
+    bool get isOffline => !_isConnected;
+             ^^^^^^^^^
+  lib/data/services/connectivity_service.dart:129:16: Context: 'ConnectivityService.waitForConnectivity' is defined here.
+    Future<void> waitForConnectivity({Duration? timeout}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  test/integration/customer_flow_test.dart:145:48: Error: Too few positional arguments: 2 required, 1 given.
+          when(mockLocalDataSource.updateCustomer(any))
+                                                 ^
+  test/integration/customer_flow_test.dart:167:48: Error: Too few positional arguments: 2 required, 1 given.
+          when(mockLocalDataSource.updateCustomer(any))
+                                                 ^
+  .
+00:03 +17 -4: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+test/helpers/mock_sync_infrastructure.dart:35
+:7: Error: The non-abstract class 
+'FakeConnectivityService' is missing 
+implementations for these members:
+ - 
+ConnectivityService.checkServerReachability
+ - ConnectivityService.isOffline
+ - ConnectivityService.waitForConnectivity
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a 
+superclass or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class FakeConnectivityService implements 
+ConnectivityService {
+      ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+08:16: Context: 'ConnectivityService.checkSer
+verReachability' is defined here.
+  Future<bool> checkServerReachability() 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:3
+7:12: Context: 
+'ConnectivityService.isOffline' is defined 
+here.
+  bool get isOffline => !_isConnected;
+           ^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+29:16: Context: 
+'ConnectivityService.waitForConnectivity' is 
+defined here.
+  Future<void> 
+waitForConnectivity({Duration? timeout}) 
+async {
+               ^^^^^^^^^^^^^^^^^^^
+test/integration/offline_sync_flow_test.dart:
+177:33: Error: The getter '_items' isn't 
+defined for the type 
+'TrackingSyncQueueDataSource'.
+ - 'TrackingSyncQueueDataSource' is from 
+'test/helpers/mock_sync_infrastructure.dart'.
+Try correcting the name to the name of an 
+existing getter, or defining a getter or 
+field named '_items'.
+        trackingQueueDataSource._items.add(cr
+eateTestSyncQueueItem(
+                                ^^^^^^
+test/integration/offline_sync_flow_test.dart:
+197:33: Error: The getter '_items' isn't 
+defined for the type 
+'TrackingSyncQueueDataSource'.
+ - 'TrackingSyncQueueDataSource' is from 
+'test/helpers/mock_sync_infrastructure.dart'.
+Try correcting the name to the name of an 
+existing getter, or defining a getter or 
+field named '_items'.
+        trackingQueueDataSource._items.add(cr
+eateTestSyncQueueItem(
+                                ^^^^^^
+00:04 +17 -5: loading C:/Users/cartr/git_stuff/LeadX.v1/test/integration/offline_sync_flow_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/integration/offline_sync_flow_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/integration/offline_sync_flow_test.dart: test/helpers/mock_sync_infrastructure.dart:35:7: Error: The non-abstract class 'FakeConnectivityService' is missing implementations for these members:
+   - ConnectivityService.checkServerReachability
+   - ConnectivityService.isOffline
+   - ConnectivityService.waitForConnectivity
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class FakeConnectivityService implements ConnectivityService {
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:108:16: Context: 'ConnectivityService.checkServerReachability' is defined here.
+    Future<bool> checkServerReachability() async {
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:37:12: Context: 'ConnectivityService.isOffline' is defined here.
+    bool get isOffline => !_isConnected;
+             ^^^^^^^^^
+  lib/data/services/connectivity_service.dart:129:16: Context: 'ConnectivityService.waitForConnectivity' is defined here.
+    Future<void> waitForConnectivity({Duration? timeout}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  test/integration/offline_sync_flow_test.dart:177:33: Error: The getter '_items' isn't defined for the type 'TrackingSyncQueueDataSource'.
+   - 'TrackingSyncQueueDataSource' is from 'test/helpers/mock_sync_infrastructure.dart'.
+  Try correcting the name to the name of an existing getter, or defining a getter or field named '_items'.
+          trackingQueueDataSource._items.add(createTestSyncQueueItem(
+                                  ^^^^^^
+  test/integration/offline_sync_flow_test.dart:197:33: Error: The getter '_items' isn't defined for the type 'TrackingSyncQueueDataSource'.
+   - 'TrackingSyncQueueDataSource' is from 'test/helpers/mock_sync_infrastructure.dart'.
+  Try correcting the name to the name of an existing getter, or defining a getter or field named '_items'.
+          trackingQueueDataSource._items.add(createTestSyncQueueItem(
+                                  ^^^^^^
+  .
+00:05 +17 -5: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+test/helpers/mock_sync_infrastructure.dart:35
+:7: Error: The non-abstract class 
+'FakeConnectivityService' is missing 
+implementations for these members:
+ - 
+ConnectivityService.checkServerReachability
+ - ConnectivityService.isOffline
+ - ConnectivityService.waitForConnectivity
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a 
+superclass or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class FakeConnectivityService implements 
+ConnectivityService {
+      ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+08:16: Context: 'ConnectivityService.checkSer
+verReachability' is defined here.
+  Future<bool> checkServerReachability() 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^^
+lib/data/services/connectivity_service.dart:3
+7:12: Context: 
+'ConnectivityService.isOffline' is defined 
+here.
+  bool get isOffline => !_isConnected;
+           ^^^^^^^^^
+lib/data/services/connectivity_service.dart:1
+29:16: Context: 
+'ConnectivityService.waitForConnectivity' is 
+defined here.
+  Future<void> 
+waitForConnectivity({Duration? timeout}) 
+async {
+               ^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:55:4
+0: Error: Required named parameter 
+'customerDataSource' must be provided.
+    repository = PipelineRepositoryImpl(
+                                       ^
+lib/data/repositories/pipeline_repository_imp
+l.dart:19:3: Context: Found this candidate, 
+but the arguments don't match.
+  PipelineRepositoryImpl({
+  ^^^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:82:3
+5: Error: The method 'getAllPipelineStages' 
+isn't defined for the type 
+'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getAllPipelineStages'.
+        when(mockMasterDataSource.getAllPipel
+ineStages())
+                                  
+^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:84:3
+5: Error: The method 
+'getPipelineStatusesByStage' isn't defined 
+for the type 'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getPipelineStatusesByStage'.
+        when(mockMasterDataSource.getPipeline
+StatusesByStage(any))
+                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:113:
+35: Error: The method 'getAllPipelineStages' 
+isn't defined for the type 
+'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getAllPipelineStages'.
+        when(mockMasterDataSource.getAllPipel
+ineStages())
+                                  
+^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:115:
+35: Error: The method 
+'getPipelineStatusesByStage' isn't defined 
+for the type 'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getPipelineStatusesByStage'.
+        when(mockMasterDataSource.getPipeline
+StatusesByStage(any))
+                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:142:
+35: Error: The method 'getAllPipelineStages' 
+isn't defined for the type 
+'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getAllPipelineStages'.
+        when(mockMasterDataSource.getAllPipel
+ineStages())
+                                  
+^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:147:
+35: Error: The method 
+'getPipelineStatusesByStage' isn't defined 
+for the type 'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getPipelineStatusesByStage'.
+        when(mockMasterDataSource.getPipeline
+StatusesByStage('stage-p3'))
+                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:149:
+48: Error: Too few positional arguments: 2 
+required, 1 given.
+        
+when(mockLocalDataSource.updatePipeline(any))
+                                             
+  ^
+test/integration/pipeline_flow_test.dart:176:
+35: Error: The method 'getAllPipelineStages' 
+isn't defined for the type 
+'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getAllPipelineStages'.
+        when(mockMasterDataSource.getAllPipel
+ineStages())
+                                  
+^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:187:
+35: Error: The method 
+'getPipelineStatusesByStage' isn't defined 
+for the type 'MockMasterDataLocalDataSource'.
+ - 'MockMasterDataLocalDataSource' is from 't
+est/integration/pipeline_flow_test.mocks.dart
+'.
+Try correcting the name to the name of an 
+existing method, or defining a method named 
+'getPipelineStatusesByStage'.
+        when(mockMasterDataSource.getPipeline
+StatusesByStage('stage-won'))
+                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+test/integration/pipeline_flow_test.dart:191:
+48: Error: Too few positional arguments: 2 
+required, 1 given.
+        
+when(mockLocalDataSource.updatePipeline(any))
+                                             
+  ^
+test/integration/pipeline_flow_test.dart:213:
+48: Error: Too few positional arguments: 2 
+required, 1 given.
+        
+when(mockLocalDataSource.updatePipeline(any))
+                                             
+  ^
+test/integration/pipeline_flow_test.dart:319:
+5: Error: No named parameter with the name 
+'description'.
+    description: null,
+    ^^^^^^^^^^^
+lib/data/database/app_database.g.dart:5380:9:
+ Context: Found this candidate, but the 
+arguments don't match.
+  const PipelineStage({
+        ^^^^^^^^^^^^^
+00:06 +17 -6: loading C:/Users/cartr/git_stuff/LeadX.v1/test/integration/pipeline_flow_test.dart [E]
+  Failed to load "C:/Users/cartr/git_stuff/LeadX.v1/test/integration/pipeline_flow_test.dart":
+  Compilation failed for testPath=C:/Users/cartr/git_stuff/LeadX.v1/test/integration/pipeline_flow_test.dart: test/helpers/mock_sync_infrastructure.dart:35:7: Error: The non-abstract class 'FakeConnectivityService' is missing implementations for these members:
+   - ConnectivityService.checkServerReachability
+   - ConnectivityService.isOffline
+   - ConnectivityService.waitForConnectivity
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class FakeConnectivityService implements ConnectivityService {
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:108:16: Context: 'ConnectivityService.checkServerReachability' is defined here.
+    Future<bool> checkServerReachability() async {
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  lib/data/services/connectivity_service.dart:37:12: Context: 'ConnectivityService.isOffline' is defined here.
+    bool get isOffline => !_isConnected;
+             ^^^^^^^^^
+  lib/data/services/connectivity_service.dart:129:16: Context: 'ConnectivityService.waitForConnectivity' is defined here.
+    Future<void> waitForConnectivity({Duration? timeout}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:55:40: Error: Required named parameter 'customerDataSource' must be provided.
+      repository = PipelineRepositoryImpl(
+                                         ^
+  lib/data/repositories/pipeline_repository_impl.dart:19:3: Context: Found this candidate, but the arguments don't match.
+    PipelineRepositoryImpl({
+    ^^^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:82:35: Error: The method 'getAllPipelineStages' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getAllPipelineStages'.
+          when(mockMasterDataSource.getAllPipelineStages())
+                                    ^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:84:35: Error: The method 'getPipelineStatusesByStage' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getPipelineStatusesByStage'.
+          when(mockMasterDataSource.getPipelineStatusesByStage(any))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:113:35: Error: The method 'getAllPipelineStages' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getAllPipelineStages'.
+          when(mockMasterDataSource.getAllPipelineStages())
+                                    ^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:115:35: Error: The method 'getPipelineStatusesByStage' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getPipelineStatusesByStage'.
+          when(mockMasterDataSource.getPipelineStatusesByStage(any))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:142:35: Error: The method 'getAllPipelineStages' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getAllPipelineStages'.
+          when(mockMasterDataSource.getAllPipelineStages())
+                                    ^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:147:35: Error: The method 'getPipelineStatusesByStage' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getPipelineStatusesByStage'.
+          when(mockMasterDataSource.getPipelineStatusesByStage('stage-p3'))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:149:48: Error: Too few positional arguments: 2 required, 1 given.
+          when(mockLocalDataSource.updatePipeline(any))
+                                                 ^
+  test/integration/pipeline_flow_test.dart:176:35: Error: The method 'getAllPipelineStages' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getAllPipelineStages'.
+          when(mockMasterDataSource.getAllPipelineStages())
+                                    ^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:187:35: Error: The method 'getPipelineStatusesByStage' isn't defined for the type 'MockMasterDataLocalDataSource'.
+   - 'MockMasterDataLocalDataSource' is from 'test/integration/pipeline_flow_test.mocks.dart'.
+  Try correcting the name to the name of an existing method, or defining a method named 'getPipelineStatusesByStage'.
+          when(mockMasterDataSource.getPipelineStatusesByStage('stage-won'))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  test/integration/pipeline_flow_test.dart:191:48: Error: Too few positional arguments: 2 required, 1 given.
+          when(mockLocalDataSource.updatePipeline(any))
+                                                 ^
+  test/integration/pipeline_flow_test.dart:213:48: Error: Too few positional arguments: 2 required, 1 given.
+          when(mockLocalDataSource.updatePipeline(any))
+                                                 ^
+  test/integration/pipeline_flow_test.dart:319:5: Error: No named parameter with the name 'description'.
+      description: null,
+      ^^^^^^^^^^^
+  lib/data/database/app_database.g.dart:5380:9: Context: Found this candidate, but the arguments don't match.
+    const PipelineStage({
+          ^^^^^^^^^^^^^
+  .
+00:06 +17 -6: loading C:/Users/cartr/git_stuff/LeadX.v1/test/data/repositories/auth_repository_impl_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 911:11    DefaultResidentCompiler._compile.<fn>
+  dart:async/zone.dart 1538:47                     _rootRunUnary
+  dart:async/zone.dart 1429:19                     _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone.dart 1525:13                     _rootRun
+  dart:async/zone.dart 1422:19                     _CustomZone.run
+  dart:async/zone.dart 1321:7                      _CustomZone.runGuarded
+  dart:async/zone.dart 1362:23                     _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 194:5      _RawReceivePort._handleMessage
+  
+00:09 +17 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/forgot_password_screen_test.dart: ForgotPasswordScreen renders forgot password form elements correctly
+00:10 +18 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen renders login form elements correctly
+00:10 +19 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen renders login form elements correctly
+00:10 +20 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen renders login form elements correctly
+00:10 +21 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen renders login form elements correctly
+00:11 +22 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/forgot_password_screen_test.dart: ForgotPasswordScreen shows error snackbar on password reset failure
+00:11 +23 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen shows email validation error when email is empty
+00:11 +24 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen shows email validation error when email is empty
+00:11 +25 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen shows email validation error when email is empty
+00:11 +26 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen shows email validation error when email is empty
+00:11 +27 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/presentation/screens/auth/login_screen_test.dart: LoginScreen shows email validation error for invalid email format
+00:11 +28 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:11 +29 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:11 +30 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:12 +31 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:12 +32 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:12 +33 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+00:12 +34 -6: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error
+Pending timers:
+Timer (duration: 0:00:02.000000, periodic: false), created:
+#0      new FakeTimer._ (package:fake_async/fake_async.dart:342:62)
+#1      FakeAsync._createTimer (package:fake_async/fake_async.dart:260:29)
+#2      FakeAsync.run.<anonymous closure> (package:fake_async/fake_async.dart:185:15)
+#6      _SplashScreenState._checkAuthAndNavigate (package:leadx_crm/presentation/screens/auth/splash_screen.dart:27:18)
+#7      _SplashScreenState.initState (package:leadx_crm/presentation/screens/auth/splash_screen.dart:22:5)
+#8      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5953:55)
+#9      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5796:5)
+...     Normal element mounting (266 frames)
+#275    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#276    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#277    MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7285:32)
+...     Normal element mounting (497 frames)
+#774    _UncontrolledProviderScopeElement.mount (package:flutter_riverpod/src/framework.dart:315:11)
+...     Normal element mounting (9 frames)
+#783    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#784    Element.updateChild (package:flutter/src/widgets/framework.dart:4053:20)
+#785    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#786    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#787    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#788    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#789    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#790    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#791    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#792    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#793    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#794    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#795    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#796    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#797    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#798    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#799    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#800    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#801    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#802    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#803    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#804    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#805    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#806    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#807    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#808    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#809    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#810    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#811    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#812    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#813    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#814    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#815    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#816    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#817    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#818    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#819    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#820    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#821    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#822    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#823    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#824    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#825    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#826    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#827    _RawViewElement._updateChild (package:flutter/src/widgets/view.dart:481:16)
+#828    _RawViewElement.update (package:flutter/src/widgets/view.dart:568:5)
+#829    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#830    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#831    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#832    StatelessElement.update (package:flutter/src/widgets/framework.dart:5898:5)
+#833    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#834    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#835    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#836    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#837    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#838    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#839    RootElement._rebuild (package:flutter/src/widgets/binding.dart:1782:16)
+#840    RootElement.update (package:flutter/src/widgets/binding.dart:1760:5)
+#841    RootElement.performRebuild (package:flutter/src/widgets/binding.dart:1774:7)
+#842    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#843    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#844    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#845    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#846    AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:1506:19)
+#847    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#848    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#849    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#850    AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1335:9)
+#853    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#854    AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#855    WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#858    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#859    WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#860    main.<anonymous closure> (file:///C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart:9:18)
+#861    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#862    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 8 frames from dart:async and package:stack_trace)
+
+ΓòÉΓòÉΓòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Γò₧ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+The following assertion was thrown running a test:
+A Timer is still pending even after the widget tree was disposed.
+'package:flutter_test/src/binding.dart':
+Failed assertion: line 1617 pos 12: '!timersPending'
+
+When the exception was thrown, this was the stack:
+#2      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:1617:12)
+#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1078:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _AssertionError and package:stack_trace)
+
+The test description was:
+  App builds without error
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+00:12 +34 -7: C:/Users/cartr/git_stuff/LeadX.v1/test/widget_test.dart: App builds without error [E]
+  Test failed. See exception logs above.
+  The test description was: App builds without error
+  
+00:12 +34 -7: Some tests failed.
