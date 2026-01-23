@@ -71,6 +71,13 @@ final customerPipelinesProvider =
   return repository.watchCustomerPipelines(customerId);
 });
 
+/// Provider for fetching pipelines where a broker is the source.
+final brokerPipelinesProvider =
+    FutureProvider.family<List<domain.Pipeline>, String>((ref, brokerId) async {
+  final repository = ref.watch(pipelineRepositoryProvider);
+  return repository.getBrokerPipelines(brokerId);
+});
+
 // ==========================================
 // Detail Providers
 // ==========================================

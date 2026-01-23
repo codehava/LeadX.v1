@@ -45,12 +45,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       route: RoutePaths.home, // Customer tab
     ),
     _NavItem(
-      icon: Icons.add_circle_outline,
-      activeIcon: Icons.add_circle,
-      label: 'Add',
-      route: '', // Special: opens quick add sheet
-    ),
-    _NavItem(
       icon: Icons.calendar_today_outlined,
       activeIcon: Icons.calendar_today,
       label: 'Activity',
@@ -73,9 +67,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   void _updateSelectedIndex() {
     final route = widget.currentRoute;
     if (route.contains('/profile')) {
-      _selectedIndex = 4;
-    } else if (route.contains('/activities')) {
       _selectedIndex = 3;
+    } else if (route.contains('/activities')) {
+      _selectedIndex = 2;
     } else if (route.contains('/customers')) {
       _selectedIndex = 1;
     } else if (route.contains('/hvcs') || route.contains('/brokers') || 
@@ -296,118 +290,165 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
   Widget _buildNavigationRail(BuildContext context) {
     final theme = Theme.of(context);
-    // Ensure we have a valid selected index for NavigationRail
-    final effectiveIndex = _selectedIndex >= 0 ? _selectedIndex : 0;
     
-    return NavigationRail(
-      selectedIndex: effectiveIndex,
-      onDestinationSelected: _onNavTap,
-      labelType: NavigationRailLabelType.all,
-      leading: FloatingActionButton(
-        heroTag: 'shell_nav_rail_fab',
-        elevation: 0,
-        onPressed: () => _showQuickAddSheet(context),
-        child: const Icon(Icons.add),
-      ),
-      // Trailing section with additional menu items
-      // Trailing section with additional menu items
-      trailing: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const SizedBox(height: 16), // Spacing after destinations
-              const Divider(),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.business,
-                label: 'HVC',
-                isSelected: widget.currentRoute.contains('/hvcs'),
-                onTap: () => context.push(RoutePaths.hvc),
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.handshake,
-                label: 'Broker',
-                isSelected: widget.currentRoute.contains('/brokers'),
-                onTap: () => context.push(RoutePaths.brokers),
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.leaderboard,
-                label: 'Score',
-                isSelected: widget.currentRoute.contains('/scoreboard'),
-                onTap: () => context.push(RoutePaths.scoreboard),
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.track_changes,
-                label: 'Targets',
-                isSelected: widget.currentRoute.contains('/targets'),
-                onTap: () => context.push(RoutePaths.targets),
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.groups,
-                label: 'Cadence',
-                isSelected: widget.currentRoute.contains('/cadence'),
-                onTap: () => context.push(RoutePaths.cadence),
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.analytics_outlined,
-                label: 'Reports',
-                isSelected: false,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reports coming soon')),
+    // selectedIndex now directly matches _navItems since there's no "Add" button
+    // Home(0), Customer(1), Activity(2), Profile(3)
+    final effectiveIndex = _selectedIndex < 0 ? 0 : _selectedIndex;
+    
+    // Build a fully scrollable custom navigation rail
+    return Container(
+      width: 80,
+      color: theme.colorScheme.surface,
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top,
+          ),
+          child: IntrinsicHeight(
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                // Main navigation destinations
+                ..._navItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isSelected = effectiveIndex == index;
+                  
+                  return _buildRailDestination(
+                    context,
+                    icon: isSelected ? item.activeIcon : item.icon,
+                    label: item.label,
+                    isSelected: isSelected,
+                    onTap: () => _onNavTap(index),
                   );
-                },
-              ),
-              const Divider(),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.help_outline,
-                label: 'Help',
-                isSelected: false,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Help & FAQ coming soon')),
-                  );
-                },
-              ),
-              _buildRailTrailingItem(
-                context,
-                icon: Icons.settings,
-                label: 'Settings',
-                isSelected: widget.currentRoute.contains('/settings'),
-                onTap: () => context.push(RoutePaths.settings),
-              ),
-              // Admin Panel (if applicable, adding for consistency)
-              // TODO: Check admin status
-              /*
-              if (isAdmin)
+                }),
+                const SizedBox(height: 16),
+                const Divider(),
+                // Additional menu items
                 _buildRailTrailingItem(
                   context,
-                  icon: Icons.admin_panel_settings,
-                  label: 'Admin',
-                  isSelected: widget.currentRoute.contains('/admin'),
-                  onTap: () => context.push(RoutePaths.admin),
+                  icon: Icons.business,
+                  label: 'HVC',
+                  isSelected: widget.currentRoute.contains('/hvcs'),
+                  onTap: () => context.go(RoutePaths.hvc),
                 ),
-              */
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.handshake,
+                  label: 'Broker',
+                  isSelected: widget.currentRoute.contains('/brokers'),
+                  onTap: () => context.go(RoutePaths.brokers),
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.leaderboard,
+                  label: 'Score',
+                  isSelected: widget.currentRoute.contains('/scoreboard'),
+                  onTap: () => context.push(RoutePaths.scoreboard),
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.track_changes,
+                  label: 'Targets',
+                  isSelected: widget.currentRoute.contains('/targets'),
+                  onTap: () => context.push(RoutePaths.targets),
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.groups,
+                  label: 'Cadence',
+                  isSelected: widget.currentRoute.contains('/cadence'),
+                  onTap: () => context.push(RoutePaths.cadence),
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.analytics_outlined,
+                  label: 'Reports',
+                  isSelected: false,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Reports coming soon')),
+                    );
+                  },
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifikasi',
+                  isSelected: widget.currentRoute.contains('/notifications'),
+                  onTap: () => context.push(RoutePaths.notifications),
+                ),
+                const Spacer(),
+                const Divider(),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.help_outline,
+                  label: 'Help',
+                  isSelected: false,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Help & FAQ coming soon')),
+                    );
+                  },
+                ),
+                _buildRailTrailingItem(
+                  context,
+                  icon: Icons.settings,
+                  label: 'Settings',
+                  isSelected: widget.currentRoute.contains('/settings'),
+                  onTap: () => context.push(RoutePaths.settings),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Helper widget for main NavigationRail destinations (matching Material Design style)
+  Widget _buildRailDestination(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: 56,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                )
+              : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: isSelected ? theme.colorScheme.onSecondaryContainer : color, size: 24),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isSelected ? theme.colorScheme.onSecondaryContainer : color,
+                  fontWeight: isSelected ? FontWeight.w600 : null,
+                ),
+              ),
             ],
           ),
         ),
       ),
-      destinations: _navItems
-          .where((item) => item.label != 'Add') // Exclude Add from rail
-          .map((item) => NavigationRailDestination(
-                icon: Icon(item.icon),
-                selectedIcon: Icon(item.activeIcon),
-                label: Text(item.label),
-              ))
-          .toList(),
     );
   }
 
@@ -535,10 +576,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 _buildSectionHeader(context, 'AKUN'),
                 _buildSidebarItem(context, Icons.business, 'HVC', -1,
                     routePattern: '/hvcs',
-                    onTap: () => context.push(RoutePaths.hvc)),
+                    onTap: () => context.go(RoutePaths.hvc)),
                 _buildSidebarItem(context, Icons.handshake, 'Broker', -1,
                     routePattern: '/brokers',
-                    onTap: () => context.push(RoutePaths.brokers)),
+                    onTap: () => context.go(RoutePaths.brokers)),
 
                 // 4DX & PERFORMANCE
                 const SizedBox(height: 8),
@@ -773,59 +814,22 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   void _onNavTap(int index) {
-    if (index == 2) {
-      // Add button - show quick add sheet
-      _showQuickAddSheet(context);
-      return;
+    // Navigate to actual routes (matching HomeScreen behavior)
+    // Indices: Home(0), Customer(1), Activity(2), Profile(3)
+    switch (index) {
+      case 0:
+        context.go(RoutePaths.home);
+        break;
+      case 1:
+        context.go(RoutePaths.customers);
+        break;
+      case 2:
+        context.go(RoutePaths.activities);
+        break;
+      case 3:
+        context.go(RoutePaths.profile);
+        break;
     }
-
-    setState(() => _selectedIndex = index);
-
-    // For now, just update index. In real implementation,
-    // this should use StatefulShellRoute for proper tab persistence.
-    // TODO: Implement proper tab navigation with go_router
-  }
-
-  void _showQuickAddSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person_add),
-              title: const Text('New Customer'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(RoutePaths.customerCreate);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.add_chart),
-              title: const Text('New Pipeline'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to pipeline create
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('New Activity'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(RoutePaths.activityCreate);
-              },
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
-          ],
-        ),
-      ),
-    );
   }
 }
 

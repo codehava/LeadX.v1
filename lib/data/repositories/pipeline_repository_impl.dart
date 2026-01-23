@@ -105,6 +105,14 @@ class PipelineRepositoryImpl implements PipelineRepository {
     return data.map(_mapToPipeline).toList();
   }
 
+  /// Get pipelines where the broker is the source.
+  @override
+  Future<List<domain.Pipeline>> getBrokerPipelines(String brokerId) async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getBrokerPipelines(brokerId);
+    return data.map(_mapToPipeline).toList();
+  }
+
   /// Get pipelines that need to be synced.
   @override
   Future<List<domain.Pipeline>> getPendingSyncPipelines() async {

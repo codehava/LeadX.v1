@@ -267,6 +267,12 @@ class SyncService {
             .write(const db.CustomerHvcLinksCompanion(
               isPendingSync: Value(false),
             ));
+      case 'broker':
+        await (_database.update(_database.brokers)
+              ..where((b) => b.id.equals(entityId)))
+            .write(const db.BrokersCompanion(
+              isPendingSync: Value(false),
+            ));
       default:
         print('[SyncService] Unknown entity type for marking synced: $entityType');
     }

@@ -17,10 +17,14 @@ import '../../data/services/initial_sync_service.dart';
 import '../../data/services/sync_service.dart';
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../../domain/repositories/broker_repository.dart';
 import '../../domain/repositories/customer_repository.dart';
+import '../../domain/repositories/hvc_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import 'auth_providers.dart';
+import 'broker_providers.dart';
 import 'database_provider.dart';
+import 'hvc_providers.dart';
 import 'master_data_providers.dart';
 
 /// Provider for app settings service.
@@ -102,6 +106,8 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._customerRepository,
     this._pipelineRepository,
     this._activityRepository,
+    this._hvcRepository,
+    this._brokerRepository,
     this._connectivityService,
   ) : super(const AsyncValue.data(null));
 
@@ -109,6 +115,8 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   final CustomerRepository _customerRepository;
   final PipelineRepository _pipelineRepository;
   final ActivityRepository _activityRepository;
+  final HvcRepository _hvcRepository;
+  final BrokerRepository _brokerRepository;
   final ConnectivityService _connectivityService;
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
@@ -202,6 +210,39 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     } catch (e) {
       print('[SyncNotifier] Activity pull error: $e');
     }
+
+    // Pull HVCs
+    try {
+      final hvcResult = await _hvcRepository.syncFromRemote();
+      hvcResult.fold(
+        (failure) => print('[SyncNotifier] HVC pull failed: ${failure.message}'),
+        (count) => print('[SyncNotifier] Pulled $count HVCs'),
+      );
+    } catch (e) {
+      print('[SyncNotifier] HVC pull error: $e');
+    }
+
+    // Pull HVC-Customer links
+    try {
+      final hvcLinkResult = await _hvcRepository.syncLinksFromRemote();
+      hvcLinkResult.fold(
+        (failure) => print('[SyncNotifier] HVC link pull failed: ${failure.message}'),
+        (count) => print('[SyncNotifier] Pulled $count HVC-Customer links'),
+      );
+    } catch (e) {
+      print('[SyncNotifier] HVC link pull error: $e');
+    }
+
+    // Pull Brokers
+    try {
+      final brokerResult = await _brokerRepository.syncFromRemote();
+      brokerResult.fold(
+        (failure) => print('[SyncNotifier] Broker pull failed: ${failure.message}'),
+        (count) => print('[SyncNotifier] Pulled $count brokers'),
+      );
+    } catch (e) {
+      print('[SyncNotifier] Broker pull error: $e');
+    }
   }
 
   /// Check if sync is currently in progress.
@@ -246,12 +287,16 @@ final syncNotifierProvider =
   final customerRepository = ref.watch(_customerRepositoryProvider);
   final pipelineRepository = ref.watch(_pipelineRepositoryProvider);
   final activityRepository = ref.watch(_activityRepositoryProvider);
+  final hvcRepository = ref.watch(hvcRepositoryProvider);
+  final brokerRepository = ref.watch(brokerRepositoryProvider);
   
   return SyncNotifier(
     syncService,
     customerRepository,
     pipelineRepository,
     activityRepository,
+    hvcRepository,
+    brokerRepository,
     connectivityService,
   );
 });

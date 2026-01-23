@@ -754,11 +754,8 @@ class _ActivitiesTab extends ConsumerWidget {
   }
 
   void _showImmediateSheet(BuildContext context) {
-    ImmediateActivitySheet.show(
-      context,
-      objectType: 'CUSTOMER',
-      objectId: customerId,
-      objectName: customerName,
+    context.push(
+      '/home/activities/immediate?objectType=CUSTOMER&objectId=$customerId&objectName=${Uri.encodeComponent(customerName)}',
     );
   }
 

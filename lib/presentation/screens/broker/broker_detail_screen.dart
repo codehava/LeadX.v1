@@ -6,10 +6,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/broker.dart';
 import '../../../domain/entities/key_person.dart';
+import '../../../domain/entities/pipeline.dart';
 import '../../providers/activity_providers.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/pipeline_providers.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_state.dart';
 import '../activity/activity_execution_sheet.dart';
@@ -534,15 +536,151 @@ class _PipelinesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use pipeline provider - we'd need to create brokerPipelinesProvider
-    // For now, show placeholder
-    return const Center(
-      child: AppEmptyState(
-        icon: Icons.trending_up,
-        title: 'Pipeline',
-        subtitle: 'Daftar pipeline yang menggunakan broker ini.',
+    final pipelinesAsync = ref.watch(brokerPipelinesProvider(brokerId));
+    final theme = Theme.of(context);
+
+    return pipelinesAsync.when(
+      data: (pipelines) {
+        if (pipelines.isEmpty) {
+          return const Center(
+            child: AppEmptyState(
+              icon: Icons.trending_up,
+              title: 'Belum Ada Pipeline',
+              subtitle: 'Belum ada pipeline yang direferensikan oleh broker ini.',
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 8, bottom: 88),
+          itemCount: pipelines.length,
+          itemBuilder: (context, index) {
+            final pipeline = pipelines[index];
+            return _PipelineCard(
+              pipeline: pipeline,
+              onTap: () => context.push('/home/pipelines/${pipeline.id}'),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => AppErrorState(
+        title: 'Gagal memuat data',
+        onRetry: () => ref.invalidate(brokerPipelinesProvider(brokerId)),
       ),
     );
+  }
+}
+
+/// Card widget for displaying pipeline info in the broker detail.
+class _PipelineCard extends StatelessWidget {
+  const _PipelineCard({
+    required this.pipeline,
+    required this.onTap,
+  });
+
+  final Pipeline pipeline;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final stageColor = pipeline.stageColor != null 
+        ? Color(int.parse('FF${pipeline.stageColor!.replaceAll('#', '')}', radix: 16))
+        : AppColors.primary;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: stageColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      pipeline.stageName ?? 'Unknown Stage',
+                      style: TextStyle(
+                        color: stageColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    pipeline.code,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                pipeline.customerName ?? 'Unknown Customer',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                pipeline.cobLobDisplay,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.attach_money,
+                    size: 16,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    pipeline.formattedPotentialPremium,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.success,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (pipeline.expectedCloseDate != null) ...[
+                    Icon(
+                      Icons.calendar_today,
+                      size: 14,
+                      color: theme.colorScheme.outline,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatDate(pipeline.expectedCloseDate!),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -559,48 +697,96 @@ class _ActivitiesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activitiesAsync = ref.watch(brokerActivitiesProvider(brokerId));
+    final theme = Theme.of(context);
 
     return Scaffold(
       body: activitiesAsync.when(
         data: (activities) {
           if (activities.isEmpty) {
-            return const AppEmptyState(
-              icon: Icons.event_note_outlined,
-              title: 'Belum Ada Aktivitas',
-              subtitle: 'Belum ada aktivitas untuk broker ini.',
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.event_note_outlined,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Belum ada aktivitas'),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _showImmediateSheet(context),
+                        icon: const Icon(Icons.flash_on),
+                        label: const Text('Log Aktivitas'),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(
+                        onPressed: () => _navigateToSchedule(context),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Jadwalkan'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             );
           }
 
           // Group activities by status
-          final upcoming = activities
-              .where((a) => a.status == ActivityStatus.planned)
-              .toList();
-          final completed = activities
-              .where((a) => a.status == ActivityStatus.completed)
-              .toList();
-          final other = activities
-              .where((a) =>
-                  a.status != ActivityStatus.planned &&
-                  a.status != ActivityStatus.completed)
-              .toList();
+          final upcoming = activities.where((a) =>
+              a.status == ActivityStatus.planned ||
+              a.status == ActivityStatus.inProgress).toList();
+          final completed = activities.where((a) =>
+              a.status == ActivityStatus.completed).toList();
+          final other = activities.where((a) =>
+              a.status == ActivityStatus.cancelled ||
+              a.status == ActivityStatus.rescheduled ||
+              a.status == ActivityStatus.overdue).toList();
 
           return ListView(
-            padding: const EdgeInsets.only(top: 8, bottom: 88),
+            padding: const EdgeInsets.all(16),
             children: [
               if (upcoming.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Mendatang', upcoming.length),
+                Text(
+                  'Mendatang (${upcoming.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
                 ...upcoming.map((a) => _ActivityTile(
                       activity: a,
-                      onExecute: () => _executeActivity(context, a),
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                      onExecute: a.canExecute
+                          ? () => _executeActivity(context, a)
+                          : null,
                     )),
+                const SizedBox(height: 16),
               ],
               if (completed.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Selesai', completed.length),
-                ...completed.map((a) => _ActivityTile(activity: a)),
+                Text(
+                  'Selesai (${completed.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                ...completed.map((a) => _ActivityTile(
+                      activity: a,
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                    )),
+                const SizedBox(height: 16),
               ],
               if (other.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Lainnya', other.length),
-                ...other.map((a) => _ActivityTile(activity: a)),
+                Text(
+                  'Lainnya (${other.length})',
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                ...other.map((a) => _ActivityTile(
+                      activity: a,
+                      onTap: () => context.push('/home/activities/${a.id}'),
+                    )),
               ],
             ],
           );
@@ -611,72 +797,43 @@ class _ActivitiesTab extends ConsumerWidget {
           onRetry: () => ref.invalidate(brokerActivitiesProvider(brokerId)),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showActivityOptions(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Aktivitas'),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title, int count) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        '$title ($count)',
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-    );
-  }
-
-  void _showActivityOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.flash_on),
-              title: const Text('Log Aktivitas'),
-              subtitle: const Text('Catat aktivitas yang baru dilakukan'),
-              onTap: () {
-                Navigator.pop(context);
-                _showImmediateSheet(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('Jadwalkan Aktivitas'),
-              subtitle: const Text('Rencanakan aktivitas ke depan'),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToSchedule(context);
-              },
-            ),
-          ],
-        ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'broker_activity_immediate_fab',
+            onPressed: () => _showImmediateSheet(context),
+            backgroundColor: AppColors.tertiary,
+            child: const Icon(Icons.flash_on),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: 'broker_activity_schedule_fab',
+            onPressed: () => _navigateToSchedule(context),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }
 
   void _showImmediateSheet(BuildContext context) {
-    ImmediateActivitySheet.show(
-      context,
-      objectType: 'BROKER',
-      objectId: brokerId,
-      objectName: brokerName,
+    context.push(
+      '/home/activities/immediate?objectType=BROKER&objectId=$brokerId&objectName=${Uri.encodeComponent(brokerName)}',
     );
   }
 
   void _navigateToSchedule(BuildContext context) {
-    context.push('/home/activities/schedule?objectType=BROKER&objectId=$brokerId');
+    context.push(
+      '/home/activities/create?objectType=BROKER&objectId=$brokerId&objectName=${Uri.encodeComponent(brokerName)}',
+    );
   }
 
   void _executeActivity(BuildContext context, Activity activity) {
-    ActivityExecutionSheet.show(context, activity: activity);
+    ActivityExecutionSheet.show(
+      context,
+      activity: activity,
+    );
   }
 }
 
@@ -684,10 +841,12 @@ class _ActivitiesTab extends ConsumerWidget {
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({
     required this.activity,
+    required this.onTap,
     this.onExecute,
   });
 
   final Activity activity;
+  final VoidCallback onTap;
   final VoidCallback? onExecute;
 
   @override
@@ -695,27 +854,70 @@ class _ActivityTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getStatusColor().withValues(alpha: 0.1),
-          child: Icon(
-            _getStatusIcon(),
-            color: _getStatusColor(),
-            size: 20,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: _getStatusColor().withValues(alpha: 0.2),
+                radius: 20,
+                child: Icon(
+                  _getTypeIcon(),
+                  size: 20,
+                  color: _getStatusColor(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.displayName,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      _formatDateTime(activity.scheduledDatetime),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getStatusColor().withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  activity.statusText,
+                  style: TextStyle(
+                    color: _getStatusColor(),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (onExecute != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: onExecute,
+                  icon: const Icon(Icons.play_circle_fill),
+                  color: AppColors.success,
+                  tooltip: 'Eksekusi',
+                ),
+              ],
+            ],
           ),
         ),
-        title: Text(activity.activityTypeName ?? 'Aktivitas'),
-        subtitle: Text(
-          activity.summary ?? _formatDateTime(activity.scheduledDatetime),
-        ),
-        trailing: activity.status == ActivityStatus.planned && onExecute != null
-            ? FilledButton.tonal(
-                onPressed: onExecute,
-                child: const Text('Execute'),
-              )
-            : null,
-        onTap: () => context.push('/home/activities/${activity.id}'),
       ),
     );
   }
@@ -724,29 +926,55 @@ class _ActivityTile extends StatelessWidget {
     switch (activity.status) {
       case ActivityStatus.planned:
         return AppColors.info;
+      case ActivityStatus.inProgress:
+        return AppColors.warning;
       case ActivityStatus.completed:
         return AppColors.success;
       case ActivityStatus.cancelled:
+        return AppColors.activityCancelled;
+      case ActivityStatus.rescheduled:
+        return AppColors.primary;
+      case ActivityStatus.overdue:
         return AppColors.error;
-      default:
-        return Colors.grey;
     }
   }
 
-  IconData _getStatusIcon() {
-    switch (activity.status) {
-      case ActivityStatus.planned:
-        return Icons.schedule;
-      case ActivityStatus.completed:
-        return Icons.check_circle;
-      case ActivityStatus.cancelled:
-        return Icons.cancel;
+  IconData _getTypeIcon() {
+    final iconName = activity.activityTypeIcon?.toLowerCase() ?? '';
+    switch (iconName) {
+      case 'visit':
+      case 'place':
+      case 'location':
+        return Icons.place;
+      case 'call':
+      case 'phone':
+        return Icons.phone;
+      case 'meeting':
+      case 'people':
+        return Icons.people;
+      case 'email':
+      case 'mail':
+        return Icons.email;
       default:
         return Icons.event;
     }
   }
 
   String _formatDateTime(DateTime dt) {
-    return '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dtDate = DateTime(dt.year, dt.month, dt.day);
+
+    String dateStr;
+    if (dtDate == today) {
+      dateStr = 'Hari ini';
+    } else if (dtDate == today.add(const Duration(days: 1))) {
+      dateStr = 'Besok';
+    } else {
+      dateStr = '${dt.day}/${dt.month}';
+    }
+
+    final timeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    return '$dateStr, $timeStr';
   }
 }

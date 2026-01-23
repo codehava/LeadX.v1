@@ -120,14 +120,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.home,
         name: RouteNames.home,
-        builder: (context, state) => const HomeScreen(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: ResponsiveShell(
+            currentRoute: state.matchedLocation,
+            child: const HomeScreen(),
+          ),
+        ),
         routes: [
           // Dashboard
           GoRoute(
             path: 'dashboard',
             name: RouteNames.dashboard,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Dashboard')),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Dashboard')),
+                ),
+              ),
             ),
           ),
 
@@ -135,19 +145,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'customers',
             name: RouteNames.customers,
-            builder: (context, state) => const HomeScreen(initialTab: 1),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const HomeScreen(initialTab: 1),
+              ),
+            ),
             routes: [
               GoRoute(
                 path: 'create',
                 name: RouteNames.customerCreate,
-                builder: (context, state) => const CustomerFormScreen(),
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const CustomerFormScreen(),
+                ),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.customerDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return CustomerDetailScreen(customerId: id);
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: CustomerDetailScreen(customerId: id),
+                  );
                 },
                 routes: [
                   GoRoute(
@@ -155,7 +176,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.customerEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return CustomerFormScreen(customerId: id);
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: CustomerFormScreen(customerId: id),
+                      );
                     },
                   ),
                   GoRoute(
@@ -163,7 +187,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'customerHistory',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return CustomerHistoryScreen(customerId: id);
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: CustomerHistoryScreen(customerId: id),
+                      );
                     },
                   ),
                 ],
@@ -177,7 +204,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: RouteNames.pipelineCreate,
             builder: (context, state) {
               final customerId = state.uri.queryParameters['customerId']!;
-              return PipelineFormScreen(customerId: customerId);
+              return ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: PipelineFormScreen(customerId: customerId),
+              );
             },
           ),
           GoRoute(
@@ -186,7 +216,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               final customerId = state.uri.queryParameters['customerId'] ?? '';
-              return PipelineDetailScreen(pipelineId: id, customerId: customerId);
+              return ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: PipelineDetailScreen(pipelineId: id, customerId: customerId),
+              );
             },
             routes: [
               GoRoute(
@@ -195,7 +228,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   final customerId = state.uri.queryParameters['customerId'] ?? '';
-                  return PipelineFormScreen(customerId: customerId, pipelineId: id);
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: PipelineFormScreen(customerId: customerId, pipelineId: id),
+                  );
                 },
               ),
               GoRoute(
@@ -203,7 +239,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'pipelineHistory',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return PipelineHistoryScreen(pipelineId: id);
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: PipelineHistoryScreen(pipelineId: id),
+                  );
                 },
               ),
             ],
@@ -213,7 +252,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'activities',
             name: RouteNames.activities,
-            builder: (context, state) => const HomeScreen(initialTab: 3),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const HomeScreen(initialTab: 2),
+              ),
+            ),
             routes: [
               GoRoute(
                 path: 'create',
@@ -223,11 +267,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final objectId = state.uri.queryParameters['objectId'];
                   final objectName = state.uri.queryParameters['objectName'];
                   final immediate = state.uri.queryParameters['immediate'] == 'true';
-                  return ActivityFormScreen(
-                    objectType: objectType,
-                    objectId: objectId,
-                    objectName: objectName,
-                    isImmediate: immediate,
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: ActivityFormScreen(
+                      objectType: objectType,
+                      objectId: objectId,
+                      objectName: objectName,
+                      isImmediate: immediate,
+                    ),
+                  );
+                },
+              ),
+              // Immediate activity route (for entity detail pages)
+              GoRoute(
+                path: 'immediate',
+                name: 'activityImmediate',
+                builder: (context, state) {
+                  final objectType = state.uri.queryParameters['objectType'];
+                  final objectId = state.uri.queryParameters['objectId'];
+                  final objectName = state.uri.queryParameters['objectName'];
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: ActivityFormScreen(
+                      objectType: objectType,
+                      objectId: objectId,
+                      objectName: objectName,
+                      isImmediate: true,
+                    ),
                   );
                 },
               ),
@@ -236,7 +302,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: RouteNames.activityDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ActivityDetailScreen(activityId: id);
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: ActivityDetailScreen(activityId: id),
+                  );
                 },
               ),
             ],
@@ -246,16 +315,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'activity/calendar',
             name: RouteNames.activityCalendar,
-            builder: (context, state) => const ActivityCalendarScreen(),
+            builder: (context, state) => ResponsiveShell(
+              currentRoute: state.matchedLocation,
+              child: const ActivityCalendarScreen(),
+            ),
           ),
 
           // HVC
           GoRoute(
             path: 'hvcs',
             name: RouteNames.hvc,
-            builder: (context, state) => ResponsiveShell(
-              currentRoute: state.matchedLocation,
-              child: const HvcListScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const HvcListScreen(),
+              ),
             ),
             routes: [
               GoRoute(
@@ -297,9 +371,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'brokers',
             name: RouteNames.brokers,
-            builder: (context, state) => ResponsiveShell(
-              currentRoute: state.matchedLocation,
-              child: const BrokerListScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const BrokerListScreen(),
+              ),
             ),
             routes: [
               GoRoute(
@@ -341,15 +417,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'scoreboard',
             name: RouteNames.scoreboard,
-            builder: (context, state) => const ScoreboardScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const ScoreboardScreen(),
+              ),
+            ),
           ),
 
           // Cadence
           GoRoute(
             path: 'cadence',
             name: RouteNames.cadence,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Cadence')),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Cadence')),
+                ),
+              ),
+            ),
+          ),
+
+          // Targets
+          GoRoute(
+            path: 'targets',
+            name: RouteNames.targets,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Targets')),
+                ),
+              ),
             ),
           ),
 
@@ -357,15 +457,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'profile',
             name: RouteNames.profile,
-            builder: (context, state) => const HomeScreen(initialTab: 4),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const HomeScreen(initialTab: 3),
+              ),
+            ),
           ),
 
           // Settings
           GoRoute(
             path: 'settings',
             name: RouteNames.settings,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Settings')),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Settings')),
+                ),
+              ),
             ),
           ),
 
@@ -373,8 +483,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'notifications',
             name: RouteNames.notifications,
-            builder: (context, state) => const Placeholder(
-              child: Center(child: Text('Notifications')),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Notifications')),
+                ),
+              ),
             ),
           ),
 
@@ -382,7 +497,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'sync-queue',
             name: 'syncQueue',
-            builder: (context, state) => const SyncQueueScreen(),
+            builder: (context, state) => ResponsiveShell(
+              currentRoute: state.matchedLocation,
+              child: const SyncQueueScreen(),
+            ),
           ),
         ],
       ),
@@ -394,8 +512,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.admin,
         name: RouteNames.admin,
-        builder: (context, state) => const Placeholder(
-          child: Center(child: Text('Admin Panel')),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: Placeholder(
+            child: Center(child: Text('Admin Panel')),
+          ),
         ),
       ),
     ],

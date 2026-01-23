@@ -1,11 +1,19 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../data/dtos/activity_dtos.dart';
+import '../../../data/services/camera_service.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
+import '../../providers/broker_providers.dart';
+import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
+import '../../widgets/common/searchable_dropdown.dart';
 
 /// Screen for creating/scheduling activities.
 class ActivityFormScreen extends ConsumerStatefulWidget {
@@ -37,6 +45,11 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   
   final _summaryController = TextEditingController();
   final _notesController = TextEditingController();
+  
+  // GPS and Photo state (for immediate activities)
+  bool _isCapturingGps = false;
+  final List<CapturedPhoto> _capturedPhotos = [];
+  bool _requiresPhoto = false;
 
   @override
   void initState() {
@@ -48,6 +61,22 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
       // For immediate activities, set time to now
       _scheduledDate = DateTime.now();
       _scheduledTime = TimeOfDay.now();
+      // Auto-capture GPS
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _captureGps();
+      });
+    }
+  }
+  
+  Future<void> _captureGps() async {
+    if (!widget.isImmediate) return;
+    setState(() => _isCapturingGps = true);
+    
+    final gpsService = ref.read(gpsServiceProvider);
+    await gpsService.getCurrentPosition();
+    
+    if (mounted) {
+      setState(() => _isCapturingGps = false);
     }
   }
 
@@ -124,6 +153,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                 selected: _selectedObjectType != null
                     ? {_selectedObjectType!}
                     : const {},
+                emptySelectionAllowed: true,
                 onSelectionChanged: (selected) {
                   setState(() {
                     _selectedObjectType = selected.first;
@@ -132,6 +162,9 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // Entity picker based on selected type
+              if (_selectedObjectType != null)
+                _buildEntityPicker(theme),
             ],
 
             // Object name display (if pre-selected)
@@ -180,9 +213,14 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                       label: Text(type.name),
                       selected: isSelected,
                       onSelected: (selected) {
+                        final newTypeId = selected ? type.id : null;
                         setState(() {
-                          _selectedActivityTypeId = selected ? type.id : null;
+                          _selectedActivityTypeId = newTypeId;
                         });
+                        // Check photo requirement for immediate activities
+                        if (widget.isImmediate) {
+                          _checkPhotoForType(newTypeId);
+                        }
                       },
                       avatar: Icon(
                         _getActivityTypeIcon(type.icon),
@@ -262,7 +300,17 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+
+            // GPS Status (for immediate activities)
+            if (widget.isImmediate) ...[
+              _buildGpsStatus(theme),
+              const SizedBox(height: 16),
+              _buildPhotoSection(theme),
+              const SizedBox(height: 16),
+            ],
+
+            const SizedBox(height: 16),
 
             // Submit Button
             FilledButton(
@@ -309,7 +357,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_selectedActivityTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -342,6 +390,10 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     );
 
     if (widget.isImmediate) {
+      // Get GPS position for immediate activity
+      final gpsService = ref.read(gpsServiceProvider);
+      final position = await gpsService.getCurrentPosition();
+      
       // Create immediate activity
       final dto = ImmediateActivityDto(
         objectType: objectType,
@@ -353,9 +405,24 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
             ? _summaryController.text
             : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        // GPS will be captured separately
+        latitude: position?.latitude,
+        longitude: position?.longitude,
+        locationAccuracy: position?.accuracy,
       );
-      ref.read(activityFormNotifierProvider.notifier).createImmediateActivity(dto);
+      await ref.read(activityFormNotifierProvider.notifier).createImmediateActivity(dto);
+      
+      // Save captured photos if any
+      final formState = ref.read(activityFormNotifierProvider);
+      if (_capturedPhotos.isNotEmpty && formState.savedActivity != null) {
+        await ref
+            .read(activityFormNotifierProvider.notifier)
+            .addPhotosWithBytes(
+              formState.savedActivity!.id,
+              _capturedPhotos,
+              latitude: position?.latitude,
+              longitude: position?.longitude,
+            );
+      }
     } else {
       // Create scheduled activity
       final dto = ActivityCreateDto(
@@ -434,6 +501,419 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         return Icons.description;
       default:
         return Icons.event;
+    }
+  }
+
+  /// Build entity picker based on selected object type.
+  Widget _buildEntityPicker(ThemeData theme) {
+    switch (_selectedObjectType) {
+      case 'CUSTOMER':
+        return _buildCustomerPicker(theme);
+      case 'HVC':
+        return _buildHvcPicker(theme);
+      case 'BROKER':
+        return _buildBrokerPicker(theme);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildCustomerPicker(ThemeData theme) {
+    final customersAsync = ref.watch(customerListStreamProvider);
+    
+    return customersAsync.when(
+      data: (customers) {
+        if (customers.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada customer',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SearchableDropdown<String>(
+          label: 'Pilih Customer',
+          hint: 'Ketuk untuk memilih customer...',
+          modalTitle: 'Pilih Customer',
+          searchHint: 'Cari customer...',
+          prefixIcon: Icons.business,
+          value: _selectedObjectId,
+          items: customers.map((customer) {
+            return DropdownItem(
+              value: customer.id,
+              label: customer.name,
+              subtitle: customer.address,
+              icon: Icons.business,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedObjectId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
+    );
+  }
+
+  Widget _buildHvcPicker(ThemeData theme) {
+    final hvcsAsync = ref.watch(hvcListStreamProvider);
+    
+    return hvcsAsync.when(
+      data: (hvcs) {
+        if (hvcs.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada HVC',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SearchableDropdown<String>(
+          label: 'Pilih HVC',
+          hint: 'Ketuk untuk memilih HVC...',
+          modalTitle: 'Pilih HVC',
+          searchHint: 'Cari HVC...',
+          prefixIcon: Icons.star,
+          value: _selectedObjectId,
+          items: hvcs.map((hvc) {
+            return DropdownItem(
+              value: hvc.id,
+              label: hvc.name,
+              icon: Icons.star,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedObjectId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
+    );
+  }
+
+  Widget _buildBrokerPicker(ThemeData theme) {
+    final brokersAsync = ref.watch(brokerListStreamProvider);
+    
+    return brokersAsync.when(
+      data: (brokers) {
+        if (brokers.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada broker',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SearchableDropdown<String>(
+          label: 'Pilih Broker',
+          hint: 'Ketuk untuk memilih broker...',
+          modalTitle: 'Pilih Broker',
+          searchHint: 'Cari broker...',
+          prefixIcon: Icons.handshake,
+          value: _selectedObjectId,
+          items: brokers.map((broker) {
+            return DropdownItem(
+              value: broker.id,
+              label: broker.name,
+              icon: Icons.handshake,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedObjectId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
+    );
+  }
+
+  // ==========================================
+  // GPS and Photo Methods (for immediate activities)
+  // ==========================================
+
+  Widget _buildGpsStatus(ThemeData theme) {
+    if (_isCapturingGps) {
+      return Card(
+        child: const ListTile(
+          leading: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          title: Text('Menangkap lokasi...'),
+        ),
+      );
+    }
+
+    final gpsService = ref.read(gpsServiceProvider);
+    return FutureBuilder(
+      future: gpsService.getCurrentPosition(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Card(
+            child: const ListTile(
+              leading: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              title: Text('Mendapatkan lokasi...'),
+            ),
+          );
+        }
+
+        if (snapshot.data != null) {
+          return Card(
+            color: AppColors.success.withValues(alpha: 0.1),
+            child: ListTile(
+              leading: const Icon(Icons.gps_fixed, color: AppColors.success),
+              title: const Text('Lokasi Tersimpan'),
+              subtitle: Text(
+                'Akurasi: ${snapshot.data!.accuracy.toInt()}m',
+              ),
+            ),
+          );
+        }
+
+        return Card(
+          color: AppColors.warning.withValues(alpha: 0.1),
+          child: const ListTile(
+            leading: Icon(Icons.gps_off, color: AppColors.warning),
+            title: Text('Lokasi tidak tersedia'),
+            subtitle: Text('Aktivitas akan dicatat tanpa GPS'),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPhotoSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Foto Bukti',
+              style: theme.textTheme.titleSmall,
+            ),
+            if (_requiresPhoto)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Wajib',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Photo preview grid
+        if (_capturedPhotos.isNotEmpty)
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _capturedPhotos.length,
+              itemBuilder: (context, index) {
+                final photo = _capturedPhotos[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: _buildPhotoImage(photo, theme),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _capturedPhotos.removeAt(index);
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+        const SizedBox(height: 8),
+
+        // Photo capture buttons
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: kIsWeb ? null : _capturePhoto,
+                icon: const Icon(Icons.camera_alt, size: 18),
+                label: const Text('Kamera'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _pickFromGallery,
+                icon: const Icon(Icons.photo_library, size: 18),
+                label: const Text('Galeri'),
+              ),
+            ),
+          ],
+        ),
+        
+        if (kIsWeb)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Kamera tidak tersedia di web, gunakan galeri untuk upload foto',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _capturePhoto() async {
+    final cameraService = ref.read(cameraServiceProvider);
+    final photo = await cameraService.capturePhoto();
+    if (photo != null && mounted) {
+      setState(() {
+        _capturedPhotos.add(photo);
+      });
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final cameraService = ref.read(cameraServiceProvider);
+    final photo = await cameraService.pickFromGallery();
+    if (photo != null && mounted) {
+      setState(() {
+        _capturedPhotos.add(photo);
+      });
+    }
+  }
+
+  void _checkPhotoForType(String? activityTypeId) {
+    if (activityTypeId == null) {
+      setState(() => _requiresPhoto = false);
+      return;
+    }
+    
+    final activityTypesAsync = ref.read(activityTypesProvider);
+    activityTypesAsync.whenData((types) {
+      final activityType = types.firstWhere(
+        (t) => t.id == activityTypeId,
+        orElse: () => types.first,
+      );
+      if (mounted) {
+        setState(() {
+          _requiresPhoto = activityType.requirePhoto;
+        });
+      }
+    });
+  }
+
+  /// Build photo image widget that handles web and mobile platforms.
+  Widget _buildPhotoImage(CapturedPhoto photo, ThemeData theme) {
+    // On web, use bytes if available
+    if (kIsWeb) {
+      if (photo.bytes != null) {
+        return Image.memory(
+          photo.bytes!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+        );
+      }
+      // Fallback placeholder for web without bytes
+      return Container(
+        width: 100,
+        height: 100,
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: const Icon(Icons.photo, size: 40),
+      );
+    }
+    
+    // On mobile, use File
+    try {
+      return Image.file(
+        File(photo.localPath),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 100,
+            height: 100,
+            color: theme.colorScheme.surfaceContainerHighest,
+            child: const Icon(Icons.broken_image, size: 40),
+          );
+        },
+      );
+    } catch (e) {
+      return Container(
+        width: 100,
+        height: 100,
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: const Icon(Icons.broken_image, size: 40),
+      );
     }
   }
 }

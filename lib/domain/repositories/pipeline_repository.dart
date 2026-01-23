@@ -60,6 +60,9 @@ abstract class PipelineRepository {
   /// Get pipelines for a customer.
   Future<List<Pipeline>> getCustomerPipelines(String customerId);
 
+  /// Get pipelines where the broker is the source (brokerId).
+  Future<List<Pipeline>> getBrokerPipelines(String brokerId);
+
   /// Get pipelines that need to be synced.
   Future<List<Pipeline>> getPendingSyncPipelines();
 

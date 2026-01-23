@@ -277,13 +277,8 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
   }
 
   void _showImmediateSheet() {
-    // Show object selector for immediate activity
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => const _ObjectSelectorSheet(isImmediate: true),
-    );
+    // Navigate to activity form with immediate=true
+    context.push('${RoutePaths.activityCreate}?immediate=true');
   }
 
   void _executeActivity(Activity activity) {

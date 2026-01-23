@@ -122,6 +122,14 @@ class PipelineLocalDataSource {
     return query.get();
   }
 
+  /// Get pipelines where the broker is the source.
+  Future<List<Pipeline>> getBrokerPipelines(String brokerId) async {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.brokerId.equals(brokerId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.get();
+  }
+
   /// Get pipelines that need to be synced.
   Future<List<Pipeline>> getPendingSyncPipelines() async {
     final query = _db.select(_db.pipelines)

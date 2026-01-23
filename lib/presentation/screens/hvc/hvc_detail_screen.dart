@@ -859,11 +859,8 @@ class _ActivitiesTab extends ConsumerWidget {
   }
 
   void _showImmediateSheet(BuildContext context) {
-    ImmediateActivitySheet.show(
-      context,
-      objectType: 'HVC',
-      objectId: hvcId,
-      objectName: hvcName,
+    context.push(
+      '/home/activities/immediate?objectType=HVC&objectId=$hvcId&objectName=${Uri.encodeComponent(hvcName)}',
     );
   }
 
