@@ -441,7 +441,7 @@ class InitialSyncService {
 
   Future<void> _syncActivityTypes() async {
     final data = await _supabase.from('activity_types').select().eq('is_active', true);
-    
+
     await _db.batch((batch) {
       for (final row in data as List) {
         batch.insert(
@@ -450,6 +450,12 @@ class InitialSyncService {
             id: row['id'] as String,
             code: row['code'] as String,
             name: row['name'] as String,
+            icon: Value(row['icon'] as String?),
+            color: Value(row['color'] as String?),
+            requireLocation: Value(row['require_location'] as bool? ?? false),
+            requirePhoto: Value(row['require_photo'] as bool? ?? false),
+            requireNotes: Value(row['require_notes'] as bool? ?? false),
+            sortOrder: Value(row['sort_order'] as int? ?? 0),
           ),
           mode: InsertMode.insertOrReplace,
         );

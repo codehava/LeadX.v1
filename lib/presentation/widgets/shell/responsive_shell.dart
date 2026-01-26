@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../providers/auth_providers.dart';
 import '../../providers/sync_providers.dart';
 import '../../screens/home/widgets/home_drawer.dart';
 import '../common/sync_status_badge.dart';
@@ -157,10 +158,44 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           padding: const EdgeInsets.only(right: 8),
           child: GestureDetector(
             onTap: () => context.go(RoutePaths.profile),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: theme.colorScheme.primary,
-              child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final userAsync = ref.watch(currentUserProvider);
+                return userAsync.when(
+                  data: (user) {
+                    if (user == null) {
+                      return CircleAvatar(
+                        radius: 16,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
+                      );
+                    }
+                    return CircleAvatar(
+                      radius: 16,
+                      backgroundColor: theme.colorScheme.primary,
+                      backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
+                          ? NetworkImage(user.photoUrl!)
+                          : null,
+                      child: user.photoUrl == null || user.photoUrl!.isEmpty
+                          ? Text(
+                              user.initials,
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                            )
+                          : null,
+                    );
+                  },
+                  loading: () => CircleAvatar(
+                    radius: 16,
+                    backgroundColor: theme.colorScheme.primary,
+                    child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ),
+                  error: (_, __) => CircleAvatar(
+                    radius: 16,
+                    backgroundColor: theme.colorScheme.primary,
+                    child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -744,19 +779,64 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           ),
           const SizedBox(width: 8),
           // Profile avatar with tap feedback
-          Material(
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => context.go(RoutePaths.profile),
-              customBorder: const CircleBorder(),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: theme.colorScheme.primary,
-                child: const Text('U', style: TextStyle(color: Colors.white)),
-              ),
-            ),
+          Consumer(
+            builder: (context, ref, _) {
+              final userAsync = ref.watch(currentUserProvider);
+              return userAsync.when(
+                data: (user) {
+                  return Material(
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => context.go(RoutePaths.profile),
+                      customBorder: const CircleBorder(),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: theme.colorScheme.primary,
+                        backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                            ? NetworkImage(user.photoUrl!)
+                            : null,
+                        child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                            ? Text(
+                                user?.initials ?? 'U',
+                                style: const TextStyle(color: Colors.white),
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => Material(
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.go(RoutePaths.profile),
+                    customBorder: const CircleBorder(),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: theme.colorScheme.primary,
+                      child: const Text('U', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ),
+                error: (_, __) => Material(
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.go(RoutePaths.profile),
+                    customBorder: const CircleBorder(),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: theme.colorScheme.primary,
+                      child: const Text('U', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

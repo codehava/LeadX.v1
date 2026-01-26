@@ -733,6 +733,55 @@ class ActivityRepositoryImpl implements ActivityRepository {
   }
 
   @override
+  Future<void> syncPhotosFromRemote() async {
+    try {
+      debugPrint('[ActivityRepo] Starting photo sync from remote');
+
+      // Get all activity IDs from local database
+      final activities = await _localDataSource.getAllActivities();
+
+      int photoCount = 0;
+      for (final activity in activities) {
+        try {
+          // Fetch photos for this activity from remote
+          final remotePhotos = await _remoteDataSource.fetchActivityPhotos(activity.id);
+
+          if (remotePhotos.isEmpty) continue;
+
+          // Insert photos into local database
+          for (final photoData in remotePhotos) {
+            final companion = db.ActivityPhotosCompanion.insert(
+              id: photoData['id'] as String,
+              activityId: photoData['activity_id'] as String,
+              photoUrl: photoData['photo_url'] as String,
+              localPath: const Value(null), // No local path for synced photos
+              caption: Value(photoData['caption'] as String?),
+              takenAt: photoData['taken_at'] != null
+                  ? Value(DateTime.parse(photoData['taken_at'] as String))
+                  : const Value(null),
+              latitude: Value(photoData['latitude'] as double?),
+              longitude: Value(photoData['longitude'] as double?),
+              isPendingUpload: const Value(false), // Already uploaded
+              createdAt: DateTime.parse(photoData['created_at'] as String),
+            );
+
+            await _localDataSource.insertPhoto(companion);
+            photoCount++;
+          }
+        } catch (e) {
+          debugPrint('[ActivityRepo] Error syncing photos for activity ${activity.id}: $e');
+          // Continue with next activity
+        }
+      }
+
+      debugPrint('[ActivityRepo] Synced $photoCount photos from remote');
+    } catch (e) {
+      debugPrint('[ActivityRepo] Error syncing photos from remote: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> markAsSynced(String id, DateTime syncedAt) =>
       _localDataSource.markAsSynced(id, syncedAt);
 
@@ -889,6 +938,14 @@ class ActivityRepositoryImpl implements ActivityRepository {
       _activityTypeIconCache = {for (final t in types) t.id: t.icon ?? ''};
       _activityTypeColorCache = {for (final t in types) t.id: t.color ?? ''};
     }
+  }
+
+  @override
+  void invalidateCaches() {
+    _activityTypeNameCache = null;
+    _activityTypeIconCache = null;
+    _activityTypeColorCache = null;
+    debugPrint('[ActivityRepo] Activity type caches invalidated');
   }
 
   Future<void> _insertAuditLog({

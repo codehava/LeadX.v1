@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
@@ -40,4 +42,21 @@ abstract class AuthRepository {
 
   /// Get the current session if available.
   AuthSession? get currentSession;
+
+  /// Update user profile information.
+  Future<Either<Failure, User>> updateProfile({
+    String? name,
+    String? phone,
+    String? photoUrl,
+  });
+
+  /// Upload profile photo and return public URL.
+  Future<Either<Failure, String>> uploadProfilePhoto({
+    required String userId,
+    required String localPath,
+    required Uint8List? bytes, // For web platform
+  });
+
+  /// Remove profile photo.
+  Future<Either<Failure, void>> removeProfilePhoto(String userId);
 }

@@ -207,6 +207,12 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     // Pull activities
     try {
       await _activityRepository.syncFromRemote();
+
+      // Sync activity photos from remote
+      await _activityRepository.syncPhotosFromRemote();
+
+      // Invalidate activity type cache to refresh names
+      _activityRepository.invalidateCaches();
     } catch (e) {
       print('[SyncNotifier] Activity pull error: $e');
     }

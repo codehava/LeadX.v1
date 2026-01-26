@@ -149,6 +149,14 @@ abstract class ActivityRepository {
   /// Only syncs logs for activities that have already been synced (are on remote).
   Future<void> syncPendingAuditLogs();
 
+  /// Sync activity photos from remote to local database.
+  /// Fetches photos for all activities and stores them locally.
+  Future<void> syncPhotosFromRemote();
+
+  /// Invalidate activity type caches to force reload.
+  /// Call this after syncing new activity types.
+  void invalidateCaches();
+
   /// Mark an activity as synced.
   Future<void> markAsSynced(String id, DateTime syncedAt);
 

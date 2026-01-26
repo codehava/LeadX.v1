@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
@@ -198,18 +202,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                                   tag: 'photo_${photo.id}',
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      photo.photoUrl,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.broken_image),
-                                      ),
-                                    ),
+                                    child: _buildPhotoThumbnail(photo),
                                   ),
                                 ),
                               ),
@@ -432,6 +425,85 @@ class ActivityDetailScreen extends ConsumerWidget {
       ),
     );
   }
+  /// Build photo thumbnail - handles both local and remote photos.
+  Widget _buildPhotoThumbnail(ActivityPhoto photo) {
+    // Check if photo is pending upload and has local path (mobile)
+    if (photo.isPendingUpload && photo.localPath != null && !kIsWeb) {
+      return Image.file(
+        File(photo.localPath!),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          width: 100,
+          height: 100,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image),
+        ),
+      );
+    }
+
+    // Use cached network image for uploaded photos
+    return CachedNetworkImage(
+      imageUrl: photo.photoUrl,
+      width: 100,
+      height: 100,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Container(
+        width: 100,
+        height: 100,
+        color: Colors.grey[300],
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        width: 100,
+        height: 100,
+        color: Colors.grey[200],
+        child: const Icon(Icons.broken_image),
+      ),
+    );
+  }
+
+  /// Build full-size photo - handles both local and remote photos.
+  Widget _buildFullSizePhoto(ActivityPhoto photo) {
+    // Check if photo is pending upload and has local path (mobile)
+    if (photo.isPendingUpload && photo.localPath != null && !kIsWeb) {
+      return Image.file(
+        File(photo.localPath!),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Center(
+          child: Icon(
+            Icons.broken_image,
+            size: 64,
+            color: Colors.white54,
+          ),
+        ),
+      );
+    }
+
+    // Use cached network image for uploaded photos
+    return CachedNetworkImage(
+      imageUrl: photo.photoUrl,
+      fit: BoxFit.contain,
+      placeholder: (context, url) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      errorWidget: (context, url, error) => const Center(
+        child: Icon(
+          Icons.broken_image,
+          size: 64,
+          color: Colors.white54,
+        ),
+      ),
+    );
+  }
+
   /// Show fullscreen photo viewer with download option.
   void _showPhotoViewer(
       BuildContext context, ActivityPhoto photo, int index, int total) {
@@ -452,17 +524,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                 maxScale: 4.0,
                 child: Hero(
                   tag: 'photo_${photo.id}',
-                  child: Image.network(
-                    photo.photoUrl,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 64,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ),
+                  child: _buildFullSizePhoto(photo),
                 ),
               ),
             ),

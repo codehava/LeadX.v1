@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../core/errors/failures.dart';
@@ -290,6 +293,147 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   AuthSession? get currentSession => _currentSession;
+
+  @override
+  Future<Either<Failure, String>> uploadProfilePhoto({
+    required String userId,
+    required String localPath,
+    required Uint8List? bytes,
+  }) async {
+    try {
+      const bucket = 'user-photos';
+      final storagePath = '$userId/profile.jpg';
+
+      // Upload file
+      if (bytes != null) {
+        // Web: upload bytes
+        await _client.storage.from(bucket).uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: const supabase.FileOptions(
+            contentType: 'image/jpeg',
+            upsert: true, // Overwrite existing
+          ),
+        );
+      } else {
+        // Mobile: upload file
+        final file = File(localPath);
+        if (!await file.exists()) {
+          return const Left(AuthFailure(message: 'File tidak ditemukan'));
+        }
+
+        final fileBytes = await file.readAsBytes();
+        await _client.storage.from(bucket).uploadBinary(
+          storagePath,
+          fileBytes,
+          fileOptions: const supabase.FileOptions(
+            contentType: 'image/jpeg',
+            upsert: true,
+          ),
+        );
+      }
+
+      // Get public URL
+      final publicUrl = _client.storage.from(bucket).getPublicUrl(storagePath);
+
+      // Add timestamp to bust cache
+      final urlWithTimestamp = '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+
+      return Right(urlWithTimestamp);
+    } catch (e) {
+      debugPrint('Photo upload error: $e');
+      return Left(AuthFailure(message: 'Upload foto gagal: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> updateProfile({
+    String? name,
+    String? phone,
+    String? photoUrl,
+  }) async {
+    try {
+      final session = _client.auth.currentSession;
+      if (session == null) {
+        return const Left(AuthFailure(message: 'Tidak terautentikasi'));
+      }
+
+      final userId = session.user.id;
+
+      // Build update payload (only include provided fields)
+      final Map<String, dynamic> updates = {
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      if (name != null) updates['name'] = name;
+      if (phone != null) updates['phone'] = phone;
+      if (photoUrl != null) updates['photo_url'] = photoUrl;
+
+      // Update remote database
+      await _client
+          .from('users')
+          .update(updates)
+          .eq('id', userId);
+
+      // Fetch updated user
+      final updatedUser = await _fetchUserProfile(userId);
+      _currentUser = updatedUser;
+
+      // Update session
+      if (_currentSession != null) {
+        _currentSession = AuthSession(
+          accessToken: _currentSession!.accessToken,
+          refreshToken: _currentSession!.refreshToken,
+          expiresAt: _currentSession!.expiresAt,
+          user: updatedUser,
+        );
+      }
+
+      // Notify listeners
+      _authStateController.add(AppAuthState.authenticated(updatedUser));
+
+      return Right(updatedUser);
+    } catch (e) {
+      debugPrint('Profile update error: $e');
+      return Left(AuthFailure(message: 'Update profil gagal: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeProfilePhoto(String userId) async {
+    try {
+      const bucket = 'user-photos';
+      final storagePath = '$userId/profile.jpg';
+
+      // Remove from storage (ignore if doesn't exist)
+      try {
+        await _client.storage.from(bucket).remove([storagePath]);
+      } catch (e) {
+        debugPrint('Photo removal warning: $e');
+      }
+
+      // Update database to remove URL
+      await _client
+          .from('users')
+          .update({
+            'photo_url': null,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
+
+      // Fetch updated user
+      final updatedUser = await _fetchUserProfile(userId);
+      _currentUser = updatedUser;
+
+      // Notify listeners
+      _authStateController.add(AppAuthState.authenticated(updatedUser));
+
+      return const Right(null);
+    } catch (e) {
+      debugPrint('Photo removal error: $e');
+      return Left(AuthFailure(message: 'Hapus foto gagal: ${e.toString()}'));
+    }
+  }
 
   void dispose() {
     _authStateController.close();

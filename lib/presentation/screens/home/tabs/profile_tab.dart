@@ -39,33 +39,56 @@ class ProfileTab extends ConsumerWidget {
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        // Avatar with tap feedback
-                        Material(
-                          shape: const CircleBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => context.pushNamed(RouteNames.editProfile),
-                            customBorder: const CircleBorder(),
-                            splashColor: colorScheme.primary.withOpacity(0.3),
-                            highlightColor: colorScheme.primary.withOpacity(0.1),
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor: colorScheme.primaryContainer,
-                              backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
-                                  ? NetworkImage(user.photoUrl!)
-                                  : null,
-                              child: user.photoUrl == null || user.photoUrl!.isEmpty
-                                  ? Text(
-                                      user.initials,
-                                      style: theme.textTheme.headlineMedium?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                  : null,
+                        // Avatar with tap feedback and edit badge
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Material(
+                              shape: const CircleBorder(),
+                              clipBehavior: Clip.antiAlias,
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => context.pushNamed(RouteNames.editProfile),
+                                customBorder: const CircleBorder(),
+                                splashColor: colorScheme.primary.withOpacity(0.3),
+                                highlightColor: colorScheme.primary.withOpacity(0.1),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
+                                      ? NetworkImage(user.photoUrl!)
+                                      : null,
+                                  child: user.photoUrl == null || user.photoUrl!.isEmpty
+                                      ? Text(
+                                          user.initials,
+                                          style: theme.textTheme.headlineMedium?.copyWith(
+                                            color: colorScheme.onPrimaryContainer,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                              ),
                             ),
-                          ),
+                            // Edit badge indicator
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: colorScheme.surface, width: 2),
+                                ),
+                                child: Icon(
+                                  Icons.edit,
+                                  size: 14,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
 

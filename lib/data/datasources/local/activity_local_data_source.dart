@@ -213,9 +213,12 @@ class ActivityLocalDataSource {
     return query.getSingleOrNull();
   }
 
-  /// Insert a new activity photo.
+  /// Insert a new activity photo or replace if exists.
   Future<void> insertPhoto(ActivityPhotosCompanion photo) =>
-      _db.into(_db.activityPhotos).insert(photo);
+      _db.into(_db.activityPhotos).insert(
+        photo,
+        mode: InsertMode.insertOrReplace,
+      );
 
   /// Update a photo.
   Future<void> updatePhoto(String id, ActivityPhotosCompanion photo) =>
