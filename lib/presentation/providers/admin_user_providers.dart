@@ -69,6 +69,17 @@ Future<List<User>> userSubordinates(
   return repository.getSubordinates(userId);
 }
 
+/// Provider for a single user by ID.
+@riverpod
+Future<User?> userById(UserByIdRef ref, String userId) async {
+  final users = await ref.watch(allUsersProvider.future);
+  try {
+    return users.firstWhere((user) => user.id == userId);
+  } catch (e) {
+    return null;
+  }
+}
+
 // ============================================
 // NOTIFIER FOR USER CRUD OPERATIONS
 // ============================================

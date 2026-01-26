@@ -8,6 +8,9 @@ import '../../presentation/screens/activity/activity_detail_screen.dart';
 import '../../presentation/screens/activity/activity_form_screen.dart';
 import '../../presentation/screens/admin/admin_home_screen.dart';
 import '../../presentation/screens/admin/unauthorized_screen.dart';
+import '../../presentation/screens/admin/users/user_detail_screen.dart';
+import '../../presentation/screens/admin/users/user_form_screen.dart';
+import '../../presentation/screens/admin/users/user_list_screen.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -564,18 +567,50 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ),
         routes: [
-          // User Management (placeholders for Phase 2)
+          // User Management
           GoRoute(
             path: 'users',
             name: RouteNames.adminUsers,
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('User Management')),
-                ),
+                child: const UserListScreen(),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: RouteNames.adminUserCreate,
+                builder: (context, state) => ResponsiveShell(
+                  currentRoute: state.matchedLocation,
+                  child: const UserFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.adminUserDetail,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: UserDetailScreen(userId: id),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: RouteNames.adminUserEdit,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: UserFormScreen(userId: id),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Master Data Management (placeholders for Phase 3)

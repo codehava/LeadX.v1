@@ -484,6 +484,132 @@ class _UserSubordinatesProviderElement
   String get userId => (origin as UserSubordinatesProvider).userId;
 }
 
+String _$userByIdHash() => r'1cbd6681a5303e843be777700b41c7e6fe963977';
+
+/// Provider for a single user by ID.
+///
+/// Copied from [userById].
+@ProviderFor(userById)
+const userByIdProvider = UserByIdFamily();
+
+/// Provider for a single user by ID.
+///
+/// Copied from [userById].
+class UserByIdFamily extends Family<AsyncValue<User?>> {
+  /// Provider for a single user by ID.
+  ///
+  /// Copied from [userById].
+  const UserByIdFamily();
+
+  /// Provider for a single user by ID.
+  ///
+  /// Copied from [userById].
+  UserByIdProvider call(String userId) {
+    return UserByIdProvider(userId);
+  }
+
+  @override
+  UserByIdProvider getProviderOverride(covariant UserByIdProvider provider) {
+    return call(provider.userId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'userByIdProvider';
+}
+
+/// Provider for a single user by ID.
+///
+/// Copied from [userById].
+class UserByIdProvider extends AutoDisposeFutureProvider<User?> {
+  /// Provider for a single user by ID.
+  ///
+  /// Copied from [userById].
+  UserByIdProvider(String userId)
+    : this._internal(
+        (ref) => userById(ref as UserByIdRef, userId),
+        from: userByIdProvider,
+        name: r'userByIdProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$userByIdHash,
+        dependencies: UserByIdFamily._dependencies,
+        allTransitiveDependencies: UserByIdFamily._allTransitiveDependencies,
+        userId: userId,
+      );
+
+  UserByIdProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final String userId;
+
+  @override
+  Override overrideWith(FutureOr<User?> Function(UserByIdRef provider) create) {
+    return ProviderOverride(
+      origin: this,
+      override: UserByIdProvider._internal(
+        (ref) => create(ref as UserByIdRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<User?> createElement() {
+    return _UserByIdProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserByIdProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin UserByIdRef on AutoDisposeFutureProviderRef<User?> {
+  /// The parameter `userId` of this provider.
+  String get userId;
+}
+
+class _UserByIdProviderElement extends AutoDisposeFutureProviderElement<User?>
+    with UserByIdRef {
+  _UserByIdProviderElement(super.provider);
+
+  @override
+  String get userId => (origin as UserByIdProvider).userId;
+}
+
 String _$adminUserNotifierHash() => r'bdeaa91ae1aaa90bb6a812b82f92eb9d82555799';
 
 /// State for user management operations.
