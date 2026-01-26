@@ -6,6 +6,8 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/screens/activity/activity_calendar_screen.dart';
 import '../../presentation/screens/activity/activity_detail_screen.dart';
 import '../../presentation/screens/activity/activity_form_screen.dart';
+import '../../presentation/screens/admin/admin_home_screen.dart';
+import '../../presentation/screens/admin/unauthorized_screen.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -34,6 +36,16 @@ import 'route_names.dart';
 /// Stores the intended location when user navigates directly via URL bar
 /// This is used to restore the location after authentication check completes
 String? _pendingDeepLink;
+
+/// Admin route guard - checks if user has admin privileges.
+/// Returns redirect path if user is not admin, null otherwise.
+String? _adminGuard(Ref ref) {
+  final isAdmin = ref.read(isAdminProvider);
+  if (!isAdmin) {
+    return RoutePaths.unauthorized;
+  }
+  return null; // Allow navigation
+}
 
 /// Provider for the app router.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -540,15 +552,95 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ============================================
       // ADMIN ROUTES
       // ============================================
-      
+
       GoRoute(
         path: RoutePaths.admin,
         name: RouteNames.admin,
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: Placeholder(
-            child: Center(child: Text('Admin Panel')),
+        redirect: (context, state) => _adminGuard(ref),
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: ResponsiveShell(
+            currentRoute: state.matchedLocation,
+            child: const AdminHomeScreen(),
           ),
         ),
+        routes: [
+          // User Management (placeholders for Phase 2)
+          GoRoute(
+            path: 'users',
+            name: RouteNames.adminUsers,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('User Management')),
+                ),
+              ),
+            ),
+          ),
+
+          // Master Data Management (placeholders for Phase 3)
+          GoRoute(
+            path: 'master-data',
+            name: RouteNames.adminMasterData,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Master Data Management')),
+                ),
+              ),
+            ),
+          ),
+
+          // 4DX Configuration (placeholders for Phase 4)
+          GoRoute(
+            path: '4dx',
+            name: RouteNames.admin4dx,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('4DX Configuration')),
+                ),
+              ),
+            ),
+          ),
+
+          // Cadence Management (placeholder - deferred to future)
+          GoRoute(
+            path: 'cadence',
+            name: RouteNames.adminCadence,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Cadence Management')),
+                ),
+              ),
+            ),
+          ),
+
+          // Bulk Upload (placeholders for Phase 5)
+          GoRoute(
+            path: 'bulk-upload',
+            name: RouteNames.adminBulkUpload,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const Placeholder(
+                  child: Center(child: Text('Bulk Upload')),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      // Unauthorized screen (outside admin routes)
+      GoRoute(
+        path: RoutePaths.unauthorized,
+        name: RouteNames.unauthorized,
+        builder: (context, state) => const UnauthorizedScreen(),
       ),
     ],
 

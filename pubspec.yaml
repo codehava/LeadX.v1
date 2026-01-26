@@ -83,12 +83,21 @@ dev_dependencies:
   # Testing
   mockito: ^5.4.4
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.4 # Add this line
 
 flutter:
   uses-material-design: true
 
   assets:
     - .env
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/images/leadx_launcher_icon.png"
+  image_path: "assets/images/leadx_launcher_icon.png"
 
   # Fonts - uncomment when Inter font files are added
   # Download from: https://fonts.google.com/specimen/Inter

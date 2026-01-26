@@ -83,11 +83,35 @@ abstract class RouteNames {
   // ============================================
   // ADMIN ROUTES
   // ============================================
-  
+
   static const String admin = 'admin';
+  static const String unauthorized = 'unauthorized';
+
+  // User Management
   static const String adminUsers = 'admin-users';
+  static const String adminUserCreate = 'admin-user-create';
+  static const String adminUserDetail = 'admin-user-detail';
+  static const String adminUserEdit = 'admin-user-edit';
+
+  // Master Data Management
   static const String adminMasterData = 'admin-master-data';
+  static const String adminMasterDataList = 'admin-master-data-list';
+  static const String adminMasterDataCreate = 'admin-master-data-create';
+  static const String adminMasterDataEdit = 'admin-master-data-edit';
+
+  // 4DX Configuration
   static const String admin4dx = 'admin-4dx';
+  static const String adminMeasures = 'admin-measures';
+  static const String adminMeasureForm = 'admin-measure-form';
+  static const String adminPeriods = 'admin-periods';
+  static const String adminPeriodForm = 'admin-period-form';
+
+  // Bulk Upload
+  static const String adminBulkUpload = 'admin-bulk-upload';
+  static const String adminBulkUploadEntity = 'admin-bulk-upload-entity';
+
+  // Cadence Configuration
+  static const String adminCadence = 'admin-cadence';
 }
 
 /// Route paths for LeadX CRM navigation.
@@ -147,7 +171,31 @@ abstract class RoutePaths {
 
   // Admin
   static const String admin = '/admin';
+  static const String unauthorized = '/unauthorized';
+
+  // User Management
   static const String adminUsers = '/admin/users';
+  static const String adminUserCreate = '/admin/users/create';
+  static const String adminUserDetail = '/admin/users/:id';
+  static const String adminUserEdit = '/admin/users/:id/edit';
+
+  // Master Data Management
   static const String adminMasterData = '/admin/master-data';
+  static const String adminMasterDataList = '/admin/master-data/:entityType';
+  static const String adminMasterDataCreate = '/admin/master-data/:entityType/create';
+  static const String adminMasterDataEdit = '/admin/master-data/:entityType/:id/edit';
+
+  // 4DX Configuration
   static const String admin4dx = '/admin/4dx';
+  static const String adminMeasures = '/admin/4dx/measures';
+  static const String adminMeasureForm = '/admin/4dx/measures/form';
+  static const String adminPeriods = '/admin/4dx/periods';
+  static const String adminPeriodForm = '/admin/4dx/periods/form';
+
+  // Bulk Upload
+  static const String adminBulkUpload = '/admin/bulk-upload';
+  static const String adminBulkUploadEntity = '/admin/bulk-upload/:entityType';
+
+  // Cadence Configuration
+  static const String adminCadence = '/admin/cadence';
 }
