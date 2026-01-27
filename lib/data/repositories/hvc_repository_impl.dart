@@ -421,16 +421,20 @@ class HvcRepositoryImpl implements HvcRepository {
       }
 
       final companions = remoteData.map((data) {
+        // Map from Supabase schema fields to local Drift table fields
+        // Supabase uses: linked_at, linked_by
+        // Local table has: createdAt, createdBy, isActive, updatedAt
+        final linkedAt = DateTime.parse(data['linked_at'] as String);
         return db.CustomerHvcLinksCompanion(
           id: Value(data['id'] as String),
           customerId: Value(data['customer_id'] as String),
           hvcId: Value(data['hvc_id'] as String),
           relationshipType: Value(data['relationship_type'] as String),
-          isActive: Value(data['is_active'] as bool? ?? true),
-          createdBy: Value(data['created_by'] as String),
+          isActive: const Value(true),
+          createdBy: Value(data['linked_by'] as String),
           isPendingSync: const Value(false),
-          createdAt: Value(DateTime.parse(data['created_at'] as String)),
-          updatedAt: Value(DateTime.parse(data['updated_at'] as String)),
+          createdAt: Value(linkedAt),
+          updatedAt: Value(linkedAt),
           deletedAt: data['deleted_at'] != null
               ? Value(DateTime.parse(data['deleted_at'] as String))
               : const Value(null),

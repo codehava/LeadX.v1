@@ -86,60 +86,222 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 600;
-          final heroHeight = isMobile ? 280.0 : 360.0;
 
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Hero section with gradient and logo
+                // Hero section with new design
                 Container(
-                  height: heroHeight,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.92),
-                      ],
-                    ),
+                    color: colorScheme.primary,
                   ),
                   child: SafeArea(
                     bottom: false,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo - higher quality sizing
-                        Image.asset(
-                          'assets/images/logo.png',
-                          width: isMobile ? 120 : 160,
-                          height: isMobile ? 120 : 160,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                        ),
-                        SizedBox(height: isMobile ? 20 : 28),
-                        // App name
-                        Text(
-                          'LeadX',
-                          style: TextStyle(
-                            fontSize: isMobile ? 32 : 44,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onPrimary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Subtitle
-                        Text(
-                          'Tajam, Cepat, Decisive, Dominan Pipeline',
-                          style: TextStyle(
-                            fontSize: isMobile ? 14 : 16,
-                            color: colorScheme.onPrimary.withValues(alpha: 0.95),
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 20 : 40,
+                        vertical: isMobile ? 32 : 48,
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth > 768;
+
+                          if (isWide) {
+                            // Desktop/Tablet layout - side by side
+                            return Row(
+                              children: [
+                                // Left side - Logo in white circle
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      width: 220,
+                                      height: 220,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.15),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Image.asset(
+                                          'assets/images/logo.png',
+                                          width: 140,
+                                          height: 140,
+                                          fit: BoxFit.contain,
+                                          filterQuality: FilterQuality.high,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: isWide ? 40 : 24),
+                                // Right side - Title, subtitle, and features
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Title
+                                      Text(
+                                        'LeadX',
+                                        style: TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onPrimary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Leading Execution',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.onPrimary
+                                              .withValues(alpha: 0.9),
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Subtitle
+                                      Text(
+                                        'Tajam, Cepat, Decisive.\nDominasi pipeline\ndengan disiplin harian',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: colorScheme.onPrimary
+                                              .withValues(alpha: 0.85),
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.6,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 28),
+                                      // Features grid - 3 columns on wide
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _FeatureHighlight(
+                                            title: 'AI-Powered',
+                                            backgroundColor: Colors.white
+                                                .withValues(alpha: 0.15),
+                                          ),
+                                          _FeatureHighlight(
+                                            title: 'Realtime Score',
+                                            backgroundColor: Colors.white
+                                                .withValues(alpha: 0.15),
+                                          ),
+                                          _FeatureHighlight(
+                                            title: 'Action-First',
+                                            backgroundColor: Colors.white
+                                                .withValues(alpha: 0.15),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            // Mobile layout - compact and optimized
+                            return Column(
+                              children: [
+                                // Logo in white circle - smaller for mobile
+                                Container(
+                                  width: 130,
+                                  height: 130,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.15),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Image.asset(
+                                      'assets/images/logo.png',
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.contain,
+                                      filterQuality: FilterQuality.high,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Title
+                                Text(
+                                  'LeadX',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onPrimary,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'Leading Execution',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onPrimary
+                                        .withValues(alpha: 0.9),
+                                    letterSpacing: 0.3,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 10),
+                                // Subtitle
+                                Text(
+                                  'Tajam, Cepat, Decisive.\nDominasi pipeline\ndengan disiplin harian',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onPrimary
+                                        .withValues(alpha: 0.85),
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.5,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 14),
+                                // Features - optimized for mobile
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  runSpacing: 8,
+                                  spacing: 8,
+                                  children: [
+                                    _FeatureHighlight(
+                                      title: 'AI-Powered',
+                                      backgroundColor: Colors.white
+                                          .withValues(alpha: 0.15),
+                                    ),
+                                    _FeatureHighlight(
+                                      title: 'Realtime Score',
+                                      backgroundColor: Colors.white
+                                          .withValues(alpha: 0.15),
+                                    ),
+                                    _FeatureHighlight(
+                                      title: 'Action-First',
+                                      backgroundColor:
+                                          Colors.white.withValues(alpha: 0.15),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -219,13 +381,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Lupa password - Segera hadir'),
-                                  ),
-                                );
-                              },
+                              onPressed: () => context.go(RoutePaths.forgotPassword),
                               child: const Text('Lupa Password?'),
                             ),
                           ),
@@ -256,14 +412,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 32),
 
                           // Footer text
-                          Text(
-                            'Dengan disiplin harich',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                              fontStyle: FontStyle.italic,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+
                           const SizedBox(height: 16),
                           Text(
                             'PT Askrindo (Persero)',
@@ -281,6 +430,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Feature highlight card widget
+class _FeatureHighlight extends StatelessWidget {
+  final String title;
+  final Color backgroundColor;
+
+  const _FeatureHighlight({
+    required this.title,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.2,
+        ),
       ),
     );
   }

@@ -37,6 +37,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (session != null) {
       debugPrint('[Auth] Found persisted session, attempting to restore...');
+      // Emit loading state immediately so router doesn't hang
+      _authStateController.add(const AppAuthState.loading());
       // Session exists, fetch user profile asynchronously
       _restoreSessionAsync(session);
     } else {
@@ -78,6 +80,9 @@ class AuthRepositoryImpl implements AuthRepository {
         break;
       case supabase.AuthChangeEvent.userUpdated:
         _fetchUserAndNotify(data.session);
+        break;
+      case supabase.AuthChangeEvent.passwordRecovery:
+        _authStateController.add(const AppAuthState.passwordRecovery());
         break;
       default:
         break;
@@ -175,8 +180,37 @@ class AuthRepositoryImpl implements AuthRepository {
       return const AppAuthState.unauthenticated();
     }
 
+    // If we have a cached user, return authenticated state immediately
+    // (useful when offline but still authenticated)
+    if (_currentUser != null) {
+      return AppAuthState.authenticated(_currentUser!);
+    }
+
     try {
-      final user = await _fetchUserProfile(session.user.id);
+      // Try to fetch user profile with a timeout
+      final user = await _fetchUserProfile(session.user.id).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('[Auth] User profile fetch timeout - user may be offline');
+          // If offline, create a minimal user from session for auth purposes
+          return User(
+            id: session.user.id,
+            email: session.user.email ?? '',
+            name: '',
+            nip: null,
+            phone: null,
+            role: UserRole.rm, // Default role
+            parentId: null,
+            branchId: null,
+            regionalOfficeId: null,
+            photoUrl: null,
+            isActive: true,
+            lastLoginAt: null,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+        },
+      );
       _currentUser = user;
       _currentSession = AuthSession(
         accessToken: session.accessToken,
@@ -309,7 +343,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> requestPasswordReset(String email) async {
     try {
-      await _client.auth.resetPasswordForEmail(email);
+      // Determine redirect URL based on platform
+      final redirectUrl = kIsWeb
+          ? '${Uri.base.origin}/reset-password'
+          : 'io.supabase.leadxcrm://reset-password';
+
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: redirectUrl,
+      );
       return const Right(null);
     } catch (e) {
       return Left(AuthFailure(message: 'Password reset failed'));

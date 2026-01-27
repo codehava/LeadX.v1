@@ -7,7 +7,8 @@
       "Bash(flutter analyze:*)",
       "Bash(grep:*)",
       "Bash(git log:*)",
-      "Bash(flutter --version:*)"
+      "Bash(flutter --version:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

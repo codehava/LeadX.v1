@@ -177,20 +177,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.customerCreate,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const CustomerFormScreen(),
-                ),
+                builder: (context, state) => const CustomerFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.customerDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: CustomerDetailScreen(customerId: id),
-                  );
+                  return CustomerDetailScreen(customerId: id);
                 },
                 routes: [
                   GoRoute(
@@ -198,10 +192,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.customerEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: CustomerFormScreen(customerId: id),
-                      );
+                      return CustomerFormScreen(customerId: id);
                     },
                   ),
                   GoRoute(
@@ -209,10 +200,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'customerHistory',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: CustomerHistoryScreen(customerId: id),
-                      );
+                      return CustomerHistoryScreen(customerId: id);
                     },
                   ),
                 ],
@@ -226,10 +214,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: RouteNames.pipelineCreate,
             builder: (context, state) {
               final customerId = state.uri.queryParameters['customerId']!;
-              return ResponsiveShell(
-                currentRoute: state.matchedLocation,
-                child: PipelineFormScreen(customerId: customerId),
-              );
+              return PipelineFormScreen(customerId: customerId);
             },
           ),
           GoRoute(
@@ -238,10 +223,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               final customerId = state.uri.queryParameters['customerId'] ?? '';
-              return ResponsiveShell(
-                currentRoute: state.matchedLocation,
-                child: PipelineDetailScreen(pipelineId: id, customerId: customerId),
-              );
+              return PipelineDetailScreen(pipelineId: id, customerId: customerId);
             },
             routes: [
               GoRoute(
@@ -250,10 +232,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   final customerId = state.uri.queryParameters['customerId'] ?? '';
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: PipelineFormScreen(customerId: customerId, pipelineId: id),
-                  );
+                  return PipelineFormScreen(customerId: customerId, pipelineId: id);
                 },
               ),
               GoRoute(
@@ -261,10 +240,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'pipelineHistory',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: PipelineHistoryScreen(pipelineId: id),
-                  );
+                  return PipelineHistoryScreen(pipelineId: id);
                 },
               ),
             ],
@@ -289,14 +265,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final objectId = state.uri.queryParameters['objectId'];
                   final objectName = state.uri.queryParameters['objectName'];
                   final immediate = state.uri.queryParameters['immediate'] == 'true';
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: ActivityFormScreen(
-                      objectType: objectType,
-                      objectId: objectId,
-                      objectName: objectName,
-                      isImmediate: immediate,
-                    ),
+                  return ActivityFormScreen(
+                    objectType: objectType,
+                    objectId: objectId,
+                    objectName: objectName,
+                    isImmediate: immediate,
                   );
                 },
               ),
@@ -308,14 +281,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final objectType = state.uri.queryParameters['objectType'];
                   final objectId = state.uri.queryParameters['objectId'];
                   final objectName = state.uri.queryParameters['objectName'];
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: ActivityFormScreen(
-                      objectType: objectType,
-                      objectId: objectId,
-                      objectName: objectName,
-                      isImmediate: true,
-                    ),
+                  return ActivityFormScreen(
+                    objectType: objectType,
+                    objectId: objectId,
+                    objectName: objectName,
+                    isImmediate: true,
                   );
                 },
               ),
@@ -324,10 +294,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: RouteNames.activityDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: ActivityDetailScreen(activityId: id),
-                  );
+                  return ActivityDetailScreen(activityId: id);
                 },
               ),
             ],
@@ -357,20 +324,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: RouteNames.hvcCreate,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const HvcFormScreen(),
-                ),
+                builder: (context, state) => const HvcFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.hvcDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: HvcDetailScreen(hvcId: id),
-                  );
+                  return HvcDetailScreen(hvcId: id);
                 },
                 routes: [
                   GoRoute(
@@ -378,10 +339,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.hvcEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: HvcFormScreen(hvcId: id),
-                      );
+                      return HvcFormScreen(hvcId: id);
                     },
                   ),
                 ],
@@ -403,20 +361,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: RouteNames.brokerCreate,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const BrokerFormScreen(),
-                ),
+                builder: (context, state) => const BrokerFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.brokerDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: BrokerDetailScreen(brokerId: id),
-                  );
+                  return BrokerDetailScreen(brokerId: id);
                 },
                 routes: [
                   GoRoute(
@@ -424,10 +376,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.brokerEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: BrokerFormScreen(brokerId: id),
-                      );
+                      return BrokerFormScreen(brokerId: id);
                     },
                   ),
                 ],
@@ -489,18 +438,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'edit',
                 name: RouteNames.editProfile,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const EditProfileScreen(),
-                ),
+                builder: (context, state) => const EditProfileScreen(),
               ),
               GoRoute(
                 path: 'change-password',
                 name: RouteNames.changePassword,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const ChangePasswordScreen(),
-                ),
+                builder: (context, state) => const ChangePasswordScreen(),
               ),
             ],
           ),
@@ -584,20 +527,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.adminUserCreate,
-                builder: (context, state) => ResponsiveShell(
-                  currentRoute: state.matchedLocation,
-                  child: const UserFormScreen(),
-                ),
+                builder: (context, state) => const UserFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.adminUserDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: UserDetailScreen(userId: id),
-                  );
+                  return UserDetailScreen(userId: id);
                 },
                 routes: [
                   GoRoute(
@@ -605,10 +542,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: RouteNames.adminUserEdit,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: UserFormScreen(userId: id),
-                      );
+                      return UserFormScreen(userId: id);
                     },
                   ),
                 ],
@@ -632,10 +566,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: RouteNames.adminMasterDataList,
                 builder: (context, state) {
                   final entityType = state.pathParameters['entityType']!;
-                  return ResponsiveShell(
-                    currentRoute: state.matchedLocation,
-                    child: MasterDataListScreen(entityType: entityType),
-                  );
+                  return MasterDataListScreen(entityType: entityType);
                 },
                 routes: [
                   GoRoute(
@@ -644,12 +575,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final entityType = state.pathParameters['entityType']!;
                       final id = state.uri.queryParameters['id'];
-                      return ResponsiveShell(
-                        currentRoute: state.matchedLocation,
-                        child: MasterDataFormScreen(
-                          entityType: entityType,
-                          itemId: id,
-                        ),
+                      return MasterDataFormScreen(
+                        entityType: entityType,
+                        itemId: id,
                       );
                     },
                   ),

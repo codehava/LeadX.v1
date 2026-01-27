@@ -212,60 +212,33 @@ class AdminUserRemoteDataSource {
 
   /// Create a hierarchy link between user and supervisor.
   Future<void> createHierarchyLink(String userId, String parentId) async {
-    // Check if link already exists
-    final existing = await _client
-        .from('user_hierarchy')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-
-    if (existing != null) {
-      // Update existing
-      await _client.from('user_hierarchy').update({
-        'parent_id': parentId,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('user_id', userId);
-    } else {
-      // Create new
-      await _client.from('user_hierarchy').insert({
-        'user_id': userId,
-        'parent_id': parentId,
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      });
-    }
+    // Update user's parent_id in users table
+    await _client.from('users').update({
+      'parent_id': parentId,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', userId);
   }
 
   /// Remove hierarchy link for a user.
   Future<void> removeHierarchyLink(String userId) async {
-    await _client.from('user_hierarchy').delete().eq('user_id', userId);
+    // Clear parent_id in users table
+    await _client.from('users').update({
+      'parent_id': null,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', userId);
   }
 
   /// Fetch subordinates of a user.
   Future<List<Map<String, dynamic>>> fetchSubordinates(String userId) async {
-    // Get user IDs from hierarchy table
-    final hierarchyResult = await _client
-        .from('user_hierarchy')
-        .select('user_id')
-        .eq('parent_id', userId);
-
-    final subordinateIds = hierarchyResult
-        .map<String>((row) => row['user_id'] as String)
-        .toList();
-
-    if (subordinateIds.isEmpty) {
-      return [];
-    }
-
-    // Fetch user details
-    final usersResult = await _client
+    // Query users table directly for direct subordinates (parent_id = userId)
+    final result = await _client
         .from('users')
         .select()
-        .inFilter('id', subordinateIds)
+        .eq('parent_id', userId)
         .eq('is_active', true)
         .order('name');
 
-    return List<Map<String, dynamic>>.from(usersResult);
+    return List<Map<String, dynamic>>.from(result);
   }
 
   // ============================================

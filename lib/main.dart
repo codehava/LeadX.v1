@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
@@ -31,6 +32,9 @@ Future<void> main() async {
     url: envConfig.supabaseUrl,
     anonKey: envConfig.supabaseAnonKey,
   );
+
+  // Initialize locale data for Indonesian date formatting
+  await initializeDateFormatting('id_ID', null);
 
   // Run the app
   runApp(

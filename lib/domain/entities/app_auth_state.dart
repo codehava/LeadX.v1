@@ -21,6 +21,9 @@ class AppAuthState with _$AppAuthState {
 
   /// Authentication error occurred
   const factory AppAuthState.error(String message) = _Error;
+
+  /// User is in password recovery flow
+  const factory AppAuthState.passwordRecovery() = _PasswordRecovery;
 }
 
 /// Login request data.

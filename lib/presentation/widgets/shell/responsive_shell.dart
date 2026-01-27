@@ -344,18 +344,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           child: IntrinsicHeight(
             child: Column(
               children: [
-                // Branded header for tablet (logo only)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: 52,
-                    width: 52,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                  ),
-                ),
-                const Divider(),
                 const SizedBox(height: 8),
                 // Main navigation destinations
                 ..._navItems.asMap().entries.map((entry) {
@@ -458,40 +446,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   onTap: () => context.push(RoutePaths.settings),
                 ),
                 const SizedBox(height: 24),
-                // Footer text for tablet
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Column(
-                    children: [
-                      Text(
-                        'AI-Powered',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 9,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Created by Corporate\nTransformation',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 8,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Copyright © 2025',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 8,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -603,7 +557,44 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           // Branded header
           Container(
             padding: const EdgeInsets.all(16),
-            child: _buildHeaderTitle(context),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 64,
+                  width: 64,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'AI-Powered',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Created by Corporate Transformation',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Copyright @ 2025',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
           const Divider(height: 1),
           // Navigation items
@@ -673,40 +664,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                         const SnackBar(content: Text('Help & FAQ coming soon')),
                       );
                     }),
-              ],
-            ),
-          ),
-          // Footer
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'AI-Powered',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Created by Corporate Transformation',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Copyright © 2025',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 10,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
               ],
             ),
           ),
@@ -977,7 +934,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final theme = Theme.of(context);
 
     if (compact) {
-      // Mobile: compact logo + text
+      // Mobile: logo + three text elements
       return Row(
         children: [
           Image.asset(
@@ -988,29 +945,44 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             filterQuality: FilterQuality.high,
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'LeadX',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI-Powered',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                'AI-Powered',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 10,
-                  color: theme.colorScheme.onSurfaceVariant,
+                Text(
+                  'Created by Corporate',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                Text(
+                  'Transformation',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       );
     } else {
-      // Desktop: Header with logo and minimal text
+      // Desktop: logo + three text elements
       return Row(
         children: [
           Image.asset(
@@ -1021,27 +993,31 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             filterQuality: FilterQuality.high,
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'LeadX',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'AI-Powered',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                Text(
-                  'AI-Powered',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Created by Corporate Transformation',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
                 ),
-              ],
-            ),
+              ),
+              Text(
+                'Copyright @ 2025',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ),
         ],
       );

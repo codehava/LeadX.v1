@@ -51,6 +51,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         debugPrint('[Splash] Unauthenticated - redirecting to login');
         context.go(RoutePaths.login);
       },
+      passwordRecovery: () {
+        debugPrint('[Splash] Password recovery flow - router will handle redirect');
+        // Router redirect logic will handle navigation to reset password screen
+      },
       error: (message) {
         debugPrint('[Splash] Auth error: $message - redirecting to login');
         context.go(RoutePaths.login);
