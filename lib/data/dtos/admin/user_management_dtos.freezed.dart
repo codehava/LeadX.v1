@@ -27,8 +27,9 @@ mixin _$UserCreateDto {
   UserRole get role => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get parentId =>
-      throw _privateConstructorUsedError; // Supervisor user ID
-  String? get branchId => throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // atasan - Supervisor/Manager user ID
+  String? get branchId =>
+      throw _privateConstructorUsedError; // Branch office ID
   String? get regionalOfficeId => throw _privateConstructorUsedError;
 
   /// Serializes this UserCreateDto to a JSON map.
@@ -236,9 +237,10 @@ class _$UserCreateDtoImpl implements _UserCreateDto {
   final String? phone;
   @override
   final String? parentId;
-  // Supervisor user ID
+  // atasan - Supervisor/Manager user ID
   @override
   final String? branchId;
+  // Branch office ID
   @override
   final String? regionalOfficeId;
 
@@ -319,9 +321,9 @@ abstract class _UserCreateDto implements UserCreateDto {
   @override
   String? get phone;
   @override
-  String? get parentId; // Supervisor user ID
+  String? get parentId; // atasan - Supervisor/Manager user ID
   @override
-  String? get branchId;
+  String? get branchId; // Branch office ID
   @override
   String? get regionalOfficeId;
 
@@ -343,8 +345,10 @@ mixin _$UserUpdateDto {
   String? get nip => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   UserRole? get role => throw _privateConstructorUsedError;
-  String? get parentId => throw _privateConstructorUsedError;
-  String? get branchId => throw _privateConstructorUsedError;
+  String? get parentId =>
+      throw _privateConstructorUsedError; // atasan - Supervisor/Manager user ID
+  String? get branchId =>
+      throw _privateConstructorUsedError; // Branch office ID
   String? get regionalOfficeId => throw _privateConstructorUsedError;
 
   /// Serializes this UserUpdateDto to a JSON map.
@@ -537,8 +541,10 @@ class _$UserUpdateDtoImpl implements _UserUpdateDto {
   final UserRole? role;
   @override
   final String? parentId;
+  // atasan - Supervisor/Manager user ID
   @override
   final String? branchId;
+  // Branch office ID
   @override
   final String? regionalOfficeId;
 
@@ -614,9 +620,9 @@ abstract class _UserUpdateDto implements UserUpdateDto {
   @override
   UserRole? get role;
   @override
-  String? get parentId;
+  String? get parentId; // atasan - Supervisor/Manager user ID
   @override
-  String? get branchId;
+  String? get branchId; // Branch office ID
   @override
   String? get regionalOfficeId;
 

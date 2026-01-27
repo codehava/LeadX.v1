@@ -7,7 +7,7 @@ part of 'admin_user_providers.dart';
 // **************************************************************************
 
 String _$adminUserRemoteDataSourceHash() =>
-    r'21e14cf2a6dda6a7476fcce651d205adabde9c8a';
+    r'f96b98196cea2a547130cf43ec9829a3723d99f1';
 
 /// Provider for admin user remote data source.
 ///
@@ -29,7 +29,7 @@ final adminUserRemoteDataSourceProvider =
 typedef AdminUserRemoteDataSourceRef =
     AutoDisposeProviderRef<AdminUserRemoteDataSource>;
 String _$adminUserRepositoryHash() =>
-    r'347a033843a33211f757ada36febe89ab0401f99';
+    r'9ca801937454faf43cd8469ab328a123604daab4';
 
 /// Provider for admin user repository.
 ///
@@ -49,7 +49,7 @@ final adminUserRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AdminUserRepositoryRef = AutoDisposeProviderRef<AdminUserRepository>;
-String _$allUsersHash() => r'e3ce4ae21978390c76aac44faee226c2800eaab9';
+String _$allUsersHash() => r'43ee9d89e6a2c1cc47c04c05a531555aaefb052e';
 
 /// Provider for all users list.
 ///
@@ -68,7 +68,7 @@ final allUsersProvider = AutoDisposeFutureProvider<List<User>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllUsersRef = AutoDisposeFutureProviderRef<List<User>>;
-String _$usersByRoleHash() => r'd98724d24edf4a0f086c17d199dade4de47f4e25';
+String _$usersByRoleHash() => r'40c0f226b142bc3c40a01f30ce3bae74f90fb811';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -220,7 +220,7 @@ class _UsersByRoleProviderElement
   UserRole get role => (origin as UsersByRoleProvider).role;
 }
 
-String _$usersByBranchHash() => r'9a9d623660051a3e1a07f59367b2ec40d5808015';
+String _$usersByBranchHash() => r'27ad70ecce06460fb19304578121fd00540a97b8';
 
 /// Provider for users filtered by branch.
 ///
@@ -352,7 +352,7 @@ class _UsersByBranchProviderElement
   String get branchId => (origin as UsersByBranchProvider).branchId;
 }
 
-String _$userSubordinatesHash() => r'bb3de511a52b682394924f3d2aa5cb7a61188850';
+String _$userSubordinatesHash() => r'a97bcd20aa39402707af1e9257baa3974b6f89d3';
 
 /// Provider for user's subordinates.
 ///
@@ -484,7 +484,7 @@ class _UserSubordinatesProviderElement
   String get userId => (origin as UserSubordinatesProvider).userId;
 }
 
-String _$userByIdHash() => r'1cbd6681a5303e843be777700b41c7e6fe963977';
+String _$userByIdHash() => r'86d1ae9df6d1393a4345c8defe04866fc261bf7d';
 
 /// Provider for a single user by ID.
 ///
@@ -610,7 +610,139 @@ class _UserByIdProviderElement extends AutoDisposeFutureProviderElement<User?>
   String get userId => (origin as UserByIdProvider).userId;
 }
 
-String _$adminUserNotifierHash() => r'bdeaa91ae1aaa90bb6a812b82f92eb9d82555799';
+String _$supervisorNameHash() => r'a45d3f91ac3704553adb403b297aed1176606adb';
+
+/// Provider to get supervisor name by user ID.
+///
+/// Copied from [supervisorName].
+@ProviderFor(supervisorName)
+const supervisorNameProvider = SupervisorNameFamily();
+
+/// Provider to get supervisor name by user ID.
+///
+/// Copied from [supervisorName].
+class SupervisorNameFamily extends Family<AsyncValue<String?>> {
+  /// Provider to get supervisor name by user ID.
+  ///
+  /// Copied from [supervisorName].
+  const SupervisorNameFamily();
+
+  /// Provider to get supervisor name by user ID.
+  ///
+  /// Copied from [supervisorName].
+  SupervisorNameProvider call(String? userId) {
+    return SupervisorNameProvider(userId);
+  }
+
+  @override
+  SupervisorNameProvider getProviderOverride(
+    covariant SupervisorNameProvider provider,
+  ) {
+    return call(provider.userId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'supervisorNameProvider';
+}
+
+/// Provider to get supervisor name by user ID.
+///
+/// Copied from [supervisorName].
+class SupervisorNameProvider extends AutoDisposeFutureProvider<String?> {
+  /// Provider to get supervisor name by user ID.
+  ///
+  /// Copied from [supervisorName].
+  SupervisorNameProvider(String? userId)
+    : this._internal(
+        (ref) => supervisorName(ref as SupervisorNameRef, userId),
+        from: supervisorNameProvider,
+        name: r'supervisorNameProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$supervisorNameHash,
+        dependencies: SupervisorNameFamily._dependencies,
+        allTransitiveDependencies:
+            SupervisorNameFamily._allTransitiveDependencies,
+        userId: userId,
+      );
+
+  SupervisorNameProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final String? userId;
+
+  @override
+  Override overrideWith(
+    FutureOr<String?> Function(SupervisorNameRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: SupervisorNameProvider._internal(
+        (ref) => create(ref as SupervisorNameRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<String?> createElement() {
+    return _SupervisorNameProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SupervisorNameProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin SupervisorNameRef on AutoDisposeFutureProviderRef<String?> {
+  /// The parameter `userId` of this provider.
+  String? get userId;
+}
+
+class _SupervisorNameProviderElement
+    extends AutoDisposeFutureProviderElement<String?>
+    with SupervisorNameRef {
+  _SupervisorNameProviderElement(super.provider);
+
+  @override
+  String? get userId => (origin as SupervisorNameProvider).userId;
+}
+
+String _$adminUserNotifierHash() => r'a983f9825ccacd6738914afa11751662415c5c81';
 
 /// State for user management operations.
 ///

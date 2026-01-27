@@ -16,7 +16,7 @@ class HistoryLogRemoteDataSource {
   // ============================================
 
   /// Fetch entity history from audit_logs table.
-  /// 
+  ///
   /// [targetTable] - The table name (e.g., 'customers', 'pipelines')
   /// [targetId] - The entity ID to fetch history for
   /// [since] - Optional timestamp to fetch only newer entries
@@ -40,7 +40,9 @@ class HistoryLogRemoteDataSource {
 
     final response = await query.order('created_at', ascending: false);
 
-    return (response as List).map((json) => _mapToAuditLog(json)).toList();
+    return (response as List)
+        .map((json) => _mapToAuditLog(json as Map<String, dynamic>))
+        .toList();
   }
 
   /// Fetch all audit logs for multiple entities (admin use).
@@ -76,7 +78,9 @@ class HistoryLogRemoteDataSource {
         .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
 
-    return (response as List).map((json) => _mapToAuditLog(json)).toList();
+    return (response as List)
+        .map((json) => _mapToAuditLog(json as Map<String, dynamic>))
+        .toList();
   }
 
   // ============================================
@@ -101,7 +105,7 @@ class HistoryLogRemoteDataSource {
         .order('changed_at', ascending: false);
 
     return (response as List)
-        .map((json) => _mapToPipelineStageHistory(json))
+        .map((json) => _mapToPipelineStageHistory(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -111,24 +115,24 @@ class HistoryLogRemoteDataSource {
 
   AuditLog _mapToAuditLog(Map<String, dynamic> json) {
     final user = json['users'] as Map<String, dynamic>?;
-    
+
     return AuditLog(
-      id: json['id'],
-      userId: json['user_id'],
-      userEmail: json['user_email'],
-      action: json['action'],
-      targetTable: json['target_table'],
-      targetId: json['target_id'],
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      userEmail: json['user_email'] as String?,
+      action: json['action'] as String,
+      targetTable: json['target_table'] as String,
+      targetId: json['target_id'] as String,
       oldValues: json['old_values'] != null
           ? Map<String, dynamic>.from(json['old_values'] as Map)
           : null,
       newValues: json['new_values'] != null
           ? Map<String, dynamic>.from(json['new_values'] as Map)
           : null,
-      ipAddress: json['ip_address'],
-      userAgent: json['user_agent'],
-      createdAt: DateTime.parse(json['created_at']),
-      userName: user?['name'],
+      ipAddress: json['ip_address'] as String?,
+      userAgent: json['user_agent'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      userName: user?['name'] as String?,
     );
   }
 
@@ -140,24 +144,24 @@ class HistoryLogRemoteDataSource {
     final changedByUser = json['changed_by_user'] as Map<String, dynamic>?;
 
     return PipelineStageHistory(
-      id: json['id'],
-      pipelineId: json['pipeline_id'],
-      fromStageId: json['from_stage_id'],
-      toStageId: json['to_stage_id'],
-      fromStatusId: json['from_status_id'],
-      toStatusId: json['to_status_id'],
-      notes: json['notes'],
-      changedBy: json['changed_by'],
-      changedAt: DateTime.parse(json['changed_at']),
+      id: json['id'] as String,
+      pipelineId: json['pipeline_id'] as String,
+      fromStageId: json['from_stage_id'] as String?,
+      toStageId: (json['to_stage_id'] as String?) ?? '',
+      fromStatusId: json['from_status_id'] as String?,
+      toStatusId: json['to_status_id'] as String?,
+      notes: json['notes'] as String?,
+      changedBy: json['changed_by'] as String?,
+      changedAt: DateTime.parse(json['changed_at'] as String? ?? DateTime.now().toIso8601String()),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      fromStageName: fromStage?['name'],
-      toStageName: toStage?['name'],
-      fromStatusName: fromStatus?['name'],
-      toStatusName: toStatus?['name'],
-      changedByName: changedByUser?['name'],
-      fromStageColor: fromStage?['color'],
-      toStageColor: toStage?['color'],
+      fromStageName: fromStage?['name'] as String?,
+      toStageName: toStage?['name'] as String?,
+      fromStatusName: fromStatus?['name'] as String?,
+      toStatusName: toStatus?['name'] as String?,
+      changedByName: changedByUser?['name'] as String?,
+      fromStageColor: fromStage?['color'] as String?,
+      toStageColor: toStage?['color'] as String?,
     );
   }
 }

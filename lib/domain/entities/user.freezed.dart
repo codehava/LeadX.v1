@@ -27,9 +27,12 @@ mixin _$User {
   String? get nip => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   UserRole get role => throw _privateConstructorUsedError;
-  String? get parentId => throw _privateConstructorUsedError;
-  String? get branchId => throw _privateConstructorUsedError;
-  String? get regionalOfficeId => throw _privateConstructorUsedError;
+  String? get parentId =>
+      throw _privateConstructorUsedError; // atasan - Direct supervisor
+  String? get branchId =>
+      throw _privateConstructorUsedError; // Branch office ID
+  String? get regionalOfficeId =>
+      throw _privateConstructorUsedError; // cabang - Regional office ID
   String? get photoUrl => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
@@ -315,10 +318,13 @@ class _$UserImpl extends _User {
   final UserRole role;
   @override
   final String? parentId;
+  // atasan - Direct supervisor
   @override
   final String? branchId;
+  // Branch office ID
   @override
   final String? regionalOfficeId;
+  // cabang - Regional office ID
   @override
   final String? photoUrl;
   @override
@@ -432,11 +438,11 @@ abstract class _User extends User {
   @override
   UserRole get role;
   @override
-  String? get parentId;
+  String? get parentId; // atasan - Direct supervisor
   @override
-  String? get branchId;
+  String? get branchId; // Branch office ID
   @override
-  String? get regionalOfficeId;
+  String? get regionalOfficeId; // cabang - Regional office ID
   @override
   String? get photoUrl;
   @override

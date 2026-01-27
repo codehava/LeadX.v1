@@ -4,6 +4,11 @@ part 'user.freezed.dart';
 part 'user.g.dart';
 
 /// Domain model for authenticated user.
+///
+/// Field mapping for organizational structure:
+/// - [parentId]: Atasan (Supervisor/Manager) - user ID of direct superior
+/// - [branchId]: Branch office - reference to specific branch location
+/// - [regionalOfficeId]: Regional office (Kantor Wilayah/Cabang) - reference to regional headquarters
 @freezed
 class User with _$User {
   const User._();
@@ -15,9 +20,9 @@ class User with _$User {
     String? nip,
     String? phone,
     required UserRole role,
-    String? parentId,
-    String? branchId,
-    String? regionalOfficeId,
+    String? parentId, // atasan - Direct supervisor
+    String? branchId, // Branch office ID
+    String? regionalOfficeId, // cabang - Regional office ID
     String? photoUrl,
     required bool isActive,
     DateTime? lastLoginAt,

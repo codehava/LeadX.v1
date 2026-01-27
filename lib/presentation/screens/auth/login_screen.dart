@@ -182,25 +182,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       const SizedBox(height: 28),
                                       // Features grid - 3 columns on wide
                                       Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        // CHANGE 1: Align to start so they group together
+                                        mainAxisAlignment: MainAxisAlignment.start, 
                                         children: [
                                           _FeatureHighlight(
                                             title: 'AI-Powered',
-                                            backgroundColor: Colors.white
-                                                .withValues(alpha: 0.15),
+                                            backgroundColor: Colors.white.withValues(alpha: 0.15),
                                           ),
+                                          // CHANGE 2: Add specific spacing between items
+                                          const SizedBox(width: 12), 
                                           _FeatureHighlight(
                                             title: 'Realtime Score',
-                                            backgroundColor: Colors.white
-                                                .withValues(alpha: 0.15),
+                                            backgroundColor: Colors.white.withValues(alpha: 0.15),
                                           ),
+                                          // CHANGE 3: Add specific spacing between items
+                                          const SizedBox(width: 12),
                                           _FeatureHighlight(
                                             title: 'Action-First',
-                                            backgroundColor: Colors.white
-                                                .withValues(alpha: 0.15),
-                                          ),
-                                        ],
+                                            backgroundColor: Colors.white.withValues(alpha: 0.15),
+                                          ),                                        
+                                          ],
                                       ),
                                     ],
                                   ),

@@ -96,7 +96,7 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
     } catch (e) {
       return Left(
         DatabaseFailure(
-          message: 'Gagal membuat pengguna',
+          message: 'Gagal membuat pengguna: $e',
           originalError: e,
         ),
       );
@@ -119,6 +119,7 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
       if (dto.nip != null) updates['nip'] = dto.nip;
       if (dto.phone != null) updates['phone'] = dto.phone;
       if (dto.role != null) updates['role'] = _roleToString(dto.role!);
+      if (dto.parentId != null) updates['parent_id'] = dto.parentId;
       if (dto.branchId != null) updates['branch_id'] = dto.branchId;
       if (dto.regionalOfficeId != null) {
         updates['regional_office_id'] = dto.regionalOfficeId;
@@ -126,11 +127,6 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
 
       final userData = await _remoteDataSource.updateUser(userId, updates);
       final user = _mapToUser(userData);
-
-      // Update hierarchy if parentId changed
-      if (dto.parentId != null) {
-        await _remoteDataSource.createHierarchyLink(userId, dto.parentId!);
-      }
 
       return Right(user);
     } catch (e) {

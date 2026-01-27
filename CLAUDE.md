@@ -138,6 +138,32 @@ The app loads `.env` at startup (bundled as asset). Required variables:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 
+## Supabase Edge Functions
+
+Admin operations that require elevated privileges (user creation, password reset) use Edge Functions. These run server-side with the `service_role` key.
+
+### Deployment
+
+```bash
+# Deploy all functions
+supabase functions deploy
+
+# Deploy specific function
+supabase functions deploy admin-create-user
+supabase functions deploy admin-reset-password
+```
+
+### Available Functions
+
+- **admin-create-user**: Creates new user with Supabase Auth + users table
+- **admin-reset-password**: Generates temporary password for user
+
+See `supabase/functions/README.md` for detailed documentation, API specs, and troubleshooting.
+
+### Why Edge Functions?
+
+Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) require the `service_role` key which must never be exposed client-side. Edge Functions keep this key secure on the server while allowing admins to perform privileged operations.
+
 ## Key Patterns to Follow
 
 1. **Repository pattern**: All data access goes through repositories (interfaces in `domain/`, implementations in `data/`)

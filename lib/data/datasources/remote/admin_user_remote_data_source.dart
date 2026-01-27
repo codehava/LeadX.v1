@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for admin user management operations.
@@ -72,6 +70,7 @@ class AdminUserRemoteDataSource {
   /// Create a new user in Supabase Auth and users table.
   ///
   /// Returns a map with 'user' data and 'temporaryPassword'.
+  /// Uses Edge Function for server-side user creation with service_role key.
   Future<Map<String, dynamic>> createUser({
     required String email,
     required String name,
@@ -82,59 +81,29 @@ class AdminUserRemoteDataSource {
     String? branchId,
     String? regionalOfficeId,
   }) async {
-    // Generate temporary password
-    final tempPassword = _generatePassword();
-
-    // Create auth user using Supabase Admin API
-    final authResponse = await _client.auth.admin.createUser(
-      AdminUserAttributes(
-        email: email,
-        password: tempPassword,
-        emailConfirm: true, // Auto-confirm email
-        userMetadata: {
-          'must_change_password': true,
-        },
-      ),
+    // Call Edge Function to create user
+    final response = await _client.functions.invoke(
+      'admin-create-user',
+      body: {
+        'email': email,
+        'name': name,
+        'nip': nip,
+        'role': role,
+        'phone': phone,
+        'parentId': parentId,
+        'branchId': branchId,
+        'regionalOfficeId': regionalOfficeId,
+      },
     );
 
-    if (authResponse.user == null) {
-      throw Exception('Failed to create auth user');
+    if (response.status != 200) {
+      final error = response.data['error'] ?? 'Unknown error';
+      throw Exception('Failed to create user: $error');
     }
-
-    final userId = authResponse.user!.id;
-
-    // Create user profile in users table
-    final userData = {
-      'id': userId,
-      'email': email,
-      'name': name,
-      'nip': nip,
-      'role': role,
-      'phone': phone,
-      'branch_id': branchId,
-      'regional_office_id': regionalOfficeId,
-      'is_active': true,
-      'created_at': DateTime.now().toUtc().toIso8601String(),
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-
-    await _client.from('users').insert(userData);
-
-    // Create hierarchy entry if supervisor is specified
-    if (parentId != null) {
-      await createHierarchyLink(userId, parentId);
-    }
-
-    // Fetch the created user with all relations
-    final createdUser = await _client
-        .from('users')
-        .select()
-        .eq('id', userId)
-        .single();
 
     return {
-      'user': createdUser,
-      'temporaryPassword': tempPassword,
+      'user': response.data['user'],
+      'temporaryPassword': response.data['temporaryPassword'],
     };
   }
 
@@ -189,21 +158,22 @@ class AdminUserRemoteDataSource {
   // ============================================
 
   /// Generate a new temporary password and update user.
+  /// Uses Edge Function for server-side password reset with service_role key.
   Future<String> generateTemporaryPassword(String userId) async {
-    final tempPassword = _generatePassword();
-
-    // Update password using Admin API
-    await _client.auth.admin.updateUserById(
-      userId,
-      attributes: AdminUserAttributes(
-        password: tempPassword,
-        userMetadata: {
-          'must_change_password': true,
-        },
-      ),
+    // Call Edge Function to reset password
+    final response = await _client.functions.invoke(
+      'admin-reset-password',
+      body: {
+        'userId': userId,
+      },
     );
 
-    return tempPassword;
+    if (response.status != 200) {
+      final error = response.data['error'] ?? 'Unknown error';
+      throw Exception('Failed to reset password: $error');
+    }
+
+    return response.data['temporaryPassword'] as String;
   }
 
   // ============================================
@@ -241,18 +211,4 @@ class AdminUserRemoteDataSource {
     return List<Map<String, dynamic>>.from(result);
   }
 
-  // ============================================
-  // HELPER METHODS
-  // ============================================
-
-  /// Generate a random 12-character password with mixed case, numbers, and symbols.
-  String _generatePassword() {
-    const length = 12;
-    const chars =
-        r'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-    final random = Random.secure();
-
-    return List.generate(length, (index) => chars[random.nextInt(chars.length)])
-        .join();
-  }
 }

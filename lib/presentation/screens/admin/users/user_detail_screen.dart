@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../config/routes/route_names.dart';
+import '../../../../data/dtos/master_data_dtos.dart';
 import '../../../../domain/entities/user.dart';
 import '../../../providers/admin_user_providers.dart';
+import '../../../providers/master_data_providers.dart';
 
 /// Screen displaying detailed information about a user.
 ///
@@ -239,28 +241,30 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen>
 
     try {
       final notifier = ref.read(adminUserNotifierProvider.notifier);
-      final success = user.isActive
-          ? await notifier.deactivateUser(widget.userId)
-          : await notifier.activateUser(widget.userId);
+      if (user.isActive) {
+        await notifier.deactivateUser(widget.userId);
+      } else {
+        await notifier.activateUser(widget.userId);
+      }
 
       if (!mounted) return;
 
-      if (success) {
-        ref.invalidate(userByIdProvider(widget.userId));
+      ref.invalidate(userByIdProvider(widget.userId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            user.isActive
+                ? 'Pengguna berhasil dinonaktifkan'
+                : 'Pengguna berhasil diaktifkan',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              user.isActive
-                  ? 'Pengguna berhasil dinonaktifkan'
-                  : 'Pengguna berhasil diaktifkan',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal mengubah status pengguna'),
+            content: Text('Gagal mengubah status pengguna: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -305,19 +309,19 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen>
 
       if (!mounted) return;
 
-      if (tempPassword != null) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _PasswordDisplayDialog(
-            userName: user.name,
-            password: tempPassword,
-          ),
-        );
-      } else {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _PasswordDisplayDialog(
+          userName: user.name,
+          password: tempPassword,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal membuat password sementara'),
+          SnackBar(
+            content: Text('Gagal membuat password sementara: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -473,21 +477,42 @@ class _InfoTab extends StatelessWidget {
               label: 'Role',
               value: user.role.displayName,
             ),
-            _DetailRow(
-              icon: Icons.business,
-              label: 'Cabang',
-              value: user.branchId ?? '-',
-            ),
-            _DetailRow(
-              icon: Icons.location_city,
-              label: 'Kantor Regional',
-              value: user.regionalOfficeId ?? '-',
-            ),
-            _DetailRow(
-              icon: Icons.supervisor_account,
-              label: 'Atasan',
-              value: user.parentId ?? '-',
-            ),
+            if (user.branchId != null)
+              _BranchDetailRow(
+                icon: Icons.business,
+                label: 'Cabang',
+                branchId: user.branchId!,
+              )
+            else
+              _DetailRow(
+                icon: Icons.business,
+                label: 'Cabang',
+                value: '-',
+              ),
+            if (user.regionalOfficeId != null)
+              _RegionalOfficeDetailRow(
+                icon: Icons.location_city,
+                label: 'Kantor Regional',
+                officeId: user.regionalOfficeId!,
+              )
+            else
+              _DetailRow(
+                icon: Icons.location_city,
+                label: 'Kantor Regional',
+                value: '-',
+              ),
+            if (user.parentId != null)
+              _SupervisorDetailRow(
+                icon: Icons.supervisor_account,
+                label: 'Atasan',
+                supervisorId: user.parentId!,
+              )
+            else
+              _DetailRow(
+                icon: Icons.supervisor_account,
+                label: 'Atasan',
+                value: '-',
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -751,6 +776,224 @@ class _DetailRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Detail row for displaying branch name by ID.
+class _BranchDetailRow extends ConsumerWidget {
+  const _BranchDetailRow({
+    required this.icon,
+    required this.label,
+    required this.branchId,
+  });
+
+  final IconData icon;
+  final String label;
+  final String branchId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final branchesAsync = ref.watch(branchesStreamProvider);
+
+    return branchesAsync.when(
+      data: (branches) {
+        BranchDto? branch;
+        try {
+          branch = branches.firstWhere((b) => b.id == branchId);
+        } catch (_) {
+          branch = null;
+        }
+
+        return _DetailRow(
+          icon: icon,
+          label: label,
+          value: branch?.name ?? '-',
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (_, __) => _DetailRow(
+        icon: icon,
+        label: label,
+        value: '-',
+      ),
+    );
+  }
+}
+
+/// Detail row for displaying regional office name by ID.
+class _RegionalOfficeDetailRow extends ConsumerWidget {
+  const _RegionalOfficeDetailRow({
+    required this.icon,
+    required this.label,
+    required this.officeId,
+  });
+
+  final IconData icon;
+  final String label;
+  final String officeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final officesAsync = ref.watch(regionalOfficesStreamProvider);
+
+    return officesAsync.when(
+      data: (offices) {
+        RegionalOfficeDto? office;
+        try {
+          office = offices.firstWhere((o) => o.id == officeId);
+        } catch (_) {
+          office = null;
+        }
+
+        return _DetailRow(
+          icon: icon,
+          label: label,
+          value: office?.name ?? '-',
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (_, __) => _DetailRow(
+        icon: icon,
+        label: label,
+        value: '-',
+      ),
+    );
+  }
+}
+
+/// Detail row for displaying supervisor name by ID.
+class _SupervisorDetailRow extends ConsumerWidget {
+  const _SupervisorDetailRow({
+    required this.icon,
+    required this.label,
+    required this.supervisorId,
+  });
+
+  final IconData icon;
+  final String label;
+  final String supervisorId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final supervisorAsync = ref.watch(supervisorNameProvider(supervisorId));
+
+    return supervisorAsync.when(
+      data: (name) {
+        return _DetailRow(
+          icon: icon,
+          label: label,
+          value: name ?? '-',
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (_, __) => _DetailRow(
+        icon: icon,
+        label: label,
+        value: '-',
       ),
     );
   }

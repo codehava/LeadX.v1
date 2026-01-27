@@ -21,7 +21,7 @@ class ScoreboardRemoteDataSource {
         .order('sort_order');
 
     return (response as List)
-        .map((json) => _mapToMeasureDefinition(json))
+        .map((json) => _mapToMeasureDefinition(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -37,7 +37,7 @@ class ScoreboardRemoteDataSource {
         .order('start_date', ascending: false);
 
     return (response as List)
-        .map((json) => _mapToScoringPeriod(json))
+        .map((json) => _mapToScoringPeriod(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -70,20 +70,21 @@ class ScoreboardRemoteDataSource {
         .eq('period_id', periodId);
 
     return (response as List).map((json) {
-      final measure = json['measure_definitions'];
+      final jsonMap = json as Map<String, dynamic>;
+      final measure = jsonMap['measure_definitions'] as Map<String, dynamic>?;
       return UserTarget(
-        id: json['id'],
-        userId: json['user_id'],
-        measureId: json['measure_id'],
-        periodId: json['period_id'],
-        targetValue: (json['target_value'] as num).toDouble(),
-        assignedBy: json['assigned_by'],
-        createdAt: json['assigned_at'] != null
-            ? DateTime.parse(json['assigned_at'])
+        id: jsonMap['id'] as String,
+        userId: jsonMap['user_id'] as String,
+        measureId: jsonMap['measure_id'] as String,
+        periodId: jsonMap['period_id'] as String,
+        targetValue: (jsonMap['target_value'] as num).toDouble(),
+        assignedBy: jsonMap['assigned_by'] as String?,
+        createdAt: jsonMap['assigned_at'] != null
+            ? DateTime.parse(jsonMap['assigned_at'] as String)
             : null,
-        measureName: measure?['name'],
-        measureType: measure?['measure_type'],
-        measureUnit: measure?['unit'],
+        measureName: measure?['name'] as String?,
+        measureType: measure?['measure_type'] as String?,
+        measureUnit: measure?['unit'] as String?,
       );
     }).toList();
   }
@@ -105,22 +106,23 @@ class ScoreboardRemoteDataSource {
         .eq('period_id', periodId);
 
     return (response as List).map((json) {
-      final measure = json['measure_definitions'];
+      final jsonMap = json as Map<String, dynamic>;
+      final measure = jsonMap['measure_definitions'] as Map<String, dynamic>?;
       return UserScore(
-        id: json['id'],
-        userId: json['user_id'],
-        measureId: json['measure_id'],
-        periodId: json['period_id'],
-        actualValue: (json['actual_value'] as num).toDouble(),
+        id: jsonMap['id'] as String,
+        userId: jsonMap['user_id'] as String,
+        measureId: jsonMap['measure_id'] as String,
+        periodId: jsonMap['period_id'] as String,
+        actualValue: (jsonMap['actual_value'] as num).toDouble(),
         targetValue: (measure?['target_value'] as num?)?.toDouble() ?? 0,
-        percentage: (json['percentage'] as num?)?.toDouble(),
-        calculatedAt: json['updated_at'] != null
-            ? DateTime.parse(json['updated_at'])
+        percentage: (jsonMap['percentage'] as num?)?.toDouble(),
+        calculatedAt: jsonMap['updated_at'] != null
+            ? DateTime.parse(jsonMap['updated_at'] as String)
             : null,
-        measureName: measure?['name'],
-        measureType: measure?['measure_type'],
-        measureUnit: measure?['unit'],
-        sortOrder: measure?['sort_order'] ?? 0,
+        measureName: measure?['name'] as String?,
+        measureType: measure?['measure_type'] as String?,
+        measureUnit: measure?['unit'] as String?,
+        sortOrder: (measure?['sort_order'] as int?) ?? 0,
       );
     }).toList();
   }
@@ -165,18 +167,19 @@ class ScoreboardRemoteDataSource {
         .limit(limit);
 
     return (response as List).map((json) {
-      final user = json['users'];
-      final branch = user?['branches'];
+      final jsonMap = json as Map<String, dynamic>;
+      final user = jsonMap['users'] as Map<String, dynamic>?;
+      final branch = user?['branches'] as Map<String, dynamic>?;
       return LeaderboardEntry(
-        id: json['id'],
-        rank: (json['rank'] ?? 0).toString(),
-        userId: user?['id'] ?? '',
-        userName: user?['name'] ?? 'Unknown',
-        score: (json['total_score'] as num?)?.toDouble() ?? 0,
-        leadScore: (json['lead_score'] as num?)?.toDouble() ?? 0,
-        lagScore: (json['lag_score'] as num?)?.toDouble() ?? 0,
+        id: jsonMap['id'] as String,
+        rank: (jsonMap['rank'] as int? ?? 0).toString(),
+        userId: user?['id'] as String? ?? '',
+        userName: user?['name'] as String? ?? 'Unknown',
+        score: (jsonMap['total_score'] as num?)?.toDouble() ?? 0,
+        leadScore: (jsonMap['lead_score'] as num?)?.toDouble() ?? 0,
+        lagScore: (jsonMap['lag_score'] as num?)?.toDouble() ?? 0,
         rankChange: null, // Would need previous period comparison
-        branchName: branch?['name'],
+        branchName: branch?['name'] as String?,
       );
     }).toList();
   }
@@ -235,54 +238,58 @@ class ScoreboardRemoteDataSource {
 
   MeasureDefinition _mapToMeasureDefinition(Map<String, dynamic> json) {
     return MeasureDefinition(
-      id: json['id'],
-      code: json['code'],
-      name: json['name'],
-      description: json['description'],
-      measureType: json['measure_type'],
-      dataType: json['unit'] ?? 'COUNT', // Map unit to dataType
-      unit: json['unit'],
-      sortOrder: json['sort_order'] ?? 0,
-      isActive: json['is_active'] ?? true,
-      createdAt:
-          json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      updatedAt:
-          json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+      id: json['id'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      measureType: json['measure_type'] as String,
+      dataType: (json['unit'] as String?) ?? 'COUNT', // Map unit to dataType
+      unit: json['unit'] as String?,
+      sortOrder: (json['sort_order'] as int?) ?? 0,
+      isActive: (json['is_active'] as bool?) ?? true,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
     );
   }
 
   ScoringPeriod _mapToScoringPeriod(Map<String, dynamic> json) {
     return ScoringPeriod(
-      id: json['id'],
-      name: json['name'],
-      periodType: json['period_type'],
-      startDate: DateTime.parse(json['start_date']),
-      endDate: DateTime.parse(json['end_date']),
-      isCurrent: json['is_current'] ?? false,
-      isActive: json['is_locked'] != true, // Invert is_locked to isActive
-      createdAt:
-          json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      updatedAt:
-          json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+      id: json['id'] as String,
+      name: json['name'] as String,
+      periodType: json['period_type'] as String,
+      startDate: DateTime.parse(json['start_date'] as String),
+      endDate: DateTime.parse(json['end_date'] as String),
+      isCurrent: (json['is_current'] as bool?) ?? false,
+      isActive: (json['is_locked'] as bool?) != true, // Invert is_locked to isActive
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
     );
   }
 
   PeriodSummary _mapToPeriodSummaryFromSnapshot(Map<String, dynamic> json) {
-    final user = json['users'];
-    final period = json['scoring_periods'];
+    final user = json['users'] as Map<String, dynamic>?;
+    final period = json['scoring_periods'] as Map<String, dynamic>?;
     return PeriodSummary(
-      id: json['id'],
-      userId: json['user_id'],
-      periodId: json['period_id'],
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      periodId: json['period_id'] as String,
       totalLeadScore: (json['lead_score'] as num?)?.toDouble() ?? 0,
       totalLagScore: (json['lag_score'] as num?)?.toDouble() ?? 0,
       compositeScore: (json['total_score'] as num?)?.toDouble() ?? 0,
-      rank: json['rank'],
+      rank: json['rank'] as int?,
       calculatedAt: json['snapshot_at'] != null
-          ? DateTime.parse(json['snapshot_at'])
+          ? DateTime.parse(json['snapshot_at'] as String)
           : null,
-      userName: user?['name'],
-      periodName: period?['name'],
+      userName: user?['name'] as String?,
+      periodName: period?['name'] as String?,
     );
   }
 }

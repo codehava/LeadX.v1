@@ -16,9 +16,7 @@ part 'admin_user_providers.g.dart';
 
 /// Provider for admin user remote data source.
 @riverpod
-AdminUserRemoteDataSource adminUserRemoteDataSource(
-  AdminUserRemoteDataSourceRef ref,
-) {
+AdminUserRemoteDataSource adminUserRemoteDataSource(Ref ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return AdminUserRemoteDataSource(supabase);
 }
@@ -29,7 +27,7 @@ AdminUserRemoteDataSource adminUserRemoteDataSource(
 
 /// Provider for admin user repository.
 @riverpod
-AdminUserRepository adminUserRepository(AdminUserRepositoryRef ref) {
+AdminUserRepository adminUserRepository(Ref ref) {
   final remoteDataSource = ref.watch(adminUserRemoteDataSourceProvider);
   return AdminUserRepositoryImpl(remoteDataSource: remoteDataSource);
 }
@@ -40,44 +38,51 @@ AdminUserRepository adminUserRepository(AdminUserRepositoryRef ref) {
 
 /// Provider for all users list.
 @riverpod
-Future<List<User>> allUsers(AllUsersRef ref) async {
+Future<List<User>> allUsers(Ref ref) async {
   final repository = ref.watch(adminUserRepositoryProvider);
   return repository.getAllUsers();
 }
 
 /// Provider for users filtered by role.
 @riverpod
-Future<List<User>> usersByRole(UsersByRoleRef ref, UserRole role) async {
+Future<List<User>> usersByRole(Ref ref, UserRole role) async {
   final repository = ref.watch(adminUserRepositoryProvider);
   return repository.getUsersByRole(role);
 }
 
 /// Provider for users filtered by branch.
 @riverpod
-Future<List<User>> usersByBranch(UsersByBranchRef ref, String branchId) async {
+Future<List<User>> usersByBranch(Ref ref, String branchId) async {
   final repository = ref.watch(adminUserRepositoryProvider);
   return repository.getUsersByBranch(branchId);
 }
 
 /// Provider for user's subordinates.
 @riverpod
-Future<List<User>> userSubordinates(
-  UserSubordinatesRef ref,
-  String userId,
-) async {
+Future<List<User>> userSubordinates(Ref ref, String userId) async {
   final repository = ref.watch(adminUserRepositoryProvider);
   return repository.getSubordinates(userId);
 }
 
 /// Provider for a single user by ID.
 @riverpod
-Future<User?> userById(UserByIdRef ref, String userId) async {
+Future<User?> userById(Ref ref, String userId) async {
   final users = await ref.watch(allUsersProvider.future);
   try {
     return users.firstWhere((user) => user.id == userId);
   } catch (e) {
     return null;
   }
+}
+
+/// Provider to get supervisor name by user ID.
+@riverpod
+Future<String?> supervisorName(Ref ref, String? userId) async {
+  if (userId == null || userId.isEmpty) {
+    return null;
+  }
+  final user = await ref.watch(userByIdProvider(userId).future);
+  return user?.name;
 }
 
 // ============================================
@@ -96,20 +101,14 @@ class AdminUserNotifier extends _$AdminUserNotifier {
   /// Create a new user.
   ///
   /// Returns [UserCreateResult] on success with temporary password.
-  Future<UserCreateResult?> createUser(UserCreateDto dto) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<UserCreateResult> createUser(UserCreateDto dto) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.createUser(dto);
 
     return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return null;
-      },
+      (failure) => throw Exception(failure.message),
       (createResult) {
-        state = const AsyncValue.data(null);
-        // Invalidate user lists to trigger refresh
         ref.invalidate(allUsersProvider);
         return createResult;
       },
@@ -117,102 +116,62 @@ class AdminUserNotifier extends _$AdminUserNotifier {
   }
 
   /// Update an existing user.
-  Future<bool> updateUser(String userId, UserUpdateDto dto) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<void> updateUser(String userId, UserUpdateDto dto) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.updateUser(userId, dto);
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (user) {
-        state = const AsyncValue.data(null);
-        // Invalidate user lists to trigger refresh
-        ref.invalidate(allUsersProvider);
-        return true;
-      },
+    result.fold(
+      (failure) => throw Exception(failure.message),
+      (user) => ref.invalidate(allUsersProvider),
     );
   }
 
   /// Deactivate a user account.
-  Future<bool> deactivateUser(String userId) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<void> deactivateUser(String userId) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.deactivateUser(userId);
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (_) {
-        state = const AsyncValue.data(null);
-        ref.invalidate(allUsersProvider);
-        return true;
-      },
+    result.fold(
+      (failure) => throw Exception(failure.message),
+      (_) => ref.invalidate(allUsersProvider),
     );
   }
 
   /// Activate a user account.
-  Future<bool> activateUser(String userId) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<void> activateUser(String userId) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.activateUser(userId);
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (_) {
-        state = const AsyncValue.data(null);
-        ref.invalidate(allUsersProvider);
-        return true;
-      },
+    result.fold(
+      (failure) => throw Exception(failure.message),
+      (_) => ref.invalidate(allUsersProvider),
     );
   }
 
   /// Generate a new temporary password for a user.
-  Future<String?> generateTemporaryPassword(String userId) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<String> generateTemporaryPassword(String userId) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.generateTemporaryPassword(userId);
 
     return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return null;
-      },
-      (tempPassword) {
-        state = const AsyncValue.data(null);
-        return tempPassword;
-      },
+      (failure) => throw Exception(failure.message),
+      (tempPassword) => tempPassword,
     );
   }
 
   /// Update user hierarchy (supervisor assignment).
-  Future<bool> updateUserHierarchy(String userId, String? newParentId) async {
-    state = const AsyncValue.loading();
-
+  /// Throws exception on failure.
+  Future<void> updateUserHierarchy(String userId, String? newParentId) async {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.updateUserHierarchy(userId, newParentId);
 
-    return result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
-      },
-      (_) {
-        state = const AsyncValue.data(null);
-        ref.invalidate(userSubordinatesProvider);
-        return true;
-      },
+    result.fold(
+      (failure) => throw Exception(failure.message),
+      (_) => ref.invalidate(userSubordinatesProvider),
     );
   }
 }
