@@ -79,7 +79,8 @@ final hvcDetailProvider =
   return repository.getHvcById(id);
 });
 
-/// Provider for HVC types master data.
+/// @deprecated Use [hvcTypesStreamProvider] from master_data_providers instead.
+/// Returns DTOs for better separation of concerns.
 final hvcTypesProvider = FutureProvider<List<domain.HvcType>>((ref) async {
   final repository = ref.watch(hvcRepositoryProvider);
   return repository.getHvcTypes();

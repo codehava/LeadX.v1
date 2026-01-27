@@ -7,6 +7,9 @@ import '../../presentation/screens/activity/activity_calendar_screen.dart';
 import '../../presentation/screens/activity/activity_detail_screen.dart';
 import '../../presentation/screens/activity/activity_form_screen.dart';
 import '../../presentation/screens/admin/admin_home_screen.dart';
+import '../../presentation/screens/admin/master_data/master_data_form_screen.dart';
+import '../../presentation/screens/admin/master_data/master_data_list_screen.dart';
+import '../../presentation/screens/admin/master_data/master_data_menu_screen.dart';
 import '../../presentation/screens/admin/unauthorized_screen.dart';
 import '../../presentation/screens/admin/users/user_detail_screen.dart';
 import '../../presentation/screens/admin/users/user_form_screen.dart';
@@ -613,18 +616,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Master Data Management (placeholders for Phase 3)
+          // Master Data Management
           GoRoute(
             path: 'master-data',
             name: RouteNames.adminMasterData,
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('Master Data Management')),
-                ),
+                child: const MasterDataMenuScreen(),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: ':entityType',
+                name: RouteNames.adminMasterDataList,
+                builder: (context, state) {
+                  final entityType = state.pathParameters['entityType']!;
+                  return ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: MasterDataListScreen(entityType: entityType),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    name: RouteNames.adminMasterDataCreate,
+                    builder: (context, state) {
+                      final entityType = state.pathParameters['entityType']!;
+                      final id = state.uri.queryParameters['id'];
+                      return ResponsiveShell(
+                        currentRoute: state.matchedLocation,
+                        child: MasterDataFormScreen(
+                          entityType: entityType,
+                          itemId: id,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // 4DX Configuration (placeholders for Phase 4)

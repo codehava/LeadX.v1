@@ -9,6 +9,10 @@ import '../../../data/dtos/activity_dtos.dart';
 import '../../../data/services/camera_service.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
+import '../../providers/broker_providers.dart';
+import '../../providers/customer_providers.dart';
+import '../../providers/master_data_providers.dart';
+import '../../widgets/common/searchable_dropdown.dart';
 
 /// Bottom sheet for logging an immediate (instant) activity.
 class ImmediateActivitySheet extends ConsumerStatefulWidget {
@@ -52,6 +56,7 @@ class ImmediateActivitySheet extends ConsumerStatefulWidget {
 class _ImmediateActivitySheetState
     extends ConsumerState<ImmediateActivitySheet> {
   String? _selectedActivityTypeId;
+  String? _selectedKeyPersonId;
   final _summaryController = TextEditingController();
   final _notesController = TextEditingController();
   bool _isCapturingGps = false;
@@ -92,7 +97,7 @@ class _ImmediateActivitySheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final activityTypesAsync = ref.watch(activityTypesProvider);
+    final activityTypesAsync = ref.watch(activityTypesStreamProvider);
     final formState = ref.watch(activityFormNotifierProvider);
     final executionState = ref.watch(activityExecutionNotifierProvider);
 
@@ -168,6 +173,9 @@ class _ImmediateActivitySheetState
                         ),
                       ),
                     const SizedBox(height: 16),
+
+                    // Key Person selection (if available)
+                    _buildKeyPersonField(theme),
 
                     // Activity Type Selection
                     Text(
@@ -340,6 +348,7 @@ class _ImmediateActivitySheetState
       customerId: widget.objectType == 'CUSTOMER' ? widget.objectId : null,
       hvcId: widget.objectType == 'HVC' ? widget.objectId : null,
       brokerId: widget.objectType == 'BROKER' ? widget.objectId : null,
+      keyPersonId: _selectedKeyPersonId,
       summary: _summaryController.text.isNotEmpty
           ? _summaryController.text
           : null,
@@ -393,6 +402,109 @@ class _ImmediateActivitySheetState
       default:
         return type;
     }
+  }
+
+  Widget _buildKeyPersonField(ThemeData theme) {
+    switch (widget.objectType) {
+      case 'CUSTOMER':
+        return _buildCustomerKeyPersonField(theme);
+      case 'BROKER':
+        return _buildBrokerKeyPersonField(theme);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildCustomerKeyPersonField(ThemeData theme) {
+    final keyPersonsAsync = ref.watch(customerKeyPersonsProvider(widget.objectId));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Key Person (Opsional)',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            SearchableDropdown<String>(
+              label: 'Key Person',
+              hint: 'Pilih key person customer...',
+              modalTitle: 'Pilih Key Person',
+              searchHint: 'Cari key person...',
+              prefixIcon: Icons.person,
+              value: _selectedKeyPersonId,
+              items: keyPersons.map((kp) {
+                return DropdownItem(
+                  value: kp.id,
+                  label: kp.displayNameWithPosition,
+                  subtitle: kp.position,
+                  icon: Icons.person,
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedKeyPersonId = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildBrokerKeyPersonField(ThemeData theme) {
+    final keyPersonsAsync = ref.watch(brokerKeyPersonsProvider(widget.objectId));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Key Person (Opsional)',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            SearchableDropdown<String>(
+              label: 'Key Person',
+              hint: 'Pilih key person broker...',
+              modalTitle: 'Pilih Key Person',
+              searchHint: 'Cari key person...',
+              prefixIcon: Icons.person,
+              value: _selectedKeyPersonId,
+              items: keyPersons.map((kp) {
+                return DropdownItem(
+                  value: kp.id,
+                  label: kp.displayNameWithPosition,
+                  subtitle: kp.position,
+                  icon: Icons.person,
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedKeyPersonId = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (e, _) => const SizedBox.shrink(),
+    );
   }
 
   void _checkPhotoForType(String? activityTypeId) {

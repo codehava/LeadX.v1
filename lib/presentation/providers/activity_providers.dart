@@ -131,7 +131,8 @@ final activityWithDetailsProvider =
 // Master Data Providers
 // ==========================================
 
-/// Provider for activity types.
+/// @deprecated Use [activityTypesStreamProvider] from master_data_providers instead.
+/// Returns DTOs for better separation of concerns.
 final activityTypesProvider =
     FutureProvider<List<domain.ActivityType>>((ref) async {
   final repository = ref.watch(activityRepositoryProvider);

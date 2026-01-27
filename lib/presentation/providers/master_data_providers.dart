@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database/app_database.dart';
 import '../../data/datasources/local/master_data_local_data_source.dart';
+import '../../data/dtos/master_data_dtos.dart';
 import 'database_provider.dart';
 
 // ============================================
@@ -19,13 +20,13 @@ final masterDataLocalDataSourceProvider = Provider<MasterDataLocalDataSource>((r
 // ============================================
 
 /// Stream of all active provinces.
-final provincesStreamProvider = StreamProvider<List<Province>>((ref) {
+final provincesStreamProvider = StreamProvider<List<ProvinceDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchProvinces();
 });
 
 /// Stream of cities filtered by province ID.
-final citiesByProvinceProvider = StreamProvider.family<List<City>, String?>((ref, provinceId) {
+final citiesByProvinceProvider = StreamProvider.family<List<CityDto>, String?>((ref, provinceId) {
   if (provinceId == null || provinceId.isEmpty) {
     return Stream.value([]);
   }
@@ -38,19 +39,19 @@ final citiesByProvinceProvider = StreamProvider.family<List<City>, String?>((ref
 // ============================================
 
 /// Stream of all active company types.
-final companyTypesStreamProvider = StreamProvider<List<CompanyType>>((ref) {
+final companyTypesStreamProvider = StreamProvider<List<CompanyTypeDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchCompanyTypes();
 });
 
 /// Stream of all active ownership types.
-final ownershipTypesStreamProvider = StreamProvider<List<OwnershipType>>((ref) {
+final ownershipTypesStreamProvider = StreamProvider<List<OwnershipTypeDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchOwnershipTypes();
 });
 
 /// Stream of all active industries.
-final industriesStreamProvider = StreamProvider<List<Industry>>((ref) {
+final industriesStreamProvider = StreamProvider<List<IndustryDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchIndustries();
 });
@@ -60,13 +61,13 @@ final industriesStreamProvider = StreamProvider<List<Industry>>((ref) {
 // ============================================
 
 /// Stream of all active COBs (Class of Business).
-final cobsStreamProvider = StreamProvider<List<Cob>>((ref) {
+final cobsStreamProvider = StreamProvider<List<CobDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchCobs();
 });
 
 /// Stream of LOBs (Line of Business) filtered by COB ID.
-final lobsByCobProvider = StreamProvider.family<List<Lob>, String?>((ref, cobId) {
+final lobsByCobProvider = StreamProvider.family<List<LobDto>, String?>((ref, cobId) {
   if (cobId == null || cobId.isEmpty) {
     return Stream.value([]);
   }
@@ -79,7 +80,7 @@ final lobsByCobProvider = StreamProvider.family<List<Lob>, String?>((ref, cobId)
 // ============================================
 
 /// Stream of all active pipeline stages.
-final pipelineStagesStreamProvider = StreamProvider<List<PipelineStage>>((ref) {
+final pipelineStagesStreamProvider = StreamProvider<List<PipelineStageDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchPipelineStages();
 });
@@ -89,7 +90,7 @@ final pipelineStagesStreamProvider = StreamProvider<List<PipelineStage>>((ref) {
 // ============================================
 
 /// Stream of all active activity types.
-final activityTypesStreamProvider = StreamProvider<List<ActivityType>>((ref) {
+final activityTypesStreamProvider = StreamProvider<List<ActivityTypeDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchActivityTypes();
 });
@@ -99,7 +100,7 @@ final activityTypesStreamProvider = StreamProvider<List<ActivityType>>((ref) {
 // ============================================
 
 /// Stream of all active lead sources.
-final leadSourcesStreamProvider = StreamProvider<List<LeadSource>>((ref) {
+final leadSourcesStreamProvider = StreamProvider<List<LeadSourceDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchLeadSources();
 });
@@ -115,11 +116,21 @@ final brokersStreamProvider = StreamProvider<List<Broker>>((ref) {
 });
 
 // ============================================
-// HVC PROVIDERS
+// DECLINE REASON PROVIDERS
+// ============================================
+
+/// Stream of all active decline reasons.
+final declineReasonsStreamProvider = StreamProvider<List<DeclineReasonDto>>((ref) {
+  final dataSource = ref.watch(masterDataLocalDataSourceProvider);
+  return dataSource.getDeclineReasons().asStream();
+});
+
+// ============================================
+// HVC TYPE PROVIDERS
 // ============================================
 
 /// Stream of all active HVC types.
-final hvcTypesStreamProvider = StreamProvider<List<HvcType>>((ref) {
+final hvcTypesStreamProvider = StreamProvider<List<HvcTypeDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchHvcTypes();
 });

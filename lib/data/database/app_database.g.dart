@@ -13423,6 +13423,17 @@ class $ActivitiesTable extends Activities
       'REFERENCES pipelines (id)',
     ),
   );
+  static const VerificationMeta _keyPersonIdMeta = const VerificationMeta(
+    'keyPersonId',
+  );
+  @override
+  late final GeneratedColumn<String> keyPersonId = GeneratedColumn<String>(
+    'key_person_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _activityTypeIdMeta = const VerificationMeta(
     'activityTypeId',
   );
@@ -13685,6 +13696,7 @@ class $ActivitiesTable extends Activities
     hvcId,
     brokerId,
     pipelineId,
+    keyPersonId,
     activityTypeId,
     summary,
     notes,
@@ -13771,6 +13783,15 @@ class $ActivitiesTable extends Activities
       context.handle(
         _pipelineIdMeta,
         pipelineId.isAcceptableOrUnknown(data['pipeline_id']!, _pipelineIdMeta),
+      );
+    }
+    if (data.containsKey('key_person_id')) {
+      context.handle(
+        _keyPersonIdMeta,
+        keyPersonId.isAcceptableOrUnknown(
+          data['key_person_id']!,
+          _keyPersonIdMeta,
+        ),
       );
     }
     if (data.containsKey('activity_type_id')) {
@@ -13990,6 +14011,10 @@ class $ActivitiesTable extends Activities
         DriftSqlType.string,
         data['${effectivePrefix}pipeline_id'],
       ),
+      keyPersonId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key_person_id'],
+      ),
       activityTypeId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}activity_type_id'],
@@ -14096,6 +14121,7 @@ class Activity extends DataClass implements Insertable<Activity> {
   final String? hvcId;
   final String? brokerId;
   final String? pipelineId;
+  final String? keyPersonId;
   final String activityTypeId;
   final String? summary;
   final String? notes;
@@ -14127,6 +14153,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     this.hvcId,
     this.brokerId,
     this.pipelineId,
+    this.keyPersonId,
     required this.activityTypeId,
     this.summary,
     this.notes,
@@ -14168,6 +14195,9 @@ class Activity extends DataClass implements Insertable<Activity> {
     }
     if (!nullToAbsent || pipelineId != null) {
       map['pipeline_id'] = Variable<String>(pipelineId);
+    }
+    if (!nullToAbsent || keyPersonId != null) {
+      map['key_person_id'] = Variable<String>(keyPersonId);
     }
     map['activity_type_id'] = Variable<String>(activityTypeId);
     if (!nullToAbsent || summary != null) {
@@ -14240,6 +14270,9 @@ class Activity extends DataClass implements Insertable<Activity> {
       pipelineId: pipelineId == null && nullToAbsent
           ? const Value.absent()
           : Value(pipelineId),
+      keyPersonId: keyPersonId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keyPersonId),
       activityTypeId: Value(activityTypeId),
       summary: summary == null && nullToAbsent
           ? const Value.absent()
@@ -14307,6 +14340,7 @@ class Activity extends DataClass implements Insertable<Activity> {
       hvcId: serializer.fromJson<String?>(json['hvcId']),
       brokerId: serializer.fromJson<String?>(json['brokerId']),
       pipelineId: serializer.fromJson<String?>(json['pipelineId']),
+      keyPersonId: serializer.fromJson<String?>(json['keyPersonId']),
       activityTypeId: serializer.fromJson<String>(json['activityTypeId']),
       summary: serializer.fromJson<String?>(json['summary']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -14349,6 +14383,7 @@ class Activity extends DataClass implements Insertable<Activity> {
       'hvcId': serializer.toJson<String?>(hvcId),
       'brokerId': serializer.toJson<String?>(brokerId),
       'pipelineId': serializer.toJson<String?>(pipelineId),
+      'keyPersonId': serializer.toJson<String?>(keyPersonId),
       'activityTypeId': serializer.toJson<String>(activityTypeId),
       'summary': serializer.toJson<String?>(summary),
       'notes': serializer.toJson<String?>(notes),
@@ -14383,6 +14418,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     Value<String?> hvcId = const Value.absent(),
     Value<String?> brokerId = const Value.absent(),
     Value<String?> pipelineId = const Value.absent(),
+    Value<String?> keyPersonId = const Value.absent(),
     String? activityTypeId,
     Value<String?> summary = const Value.absent(),
     Value<String?> notes = const Value.absent(),
@@ -14414,6 +14450,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     hvcId: hvcId.present ? hvcId.value : this.hvcId,
     brokerId: brokerId.present ? brokerId.value : this.brokerId,
     pipelineId: pipelineId.present ? pipelineId.value : this.pipelineId,
+    keyPersonId: keyPersonId.present ? keyPersonId.value : this.keyPersonId,
     activityTypeId: activityTypeId ?? this.activityTypeId,
     summary: summary.present ? summary.value : this.summary,
     notes: notes.present ? notes.value : this.notes,
@@ -14463,6 +14500,9 @@ class Activity extends DataClass implements Insertable<Activity> {
       pipelineId: data.pipelineId.present
           ? data.pipelineId.value
           : this.pipelineId,
+      keyPersonId: data.keyPersonId.present
+          ? data.keyPersonId.value
+          : this.keyPersonId,
       activityTypeId: data.activityTypeId.present
           ? data.activityTypeId.value
           : this.activityTypeId,
@@ -14525,6 +14565,7 @@ class Activity extends DataClass implements Insertable<Activity> {
           ..write('hvcId: $hvcId, ')
           ..write('brokerId: $brokerId, ')
           ..write('pipelineId: $pipelineId, ')
+          ..write('keyPersonId: $keyPersonId, ')
           ..write('activityTypeId: $activityTypeId, ')
           ..write('summary: $summary, ')
           ..write('notes: $notes, ')
@@ -14561,6 +14602,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     hvcId,
     brokerId,
     pipelineId,
+    keyPersonId,
     activityTypeId,
     summary,
     notes,
@@ -14596,6 +14638,7 @@ class Activity extends DataClass implements Insertable<Activity> {
           other.hvcId == this.hvcId &&
           other.brokerId == this.brokerId &&
           other.pipelineId == this.pipelineId &&
+          other.keyPersonId == this.keyPersonId &&
           other.activityTypeId == this.activityTypeId &&
           other.summary == this.summary &&
           other.notes == this.notes &&
@@ -14629,6 +14672,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
   final Value<String?> hvcId;
   final Value<String?> brokerId;
   final Value<String?> pipelineId;
+  final Value<String?> keyPersonId;
   final Value<String> activityTypeId;
   final Value<String?> summary;
   final Value<String?> notes;
@@ -14661,6 +14705,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     this.hvcId = const Value.absent(),
     this.brokerId = const Value.absent(),
     this.pipelineId = const Value.absent(),
+    this.keyPersonId = const Value.absent(),
     this.activityTypeId = const Value.absent(),
     this.summary = const Value.absent(),
     this.notes = const Value.absent(),
@@ -14694,6 +14739,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     this.hvcId = const Value.absent(),
     this.brokerId = const Value.absent(),
     this.pipelineId = const Value.absent(),
+    this.keyPersonId = const Value.absent(),
     required String activityTypeId,
     this.summary = const Value.absent(),
     this.notes = const Value.absent(),
@@ -14734,6 +14780,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     Expression<String>? hvcId,
     Expression<String>? brokerId,
     Expression<String>? pipelineId,
+    Expression<String>? keyPersonId,
     Expression<String>? activityTypeId,
     Expression<String>? summary,
     Expression<String>? notes,
@@ -14767,6 +14814,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       if (hvcId != null) 'hvc_id': hvcId,
       if (brokerId != null) 'broker_id': brokerId,
       if (pipelineId != null) 'pipeline_id': pipelineId,
+      if (keyPersonId != null) 'key_person_id': keyPersonId,
       if (activityTypeId != null) 'activity_type_id': activityTypeId,
       if (summary != null) 'summary': summary,
       if (notes != null) 'notes': notes,
@@ -14804,6 +14852,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     Value<String?>? hvcId,
     Value<String?>? brokerId,
     Value<String?>? pipelineId,
+    Value<String?>? keyPersonId,
     Value<String>? activityTypeId,
     Value<String?>? summary,
     Value<String?>? notes,
@@ -14837,6 +14886,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       hvcId: hvcId ?? this.hvcId,
       brokerId: brokerId ?? this.brokerId,
       pipelineId: pipelineId ?? this.pipelineId,
+      keyPersonId: keyPersonId ?? this.keyPersonId,
       activityTypeId: activityTypeId ?? this.activityTypeId,
       summary: summary ?? this.summary,
       notes: notes ?? this.notes,
@@ -14889,6 +14939,9 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     }
     if (pipelineId.present) {
       map['pipeline_id'] = Variable<String>(pipelineId.value);
+    }
+    if (keyPersonId.present) {
+      map['key_person_id'] = Variable<String>(keyPersonId.value);
     }
     if (activityTypeId.present) {
       map['activity_type_id'] = Variable<String>(activityTypeId.value);
@@ -14973,6 +15026,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
           ..write('hvcId: $hvcId, ')
           ..write('brokerId: $brokerId, ')
           ..write('pipelineId: $pipelineId, ')
+          ..write('keyPersonId: $keyPersonId, ')
           ..write('activityTypeId: $activityTypeId, ')
           ..write('summary: $summary, ')
           ..write('notes: $notes, ')
@@ -41894,6 +41948,7 @@ typedef $$ActivitiesTableCreateCompanionBuilder =
       Value<String?> hvcId,
       Value<String?> brokerId,
       Value<String?> pipelineId,
+      Value<String?> keyPersonId,
       required String activityTypeId,
       Value<String?> summary,
       Value<String?> notes,
@@ -41928,6 +41983,7 @@ typedef $$ActivitiesTableUpdateCompanionBuilder =
       Value<String?> hvcId,
       Value<String?> brokerId,
       Value<String?> pipelineId,
+      Value<String?> keyPersonId,
       Value<String> activityTypeId,
       Value<String?> summary,
       Value<String?> notes,
@@ -42103,6 +42159,11 @@ class $$ActivitiesTableFilterComposer
 
   ColumnFilters<String> get brokerId => $composableBuilder(
     column: $table.brokerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keyPersonId => $composableBuilder(
+    column: $table.keyPersonId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -42388,6 +42449,11 @@ class $$ActivitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get keyPersonId => $composableBuilder(
+    column: $table.keyPersonId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get activityTypeId => $composableBuilder(
     column: $table.activityTypeId,
     builder: (column) => ColumnOrderings(column),
@@ -42613,6 +42679,11 @@ class $$ActivitiesTableAnnotationComposer
 
   GeneratedColumn<String> get brokerId =>
       $composableBuilder(column: $table.brokerId, builder: (column) => column);
+
+  GeneratedColumn<String> get keyPersonId => $composableBuilder(
+    column: $table.keyPersonId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get activityTypeId => $composableBuilder(
     column: $table.activityTypeId,
@@ -42893,6 +42964,7 @@ class $$ActivitiesTableTableManager
                 Value<String?> hvcId = const Value.absent(),
                 Value<String?> brokerId = const Value.absent(),
                 Value<String?> pipelineId = const Value.absent(),
+                Value<String?> keyPersonId = const Value.absent(),
                 Value<String> activityTypeId = const Value.absent(),
                 Value<String?> summary = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -42925,6 +42997,7 @@ class $$ActivitiesTableTableManager
                 hvcId: hvcId,
                 brokerId: brokerId,
                 pipelineId: pipelineId,
+                keyPersonId: keyPersonId,
                 activityTypeId: activityTypeId,
                 summary: summary,
                 notes: notes,
@@ -42959,6 +43032,7 @@ class $$ActivitiesTableTableManager
                 Value<String?> hvcId = const Value.absent(),
                 Value<String?> brokerId = const Value.absent(),
                 Value<String?> pipelineId = const Value.absent(),
+                Value<String?> keyPersonId = const Value.absent(),
                 required String activityTypeId,
                 Value<String?> summary = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -42991,6 +43065,7 @@ class $$ActivitiesTableTableManager
                 hvcId: hvcId,
                 brokerId: brokerId,
                 pipelineId: pipelineId,
+                keyPersonId: keyPersonId,
                 activityTypeId: activityTypeId,
                 summary: summary,
                 notes: notes,

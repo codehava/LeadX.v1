@@ -11,11 +11,12 @@ import 'package:leadx_crm/data/datasources/local/master_data_local_data_source.d
 import 'package:leadx_crm/data/datasources/local/pipeline_local_data_source.dart'
     as _i3;
 import 'package:leadx_crm/data/datasources/remote/pipeline_remote_data_source.dart'
-    as _i7;
-import 'package:leadx_crm/data/services/sync_service.dart' as _i8;
+    as _i8;
+import 'package:leadx_crm/data/dtos/master_data_dtos.dart' as _i7;
+import 'package:leadx_crm/data/services/sync_service.dart' as _i9;
 import 'package:leadx_crm/domain/entities/sync_models.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -286,210 +287,224 @@ class MockMasterDataLocalDataSource extends _i1.Mock
   }
 
   @override
-  _i4.Future<List<_i5.Province>> getProvinces() =>
+  _i4.Future<List<_i7.ProvinceDto>> getProvinces() =>
       (super.noSuchMethod(
             Invocation.method(#getProvinces, []),
-            returnValue: _i4.Future<List<_i5.Province>>.value(<_i5.Province>[]),
+            returnValue: _i4.Future<List<_i7.ProvinceDto>>.value(
+              <_i7.ProvinceDto>[],
+            ),
           )
-          as _i4.Future<List<_i5.Province>>);
+          as _i4.Future<List<_i7.ProvinceDto>>);
 
   @override
-  _i4.Stream<List<_i5.Province>> watchProvinces() =>
+  _i4.Stream<List<_i7.ProvinceDto>> watchProvinces() =>
       (super.noSuchMethod(
             Invocation.method(#watchProvinces, []),
-            returnValue: _i4.Stream<List<_i5.Province>>.empty(),
+            returnValue: _i4.Stream<List<_i7.ProvinceDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.Province>>);
+          as _i4.Stream<List<_i7.ProvinceDto>>);
 
   @override
-  _i4.Future<List<_i5.City>> getCitiesByProvince(String? provinceId) =>
+  _i4.Future<List<_i7.CityDto>> getCitiesByProvince(String? provinceId) =>
       (super.noSuchMethod(
             Invocation.method(#getCitiesByProvince, [provinceId]),
-            returnValue: _i4.Future<List<_i5.City>>.value(<_i5.City>[]),
+            returnValue: _i4.Future<List<_i7.CityDto>>.value(<_i7.CityDto>[]),
           )
-          as _i4.Future<List<_i5.City>>);
+          as _i4.Future<List<_i7.CityDto>>);
 
   @override
-  _i4.Stream<List<_i5.City>> watchCitiesByProvince(String? provinceId) =>
+  _i4.Stream<List<_i7.CityDto>> watchCitiesByProvince(String? provinceId) =>
       (super.noSuchMethod(
             Invocation.method(#watchCitiesByProvince, [provinceId]),
-            returnValue: _i4.Stream<List<_i5.City>>.empty(),
+            returnValue: _i4.Stream<List<_i7.CityDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.City>>);
+          as _i4.Stream<List<_i7.CityDto>>);
 
   @override
-  _i4.Future<List<_i5.CompanyType>> getCompanyTypes() =>
+  _i4.Future<List<_i7.CompanyTypeDto>> getCompanyTypes() =>
       (super.noSuchMethod(
             Invocation.method(#getCompanyTypes, []),
-            returnValue: _i4.Future<List<_i5.CompanyType>>.value(
-              <_i5.CompanyType>[],
+            returnValue: _i4.Future<List<_i7.CompanyTypeDto>>.value(
+              <_i7.CompanyTypeDto>[],
             ),
           )
-          as _i4.Future<List<_i5.CompanyType>>);
+          as _i4.Future<List<_i7.CompanyTypeDto>>);
 
   @override
-  _i4.Stream<List<_i5.CompanyType>> watchCompanyTypes() =>
+  _i4.Stream<List<_i7.CompanyTypeDto>> watchCompanyTypes() =>
       (super.noSuchMethod(
             Invocation.method(#watchCompanyTypes, []),
-            returnValue: _i4.Stream<List<_i5.CompanyType>>.empty(),
+            returnValue: _i4.Stream<List<_i7.CompanyTypeDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.CompanyType>>);
+          as _i4.Stream<List<_i7.CompanyTypeDto>>);
 
   @override
-  _i4.Future<List<_i5.OwnershipType>> getOwnershipTypes() =>
+  _i4.Future<List<_i7.OwnershipTypeDto>> getOwnershipTypes() =>
       (super.noSuchMethod(
             Invocation.method(#getOwnershipTypes, []),
-            returnValue: _i4.Future<List<_i5.OwnershipType>>.value(
-              <_i5.OwnershipType>[],
+            returnValue: _i4.Future<List<_i7.OwnershipTypeDto>>.value(
+              <_i7.OwnershipTypeDto>[],
             ),
           )
-          as _i4.Future<List<_i5.OwnershipType>>);
+          as _i4.Future<List<_i7.OwnershipTypeDto>>);
 
   @override
-  _i4.Stream<List<_i5.OwnershipType>> watchOwnershipTypes() =>
+  _i4.Stream<List<_i7.OwnershipTypeDto>> watchOwnershipTypes() =>
       (super.noSuchMethod(
             Invocation.method(#watchOwnershipTypes, []),
-            returnValue: _i4.Stream<List<_i5.OwnershipType>>.empty(),
+            returnValue: _i4.Stream<List<_i7.OwnershipTypeDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.OwnershipType>>);
+          as _i4.Stream<List<_i7.OwnershipTypeDto>>);
 
   @override
-  _i4.Future<List<_i5.Industry>> getIndustries() =>
+  _i4.Future<List<_i7.IndustryDto>> getIndustries() =>
       (super.noSuchMethod(
             Invocation.method(#getIndustries, []),
-            returnValue: _i4.Future<List<_i5.Industry>>.value(<_i5.Industry>[]),
+            returnValue: _i4.Future<List<_i7.IndustryDto>>.value(
+              <_i7.IndustryDto>[],
+            ),
           )
-          as _i4.Future<List<_i5.Industry>>);
+          as _i4.Future<List<_i7.IndustryDto>>);
 
   @override
-  _i4.Stream<List<_i5.Industry>> watchIndustries() =>
+  _i4.Stream<List<_i7.IndustryDto>> watchIndustries() =>
       (super.noSuchMethod(
             Invocation.method(#watchIndustries, []),
-            returnValue: _i4.Stream<List<_i5.Industry>>.empty(),
+            returnValue: _i4.Stream<List<_i7.IndustryDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.Industry>>);
+          as _i4.Stream<List<_i7.IndustryDto>>);
 
   @override
-  _i4.Future<List<_i5.Cob>> getCobs() =>
+  _i4.Future<List<_i7.CobDto>> getCobs() =>
       (super.noSuchMethod(
             Invocation.method(#getCobs, []),
-            returnValue: _i4.Future<List<_i5.Cob>>.value(<_i5.Cob>[]),
+            returnValue: _i4.Future<List<_i7.CobDto>>.value(<_i7.CobDto>[]),
           )
-          as _i4.Future<List<_i5.Cob>>);
+          as _i4.Future<List<_i7.CobDto>>);
 
   @override
-  _i4.Stream<List<_i5.Cob>> watchCobs() =>
+  _i4.Stream<List<_i7.CobDto>> watchCobs() =>
       (super.noSuchMethod(
             Invocation.method(#watchCobs, []),
-            returnValue: _i4.Stream<List<_i5.Cob>>.empty(),
+            returnValue: _i4.Stream<List<_i7.CobDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.Cob>>);
+          as _i4.Stream<List<_i7.CobDto>>);
 
   @override
-  _i4.Future<List<_i5.Lob>> getLobsByCob(String? cobId) =>
+  _i4.Future<List<_i7.LobDto>> getLobsByCob(String? cobId) =>
       (super.noSuchMethod(
             Invocation.method(#getLobsByCob, [cobId]),
-            returnValue: _i4.Future<List<_i5.Lob>>.value(<_i5.Lob>[]),
+            returnValue: _i4.Future<List<_i7.LobDto>>.value(<_i7.LobDto>[]),
           )
-          as _i4.Future<List<_i5.Lob>>);
+          as _i4.Future<List<_i7.LobDto>>);
 
   @override
-  _i4.Stream<List<_i5.Lob>> watchLobsByCob(String? cobId) =>
+  _i4.Stream<List<_i7.LobDto>> watchLobsByCob(String? cobId) =>
       (super.noSuchMethod(
             Invocation.method(#watchLobsByCob, [cobId]),
-            returnValue: _i4.Stream<List<_i5.Lob>>.empty(),
+            returnValue: _i4.Stream<List<_i7.LobDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.Lob>>);
+          as _i4.Stream<List<_i7.LobDto>>);
 
   @override
-  _i4.Future<List<_i5.PipelineStage>> getPipelineStages() =>
+  _i4.Future<List<_i7.LobDto>> getAllLobs() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllLobs, []),
+            returnValue: _i4.Future<List<_i7.LobDto>>.value(<_i7.LobDto>[]),
+          )
+          as _i4.Future<List<_i7.LobDto>>);
+
+  @override
+  _i4.Future<List<_i7.PipelineStageDto>> getPipelineStages() =>
       (super.noSuchMethod(
             Invocation.method(#getPipelineStages, []),
-            returnValue: _i4.Future<List<_i5.PipelineStage>>.value(
-              <_i5.PipelineStage>[],
+            returnValue: _i4.Future<List<_i7.PipelineStageDto>>.value(
+              <_i7.PipelineStageDto>[],
             ),
           )
-          as _i4.Future<List<_i5.PipelineStage>>);
+          as _i4.Future<List<_i7.PipelineStageDto>>);
 
   @override
-  _i4.Stream<List<_i5.PipelineStage>> watchPipelineStages() =>
+  _i4.Stream<List<_i7.PipelineStageDto>> watchPipelineStages() =>
       (super.noSuchMethod(
             Invocation.method(#watchPipelineStages, []),
-            returnValue: _i4.Stream<List<_i5.PipelineStage>>.empty(),
+            returnValue: _i4.Stream<List<_i7.PipelineStageDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.PipelineStage>>);
+          as _i4.Stream<List<_i7.PipelineStageDto>>);
 
   @override
-  _i4.Future<List<_i5.PipelineStatuse>> getStatusesByStage(String? stageId) =>
+  _i4.Future<List<_i7.PipelineStatusDto>> getStatusesByStage(String? stageId) =>
       (super.noSuchMethod(
             Invocation.method(#getStatusesByStage, [stageId]),
-            returnValue: _i4.Future<List<_i5.PipelineStatuse>>.value(
-              <_i5.PipelineStatuse>[],
+            returnValue: _i4.Future<List<_i7.PipelineStatusDto>>.value(
+              <_i7.PipelineStatusDto>[],
             ),
           )
-          as _i4.Future<List<_i5.PipelineStatuse>>);
+          as _i4.Future<List<_i7.PipelineStatusDto>>);
 
   @override
-  _i4.Future<List<_i5.ActivityType>> getActivityTypes() =>
+  _i4.Future<List<_i7.ActivityTypeDto>> getActivityTypes() =>
       (super.noSuchMethod(
             Invocation.method(#getActivityTypes, []),
-            returnValue: _i4.Future<List<_i5.ActivityType>>.value(
-              <_i5.ActivityType>[],
+            returnValue: _i4.Future<List<_i7.ActivityTypeDto>>.value(
+              <_i7.ActivityTypeDto>[],
             ),
           )
-          as _i4.Future<List<_i5.ActivityType>>);
+          as _i4.Future<List<_i7.ActivityTypeDto>>);
 
   @override
-  _i4.Stream<List<_i5.ActivityType>> watchActivityTypes() =>
+  _i4.Stream<List<_i7.ActivityTypeDto>> watchActivityTypes() =>
       (super.noSuchMethod(
             Invocation.method(#watchActivityTypes, []),
-            returnValue: _i4.Stream<List<_i5.ActivityType>>.empty(),
+            returnValue: _i4.Stream<List<_i7.ActivityTypeDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.ActivityType>>);
+          as _i4.Stream<List<_i7.ActivityTypeDto>>);
 
   @override
-  _i4.Future<List<_i5.LeadSource>> getLeadSources() =>
+  _i4.Future<List<_i7.LeadSourceDto>> getLeadSources() =>
       (super.noSuchMethod(
             Invocation.method(#getLeadSources, []),
-            returnValue: _i4.Future<List<_i5.LeadSource>>.value(
-              <_i5.LeadSource>[],
+            returnValue: _i4.Future<List<_i7.LeadSourceDto>>.value(
+              <_i7.LeadSourceDto>[],
             ),
           )
-          as _i4.Future<List<_i5.LeadSource>>);
+          as _i4.Future<List<_i7.LeadSourceDto>>);
 
   @override
-  _i4.Stream<List<_i5.LeadSource>> watchLeadSources() =>
+  _i4.Stream<List<_i7.LeadSourceDto>> watchLeadSources() =>
       (super.noSuchMethod(
             Invocation.method(#watchLeadSources, []),
-            returnValue: _i4.Stream<List<_i5.LeadSource>>.empty(),
+            returnValue: _i4.Stream<List<_i7.LeadSourceDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.LeadSource>>);
+          as _i4.Stream<List<_i7.LeadSourceDto>>);
 
   @override
-  _i4.Future<List<_i5.DeclineReason>> getDeclineReasons() =>
+  _i4.Future<List<_i7.DeclineReasonDto>> getDeclineReasons() =>
       (super.noSuchMethod(
             Invocation.method(#getDeclineReasons, []),
-            returnValue: _i4.Future<List<_i5.DeclineReason>>.value(
-              <_i5.DeclineReason>[],
+            returnValue: _i4.Future<List<_i7.DeclineReasonDto>>.value(
+              <_i7.DeclineReasonDto>[],
             ),
           )
-          as _i4.Future<List<_i5.DeclineReason>>);
+          as _i4.Future<List<_i7.DeclineReasonDto>>);
 
   @override
-  _i4.Future<List<_i5.HvcType>> getHvcTypes() =>
+  _i4.Future<List<_i7.HvcTypeDto>> getHvcTypes() =>
       (super.noSuchMethod(
             Invocation.method(#getHvcTypes, []),
-            returnValue: _i4.Future<List<_i5.HvcType>>.value(<_i5.HvcType>[]),
+            returnValue: _i4.Future<List<_i7.HvcTypeDto>>.value(
+              <_i7.HvcTypeDto>[],
+            ),
           )
-          as _i4.Future<List<_i5.HvcType>>);
+          as _i4.Future<List<_i7.HvcTypeDto>>);
 
   @override
-  _i4.Stream<List<_i5.HvcType>> watchHvcTypes() =>
+  _i4.Stream<List<_i7.HvcTypeDto>> watchHvcTypes() =>
       (super.noSuchMethod(
             Invocation.method(#watchHvcTypes, []),
-            returnValue: _i4.Stream<List<_i5.HvcType>>.empty(),
+            returnValue: _i4.Stream<List<_i7.HvcTypeDto>>.empty(),
           )
-          as _i4.Stream<List<_i5.HvcType>>);
+          as _i4.Stream<List<_i7.HvcTypeDto>>);
 
   @override
   _i4.Future<List<_i5.Broker>> getBrokers() =>
@@ -559,7 +574,7 @@ class MockMasterDataLocalDataSource extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPipelineRemoteDataSource extends _i1.Mock
-    implements _i7.PipelineRemoteDataSource {
+    implements _i8.PipelineRemoteDataSource {
   MockPipelineRemoteDataSource() {
     _i1.throwOnMissingStub(this);
   }
@@ -674,7 +689,7 @@ class MockPipelineRemoteDataSource extends _i1.Mock
 /// A class which mocks [SyncService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncService extends _i1.Mock implements _i8.SyncService {
+class MockSyncService extends _i1.Mock implements _i9.SyncService {
   MockSyncService() {
     _i1.throwOnMissingStub(this);
   }
@@ -691,7 +706,7 @@ class MockSyncService extends _i1.Mock implements _i8.SyncService {
   _i2.SyncState get currentState =>
       (super.noSuchMethod(
             Invocation.getter(#currentState),
-            returnValue: _i9.dummyValue<_i2.SyncState>(
+            returnValue: _i10.dummyValue<_i2.SyncState>(
               this,
               Invocation.getter(#currentState),
             ),

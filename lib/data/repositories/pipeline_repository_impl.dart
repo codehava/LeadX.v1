@@ -11,6 +11,7 @@ import '../datasources/local/customer_local_data_source.dart';
 import '../datasources/local/master_data_local_data_source.dart';
 import '../datasources/local/pipeline_local_data_source.dart';
 import '../datasources/remote/pipeline_remote_data_source.dart';
+import '../dtos/master_data_dtos.dart';
 import '../dtos/pipeline_dtos.dart';
 import '../services/sync_service.dart';
 
@@ -613,15 +614,8 @@ class PipelineRepositoryImpl implements PipelineRepository {
   }
 
   /// Get all LOBs from database.
-  Future<List<db.Lob>> _getAllLobs() async {
-    // Get COBs first, then get all LOBs
-    final cobs = await _masterDataSource.getCobs();
-    final allLobs = <db.Lob>[];
-    for (final cob in cobs) {
-      final lobs = await _masterDataSource.getLobsByCob(cob.id);
-      allLobs.addAll(lobs);
-    }
-    return allLobs;
+  Future<List<LobDto>> _getAllLobs() async {
+    return _masterDataSource.getAllLobs();
   }
 
   /// Map Drift Pipeline data to domain Pipeline entity with resolved lookups.

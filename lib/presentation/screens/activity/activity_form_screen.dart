@@ -13,6 +13,7 @@ import '../../providers/activity_providers.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/hvc_providers.dart';
+import '../../providers/master_data_providers.dart';
 import '../../widgets/common/searchable_dropdown.dart';
 
 /// Screen for creating/scheduling activities.
@@ -39,10 +40,11 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   
   String? _selectedObjectType;
   String? _selectedObjectId;
+  String? _selectedKeyPersonId;
   String? _selectedActivityTypeId;
   DateTime _scheduledDate = DateTime.now();
   TimeOfDay _scheduledTime = TimeOfDay.now();
-  
+
   final _summaryController = TextEditingController();
   final _notesController = TextEditingController();
   
@@ -91,7 +93,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final formState = ref.watch(activityFormNotifierProvider);
-    final activityTypesAsync = ref.watch(activityTypesProvider);
+    final activityTypesAsync = ref.watch(activityTypesStreamProvider);
 
     // Listen for successful save
     ref.listen<ActivityFormState>(activityFormNotifierProvider, (prev, next) {
@@ -158,6 +160,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                   setState(() {
                     _selectedObjectType = selected.first;
                     _selectedObjectId = null;
+                    _selectedKeyPersonId = null; // Reset key person when object type changes
                   });
                 },
               ),
@@ -179,6 +182,10 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                   subtitle: Text(_getObjectTypeLabel(widget.objectType ?? '')),
                 ),
               ),
+              const SizedBox(height: 16),
+              // Key Person selection (if object is selected)
+              if (widget.objectType != null)
+                _buildKeyPersonField(theme),
               const SizedBox(height: 16),
             ],
 
@@ -401,6 +408,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         customerId: objectType == 'CUSTOMER' ? objectId : null,
         hvcId: objectType == 'HVC' ? objectId : null,
         brokerId: objectType == 'BROKER' ? objectId : null,
+        keyPersonId: _selectedKeyPersonId,
         summary: _summaryController.text.isNotEmpty
             ? _summaryController.text
             : null,
@@ -432,6 +440,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         customerId: objectType == 'CUSTOMER' ? objectId : null,
         hvcId: objectType == 'HVC' ? objectId : null,
         brokerId: objectType == 'BROKER' ? objectId : null,
+        keyPersonId: _selectedKeyPersonId,
         summary: _summaryController.text.isNotEmpty
             ? _summaryController.text
             : null,
@@ -504,6 +513,94 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     }
   }
 
+  /// Build key person field based on selected object type.
+  Widget _buildKeyPersonField(ThemeData theme) {
+    if (_selectedObjectType == null || _selectedObjectId == null) {
+      return const SizedBox.shrink();
+    }
+
+    switch (_selectedObjectType) {
+      case 'CUSTOMER':
+        return _buildCustomerKeyPersonField(theme);
+      case 'HVC':
+        return const SizedBox.shrink(); // HVC key persons not yet implemented
+      case 'BROKER':
+        return _buildBrokerKeyPersonField(theme);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildCustomerKeyPersonField(ThemeData theme) {
+    final keyPersonsAsync = ref.watch(customerKeyPersonsProvider(_selectedObjectId!));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return SearchableDropdown<String>(
+          label: 'Key Person (Opsional)',
+          hint: 'Pilih key person customer...',
+          modalTitle: 'Pilih Key Person',
+          searchHint: 'Cari key person...',
+          prefixIcon: Icons.person,
+          value: _selectedKeyPersonId,
+          items: keyPersons.map((kp) {
+            return DropdownItem(
+              value: kp.id,
+              label: kp.displayNameWithPosition,
+              subtitle: kp.position,
+              icon: Icons.person,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedKeyPersonId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildBrokerKeyPersonField(ThemeData theme) {
+    final keyPersonsAsync = ref.watch(brokerKeyPersonsProvider(_selectedObjectId!));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return SearchableDropdown<String>(
+          label: 'Key Person (Opsional)',
+          hint: 'Pilih key person broker...',
+          modalTitle: 'Pilih Key Person',
+          searchHint: 'Cari key person...',
+          prefixIcon: Icons.person,
+          value: _selectedKeyPersonId,
+          items: keyPersons.map((kp) {
+            return DropdownItem(
+              value: kp.id,
+              label: kp.displayNameWithPosition,
+              subtitle: kp.position,
+              icon: Icons.person,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedKeyPersonId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
   /// Build entity picker based on selected object type.
   Widget _buildEntityPicker(ThemeData theme) {
     switch (_selectedObjectType) {
@@ -555,6 +652,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
           onChanged: (value) {
             setState(() {
               _selectedObjectId = value;
+              _selectedKeyPersonId = null; // Reset key person when customer changes
             });
           },
         );
@@ -645,6 +743,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
           onChanged: (value) {
             setState(() {
               _selectedObjectId = value;
+              _selectedKeyPersonId = null; // Reset key person when broker changes
             });
           },
         );

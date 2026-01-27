@@ -93,7 +93,8 @@ final pipelineDetailProvider =
 // Master Data Providers
 // ==========================================
 
-/// Provider for pipeline stages.
+/// @deprecated Use [pipelineStagesStreamProvider] from master_data_providers instead.
+/// Returns DTOs for better separation of concerns.
 final pipelineStagesProvider =
     FutureProvider<List<domain.PipelineStageInfo>>((ref) async {
   final repository = ref.watch(pipelineRepositoryProvider);

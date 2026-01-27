@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/sync_providers.dart';
 import '../../screens/home/widgets/home_drawer.dart';
@@ -325,7 +326,8 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
   Widget _buildNavigationRail(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final isAdmin = ref.watch(isAdminProvider);
+
     // selectedIndex now directly matches _navItems since there's no "Add" button
     // Home(0), Customer(1), Activity(2), Profile(3)
     final effectiveIndex = _selectedIndex < 0 ? 0 : _selectedIndex;
@@ -413,6 +415,16 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   isSelected: widget.currentRoute.contains('/notifications'),
                   onTap: () => context.push(RoutePaths.notifications),
                 ),
+                if (isAdmin) ...[
+                  const Divider(),
+                  _buildRailTrailingItem(
+                    context,
+                    icon: Icons.admin_panel_settings,
+                    label: 'Admin',
+                    isSelected: widget.currentRoute.contains('/admin'),
+                    onTap: () => context.push(RoutePaths.admin),
+                  ),
+                ],
                 const Spacer(),
                 const Divider(),
                 _buildRailTrailingItem(
@@ -534,8 +546,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   Widget _buildSidebar(BuildContext context) {
     final theme = Theme.of(context);
     final width = context.screenWidth >= Breakpoints.widescreen ? 280.0 : 256.0;
-    // TODO: Get actual admin status from auth provider
-    const bool isAdmin = false;
+    final isAdmin = ref.watch(isAdminProvider);
 
     return Container(
       width: width,
@@ -844,60 +855,76 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   Widget _buildDrawer(BuildContext context) {
-    // TODO: Get actual user info from auth provider
-    return HomeDrawer(
-      userName: 'User Name',
-      userRole: 'Relationship Manager',
-      isAdmin: false, // TODO: Get from user role
-      onHvcTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.hvc);
-      },
-      onBrokerTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.brokers);
-      },
-      onScoreboardTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.scoreboard);
-      },
-      onTargetsTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.targets);
-      },
-      onCadenceTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.cadence);
-      },
-      onReportsTap: () {
-        Navigator.pop(context);
-        // TODO: Add reports route when available
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reports coming soon')),
+    return Consumer(
+      builder: (context, ref, _) {
+        final userAsync = ref.watch(currentUserProvider);
+        final isAdmin = ref.watch(isAdminProvider);
+
+        var userName = 'User Name';
+        var userRole = 'Relationship Manager';
+
+        userAsync.whenData((user) {
+          if (user != null) {
+            userName = user.displayName;
+            userRole = user.role.displayName;
+          }
+        });
+
+        return HomeDrawer(
+          userName: userName,
+          userRole: userRole,
+          isAdmin: isAdmin,
+          onHvcTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.hvc);
+          },
+          onBrokerTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.brokers);
+          },
+          onScoreboardTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.scoreboard);
+          },
+          onTargetsTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.targets);
+          },
+          onCadenceTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.cadence);
+          },
+          onReportsTap: () {
+            Navigator.pop(context);
+            // TODO: Add reports route when available
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Reports coming soon')),
+            );
+          },
+          onNotificationsTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.notifications);
+          },
+          onSettingsTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.settings);
+          },
+          onHelpTap: () {
+            Navigator.pop(context);
+            // TODO: Add help route when available
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Help & FAQ coming soon')),
+            );
+          },
+          onAdminPanelTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.admin);
+          },
+          onLogoutTap: () {
+            Navigator.pop(context);
+            context.go(RoutePaths.login);
+          },
         );
-      },
-      onNotificationsTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.notifications);
-      },
-      onSettingsTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.settings);
-      },
-      onHelpTap: () {
-        Navigator.pop(context);
-        // TODO: Add help route when available
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Help & FAQ coming soon')),
-        );
-      },
-      onAdminPanelTap: () {
-        Navigator.pop(context);
-        context.push(RoutePaths.admin);
-      },
-      onLogoutTap: () {
-        Navigator.pop(context);
-        context.go(RoutePaths.login);
       },
     );
   }

@@ -66,6 +66,7 @@ class Activity with _$Activity {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     // Activity details
     String? summary,
     String? notes,

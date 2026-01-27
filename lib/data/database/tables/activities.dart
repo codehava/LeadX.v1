@@ -14,6 +14,7 @@ class Activities extends Table {
   TextColumn get hvcId => text().nullable()(); // If object_type = HVC
   TextColumn get brokerId => text().nullable()(); // If object_type = BROKER
   TextColumn get pipelineId => text().nullable().references(Pipelines, #id)();
+  TextColumn get keyPersonId => text().nullable()(); // Key person associated with activity
   TextColumn get activityTypeId => text()();
   TextColumn get summary => text().nullable()();
   TextColumn get notes => text().nullable()();

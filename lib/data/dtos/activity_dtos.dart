@@ -13,6 +13,7 @@ class ActivityCreateDto with _$ActivityCreateDto {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     // GPS data captured when creating (for audit log)
@@ -33,6 +34,7 @@ class ImmediateActivityDto with _$ImmediateActivityDto {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     // GPS data captured at time of logging

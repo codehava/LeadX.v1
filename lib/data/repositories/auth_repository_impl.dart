@@ -14,16 +14,49 @@ import '../../domain/repositories/auth_repository.dart';
 /// Supabase implementation of AuthRepository.
 class AuthRepositoryImpl implements AuthRepository {
   final supabase.SupabaseClient _client;
-  
+
   AuthSession? _currentSession;
   User? _currentUser;
   final _authStateController = StreamController<AppAuthState>.broadcast();
+  bool _initialized = false;
 
   AuthRepositoryImpl(this._client) {
-    // Listen to Supabase auth state changes
+    // Initialize auth state from persisted session immediately
+    _initializeAuthState();
+
+    // Listen to Supabase auth state changes for future events
     _client.auth.onAuthStateChange.listen((data) {
       _handleAuthStateChange(data);
     });
+  }
+
+  /// Initialize auth state from persisted session
+  void _initializeAuthState() {
+    // Check for persisted session synchronously first
+    final session = _client.auth.currentSession;
+
+    if (session != null) {
+      debugPrint('[Auth] Found persisted session, attempting to restore...');
+      // Session exists, fetch user profile asynchronously
+      _restoreSessionAsync(session);
+    } else {
+      debugPrint('[Auth] No persisted session found');
+      _authStateController.add(const AppAuthState.unauthenticated());
+      _initialized = true;
+    }
+  }
+
+  /// Restore session asynchronously
+  Future<void> _restoreSessionAsync(supabase.Session session) async {
+    try {
+      await _fetchUserAndNotify(session);
+      debugPrint('[Auth] Session restored successfully');
+    } catch (e) {
+      debugPrint('[Auth] Failed to restore session: $e');
+      _authStateController.add(const AppAuthState.unauthenticated());
+    } finally {
+      _initialized = true;
+    }
   }
 
   void _handleAuthStateChange(supabase.AuthState data) {
@@ -126,6 +159,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AppAuthState> getAuthState() async {
+    // Wait for initialization to complete with timeout
+    int attempts = 0;
+    while (!_initialized && attempts < 20) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      attempts++;
+    }
+
+    if (!_initialized) {
+      debugPrint('[Auth] Initialization timeout, returning current state');
+    }
+
     final session = _client.auth.currentSession;
     if (session == null) {
       return const AppAuthState.unauthenticated();
@@ -144,6 +188,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       return AppAuthState.authenticated(user);
     } catch (e) {
+      debugPrint('[Auth] Failed to get auth state: $e');
       return AppAuthState.error(e.toString());
     }
   }

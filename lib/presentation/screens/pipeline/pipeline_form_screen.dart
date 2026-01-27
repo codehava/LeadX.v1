@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/dtos/pipeline_dtos.dart';
+import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/master_data_providers.dart';
 import '../../providers/pipeline_providers.dart';
@@ -39,6 +40,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
   String? _selectedLobId;
   String? _selectedLeadSourceId;
   String? _selectedBrokerId;
+  String? _selectedBrokerPicId;
   String? _selectedCustomerContactId;
   DateTime? _expectedCloseDate;
   bool _isTender = false;
@@ -72,6 +74,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         _selectedLobId = pipeline.lobId;
         _selectedLeadSourceId = pipeline.leadSourceId;
         _selectedBrokerId = pipeline.brokerId;
+        _selectedBrokerPicId = pipeline.brokerPicId;
         _selectedCustomerContactId = pipeline.customerContactId;
         _expectedCloseDate = pipeline.expectedCloseDate;
         _isTender = pipeline.isTender;
@@ -292,6 +295,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                 onChanged: (value) {
                   setState(() {
                     _selectedBrokerId = value;
+                    _selectedBrokerPicId = null; // Reset broker PIC when broker changes
                     _hasUnsavedChanges = true;
                   });
                 },
@@ -299,7 +303,12 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
               loading: () => _buildLoadingDropdown('Broker'),
               error: (_, __) => _buildErrorDropdown('Broker'),
             ),
-            
+
+            const SizedBox(height: 16),
+
+            // Broker PIC (Key Person) - only show if broker is selected
+            if (_selectedBrokerId != null) _buildBrokerPicField(),
+
             const SizedBox(height: 16),
 
             // Customer Contact (Key Person)
@@ -407,9 +416,40 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
     );
   }
 
+  Widget _buildBrokerPicField() {
+    final brokerPicsAsync = ref.watch(brokerKeyPersonsProvider(_selectedBrokerId!));
+
+    return brokerPicsAsync.when(
+      data: (pics) {
+        if (pics.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return AutocompleteField<String>(
+          label: 'Kontak Broker (Opsional)',
+          hint: 'Pilih key person broker...',
+          value: _selectedBrokerPicId,
+          items: pics
+              .map((pic) => AutocompleteItem(
+                    value: pic.id,
+                    label: pic.displayNameWithPosition,
+                  ))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedBrokerPicId = value;
+              _hasUnsavedChanges = true;
+            });
+          },
+        );
+      },
+      loading: () => _buildLoadingDropdown('Kontak Broker'),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildCustomerContactField() {
     final keyPersonsAsync = ref.watch(customerKeyPersonsProvider(widget.customerId));
-    
+
     return keyPersonsAsync.when(
       data: (keyPersons) {
         if (keyPersons.isEmpty) {
@@ -506,6 +546,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
           lobId: _selectedLobId,
           leadSourceId: _selectedLeadSourceId,
           brokerId: _selectedBrokerId,
+          brokerPicId: _selectedBrokerPicId,
           customerContactId: _selectedCustomerContactId,
           potentialPremium: potentialPremium,
           tsi: tsi,
@@ -523,6 +564,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
           leadSourceId: _selectedLeadSourceId!,
           potentialPremium: potentialPremium,
           brokerId: _selectedBrokerId,
+          brokerPicId: _selectedBrokerPicId,
           customerContactId: _selectedCustomerContactId,
           tsi: tsi,
           expectedCloseDate: _expectedCloseDate,

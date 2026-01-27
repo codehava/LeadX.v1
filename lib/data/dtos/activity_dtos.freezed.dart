@@ -28,6 +28,7 @@ mixin _$ActivityCreateDto {
   String? get customerId => throw _privateConstructorUsedError;
   String? get hvcId => throw _privateConstructorUsedError;
   String? get brokerId => throw _privateConstructorUsedError;
+  String? get keyPersonId => throw _privateConstructorUsedError;
   String? get summary => throw _privateConstructorUsedError;
   String? get notes =>
       throw _privateConstructorUsedError; // GPS data captured when creating (for audit log)
@@ -58,6 +59,7 @@ abstract class $ActivityCreateDtoCopyWith<$Res> {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     double? latitude,
@@ -86,6 +88,7 @@ class _$ActivityCreateDtoCopyWithImpl<$Res, $Val extends ActivityCreateDto>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? latitude = freezed,
@@ -116,6 +119,10 @@ class _$ActivityCreateDtoCopyWithImpl<$Res, $Val extends ActivityCreateDto>
             brokerId: freezed == brokerId
                 ? _value.brokerId
                 : brokerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            keyPersonId: freezed == keyPersonId
+                ? _value.keyPersonId
+                : keyPersonId // ignore: cast_nullable_to_non_nullable
                       as String?,
             summary: freezed == summary
                 ? _value.summary
@@ -155,6 +162,7 @@ abstract class _$$ActivityCreateDtoImplCopyWith<$Res>
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     double? latitude,
@@ -182,6 +190,7 @@ class __$$ActivityCreateDtoImplCopyWithImpl<$Res>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? latitude = freezed,
@@ -212,6 +221,10 @@ class __$$ActivityCreateDtoImplCopyWithImpl<$Res>
         brokerId: freezed == brokerId
             ? _value.brokerId
             : brokerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        keyPersonId: freezed == keyPersonId
+            ? _value.keyPersonId
+            : keyPersonId // ignore: cast_nullable_to_non_nullable
                   as String?,
         summary: freezed == summary
             ? _value.summary
@@ -244,6 +257,7 @@ class _$ActivityCreateDtoImpl implements _ActivityCreateDto {
     this.customerId,
     this.hvcId,
     this.brokerId,
+    this.keyPersonId,
     this.summary,
     this.notes,
     this.latitude,
@@ -267,6 +281,8 @@ class _$ActivityCreateDtoImpl implements _ActivityCreateDto {
   @override
   final String? brokerId;
   @override
+  final String? keyPersonId;
+  @override
   final String? summary;
   @override
   final String? notes;
@@ -278,7 +294,7 @@ class _$ActivityCreateDtoImpl implements _ActivityCreateDto {
 
   @override
   String toString() {
-    return 'ActivityCreateDto(objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, summary: $summary, notes: $notes, latitude: $latitude, longitude: $longitude)';
+    return 'ActivityCreateDto(objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, latitude: $latitude, longitude: $longitude)';
   }
 
   @override
@@ -297,6 +313,8 @@ class _$ActivityCreateDtoImpl implements _ActivityCreateDto {
             (identical(other.hvcId, hvcId) || other.hvcId == hvcId) &&
             (identical(other.brokerId, brokerId) ||
                 other.brokerId == brokerId) &&
+            (identical(other.keyPersonId, keyPersonId) ||
+                other.keyPersonId == keyPersonId) &&
             (identical(other.summary, summary) || other.summary == summary) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.latitude, latitude) ||
@@ -315,6 +333,7 @@ class _$ActivityCreateDtoImpl implements _ActivityCreateDto {
     customerId,
     hvcId,
     brokerId,
+    keyPersonId,
     summary,
     notes,
     latitude,
@@ -346,6 +365,7 @@ abstract class _ActivityCreateDto implements ActivityCreateDto {
     final String? customerId,
     final String? hvcId,
     final String? brokerId,
+    final String? keyPersonId,
     final String? summary,
     final String? notes,
     final double? latitude,
@@ -367,6 +387,8 @@ abstract class _ActivityCreateDto implements ActivityCreateDto {
   String? get hvcId;
   @override
   String? get brokerId;
+  @override
+  String? get keyPersonId;
   @override
   String? get summary;
   @override
@@ -396,6 +418,7 @@ mixin _$ImmediateActivityDto {
   String? get customerId => throw _privateConstructorUsedError;
   String? get hvcId => throw _privateConstructorUsedError;
   String? get brokerId => throw _privateConstructorUsedError;
+  String? get keyPersonId => throw _privateConstructorUsedError;
   String? get summary => throw _privateConstructorUsedError;
   String? get notes =>
       throw _privateConstructorUsedError; // GPS data captured at time of logging
@@ -429,6 +452,7 @@ abstract class $ImmediateActivityDtoCopyWith<$Res> {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     double? latitude,
@@ -463,6 +487,7 @@ class _$ImmediateActivityDtoCopyWithImpl<
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? latitude = freezed,
@@ -493,6 +518,10 @@ class _$ImmediateActivityDtoCopyWithImpl<
             brokerId: freezed == brokerId
                 ? _value.brokerId
                 : brokerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            keyPersonId: freezed == keyPersonId
+                ? _value.keyPersonId
+                : keyPersonId // ignore: cast_nullable_to_non_nullable
                       as String?,
             summary: freezed == summary
                 ? _value.summary
@@ -547,6 +576,7 @@ abstract class _$$ImmediateActivityDtoImplCopyWith<$Res>
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     double? latitude,
@@ -577,6 +607,7 @@ class __$$ImmediateActivityDtoImplCopyWithImpl<$Res>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? latitude = freezed,
@@ -607,6 +638,10 @@ class __$$ImmediateActivityDtoImplCopyWithImpl<$Res>
         brokerId: freezed == brokerId
             ? _value.brokerId
             : brokerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        keyPersonId: freezed == keyPersonId
+            ? _value.keyPersonId
+            : keyPersonId // ignore: cast_nullable_to_non_nullable
                   as String?,
         summary: freezed == summary
             ? _value.summary
@@ -654,6 +689,7 @@ class _$ImmediateActivityDtoImpl implements _ImmediateActivityDto {
     this.customerId,
     this.hvcId,
     this.brokerId,
+    this.keyPersonId,
     this.summary,
     this.notes,
     this.latitude,
@@ -679,6 +715,8 @@ class _$ImmediateActivityDtoImpl implements _ImmediateActivityDto {
   @override
   final String? brokerId;
   @override
+  final String? keyPersonId;
+  @override
   final String? summary;
   @override
   final String? notes;
@@ -699,7 +737,7 @@ class _$ImmediateActivityDtoImpl implements _ImmediateActivityDto {
 
   @override
   String toString() {
-    return 'ImmediateActivityDto(objectType: $objectType, activityTypeId: $activityTypeId, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, summary: $summary, notes: $notes, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason)';
+    return 'ImmediateActivityDto(objectType: $objectType, activityTypeId: $activityTypeId, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason)';
   }
 
   @override
@@ -716,6 +754,8 @@ class _$ImmediateActivityDtoImpl implements _ImmediateActivityDto {
             (identical(other.hvcId, hvcId) || other.hvcId == hvcId) &&
             (identical(other.brokerId, brokerId) ||
                 other.brokerId == brokerId) &&
+            (identical(other.keyPersonId, keyPersonId) ||
+                other.keyPersonId == keyPersonId) &&
             (identical(other.summary, summary) || other.summary == summary) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.latitude, latitude) ||
@@ -741,6 +781,7 @@ class _$ImmediateActivityDtoImpl implements _ImmediateActivityDto {
     customerId,
     hvcId,
     brokerId,
+    keyPersonId,
     summary,
     notes,
     latitude,
@@ -776,6 +817,7 @@ abstract class _ImmediateActivityDto implements ImmediateActivityDto {
     final String? customerId,
     final String? hvcId,
     final String? brokerId,
+    final String? keyPersonId,
     final String? summary,
     final String? notes,
     final double? latitude,
@@ -799,6 +841,8 @@ abstract class _ImmediateActivityDto implements ImmediateActivityDto {
   String? get hvcId;
   @override
   String? get brokerId;
+  @override
+  String? get keyPersonId;
   @override
   String? get summary;
   @override

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/dtos/pipeline_dtos.dart';
+import '../../../data/dtos/master_data_dtos.dart';
 import '../../../domain/entities/pipeline.dart';
 import '../../providers/pipeline_providers.dart';
+import '../../providers/master_data_providers.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_text_field.dart';
 import '../../widgets/common/loading_indicator.dart';
@@ -65,7 +67,7 @@ class _PipelineStageUpdateSheetState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    final stagesAsync = ref.watch(pipelineStagesProvider);
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -137,7 +139,7 @@ class _PipelineStageUpdateSheetState
                     const SizedBox(height: 12),
                     
                     stagesAsync.when(
-                      data: (List<PipelineStageInfo> stages) => _buildStageList(stages, theme),
+                      data: (List<PipelineStageDto> stages) => _buildStageList(stages, theme),
                       loading: () => const Center(child: AppLoadingIndicator()),
                       error: (e, _) => Text('Error: $e'),
                     ),
@@ -231,7 +233,7 @@ class _PipelineStageUpdateSheetState
     );
   }
 
-  Widget _buildStageList(List<PipelineStageInfo> stages, ThemeData theme) {
+  Widget _buildStageList(List<PipelineStageDto> stages, ThemeData theme) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -274,8 +276,8 @@ class _PipelineStageUpdateSheetState
   }
 
   Widget _buildFinalStageFields(ThemeData theme) {
-    final stagesAsync = ref.watch(pipelineStagesProvider);
-    
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
+
     return stagesAsync.when(
       data: (stages) {
         final selectedStage = stages.where((s) => s.id == _selectedStageId).firstOrNull;

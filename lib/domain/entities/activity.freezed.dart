@@ -398,7 +398,8 @@ mixin _$Activity {
       throw _privateConstructorUsedError; // Object references (one of these based on objectType)
   String? get customerId => throw _privateConstructorUsedError;
   String? get hvcId => throw _privateConstructorUsedError;
-  String? get brokerId =>
+  String? get brokerId => throw _privateConstructorUsedError;
+  String? get keyPersonId =>
       throw _privateConstructorUsedError; // Activity details
   String? get summary => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
@@ -456,6 +457,7 @@ abstract class $ActivityCopyWith<$Res> {
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     bool isImmediate,
@@ -508,6 +510,7 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? isImmediate = null,
@@ -580,6 +583,10 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
             brokerId: freezed == brokerId
                 ? _value.brokerId
                 : brokerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            keyPersonId: freezed == keyPersonId
+                ? _value.keyPersonId
+                : keyPersonId // ignore: cast_nullable_to_non_nullable
                       as String?,
             summary: freezed == summary
                 ? _value.summary
@@ -697,6 +704,7 @@ abstract class _$$ActivityImplCopyWith<$Res>
     String? customerId,
     String? hvcId,
     String? brokerId,
+    String? keyPersonId,
     String? summary,
     String? notes,
     bool isImmediate,
@@ -748,6 +756,7 @@ class __$$ActivityImplCopyWithImpl<$Res>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? isImmediate = null,
@@ -820,6 +829,10 @@ class __$$ActivityImplCopyWithImpl<$Res>
         brokerId: freezed == brokerId
             ? _value.brokerId
             : brokerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        keyPersonId: freezed == keyPersonId
+            ? _value.keyPersonId
+            : keyPersonId // ignore: cast_nullable_to_non_nullable
                   as String?,
         summary: freezed == summary
             ? _value.summary
@@ -930,6 +943,7 @@ class _$ActivityImpl extends _Activity {
     this.customerId,
     this.hvcId,
     this.brokerId,
+    this.keyPersonId,
     this.summary,
     this.notes,
     this.isImmediate = false,
@@ -982,6 +996,8 @@ class _$ActivityImpl extends _Activity {
   final String? hvcId;
   @override
   final String? brokerId;
+  @override
+  final String? keyPersonId;
   // Activity details
   @override
   final String? summary;
@@ -1039,7 +1055,7 @@ class _$ActivityImpl extends _Activity {
 
   @override
   String toString() {
-    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, syncedAt: $syncedAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, userName: $userName)';
+    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, syncedAt: $syncedAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, userName: $userName)';
   }
 
   @override
@@ -1067,6 +1083,8 @@ class _$ActivityImpl extends _Activity {
             (identical(other.hvcId, hvcId) || other.hvcId == hvcId) &&
             (identical(other.brokerId, brokerId) ||
                 other.brokerId == brokerId) &&
+            (identical(other.keyPersonId, keyPersonId) ||
+                other.keyPersonId == keyPersonId) &&
             (identical(other.summary, summary) || other.summary == summary) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.isImmediate, isImmediate) ||
@@ -1127,6 +1145,7 @@ class _$ActivityImpl extends _Activity {
     customerId,
     hvcId,
     brokerId,
+    keyPersonId,
     summary,
     notes,
     isImmediate,
@@ -1179,6 +1198,7 @@ abstract class _Activity extends Activity {
     final String? customerId,
     final String? hvcId,
     final String? brokerId,
+    final String? keyPersonId,
     final String? summary,
     final String? notes,
     final bool isImmediate,
@@ -1230,7 +1250,9 @@ abstract class _Activity extends Activity {
   @override
   String? get hvcId;
   @override
-  String? get brokerId; // Activity details
+  String? get brokerId;
+  @override
+  String? get keyPersonId; // Activity details
   @override
   String? get summary;
   @override

@@ -6,6 +6,7 @@ import '../../../data/dtos/hvc_dtos.dart';
 import '../../../domain/entities/hvc.dart';
 import '../../providers/gps_providers.dart';
 import '../../providers/hvc_providers.dart';
+import '../../providers/master_data_providers.dart';
 import '../../widgets/common/searchable_dropdown.dart';
 
 /// Screen for creating or editing an HVC.
@@ -65,7 +66,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(hvcFormNotifierProvider);
-    final hvcTypesAsync = ref.watch(hvcTypesProvider);
+    final hvcTypesAsync = ref.watch(hvcTypesStreamProvider);
 
     // If editing, load existing HVC data
     if (widget.isEditing && !_isInitialized) {

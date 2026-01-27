@@ -29,16 +29,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     // Check auth state via provider
+    // This will wait for session restoration to complete
     final authState = await ref.read(authRepositoryProvider).getAuthState();
 
     if (!mounted) return;
 
     authState.when(
-      initial: () => context.go(RoutePaths.login),
-      loading: () => {}, // Keep showing splash
-      authenticated: (_) => context.go(RoutePaths.home),
-      unauthenticated: () => context.go(RoutePaths.login),
-      error: (_) => context.go(RoutePaths.login),
+      initial: () {
+        debugPrint('[Splash] Initial state - redirecting to login');
+        context.go(RoutePaths.login);
+      },
+      loading: () {
+        debugPrint('[Splash] Still loading - keeping splash visible');
+        // Keep showing splash
+      },
+      authenticated: (user) {
+        debugPrint('[Splash] Authenticated - redirecting to home (user: ${user.email})');
+        context.go(RoutePaths.home);
+      },
+      unauthenticated: () {
+        debugPrint('[Splash] Unauthenticated - redirecting to login');
+        context.go(RoutePaths.login);
+      },
+      error: (message) {
+        debugPrint('[Splash] Auth error: $message - redirecting to login');
+        context.go(RoutePaths.login);
+      },
     );
   }
 
