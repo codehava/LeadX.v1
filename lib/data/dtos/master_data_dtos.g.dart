@@ -40,6 +40,76 @@ Map<String, dynamic> _$$CityDtoImplToJson(_$CityDtoImpl instance) =>
       'isActive': instance.isActive,
     };
 
+_$RegionalOfficeDtoImpl _$$RegionalOfficeDtoImplFromJson(
+  Map<String, dynamic> json,
+) => _$RegionalOfficeDtoImpl(
+  id: json['id'] as String,
+  code: json['code'] as String,
+  name: json['name'] as String,
+  description: json['description'] as String?,
+  address: json['address'] as String?,
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
+  phone: json['phone'] as String?,
+  isActive: json['isActive'] as bool,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
+);
+
+Map<String, dynamic> _$$RegionalOfficeDtoImplToJson(
+  _$RegionalOfficeDtoImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'code': instance.code,
+  'name': instance.name,
+  'description': instance.description,
+  'address': instance.address,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'phone': instance.phone,
+  'isActive': instance.isActive,
+  'createdAt': instance.createdAt?.toIso8601String(),
+  'updatedAt': instance.updatedAt?.toIso8601String(),
+};
+
+_$BranchDtoImpl _$$BranchDtoImplFromJson(Map<String, dynamic> json) =>
+    _$BranchDtoImpl(
+      id: json['id'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      regionalOfficeId: json['regionalOfficeId'] as String,
+      address: json['address'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      phone: json['phone'] as String?,
+      isActive: json['isActive'] as bool,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
+    );
+
+Map<String, dynamic> _$$BranchDtoImplToJson(_$BranchDtoImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'code': instance.code,
+      'name': instance.name,
+      'regionalOfficeId': instance.regionalOfficeId,
+      'address': instance.address,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'phone': instance.phone,
+      'isActive': instance.isActive,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
+    };
+
 _$CompanyTypeDtoImpl _$$CompanyTypeDtoImplFromJson(Map<String, dynamic> json) =>
     _$CompanyTypeDtoImpl(
       id: json['id'] as String,
@@ -390,5 +460,202 @@ Map<String, dynamic> _$$PipelineStageCreateDtoImplToJson(
   'color': instance.color,
   'isFinal': instance.isFinal,
   'isWon': instance.isWon,
+  'isActive': instance.isActive,
+};
+
+_$LobCreateDtoImpl _$$LobCreateDtoImplFromJson(Map<String, dynamic> json) =>
+    _$LobCreateDtoImpl(
+      cobId: json['cobId'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+      isActive: json['isActive'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$$LobCreateDtoImplToJson(_$LobCreateDtoImpl instance) =>
+    <String, dynamic>{
+      'cobId': instance.cobId,
+      'code': instance.code,
+      'name': instance.name,
+      'description': instance.description,
+      'sortOrder': instance.sortOrder,
+      'isActive': instance.isActive,
+    };
+
+_$PipelineStatusCreateDtoImpl _$$PipelineStatusCreateDtoImplFromJson(
+  Map<String, dynamic> json,
+) => _$PipelineStatusCreateDtoImpl(
+  stageId: json['stageId'] as String,
+  code: json['code'] as String,
+  name: json['name'] as String,
+  description: json['description'] as String?,
+  sequence: (json['sequence'] as num).toInt(),
+  isDefault: json['isDefault'] as bool? ?? false,
+  isActive: json['isActive'] as bool? ?? true,
+);
+
+Map<String, dynamic> _$$PipelineStatusCreateDtoImplToJson(
+  _$PipelineStatusCreateDtoImpl instance,
+) => <String, dynamic>{
+  'stageId': instance.stageId,
+  'code': instance.code,
+  'name': instance.name,
+  'description': instance.description,
+  'sequence': instance.sequence,
+  'isDefault': instance.isDefault,
+  'isActive': instance.isActive,
+};
+
+_$HvcDtoImpl _$$HvcDtoImplFromJson(Map<String, dynamic> json) => _$HvcDtoImpl(
+  id: json['id'] as String,
+  code: json['code'] as String,
+  name: json['name'] as String,
+  typeId: json['typeId'] as String,
+  description: json['description'] as String?,
+  address: json['address'] as String?,
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
+  radiusMeters: (json['radiusMeters'] as num?)?.toInt(),
+  potentialValue: (json['potentialValue'] as num?)?.toDouble(),
+  imageUrl: json['imageUrl'] as String?,
+  isActive: json['isActive'] as bool,
+  createdBy: json['createdBy'] as String,
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+);
+
+Map<String, dynamic> _$$HvcDtoImplToJson(_$HvcDtoImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'code': instance.code,
+      'name': instance.name,
+      'typeId': instance.typeId,
+      'description': instance.description,
+      'address': instance.address,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'radiusMeters': instance.radiusMeters,
+      'potentialValue': instance.potentialValue,
+      'imageUrl': instance.imageUrl,
+      'isActive': instance.isActive,
+      'createdBy': instance.createdBy,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+    };
+
+_$HvcCreateDtoImpl _$$HvcCreateDtoImplFromJson(Map<String, dynamic> json) =>
+    _$HvcCreateDtoImpl(
+      code: json['code'] as String,
+      name: json['name'] as String,
+      typeId: json['typeId'] as String,
+      description: json['description'] as String?,
+      address: json['address'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      radiusMeters: (json['radiusMeters'] as num?)?.toInt(),
+      potentialValue: (json['potentialValue'] as num?)?.toDouble(),
+      imageUrl: json['imageUrl'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$$HvcCreateDtoImplToJson(_$HvcCreateDtoImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'name': instance.name,
+      'typeId': instance.typeId,
+      'description': instance.description,
+      'address': instance.address,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'radiusMeters': instance.radiusMeters,
+      'potentialValue': instance.potentialValue,
+      'imageUrl': instance.imageUrl,
+      'isActive': instance.isActive,
+    };
+
+_$BrokerDtoImpl _$$BrokerDtoImplFromJson(Map<String, dynamic> json) =>
+    _$BrokerDtoImpl(
+      id: json['id'] as String,
+      code: json['code'] as String,
+      name: json['name'] as String,
+      licenseNumber: json['licenseNumber'] as String?,
+      address: json['address'] as String?,
+      provinceId: json['provinceId'] as String?,
+      cityId: json['cityId'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
+      website: json['website'] as String?,
+      commissionRate: (json['commissionRate'] as num?)?.toDouble(),
+      imageUrl: json['imageUrl'] as String?,
+      notes: json['notes'] as String?,
+      isActive: json['isActive'] as bool,
+      createdBy: json['createdBy'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+
+Map<String, dynamic> _$$BrokerDtoImplToJson(_$BrokerDtoImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'code': instance.code,
+      'name': instance.name,
+      'licenseNumber': instance.licenseNumber,
+      'address': instance.address,
+      'provinceId': instance.provinceId,
+      'cityId': instance.cityId,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'phone': instance.phone,
+      'email': instance.email,
+      'website': instance.website,
+      'commissionRate': instance.commissionRate,
+      'imageUrl': instance.imageUrl,
+      'notes': instance.notes,
+      'isActive': instance.isActive,
+      'createdBy': instance.createdBy,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+    };
+
+_$BrokerCreateDtoImpl _$$BrokerCreateDtoImplFromJson(
+  Map<String, dynamic> json,
+) => _$BrokerCreateDtoImpl(
+  code: json['code'] as String,
+  name: json['name'] as String,
+  licenseNumber: json['licenseNumber'] as String?,
+  address: json['address'] as String?,
+  provinceId: json['provinceId'] as String?,
+  cityId: json['cityId'] as String?,
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
+  phone: json['phone'] as String?,
+  email: json['email'] as String?,
+  website: json['website'] as String?,
+  commissionRate: (json['commissionRate'] as num?)?.toDouble(),
+  imageUrl: json['imageUrl'] as String?,
+  notes: json['notes'] as String?,
+  isActive: json['isActive'] as bool? ?? true,
+);
+
+Map<String, dynamic> _$$BrokerCreateDtoImplToJson(
+  _$BrokerCreateDtoImpl instance,
+) => <String, dynamic>{
+  'code': instance.code,
+  'name': instance.name,
+  'licenseNumber': instance.licenseNumber,
+  'address': instance.address,
+  'provinceId': instance.provinceId,
+  'cityId': instance.cityId,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'phone': instance.phone,
+  'email': instance.email,
+  'website': instance.website,
+  'commissionRate': instance.commissionRate,
+  'imageUrl': instance.imageUrl,
+  'notes': instance.notes,
   'isActive': instance.isActive,
 };

@@ -134,3 +134,19 @@ final hvcTypesStreamProvider = StreamProvider<List<HvcTypeDto>>((ref) {
   final dataSource = ref.watch(masterDataLocalDataSourceProvider);
   return dataSource.watchHvcTypes();
 });
+
+// ============================================
+// ORGANIZATION PROVIDERS
+// ============================================
+
+/// Stream of all active regional offices.
+final regionalOfficesStreamProvider = StreamProvider<List<RegionalOfficeDto>>((ref) {
+  final dataSource = ref.watch(masterDataLocalDataSourceProvider);
+  return dataSource.watchRegionalOffices();
+});
+
+/// Stream of all active branches.
+final branchesStreamProvider = StreamProvider<List<BranchDto>>((ref) {
+  final dataSource = ref.watch(masterDataLocalDataSourceProvider);
+  return dataSource.watchBranches();
+});

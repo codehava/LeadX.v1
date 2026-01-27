@@ -8,6 +8,9 @@ class AdminMasterDataRemoteDataSource {
 
   AdminMasterDataRemoteDataSource(this._client);
 
+  /// Get the Supabase client instance.
+  SupabaseClient get supabaseClient => _client;
+
   // ============================================
   // READ OPERATIONS
   // ============================================

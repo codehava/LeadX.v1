@@ -11,6 +11,7 @@ import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
 import '../../providers/master_data_providers.dart';
 import '../../widgets/common/searchable_dropdown.dart';
 
@@ -180,7 +181,9 @@ class _ImmediateActivitySheetState
                     // Activity Type Selection
                     Text(
                       'Tipe Aktivitas *',
-                      style: theme.textTheme.titleSmall,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     activityTypesAsync.when(
@@ -408,6 +411,8 @@ class _ImmediateActivitySheetState
     switch (widget.objectType) {
       case 'CUSTOMER':
         return _buildCustomerKeyPersonField(theme);
+      case 'HVC':
+        return _buildHvcKeyPersonField(theme);
       case 'BROKER':
         return _buildBrokerKeyPersonField(theme);
       default:
@@ -480,6 +485,52 @@ class _ImmediateActivitySheetState
             SearchableDropdown<String>(
               label: 'Key Person',
               hint: 'Pilih key person broker...',
+              modalTitle: 'Pilih Key Person',
+              searchHint: 'Cari key person...',
+              prefixIcon: Icons.person,
+              value: _selectedKeyPersonId,
+              items: keyPersons.map((kp) {
+                return DropdownItem(
+                  value: kp.id,
+                  label: kp.displayNameWithPosition,
+                  subtitle: kp.position,
+                  icon: Icons.person,
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedKeyPersonId = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildHvcKeyPersonField(ThemeData theme) {
+    final keyPersonsAsync = ref.watch(hvcKeyPersonsProvider(widget.objectId));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Key Person (Opsional)',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            SearchableDropdown<String>(
+              label: 'Key Person',
+              hint: 'Pilih key person HVC...',
               modalTitle: 'Pilih Key Person',
               searchHint: 'Cari key person...',
               prefixIcon: Icons.person,

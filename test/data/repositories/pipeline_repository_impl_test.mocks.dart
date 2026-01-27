@@ -568,6 +568,22 @@ class MockMasterDataLocalDataSource extends _i1.Mock
             returnValueForMissingStub: _i4.Future<void>.value(),
           )
           as _i4.Future<void>);
+
+  @override
+  _i4.Stream<List<_i7.RegionalOfficeDto>> watchRegionalOffices() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchRegionalOffices, []),
+            returnValue: _i4.Stream<List<_i7.RegionalOfficeDto>>.empty(),
+          )
+          as _i4.Stream<List<_i7.RegionalOfficeDto>>);
+
+  @override
+  _i4.Stream<List<_i7.BranchDto>> watchBranches() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBranches, []),
+            returnValue: _i4.Stream<List<_i7.BranchDto>>.empty(),
+          )
+          as _i4.Stream<List<_i7.BranchDto>>);
 }
 
 /// A class which mocks [PipelineRemoteDataSource].

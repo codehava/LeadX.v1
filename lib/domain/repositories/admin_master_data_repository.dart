@@ -84,6 +84,14 @@ abstract class AdminMasterDataRepository {
   /// Hard delete an entity (only for non-critical master data).
   Future<Either<Failure, void>> hardDeleteEntity(String tableName, String id);
 
+  /// Soft delete a regional office with dependency validation.
+  /// Prevents deletion if active branches exist.
+  Future<Either<Failure, void>> softDeleteRegionalOffice(String id);
+
+  /// Soft delete a branch with dependency validation.
+  /// Prevents deletion if active users are assigned.
+  Future<Either<Failure, void>> softDeleteBranch(String id);
+
   // ============================================
   // ACTIVATION/DEACTIVATION
   // ============================================

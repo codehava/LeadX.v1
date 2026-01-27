@@ -318,4 +318,26 @@ class MasterDataLocalDataSource {
       batch.insertAllOnConflictUpdate(_db.industries, items);
     });
   }
+
+  // ============================================
+  // ORGANIZATION
+  // ============================================
+
+  /// Stream of all active regional offices.
+  Stream<List<RegionalOfficeDto>> watchRegionalOffices() {
+    return (_db.select(_db.regionalOffices)
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch()
+        .map((ros) => MasterDataMappers.regionalOfficeListToDto(ros));
+  }
+
+  /// Stream of all active branches.
+  Stream<List<BranchDto>> watchBranches() {
+    return (_db.select(_db.branches)
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch()
+        .map((branches) => MasterDataMappers.branchListToDto(branches));
+  }
 }

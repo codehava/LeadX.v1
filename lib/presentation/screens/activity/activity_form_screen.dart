@@ -189,10 +189,18 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
               const SizedBox(height: 16),
             ],
 
+            // Key Person selection for dynamically selected objects
+            if (widget.objectType == null && _selectedObjectId != null)
+              _buildKeyPersonField(theme),
+            if (widget.objectType == null && _selectedObjectId != null)
+              const SizedBox(height: 16),
+
             // Activity Type Selection
             Text(
               'Tipe Aktivitas',
-              style: theme.textTheme.titleSmall,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             activityTypesAsync.when(
@@ -515,15 +523,18 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
   /// Build key person field based on selected object type.
   Widget _buildKeyPersonField(ThemeData theme) {
-    if (_selectedObjectType == null || _selectedObjectId == null) {
+    final objectType = _selectedObjectType ?? widget.objectType;
+    final objectId = _selectedObjectId ?? widget.objectId;
+
+    if (objectType == null || objectId == null) {
       return const SizedBox.shrink();
     }
 
-    switch (_selectedObjectType) {
+    switch (objectType) {
       case 'CUSTOMER':
         return _buildCustomerKeyPersonField(theme);
       case 'HVC':
-        return const SizedBox.shrink(); // HVC key persons not yet implemented
+        return _buildHvcKeyPersonField(theme);
       case 'BROKER':
         return _buildBrokerKeyPersonField(theme);
       default:
@@ -537,7 +548,17 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     return keyPersonsAsync.when(
       data: (keyPersons) {
         if (keyPersons.isEmpty) {
-          return const SizedBox.shrink();
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada key person untuk customer ini',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
         }
         return SearchableDropdown<String>(
           label: 'Key Person (Opsional)',
@@ -572,11 +593,69 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     return keyPersonsAsync.when(
       data: (keyPersons) {
         if (keyPersons.isEmpty) {
-          return const SizedBox.shrink();
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada key person untuk broker ini',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
         }
         return SearchableDropdown<String>(
           label: 'Key Person (Opsional)',
           hint: 'Pilih key person broker...',
+          modalTitle: 'Pilih Key Person',
+          searchHint: 'Cari key person...',
+          prefixIcon: Icons.person,
+          value: _selectedKeyPersonId,
+          items: keyPersons.map((kp) {
+            return DropdownItem(
+              value: kp.id,
+              label: kp.displayNameWithPosition,
+              subtitle: kp.position,
+              icon: Icons.person,
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedKeyPersonId = value;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildHvcKeyPersonField(ThemeData theme) {
+    final objectId = _selectedObjectId ?? widget.objectId;
+    if (objectId == null) return const SizedBox.shrink();
+
+    final keyPersonsAsync = ref.watch(hvcKeyPersonsProvider(objectId));
+
+    return keyPersonsAsync.when(
+      data: (keyPersons) {
+        if (keyPersons.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Belum ada key person untuk HVC ini',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
+        }
+        return SearchableDropdown<String>(
+          label: 'Key Person (Opsional)',
+          hint: 'Pilih key person HVC...',
           modalTitle: 'Pilih Key Person',
           searchHint: 'Cari key person...',
           prefixIcon: Icons.person,

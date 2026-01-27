@@ -37,71 +37,48 @@ class MasterDataMenuScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 16, bottom: 12),
+          padding: const EdgeInsets.only(top: 12, bottom: 8),
           child: Text(
             category.displayName,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
         ),
-        GridView.builder(
+        ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
           itemCount: entityTypes.length,
-          itemBuilder: (context, index) => _buildEntityCard(
+          separatorBuilder: (context, index) => const Divider(height: 1),
+          itemBuilder: (context, index) => _buildEntityListTile(
             context,
             entityTypes[index],
           ),
         ),
         const SizedBox(height: 8),
-        const Divider(height: 32),
       ],
     );
   }
 
-  Widget _buildEntityCard(
+  Widget _buildEntityListTile(
     BuildContext context,
     MasterDataEntityType entityType,
   ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      leading: Icon(
+        entityType.icon,
+        size: 24,
+        color: Theme.of(context).primaryColor,
       ),
-      child: InkWell(
-        onTap: () => _navigateToEntityList(context, entityType),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                entityType.icon,
-                size: 36,
-                color: Theme.of(context).primaryColor,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                entityType.displayName,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
+      title: Text(
+        entityType.displayName,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
       ),
+      trailing: const Icon(Icons.chevron_right, size: 20),
+      onTap: () => _navigateToEntityList(context, entityType),
     );
   }
 

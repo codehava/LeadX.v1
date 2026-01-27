@@ -470,6 +470,771 @@ abstract class _CityDto implements CityDto {
       throw _privateConstructorUsedError;
 }
 
+RegionalOfficeDto _$RegionalOfficeDtoFromJson(Map<String, dynamic> json) {
+  return _RegionalOfficeDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RegionalOfficeDto {
+  String get id => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this RegionalOfficeDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of RegionalOfficeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $RegionalOfficeDtoCopyWith<RegionalOfficeDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RegionalOfficeDtoCopyWith<$Res> {
+  factory $RegionalOfficeDtoCopyWith(
+    RegionalOfficeDto value,
+    $Res Function(RegionalOfficeDto) then,
+  ) = _$RegionalOfficeDtoCopyWithImpl<$Res, RegionalOfficeDto>;
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// @nodoc
+class _$RegionalOfficeDtoCopyWithImpl<$Res, $Val extends RegionalOfficeDto>
+    implements $RegionalOfficeDtoCopyWith<$Res> {
+  _$RegionalOfficeDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of RegionalOfficeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? isActive = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$RegionalOfficeDtoImplCopyWith<$Res>
+    implements $RegionalOfficeDtoCopyWith<$Res> {
+  factory _$$RegionalOfficeDtoImplCopyWith(
+    _$RegionalOfficeDtoImpl value,
+    $Res Function(_$RegionalOfficeDtoImpl) then,
+  ) = __$$RegionalOfficeDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// @nodoc
+class __$$RegionalOfficeDtoImplCopyWithImpl<$Res>
+    extends _$RegionalOfficeDtoCopyWithImpl<$Res, _$RegionalOfficeDtoImpl>
+    implements _$$RegionalOfficeDtoImplCopyWith<$Res> {
+  __$$RegionalOfficeDtoImplCopyWithImpl(
+    _$RegionalOfficeDtoImpl _value,
+    $Res Function(_$RegionalOfficeDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of RegionalOfficeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? isActive = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+  }) {
+    return _then(
+      _$RegionalOfficeDtoImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$RegionalOfficeDtoImpl implements _RegionalOfficeDto {
+  const _$RegionalOfficeDtoImpl({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.description,
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.phone,
+    required this.isActive,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory _$RegionalOfficeDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RegionalOfficeDtoImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String? address;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final String? phone;
+  @override
+  final bool isActive;
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
+
+  @override
+  String toString() {
+    return 'RegionalOfficeDto(id: $id, code: $code, name: $name, description: $description, address: $address, latitude: $latitude, longitude: $longitude, phone: $phone, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RegionalOfficeDtoImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    code,
+    name,
+    description,
+    address,
+    latitude,
+    longitude,
+    phone,
+    isActive,
+    createdAt,
+    updatedAt,
+  );
+
+  /// Create a copy of RegionalOfficeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RegionalOfficeDtoImplCopyWith<_$RegionalOfficeDtoImpl> get copyWith =>
+      __$$RegionalOfficeDtoImplCopyWithImpl<_$RegionalOfficeDtoImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RegionalOfficeDtoImplToJson(this);
+  }
+}
+
+abstract class _RegionalOfficeDto implements RegionalOfficeDto {
+  const factory _RegionalOfficeDto({
+    required final String id,
+    required final String code,
+    required final String name,
+    final String? description,
+    final String? address,
+    final double? latitude,
+    final double? longitude,
+    final String? phone,
+    required final bool isActive,
+    final DateTime? createdAt,
+    final DateTime? updatedAt,
+  }) = _$RegionalOfficeDtoImpl;
+
+  factory _RegionalOfficeDto.fromJson(Map<String, dynamic> json) =
+      _$RegionalOfficeDtoImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String? get description;
+  @override
+  String? get address;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  String? get phone;
+  @override
+  bool get isActive;
+  @override
+  DateTime? get createdAt;
+  @override
+  DateTime? get updatedAt;
+
+  /// Create a copy of RegionalOfficeDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RegionalOfficeDtoImplCopyWith<_$RegionalOfficeDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+BranchDto _$BranchDtoFromJson(Map<String, dynamic> json) {
+  return _BranchDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BranchDto {
+  String get id => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String get regionalOfficeId => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this BranchDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BranchDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BranchDtoCopyWith<BranchDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BranchDtoCopyWith<$Res> {
+  factory $BranchDtoCopyWith(BranchDto value, $Res Function(BranchDto) then) =
+      _$BranchDtoCopyWithImpl<$Res, BranchDto>;
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String regionalOfficeId,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// @nodoc
+class _$BranchDtoCopyWithImpl<$Res, $Val extends BranchDto>
+    implements $BranchDtoCopyWith<$Res> {
+  _$BranchDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BranchDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? regionalOfficeId = null,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? isActive = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            regionalOfficeId: null == regionalOfficeId
+                ? _value.regionalOfficeId
+                : regionalOfficeId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BranchDtoImplCopyWith<$Res>
+    implements $BranchDtoCopyWith<$Res> {
+  factory _$$BranchDtoImplCopyWith(
+    _$BranchDtoImpl value,
+    $Res Function(_$BranchDtoImpl) then,
+  ) = __$$BranchDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String regionalOfficeId,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  });
+}
+
+/// @nodoc
+class __$$BranchDtoImplCopyWithImpl<$Res>
+    extends _$BranchDtoCopyWithImpl<$Res, _$BranchDtoImpl>
+    implements _$$BranchDtoImplCopyWith<$Res> {
+  __$$BranchDtoImplCopyWithImpl(
+    _$BranchDtoImpl _value,
+    $Res Function(_$BranchDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BranchDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? regionalOfficeId = null,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? isActive = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+  }) {
+    return _then(
+      _$BranchDtoImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        regionalOfficeId: null == regionalOfficeId
+            ? _value.regionalOfficeId
+            : regionalOfficeId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BranchDtoImpl implements _BranchDto {
+  const _$BranchDtoImpl({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.regionalOfficeId,
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.phone,
+    required this.isActive,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory _$BranchDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BranchDtoImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String regionalOfficeId;
+  @override
+  final String? address;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final String? phone;
+  @override
+  final bool isActive;
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
+
+  @override
+  String toString() {
+    return 'BranchDto(id: $id, code: $code, name: $name, regionalOfficeId: $regionalOfficeId, address: $address, latitude: $latitude, longitude: $longitude, phone: $phone, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BranchDtoImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.regionalOfficeId, regionalOfficeId) ||
+                other.regionalOfficeId == regionalOfficeId) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    code,
+    name,
+    regionalOfficeId,
+    address,
+    latitude,
+    longitude,
+    phone,
+    isActive,
+    createdAt,
+    updatedAt,
+  );
+
+  /// Create a copy of BranchDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BranchDtoImplCopyWith<_$BranchDtoImpl> get copyWith =>
+      __$$BranchDtoImplCopyWithImpl<_$BranchDtoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BranchDtoImplToJson(this);
+  }
+}
+
+abstract class _BranchDto implements BranchDto {
+  const factory _BranchDto({
+    required final String id,
+    required final String code,
+    required final String name,
+    required final String regionalOfficeId,
+    final String? address,
+    final double? latitude,
+    final double? longitude,
+    final String? phone,
+    required final bool isActive,
+    final DateTime? createdAt,
+    final DateTime? updatedAt,
+  }) = _$BranchDtoImpl;
+
+  factory _BranchDto.fromJson(Map<String, dynamic> json) =
+      _$BranchDtoImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String get regionalOfficeId;
+  @override
+  String? get address;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  String? get phone;
+  @override
+  bool get isActive;
+  @override
+  DateTime? get createdAt;
+  @override
+  DateTime? get updatedAt;
+
+  /// Create a copy of BranchDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BranchDtoImplCopyWith<_$BranchDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 CompanyTypeDto _$CompanyTypeDtoFromJson(Map<String, dynamic> json) {
   return _CompanyTypeDto.fromJson(json);
 }
@@ -4897,4 +5662,2462 @@ abstract class _PipelineStageCreateDto implements PipelineStageCreateDto {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PipelineStageCreateDtoImplCopyWith<_$PipelineStageCreateDtoImpl>
   get copyWith => throw _privateConstructorUsedError;
+}
+
+LobCreateDto _$LobCreateDtoFromJson(Map<String, dynamic> json) {
+  return _LobCreateDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LobCreateDto {
+  String get cobId => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  int get sortOrder => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+
+  /// Serializes this LobCreateDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of LobCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $LobCreateDtoCopyWith<LobCreateDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LobCreateDtoCopyWith<$Res> {
+  factory $LobCreateDtoCopyWith(
+    LobCreateDto value,
+    $Res Function(LobCreateDto) then,
+  ) = _$LobCreateDtoCopyWithImpl<$Res, LobCreateDto>;
+  @useResult
+  $Res call({
+    String cobId,
+    String code,
+    String name,
+    String? description,
+    int sortOrder,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class _$LobCreateDtoCopyWithImpl<$Res, $Val extends LobCreateDto>
+    implements $LobCreateDtoCopyWith<$Res> {
+  _$LobCreateDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of LobCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? cobId = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? sortOrder = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            cobId: null == cobId
+                ? _value.cobId
+                : cobId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sortOrder: null == sortOrder
+                ? _value.sortOrder
+                : sortOrder // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$LobCreateDtoImplCopyWith<$Res>
+    implements $LobCreateDtoCopyWith<$Res> {
+  factory _$$LobCreateDtoImplCopyWith(
+    _$LobCreateDtoImpl value,
+    $Res Function(_$LobCreateDtoImpl) then,
+  ) = __$$LobCreateDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String cobId,
+    String code,
+    String name,
+    String? description,
+    int sortOrder,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class __$$LobCreateDtoImplCopyWithImpl<$Res>
+    extends _$LobCreateDtoCopyWithImpl<$Res, _$LobCreateDtoImpl>
+    implements _$$LobCreateDtoImplCopyWith<$Res> {
+  __$$LobCreateDtoImplCopyWithImpl(
+    _$LobCreateDtoImpl _value,
+    $Res Function(_$LobCreateDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of LobCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? cobId = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? sortOrder = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _$LobCreateDtoImpl(
+        cobId: null == cobId
+            ? _value.cobId
+            : cobId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sortOrder: null == sortOrder
+            ? _value.sortOrder
+            : sortOrder // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LobCreateDtoImpl implements _LobCreateDto {
+  const _$LobCreateDtoImpl({
+    required this.cobId,
+    required this.code,
+    required this.name,
+    this.description,
+    this.sortOrder = 0,
+    this.isActive = true,
+  });
+
+  factory _$LobCreateDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LobCreateDtoImplFromJson(json);
+
+  @override
+  final String cobId;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  @JsonKey()
+  final int sortOrder;
+  @override
+  @JsonKey()
+  final bool isActive;
+
+  @override
+  String toString() {
+    return 'LobCreateDto(cobId: $cobId, code: $code, name: $name, description: $description, sortOrder: $sortOrder, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LobCreateDtoImpl &&
+            (identical(other.cobId, cobId) || other.cobId == cobId) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.sortOrder, sortOrder) ||
+                other.sortOrder == sortOrder) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    cobId,
+    code,
+    name,
+    description,
+    sortOrder,
+    isActive,
+  );
+
+  /// Create a copy of LobCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LobCreateDtoImplCopyWith<_$LobCreateDtoImpl> get copyWith =>
+      __$$LobCreateDtoImplCopyWithImpl<_$LobCreateDtoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LobCreateDtoImplToJson(this);
+  }
+}
+
+abstract class _LobCreateDto implements LobCreateDto {
+  const factory _LobCreateDto({
+    required final String cobId,
+    required final String code,
+    required final String name,
+    final String? description,
+    final int sortOrder,
+    final bool isActive,
+  }) = _$LobCreateDtoImpl;
+
+  factory _LobCreateDto.fromJson(Map<String, dynamic> json) =
+      _$LobCreateDtoImpl.fromJson;
+
+  @override
+  String get cobId;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String? get description;
+  @override
+  int get sortOrder;
+  @override
+  bool get isActive;
+
+  /// Create a copy of LobCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LobCreateDtoImplCopyWith<_$LobCreateDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+PipelineStatusCreateDto _$PipelineStatusCreateDtoFromJson(
+  Map<String, dynamic> json,
+) {
+  return _PipelineStatusCreateDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PipelineStatusCreateDto {
+  String get stageId => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  int get sequence => throw _privateConstructorUsedError;
+  bool get isDefault => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+
+  /// Serializes this PipelineStatusCreateDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PipelineStatusCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PipelineStatusCreateDtoCopyWith<PipelineStatusCreateDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PipelineStatusCreateDtoCopyWith<$Res> {
+  factory $PipelineStatusCreateDtoCopyWith(
+    PipelineStatusCreateDto value,
+    $Res Function(PipelineStatusCreateDto) then,
+  ) = _$PipelineStatusCreateDtoCopyWithImpl<$Res, PipelineStatusCreateDto>;
+  @useResult
+  $Res call({
+    String stageId,
+    String code,
+    String name,
+    String? description,
+    int sequence,
+    bool isDefault,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class _$PipelineStatusCreateDtoCopyWithImpl<
+  $Res,
+  $Val extends PipelineStatusCreateDto
+>
+    implements $PipelineStatusCreateDtoCopyWith<$Res> {
+  _$PipelineStatusCreateDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PipelineStatusCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? stageId = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? sequence = null,
+    Object? isDefault = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            stageId: null == stageId
+                ? _value.stageId
+                : stageId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sequence: null == sequence
+                ? _value.sequence
+                : sequence // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isDefault: null == isDefault
+                ? _value.isDefault
+                : isDefault // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PipelineStatusCreateDtoImplCopyWith<$Res>
+    implements $PipelineStatusCreateDtoCopyWith<$Res> {
+  factory _$$PipelineStatusCreateDtoImplCopyWith(
+    _$PipelineStatusCreateDtoImpl value,
+    $Res Function(_$PipelineStatusCreateDtoImpl) then,
+  ) = __$$PipelineStatusCreateDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String stageId,
+    String code,
+    String name,
+    String? description,
+    int sequence,
+    bool isDefault,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class __$$PipelineStatusCreateDtoImplCopyWithImpl<$Res>
+    extends
+        _$PipelineStatusCreateDtoCopyWithImpl<
+          $Res,
+          _$PipelineStatusCreateDtoImpl
+        >
+    implements _$$PipelineStatusCreateDtoImplCopyWith<$Res> {
+  __$$PipelineStatusCreateDtoImplCopyWithImpl(
+    _$PipelineStatusCreateDtoImpl _value,
+    $Res Function(_$PipelineStatusCreateDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PipelineStatusCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? stageId = null,
+    Object? code = null,
+    Object? name = null,
+    Object? description = freezed,
+    Object? sequence = null,
+    Object? isDefault = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _$PipelineStatusCreateDtoImpl(
+        stageId: null == stageId
+            ? _value.stageId
+            : stageId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sequence: null == sequence
+            ? _value.sequence
+            : sequence // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isDefault: null == isDefault
+            ? _value.isDefault
+            : isDefault // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PipelineStatusCreateDtoImpl implements _PipelineStatusCreateDto {
+  const _$PipelineStatusCreateDtoImpl({
+    required this.stageId,
+    required this.code,
+    required this.name,
+    this.description,
+    required this.sequence,
+    this.isDefault = false,
+    this.isActive = true,
+  });
+
+  factory _$PipelineStatusCreateDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PipelineStatusCreateDtoImplFromJson(json);
+
+  @override
+  final String stageId;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final int sequence;
+  @override
+  @JsonKey()
+  final bool isDefault;
+  @override
+  @JsonKey()
+  final bool isActive;
+
+  @override
+  String toString() {
+    return 'PipelineStatusCreateDto(stageId: $stageId, code: $code, name: $name, description: $description, sequence: $sequence, isDefault: $isDefault, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PipelineStatusCreateDtoImpl &&
+            (identical(other.stageId, stageId) || other.stageId == stageId) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.sequence, sequence) ||
+                other.sequence == sequence) &&
+            (identical(other.isDefault, isDefault) ||
+                other.isDefault == isDefault) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    stageId,
+    code,
+    name,
+    description,
+    sequence,
+    isDefault,
+    isActive,
+  );
+
+  /// Create a copy of PipelineStatusCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PipelineStatusCreateDtoImplCopyWith<_$PipelineStatusCreateDtoImpl>
+  get copyWith =>
+      __$$PipelineStatusCreateDtoImplCopyWithImpl<
+        _$PipelineStatusCreateDtoImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PipelineStatusCreateDtoImplToJson(this);
+  }
+}
+
+abstract class _PipelineStatusCreateDto implements PipelineStatusCreateDto {
+  const factory _PipelineStatusCreateDto({
+    required final String stageId,
+    required final String code,
+    required final String name,
+    final String? description,
+    required final int sequence,
+    final bool isDefault,
+    final bool isActive,
+  }) = _$PipelineStatusCreateDtoImpl;
+
+  factory _PipelineStatusCreateDto.fromJson(Map<String, dynamic> json) =
+      _$PipelineStatusCreateDtoImpl.fromJson;
+
+  @override
+  String get stageId;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String? get description;
+  @override
+  int get sequence;
+  @override
+  bool get isDefault;
+  @override
+  bool get isActive;
+
+  /// Create a copy of PipelineStatusCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PipelineStatusCreateDtoImplCopyWith<_$PipelineStatusCreateDtoImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+HvcDto _$HvcDtoFromJson(Map<String, dynamic> json) {
+  return _HvcDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$HvcDto {
+  String get id => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String get typeId => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  int? get radiusMeters => throw _privateConstructorUsedError;
+  double? get potentialValue => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+  String get createdBy => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get updatedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this HvcDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of HvcDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HvcDtoCopyWith<HvcDto> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HvcDtoCopyWith<$Res> {
+  factory $HvcDtoCopyWith(HvcDto value, $Res Function(HvcDto) then) =
+      _$HvcDtoCopyWithImpl<$Res, HvcDto>;
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    bool isActive,
+    String createdBy,
+    DateTime createdAt,
+    DateTime updatedAt,
+  });
+}
+
+/// @nodoc
+class _$HvcDtoCopyWithImpl<$Res, $Val extends HvcDto>
+    implements $HvcDtoCopyWith<$Res> {
+  _$HvcDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HvcDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? typeId = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? radiusMeters = freezed,
+    Object? potentialValue = freezed,
+    Object? imageUrl = freezed,
+    Object? isActive = null,
+    Object? createdBy = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            typeId: null == typeId
+                ? _value.typeId
+                : typeId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            radiusMeters: freezed == radiusMeters
+                ? _value.radiusMeters
+                : radiusMeters // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            potentialValue: freezed == potentialValue
+                ? _value.potentialValue
+                : potentialValue // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            createdBy: null == createdBy
+                ? _value.createdBy
+                : createdBy // ignore: cast_nullable_to_non_nullable
+                      as String,
+            createdAt: null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            updatedAt: null == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$HvcDtoImplCopyWith<$Res> implements $HvcDtoCopyWith<$Res> {
+  factory _$$HvcDtoImplCopyWith(
+    _$HvcDtoImpl value,
+    $Res Function(_$HvcDtoImpl) then,
+  ) = __$$HvcDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    bool isActive,
+    String createdBy,
+    DateTime createdAt,
+    DateTime updatedAt,
+  });
+}
+
+/// @nodoc
+class __$$HvcDtoImplCopyWithImpl<$Res>
+    extends _$HvcDtoCopyWithImpl<$Res, _$HvcDtoImpl>
+    implements _$$HvcDtoImplCopyWith<$Res> {
+  __$$HvcDtoImplCopyWithImpl(
+    _$HvcDtoImpl _value,
+    $Res Function(_$HvcDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of HvcDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? typeId = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? radiusMeters = freezed,
+    Object? potentialValue = freezed,
+    Object? imageUrl = freezed,
+    Object? isActive = null,
+    Object? createdBy = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+  }) {
+    return _then(
+      _$HvcDtoImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        typeId: null == typeId
+            ? _value.typeId
+            : typeId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        radiusMeters: freezed == radiusMeters
+            ? _value.radiusMeters
+            : radiusMeters // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        potentialValue: freezed == potentialValue
+            ? _value.potentialValue
+            : potentialValue // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        createdBy: null == createdBy
+            ? _value.createdBy
+            : createdBy // ignore: cast_nullable_to_non_nullable
+                  as String,
+        createdAt: null == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        updatedAt: null == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$HvcDtoImpl implements _HvcDto {
+  const _$HvcDtoImpl({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.typeId,
+    this.description,
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.radiusMeters,
+    this.potentialValue,
+    this.imageUrl,
+    required this.isActive,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory _$HvcDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$HvcDtoImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String typeId;
+  @override
+  final String? description;
+  @override
+  final String? address;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final int? radiusMeters;
+  @override
+  final double? potentialValue;
+  @override
+  final String? imageUrl;
+  @override
+  final bool isActive;
+  @override
+  final String createdBy;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+
+  @override
+  String toString() {
+    return 'HvcDto(id: $id, code: $code, name: $name, typeId: $typeId, description: $description, address: $address, latitude: $latitude, longitude: $longitude, radiusMeters: $radiusMeters, potentialValue: $potentialValue, imageUrl: $imageUrl, isActive: $isActive, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$HvcDtoImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.typeId, typeId) || other.typeId == typeId) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.radiusMeters, radiusMeters) ||
+                other.radiusMeters == radiusMeters) &&
+            (identical(other.potentialValue, potentialValue) ||
+                other.potentialValue == potentialValue) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    code,
+    name,
+    typeId,
+    description,
+    address,
+    latitude,
+    longitude,
+    radiusMeters,
+    potentialValue,
+    imageUrl,
+    isActive,
+    createdBy,
+    createdAt,
+    updatedAt,
+  );
+
+  /// Create a copy of HvcDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$HvcDtoImplCopyWith<_$HvcDtoImpl> get copyWith =>
+      __$$HvcDtoImplCopyWithImpl<_$HvcDtoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$HvcDtoImplToJson(this);
+  }
+}
+
+abstract class _HvcDto implements HvcDto {
+  const factory _HvcDto({
+    required final String id,
+    required final String code,
+    required final String name,
+    required final String typeId,
+    final String? description,
+    final String? address,
+    final double? latitude,
+    final double? longitude,
+    final int? radiusMeters,
+    final double? potentialValue,
+    final String? imageUrl,
+    required final bool isActive,
+    required final String createdBy,
+    required final DateTime createdAt,
+    required final DateTime updatedAt,
+  }) = _$HvcDtoImpl;
+
+  factory _HvcDto.fromJson(Map<String, dynamic> json) = _$HvcDtoImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String get typeId;
+  @override
+  String? get description;
+  @override
+  String? get address;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  int? get radiusMeters;
+  @override
+  double? get potentialValue;
+  @override
+  String? get imageUrl;
+  @override
+  bool get isActive;
+  @override
+  String get createdBy;
+  @override
+  DateTime get createdAt;
+  @override
+  DateTime get updatedAt;
+
+  /// Create a copy of HvcDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$HvcDtoImplCopyWith<_$HvcDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+HvcCreateDto _$HvcCreateDtoFromJson(Map<String, dynamic> json) {
+  return _HvcCreateDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$HvcCreateDto {
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String get typeId => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  int? get radiusMeters => throw _privateConstructorUsedError;
+  double? get potentialValue => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+
+  /// Serializes this HvcCreateDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of HvcCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HvcCreateDtoCopyWith<HvcCreateDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HvcCreateDtoCopyWith<$Res> {
+  factory $HvcCreateDtoCopyWith(
+    HvcCreateDto value,
+    $Res Function(HvcCreateDto) then,
+  ) = _$HvcCreateDtoCopyWithImpl<$Res, HvcCreateDto>;
+  @useResult
+  $Res call({
+    String code,
+    String name,
+    String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class _$HvcCreateDtoCopyWithImpl<$Res, $Val extends HvcCreateDto>
+    implements $HvcCreateDtoCopyWith<$Res> {
+  _$HvcCreateDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HvcCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? name = null,
+    Object? typeId = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? radiusMeters = freezed,
+    Object? potentialValue = freezed,
+    Object? imageUrl = freezed,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            typeId: null == typeId
+                ? _value.typeId
+                : typeId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            radiusMeters: freezed == radiusMeters
+                ? _value.radiusMeters
+                : radiusMeters // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            potentialValue: freezed == potentialValue
+                ? _value.potentialValue
+                : potentialValue // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$HvcCreateDtoImplCopyWith<$Res>
+    implements $HvcCreateDtoCopyWith<$Res> {
+  factory _$$HvcCreateDtoImplCopyWith(
+    _$HvcCreateDtoImpl value,
+    $Res Function(_$HvcCreateDtoImpl) then,
+  ) = __$$HvcCreateDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String code,
+    String name,
+    String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class __$$HvcCreateDtoImplCopyWithImpl<$Res>
+    extends _$HvcCreateDtoCopyWithImpl<$Res, _$HvcCreateDtoImpl>
+    implements _$$HvcCreateDtoImplCopyWith<$Res> {
+  __$$HvcCreateDtoImplCopyWithImpl(
+    _$HvcCreateDtoImpl _value,
+    $Res Function(_$HvcCreateDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of HvcCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? name = null,
+    Object? typeId = null,
+    Object? description = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? radiusMeters = freezed,
+    Object? potentialValue = freezed,
+    Object? imageUrl = freezed,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _$HvcCreateDtoImpl(
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        typeId: null == typeId
+            ? _value.typeId
+            : typeId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        radiusMeters: freezed == radiusMeters
+            ? _value.radiusMeters
+            : radiusMeters // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        potentialValue: freezed == potentialValue
+            ? _value.potentialValue
+            : potentialValue // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$HvcCreateDtoImpl implements _HvcCreateDto {
+  const _$HvcCreateDtoImpl({
+    required this.code,
+    required this.name,
+    required this.typeId,
+    this.description,
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.radiusMeters,
+    this.potentialValue,
+    this.imageUrl,
+    this.isActive = true,
+  });
+
+  factory _$HvcCreateDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$HvcCreateDtoImplFromJson(json);
+
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String typeId;
+  @override
+  final String? description;
+  @override
+  final String? address;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final int? radiusMeters;
+  @override
+  final double? potentialValue;
+  @override
+  final String? imageUrl;
+  @override
+  @JsonKey()
+  final bool isActive;
+
+  @override
+  String toString() {
+    return 'HvcCreateDto(code: $code, name: $name, typeId: $typeId, description: $description, address: $address, latitude: $latitude, longitude: $longitude, radiusMeters: $radiusMeters, potentialValue: $potentialValue, imageUrl: $imageUrl, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$HvcCreateDtoImpl &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.typeId, typeId) || other.typeId == typeId) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.radiusMeters, radiusMeters) ||
+                other.radiusMeters == radiusMeters) &&
+            (identical(other.potentialValue, potentialValue) ||
+                other.potentialValue == potentialValue) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    code,
+    name,
+    typeId,
+    description,
+    address,
+    latitude,
+    longitude,
+    radiusMeters,
+    potentialValue,
+    imageUrl,
+    isActive,
+  );
+
+  /// Create a copy of HvcCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$HvcCreateDtoImplCopyWith<_$HvcCreateDtoImpl> get copyWith =>
+      __$$HvcCreateDtoImplCopyWithImpl<_$HvcCreateDtoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$HvcCreateDtoImplToJson(this);
+  }
+}
+
+abstract class _HvcCreateDto implements HvcCreateDto {
+  const factory _HvcCreateDto({
+    required final String code,
+    required final String name,
+    required final String typeId,
+    final String? description,
+    final String? address,
+    final double? latitude,
+    final double? longitude,
+    final int? radiusMeters,
+    final double? potentialValue,
+    final String? imageUrl,
+    final bool isActive,
+  }) = _$HvcCreateDtoImpl;
+
+  factory _HvcCreateDto.fromJson(Map<String, dynamic> json) =
+      _$HvcCreateDtoImpl.fromJson;
+
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String get typeId;
+  @override
+  String? get description;
+  @override
+  String? get address;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  int? get radiusMeters;
+  @override
+  double? get potentialValue;
+  @override
+  String? get imageUrl;
+  @override
+  bool get isActive;
+
+  /// Create a copy of HvcCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$HvcCreateDtoImplCopyWith<_$HvcCreateDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+BrokerDto _$BrokerDtoFromJson(Map<String, dynamic> json) {
+  return _BrokerDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BrokerDto {
+  String get id => throw _privateConstructorUsedError;
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get licenseNumber => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  String? get provinceId => throw _privateConstructorUsedError;
+  String? get cityId => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
+  String? get website => throw _privateConstructorUsedError;
+  double? get commissionRate => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+  String get createdBy => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get updatedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this BrokerDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BrokerDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BrokerDtoCopyWith<BrokerDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BrokerDtoCopyWith<$Res> {
+  factory $BrokerDtoCopyWith(BrokerDto value, $Res Function(BrokerDto) then) =
+      _$BrokerDtoCopyWithImpl<$Res, BrokerDto>;
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    bool isActive,
+    String createdBy,
+    DateTime createdAt,
+    DateTime updatedAt,
+  });
+}
+
+/// @nodoc
+class _$BrokerDtoCopyWithImpl<$Res, $Val extends BrokerDto>
+    implements $BrokerDtoCopyWith<$Res> {
+  _$BrokerDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BrokerDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? licenseNumber = freezed,
+    Object? address = freezed,
+    Object? provinceId = freezed,
+    Object? cityId = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? email = freezed,
+    Object? website = freezed,
+    Object? commissionRate = freezed,
+    Object? imageUrl = freezed,
+    Object? notes = freezed,
+    Object? isActive = null,
+    Object? createdBy = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            licenseNumber: freezed == licenseNumber
+                ? _value.licenseNumber
+                : licenseNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            provinceId: freezed == provinceId
+                ? _value.provinceId
+                : provinceId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            cityId: freezed == cityId
+                ? _value.cityId
+                : cityId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            email: freezed == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            website: freezed == website
+                ? _value.website
+                : website // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            commissionRate: freezed == commissionRate
+                ? _value.commissionRate
+                : commissionRate // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notes: freezed == notes
+                ? _value.notes
+                : notes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            createdBy: null == createdBy
+                ? _value.createdBy
+                : createdBy // ignore: cast_nullable_to_non_nullable
+                      as String,
+            createdAt: null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            updatedAt: null == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BrokerDtoImplCopyWith<$Res>
+    implements $BrokerDtoCopyWith<$Res> {
+  factory _$$BrokerDtoImplCopyWith(
+    _$BrokerDtoImpl value,
+    $Res Function(_$BrokerDtoImpl) then,
+  ) = __$$BrokerDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String code,
+    String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    bool isActive,
+    String createdBy,
+    DateTime createdAt,
+    DateTime updatedAt,
+  });
+}
+
+/// @nodoc
+class __$$BrokerDtoImplCopyWithImpl<$Res>
+    extends _$BrokerDtoCopyWithImpl<$Res, _$BrokerDtoImpl>
+    implements _$$BrokerDtoImplCopyWith<$Res> {
+  __$$BrokerDtoImplCopyWithImpl(
+    _$BrokerDtoImpl _value,
+    $Res Function(_$BrokerDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BrokerDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? code = null,
+    Object? name = null,
+    Object? licenseNumber = freezed,
+    Object? address = freezed,
+    Object? provinceId = freezed,
+    Object? cityId = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? email = freezed,
+    Object? website = freezed,
+    Object? commissionRate = freezed,
+    Object? imageUrl = freezed,
+    Object? notes = freezed,
+    Object? isActive = null,
+    Object? createdBy = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
+  }) {
+    return _then(
+      _$BrokerDtoImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        licenseNumber: freezed == licenseNumber
+            ? _value.licenseNumber
+            : licenseNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        provinceId: freezed == provinceId
+            ? _value.provinceId
+            : provinceId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        cityId: freezed == cityId
+            ? _value.cityId
+            : cityId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        email: freezed == email
+            ? _value.email
+            : email // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        website: freezed == website
+            ? _value.website
+            : website // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        commissionRate: freezed == commissionRate
+            ? _value.commissionRate
+            : commissionRate // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notes: freezed == notes
+            ? _value.notes
+            : notes // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        createdBy: null == createdBy
+            ? _value.createdBy
+            : createdBy // ignore: cast_nullable_to_non_nullable
+                  as String,
+        createdAt: null == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        updatedAt: null == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BrokerDtoImpl implements _BrokerDto {
+  const _$BrokerDtoImpl({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.licenseNumber,
+    this.address,
+    this.provinceId,
+    this.cityId,
+    this.latitude,
+    this.longitude,
+    this.phone,
+    this.email,
+    this.website,
+    this.commissionRate,
+    this.imageUrl,
+    this.notes,
+    required this.isActive,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory _$BrokerDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BrokerDtoImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String? licenseNumber;
+  @override
+  final String? address;
+  @override
+  final String? provinceId;
+  @override
+  final String? cityId;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final String? phone;
+  @override
+  final String? email;
+  @override
+  final String? website;
+  @override
+  final double? commissionRate;
+  @override
+  final String? imageUrl;
+  @override
+  final String? notes;
+  @override
+  final bool isActive;
+  @override
+  final String createdBy;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+
+  @override
+  String toString() {
+    return 'BrokerDto(id: $id, code: $code, name: $name, licenseNumber: $licenseNumber, address: $address, provinceId: $provinceId, cityId: $cityId, latitude: $latitude, longitude: $longitude, phone: $phone, email: $email, website: $website, commissionRate: $commissionRate, imageUrl: $imageUrl, notes: $notes, isActive: $isActive, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BrokerDtoImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.licenseNumber, licenseNumber) ||
+                other.licenseNumber == licenseNumber) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.provinceId, provinceId) ||
+                other.provinceId == provinceId) &&
+            (identical(other.cityId, cityId) || other.cityId == cityId) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.website, website) || other.website == website) &&
+            (identical(other.commissionRate, commissionRate) ||
+                other.commissionRate == commissionRate) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hashAll([
+    runtimeType,
+    id,
+    code,
+    name,
+    licenseNumber,
+    address,
+    provinceId,
+    cityId,
+    latitude,
+    longitude,
+    phone,
+    email,
+    website,
+    commissionRate,
+    imageUrl,
+    notes,
+    isActive,
+    createdBy,
+    createdAt,
+    updatedAt,
+  ]);
+
+  /// Create a copy of BrokerDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BrokerDtoImplCopyWith<_$BrokerDtoImpl> get copyWith =>
+      __$$BrokerDtoImplCopyWithImpl<_$BrokerDtoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BrokerDtoImplToJson(this);
+  }
+}
+
+abstract class _BrokerDto implements BrokerDto {
+  const factory _BrokerDto({
+    required final String id,
+    required final String code,
+    required final String name,
+    final String? licenseNumber,
+    final String? address,
+    final String? provinceId,
+    final String? cityId,
+    final double? latitude,
+    final double? longitude,
+    final String? phone,
+    final String? email,
+    final String? website,
+    final double? commissionRate,
+    final String? imageUrl,
+    final String? notes,
+    required final bool isActive,
+    required final String createdBy,
+    required final DateTime createdAt,
+    required final DateTime updatedAt,
+  }) = _$BrokerDtoImpl;
+
+  factory _BrokerDto.fromJson(Map<String, dynamic> json) =
+      _$BrokerDtoImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String? get licenseNumber;
+  @override
+  String? get address;
+  @override
+  String? get provinceId;
+  @override
+  String? get cityId;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  String? get phone;
+  @override
+  String? get email;
+  @override
+  String? get website;
+  @override
+  double? get commissionRate;
+  @override
+  String? get imageUrl;
+  @override
+  String? get notes;
+  @override
+  bool get isActive;
+  @override
+  String get createdBy;
+  @override
+  DateTime get createdAt;
+  @override
+  DateTime get updatedAt;
+
+  /// Create a copy of BrokerDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BrokerDtoImplCopyWith<_$BrokerDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+BrokerCreateDto _$BrokerCreateDtoFromJson(Map<String, dynamic> json) {
+  return _BrokerCreateDto.fromJson(json);
+}
+
+/// @nodoc
+mixin _$BrokerCreateDto {
+  String get code => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get licenseNumber => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  String? get provinceId => throw _privateConstructorUsedError;
+  String? get cityId => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
+  String? get website => throw _privateConstructorUsedError;
+  double? get commissionRate => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
+  bool get isActive => throw _privateConstructorUsedError;
+
+  /// Serializes this BrokerCreateDto to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of BrokerCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BrokerCreateDtoCopyWith<BrokerCreateDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BrokerCreateDtoCopyWith<$Res> {
+  factory $BrokerCreateDtoCopyWith(
+    BrokerCreateDto value,
+    $Res Function(BrokerCreateDto) then,
+  ) = _$BrokerCreateDtoCopyWithImpl<$Res, BrokerCreateDto>;
+  @useResult
+  $Res call({
+    String code,
+    String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class _$BrokerCreateDtoCopyWithImpl<$Res, $Val extends BrokerCreateDto>
+    implements $BrokerCreateDtoCopyWith<$Res> {
+  _$BrokerCreateDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BrokerCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? name = null,
+    Object? licenseNumber = freezed,
+    Object? address = freezed,
+    Object? provinceId = freezed,
+    Object? cityId = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? email = freezed,
+    Object? website = freezed,
+    Object? commissionRate = freezed,
+    Object? imageUrl = freezed,
+    Object? notes = freezed,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            licenseNumber: freezed == licenseNumber
+                ? _value.licenseNumber
+                : licenseNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            provinceId: freezed == provinceId
+                ? _value.provinceId
+                : provinceId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            cityId: freezed == cityId
+                ? _value.cityId
+                : cityId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            email: freezed == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            website: freezed == website
+                ? _value.website
+                : website // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            commissionRate: freezed == commissionRate
+                ? _value.commissionRate
+                : commissionRate // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notes: freezed == notes
+                ? _value.notes
+                : notes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$BrokerCreateDtoImplCopyWith<$Res>
+    implements $BrokerCreateDtoCopyWith<$Res> {
+  factory _$$BrokerCreateDtoImplCopyWith(
+    _$BrokerCreateDtoImpl value,
+    $Res Function(_$BrokerCreateDtoImpl) then,
+  ) = __$$BrokerCreateDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String code,
+    String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    bool isActive,
+  });
+}
+
+/// @nodoc
+class __$$BrokerCreateDtoImplCopyWithImpl<$Res>
+    extends _$BrokerCreateDtoCopyWithImpl<$Res, _$BrokerCreateDtoImpl>
+    implements _$$BrokerCreateDtoImplCopyWith<$Res> {
+  __$$BrokerCreateDtoImplCopyWithImpl(
+    _$BrokerCreateDtoImpl _value,
+    $Res Function(_$BrokerCreateDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of BrokerCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? name = null,
+    Object? licenseNumber = freezed,
+    Object? address = freezed,
+    Object? provinceId = freezed,
+    Object? cityId = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? phone = freezed,
+    Object? email = freezed,
+    Object? website = freezed,
+    Object? commissionRate = freezed,
+    Object? imageUrl = freezed,
+    Object? notes = freezed,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _$BrokerCreateDtoImpl(
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        licenseNumber: freezed == licenseNumber
+            ? _value.licenseNumber
+            : licenseNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        provinceId: freezed == provinceId
+            ? _value.provinceId
+            : provinceId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        cityId: freezed == cityId
+            ? _value.cityId
+            : cityId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        email: freezed == email
+            ? _value.email
+            : email // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        website: freezed == website
+            ? _value.website
+            : website // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        commissionRate: freezed == commissionRate
+            ? _value.commissionRate
+            : commissionRate // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notes: freezed == notes
+            ? _value.notes
+            : notes // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$BrokerCreateDtoImpl implements _BrokerCreateDto {
+  const _$BrokerCreateDtoImpl({
+    required this.code,
+    required this.name,
+    this.licenseNumber,
+    this.address,
+    this.provinceId,
+    this.cityId,
+    this.latitude,
+    this.longitude,
+    this.phone,
+    this.email,
+    this.website,
+    this.commissionRate,
+    this.imageUrl,
+    this.notes,
+    this.isActive = true,
+  });
+
+  factory _$BrokerCreateDtoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BrokerCreateDtoImplFromJson(json);
+
+  @override
+  final String code;
+  @override
+  final String name;
+  @override
+  final String? licenseNumber;
+  @override
+  final String? address;
+  @override
+  final String? provinceId;
+  @override
+  final String? cityId;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
+  final String? phone;
+  @override
+  final String? email;
+  @override
+  final String? website;
+  @override
+  final double? commissionRate;
+  @override
+  final String? imageUrl;
+  @override
+  final String? notes;
+  @override
+  @JsonKey()
+  final bool isActive;
+
+  @override
+  String toString() {
+    return 'BrokerCreateDto(code: $code, name: $name, licenseNumber: $licenseNumber, address: $address, provinceId: $provinceId, cityId: $cityId, latitude: $latitude, longitude: $longitude, phone: $phone, email: $email, website: $website, commissionRate: $commissionRate, imageUrl: $imageUrl, notes: $notes, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BrokerCreateDtoImpl &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.licenseNumber, licenseNumber) ||
+                other.licenseNumber == licenseNumber) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.provinceId, provinceId) ||
+                other.provinceId == provinceId) &&
+            (identical(other.cityId, cityId) || other.cityId == cityId) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.website, website) || other.website == website) &&
+            (identical(other.commissionRate, commissionRate) ||
+                other.commissionRate == commissionRate) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    code,
+    name,
+    licenseNumber,
+    address,
+    provinceId,
+    cityId,
+    latitude,
+    longitude,
+    phone,
+    email,
+    website,
+    commissionRate,
+    imageUrl,
+    notes,
+    isActive,
+  );
+
+  /// Create a copy of BrokerCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BrokerCreateDtoImplCopyWith<_$BrokerCreateDtoImpl> get copyWith =>
+      __$$BrokerCreateDtoImplCopyWithImpl<_$BrokerCreateDtoImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$BrokerCreateDtoImplToJson(this);
+  }
+}
+
+abstract class _BrokerCreateDto implements BrokerCreateDto {
+  const factory _BrokerCreateDto({
+    required final String code,
+    required final String name,
+    final String? licenseNumber,
+    final String? address,
+    final String? provinceId,
+    final String? cityId,
+    final double? latitude,
+    final double? longitude,
+    final String? phone,
+    final String? email,
+    final String? website,
+    final double? commissionRate,
+    final String? imageUrl,
+    final String? notes,
+    final bool isActive,
+  }) = _$BrokerCreateDtoImpl;
+
+  factory _BrokerCreateDto.fromJson(Map<String, dynamic> json) =
+      _$BrokerCreateDtoImpl.fromJson;
+
+  @override
+  String get code;
+  @override
+  String get name;
+  @override
+  String? get licenseNumber;
+  @override
+  String? get address;
+  @override
+  String? get provinceId;
+  @override
+  String? get cityId;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
+  @override
+  String? get phone;
+  @override
+  String? get email;
+  @override
+  String? get website;
+  @override
+  double? get commissionRate;
+  @override
+  String? get imageUrl;
+  @override
+  String? get notes;
+  @override
+  bool get isActive;
+
+  /// Create a copy of BrokerCreateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BrokerCreateDtoImplCopyWith<_$BrokerCreateDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

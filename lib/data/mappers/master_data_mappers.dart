@@ -203,4 +203,44 @@ class MasterDataMappers {
 
   static List<HvcTypeDto> hvcTypeListToDto(List<HvcType> hvcTypes) =>
       hvcTypes.map(hvcTypeToDto).toList();
+
+  // ============================================
+  // ORGANIZATION MAPPERS
+  // ============================================
+
+  static RegionalOfficeDto regionalOfficeToDto(RegionalOffice regionalOffice) =>
+      RegionalOfficeDto(
+        id: regionalOffice.id,
+        code: regionalOffice.code,
+        name: regionalOffice.name,
+        description: regionalOffice.description,
+        address: regionalOffice.address,
+        latitude: regionalOffice.latitude,
+        longitude: regionalOffice.longitude,
+        phone: regionalOffice.phone,
+        isActive: regionalOffice.isActive,
+        createdAt: regionalOffice.createdAt,
+        updatedAt: regionalOffice.updatedAt,
+      );
+
+  static List<RegionalOfficeDto> regionalOfficeListToDto(
+          List<RegionalOffice> regionalOffices) =>
+      regionalOffices.map(regionalOfficeToDto).toList();
+
+  static BranchDto branchToDto(Branche branch) => BranchDto(
+        id: branch.id,
+        code: branch.code,
+        name: branch.name,
+        regionalOfficeId: branch.regionalOfficeId,
+        address: branch.address,
+        latitude: branch.latitude,
+        longitude: branch.longitude,
+        phone: branch.phone,
+        isActive: branch.isActive,
+        createdAt: branch.createdAt,
+        updatedAt: branch.updatedAt,
+      );
+
+  static List<BranchDto> branchListToDto(List<Branche> branches) =>
+      branches.map(branchToDto).toList();
 }

@@ -35,6 +35,50 @@ class CityDto with _$CityDto {
 }
 
 // ============================================
+// ORGANIZATION DTOs
+// ============================================
+
+@freezed
+class RegionalOfficeDto with _$RegionalOfficeDto {
+  const factory RegionalOfficeDto({
+    required String id,
+    required String code,
+    required String name,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    required bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) = _RegionalOfficeDto;
+
+  factory RegionalOfficeDto.fromJson(Map<String, dynamic> json) =>
+      _$RegionalOfficeDtoFromJson(json);
+}
+
+@freezed
+class BranchDto with _$BranchDto {
+  const factory BranchDto({
+    required String id,
+    required String code,
+    required String name,
+    required String regionalOfficeId,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    required bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) = _BranchDto;
+
+  factory BranchDto.fromJson(Map<String, dynamic> json) =>
+      _$BranchDtoFromJson(json);
+}
+
+// ============================================
 // COMPANY CLASSIFICATION DTOs
 // ============================================
 
@@ -300,4 +344,131 @@ class PipelineStageCreateDto with _$PipelineStageCreateDto {
 
   factory PipelineStageCreateDto.fromJson(Map<String, dynamic> json) =>
       _$PipelineStageCreateDtoFromJson(json);
+}
+
+@freezed
+class LobCreateDto with _$LobCreateDto {
+  const factory LobCreateDto({
+    required String cobId,
+    required String code,
+    required String name,
+    String? description,
+    @Default(0) int sortOrder,
+    @Default(true) bool isActive,
+  }) = _LobCreateDto;
+
+  factory LobCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$LobCreateDtoFromJson(json);
+}
+
+@freezed
+class PipelineStatusCreateDto with _$PipelineStatusCreateDto {
+  const factory PipelineStatusCreateDto({
+    required String stageId,
+    required String code,
+    required String name,
+    String? description,
+    required int sequence,
+    @Default(false) bool isDefault,
+    @Default(true) bool isActive,
+  }) = _PipelineStatusCreateDto;
+
+  factory PipelineStatusCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$PipelineStatusCreateDtoFromJson(json);
+}
+
+@freezed
+class HvcDto with _$HvcDto {
+  const factory HvcDto({
+    required String id,
+    required String code,
+    required String name,
+    required String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    required bool isActive,
+    required String createdBy,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) = _HvcDto;
+
+  factory HvcDto.fromJson(Map<String, dynamic> json) =>
+      _$HvcDtoFromJson(json);
+}
+
+@freezed
+class HvcCreateDto with _$HvcCreateDto {
+  const factory HvcCreateDto({
+    required String code,
+    required String name,
+    required String typeId,
+    String? description,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? radiusMeters,
+    double? potentialValue,
+    String? imageUrl,
+    @Default(true) bool isActive,
+  }) = _HvcCreateDto;
+
+  factory HvcCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$HvcCreateDtoFromJson(json);
+}
+
+@freezed
+class BrokerDto with _$BrokerDto {
+  const factory BrokerDto({
+    required String id,
+    required String code,
+    required String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    required bool isActive,
+    required String createdBy,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) = _BrokerDto;
+
+  factory BrokerDto.fromJson(Map<String, dynamic> json) =>
+      _$BrokerDtoFromJson(json);
+}
+
+@freezed
+class BrokerCreateDto with _$BrokerCreateDto {
+  const factory BrokerCreateDto({
+    required String code,
+    required String name,
+    String? licenseNumber,
+    String? address,
+    String? provinceId,
+    String? cityId,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? commissionRate,
+    String? imageUrl,
+    String? notes,
+    @Default(true) bool isActive,
+  }) = _BrokerCreateDto;
+
+  factory BrokerCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$BrokerCreateDtoFromJson(json);
 }

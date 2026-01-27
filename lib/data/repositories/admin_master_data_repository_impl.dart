@@ -327,6 +327,60 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> softDeleteRegionalOffice(String id) async {
+    try {
+      // Check if any active branches exist under this regional office
+      final supabase = _remoteDataSource.supabaseClient;
+      final branches = await supabase
+          .from('branches')
+          .select('id')
+          .eq('regional_office_id', id)
+          .eq('is_active', true);
+
+      if ((branches as List).isNotEmpty) {
+        return Left(ValidationFailure(
+          message: 'Tidak dapat menghapus Kantor Wilayah yang masih memiliki ${branches.length} cabang aktif. '
+              'Harap nonaktifkan atau pindahkan cabang terlebih dahulu.',
+        ));
+      }
+
+      // Proceed with soft delete
+      return await softDeleteEntity('regional_offices', id);
+    } catch (e) {
+      return Left(ServerFailure(
+        message: 'Gagal menghapus Kantor Wilayah: ${e.toString()}',
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> softDeleteBranch(String id) async {
+    try {
+      // Check if any active users are assigned to this branch
+      final supabase = _remoteDataSource.supabaseClient;
+      final users = await supabase
+          .from('users')
+          .select('id')
+          .eq('branch_id', id)
+          .eq('is_active', true);
+
+      if ((users as List).isNotEmpty) {
+        return Left(ValidationFailure(
+          message: 'Tidak dapat menghapus Kantor Cabang yang masih memiliki ${users.length} user aktif. '
+              'Harap pindahkan user ke cabang lain terlebih dahulu.',
+        ));
+      }
+
+      // Proceed with soft delete
+      return await softDeleteEntity('branches', id);
+    } catch (e) {
+      return Left(ServerFailure(
+        message: 'Gagal menghapus Kantor Cabang: ${e.toString()}',
+      ));
+    }
+  }
+
   // ============================================
   // ACTIVATION/DEACTIVATION
   // ============================================

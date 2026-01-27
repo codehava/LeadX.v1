@@ -16,6 +16,8 @@ enum MasterDataEntityType {
   hvcType,
   province,
   city,
+  regionalOffice,
+  branch,
 }
 
 extension MasterDataEntityTypeX on MasterDataEntityType {
@@ -47,6 +49,10 @@ extension MasterDataEntityTypeX on MasterDataEntityType {
         return 'provinces';
       case MasterDataEntityType.city:
         return 'cities';
+      case MasterDataEntityType.regionalOffice:
+        return 'regional_offices';
+      case MasterDataEntityType.branch:
+        return 'branches';
     }
   }
 
@@ -78,6 +84,10 @@ extension MasterDataEntityTypeX on MasterDataEntityType {
         return 'Provinsi';
       case MasterDataEntityType.city:
         return 'Kota';
+      case MasterDataEntityType.regionalOffice:
+        return 'Kantor Wilayah';
+      case MasterDataEntityType.branch:
+        return 'Kantor Cabang';
     }
   }
 
@@ -102,6 +112,9 @@ extension MasterDataEntityTypeX on MasterDataEntityType {
       case MasterDataEntityType.province:
       case MasterDataEntityType.city:
         return 'Geografi';
+      case MasterDataEntityType.regionalOffice:
+      case MasterDataEntityType.branch:
+        return 'Organisasi';
     }
   }
 
@@ -133,6 +146,10 @@ extension MasterDataEntityTypeX on MasterDataEntityType {
         return Icons.map;
       case MasterDataEntityType.city:
         return Icons.location_city;
+      case MasterDataEntityType.regionalOffice:
+        return Icons.domain;
+      case MasterDataEntityType.branch:
+        return Icons.store;
     }
   }
 }
@@ -145,6 +162,7 @@ enum MasterDataCategory {
   aktivitas,
   hvc,
   geografi,
+  organisasi,
 }
 
 extension MasterDataCategoryX on MasterDataCategory {
@@ -162,6 +180,8 @@ extension MasterDataCategoryX on MasterDataCategory {
         return 'HVC';
       case MasterDataCategory.geografi:
         return 'Geografi';
+      case MasterDataCategory.organisasi:
+        return 'Organisasi';
     }
   }
 
@@ -197,6 +217,11 @@ extension MasterDataCategoryX on MasterDataCategory {
         return [
           MasterDataEntityType.province,
           MasterDataEntityType.city,
+        ];
+      case MasterDataCategory.organisasi:
+        return [
+          MasterDataEntityType.regionalOffice,
+          MasterDataEntityType.branch,
         ];
     }
   }

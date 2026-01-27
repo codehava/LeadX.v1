@@ -5,7 +5,9 @@
       "Bash(dart analyze:*)",
       "Bash(flutter pub get:*)",
       "Bash(flutter analyze:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git log:*)",
+      "Bash(flutter --version:*)"
     ]
   }
 }

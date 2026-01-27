@@ -1,8 +1,10 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/routes/route_names.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../presentation/providers/admin_providers.dart';
 import 'master_data_entity_type.dart';
 
@@ -55,6 +57,22 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
     try {
       final repository = ref.read(adminMasterDataRepositoryProvider);
       final data = await repository.getAllEntities(_type.tableName);
+
+      // Enrich branch data with regional office names
+      if (_type == MasterDataEntityType.branch) {
+        final regionalOffices = await repository.getAllEntities('regional_offices');
+        final roLookup = Map.fromEntries(
+          regionalOffices.map((ro) => MapEntry(ro['id'] as String, ro['name'] as String)),
+        );
+
+        for (final branch in data) {
+          final roId = branch['regional_office_id'] as String?;
+          if (roId != null && roLookup.containsKey(roId)) {
+            branch['regional_office_name'] = roLookup[roId];
+          }
+        }
+      }
+
       if (!mounted) return;
       setState(() {
         _allData = data.cast<Map<String, dynamic>>();
@@ -112,13 +130,26 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
   Future<void> _deleteItem(String id) async {
     try {
       final repository = ref.read(adminMasterDataRepositoryProvider);
-      final result = await repository.softDeleteEntity(_type.tableName, id);
+
+      // Use specialized methods for entities with dependencies
+      final Either<Failure, void> result;
+      if (_type == MasterDataEntityType.regionalOffice) {
+        result = await repository.softDeleteRegionalOffice(id);
+      } else if (_type == MasterDataEntityType.branch) {
+        result = await repository.softDeleteBranch(id);
+      } else {
+        result = await repository.softDeleteEntity(_type.tableName, id);
+      }
 
       if (!mounted) return;
       result.fold(
         (failure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
           );
         },
         (_) {
@@ -204,6 +235,8 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
       const DataColumn(label: Text('Nama')),
       if (_type == MasterDataEntityType.pipelineStage)
         const DataColumn(label: Text('Probabilitas')),
+      if (_type == MasterDataEntityType.branch)
+        const DataColumn(label: Text('Kantor Wilayah')),
       const DataColumn(label: Text('Status')),
       const DataColumn(label: Text('Aksi')),
     ];
@@ -217,6 +250,8 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
           DataCell(Text(item['name']?.toString() ?? '-')),
           if (_type == MasterDataEntityType.pipelineStage)
             DataCell(Text('${item['probability']?.toString() ?? '-'}%')),
+          if (_type == MasterDataEntityType.branch)
+            DataCell(Text(item['regional_office_name']?.toString() ?? '-')),
           DataCell(
             Chip(
               label: Text((item['is_active'] == true) ? 'Aktif' : 'Tidak Aktif'),

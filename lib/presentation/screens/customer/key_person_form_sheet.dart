@@ -109,9 +109,10 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final navBarHeight = MediaQuery.of(context).padding.bottom;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding),
+      padding: EdgeInsets.only(bottom: bottomPadding + navBarHeight),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.85,

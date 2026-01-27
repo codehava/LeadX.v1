@@ -993,6 +993,22 @@ class MockMasterDataLocalDataSource extends _i1.Mock
             returnValueForMissingStub: _i5.Future<void>.value(),
           )
           as _i5.Future<void>);
+
+  @override
+  _i5.Stream<List<_i9.RegionalOfficeDto>> watchRegionalOffices() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchRegionalOffices, []),
+            returnValue: _i5.Stream<List<_i9.RegionalOfficeDto>>.empty(),
+          )
+          as _i5.Stream<List<_i9.RegionalOfficeDto>>);
+
+  @override
+  _i5.Stream<List<_i9.BranchDto>> watchBranches() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBranches, []),
+            returnValue: _i5.Stream<List<_i9.BranchDto>>.empty(),
+          )
+          as _i5.Stream<List<_i9.BranchDto>>);
 }
 
 /// A class which mocks [CustomerLocalDataSource].

@@ -139,9 +139,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AppBar(
-      title: const Text('LeadX CRM'),
+      title: _buildHeaderTitle(context, compact: true),
       actions: [
         // Sync progress indicator (shows when syncing)
         const SyncProgressIndicator(),
@@ -331,7 +331,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     // selectedIndex now directly matches _navItems since there's no "Add" button
     // Home(0), Customer(1), Activity(2), Profile(3)
     final effectiveIndex = _selectedIndex < 0 ? 0 : _selectedIndex;
-    
+
     // Build a fully scrollable custom navigation rail
     return Container(
       width: 80,
@@ -344,6 +344,18 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           child: IntrinsicHeight(
             child: Column(
               children: [
+                // Branded header for tablet (logo only)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 52,
+                    width: 52,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
+                const Divider(),
                 const SizedBox(height: 8),
                 // Main navigation destinations
                 ..._navItems.asMap().entries.map((entry) {
@@ -445,7 +457,42 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   isSelected: widget.currentRoute.contains('/settings'),
                   onTap: () => context.push(RoutePaths.settings),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
+                // Footer text for tablet
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        'AI-Powered',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 9,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Created by Corporate\nTransformation',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Copyright © 2025',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -556,53 +603,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           // Branded header
           Container(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            theme.colorScheme.primary,
-                            theme.colorScheme.primaryContainer,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.auto_graph,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'LeadX CRM',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'AI-Powered CRM',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            child: _buildHeaderTitle(context),
           ),
           const Divider(height: 1),
           // Navigation items
@@ -677,12 +678,36 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           ),
           // Footer
           Container(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              '© 2025 LeadX',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'AI-Powered',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Created by Corporate Transformation',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Copyright © 2025',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
         ],
@@ -945,6 +970,81 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       case 3:
         context.go(RoutePaths.profile);
         break;
+    }
+  }
+
+  Widget _buildHeaderTitle(BuildContext context, {bool compact = false}) {
+    final theme = Theme.of(context);
+
+    if (compact) {
+      // Mobile: compact logo + text
+      return Row(
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 36,
+            width: 36,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'LeadX',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'AI-Powered',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 10,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    } else {
+      // Desktop: Header with logo and minimal text
+      return Row(
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 44,
+            width: 44,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'LeadX',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'AI-Powered',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
     }
   }
 }
