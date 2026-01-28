@@ -8,6 +8,7 @@ import '../../domain/entities/pipeline.dart' as domain;
 import 'auth_providers.dart';
 import 'customer_providers.dart';
 import 'database_provider.dart';
+import 'history_log_providers.dart';
 import 'master_data_providers.dart';
 import 'sync_providers.dart';
 
@@ -38,6 +39,7 @@ final pipelineRepositoryProvider = Provider<PipelineRepositoryImpl>((ref) {
   final masterDataSource = ref.watch(masterDataLocalDataSourceProvider);
   final customerDataSource = ref.watch(customerLocalDataSourceProvider);
   final remoteDataSource = ref.watch(pipelineRemoteDataSourceProvider);
+  final historyLogDataSource = ref.watch(historyLogLocalDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   final database = ref.watch(databaseProvider);
@@ -47,6 +49,7 @@ final pipelineRepositoryProvider = Provider<PipelineRepositoryImpl>((ref) {
     masterDataSource: masterDataSource,
     customerDataSource: customerDataSource,
     remoteDataSource: remoteDataSource,
+    historyLogDataSource: historyLogDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
     database: database,

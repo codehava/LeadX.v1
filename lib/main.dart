@@ -27,7 +27,8 @@ Future<void> main() async {
   final envConfig = EnvConfig.instance;
   envConfig.validate();
 
-  // Initialize Supabase
+  // Initialize Supabase with PKCE flow (more secure)
+  // Note: Password reset links must be opened in the same browser session
   await Supabase.initialize(
     url: envConfig.supabaseUrl,
     anonKey: envConfig.supabaseAnonKey,

@@ -217,7 +217,8 @@ class Hvcs extends Table {
   RealColumn get potentialValue => real().nullable()();
   TextColumn get imageUrl => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  TextColumn get createdBy => text().references(Users, #id)();
+  // No FK constraint - user may see HVC via customer link where creator is outside their hierarchy
+  TextColumn get createdBy => text()();
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -262,7 +263,8 @@ class Brokers extends Table {
   TextColumn get imageUrl => text().nullable()();
   TextColumn get notes => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  TextColumn get createdBy => text().references(Users, #id)();
+  // No FK constraint - user may see broker via customer link where creator is outside their hierarchy
+  TextColumn get createdBy => text()();
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();

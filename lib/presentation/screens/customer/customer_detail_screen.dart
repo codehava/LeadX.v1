@@ -116,51 +116,53 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
   }
 
   Widget _buildQuickActions(Customer customer, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _QuickActionButton(
-            icon: Icons.phone,
-            label: 'Telepon',
-            onTap: customer.phone != null
-                ? () => _launchUrl('tel:${customer.phone}')
-                : null,
-          ),
-          _QuickActionButton(
-            icon: Icons.chat,
-            label: 'WhatsApp',
-            onTap: customer.phone != null
-                ? () => _launchUrl('https://wa.me/${_formatWhatsApp(customer.phone!)}')
-                : null,
-          ),
-          _QuickActionButton(
-            icon: Icons.email,
-            label: 'Email',
-            onTap: customer.email != null
-                ? () => _launchUrl('mailto:${customer.email}')
-                : null,
-          ),
-          _QuickActionButton(
-            icon: Icons.navigation,
-            label: 'Navigasi',
-            onTap: customer.hasLocation
-                ? () => _launchUrl(
-                    'https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}')
-                : null,
-          ),
-        ],
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _QuickActionButton(
+              icon: Icons.phone,
+              label: 'Telepon',
+              onTap: customer.phone != null
+                  ? () => _launchUrl('tel:${customer.phone}')
+                  : null,
+            ),
+            _QuickActionButton(
+              icon: Icons.chat,
+              label: 'WhatsApp',
+              onTap: customer.phone != null
+                  ? () => _launchUrl('https://wa.me/${_formatWhatsApp(customer.phone!)}')
+                  : null,
+            ),
+            _QuickActionButton(
+              icon: Icons.email,
+              label: 'Email',
+              onTap: customer.email != null
+                  ? () => _launchUrl('mailto:${customer.email}')
+                  : null,
+            ),
+            _QuickActionButton(
+              icon: Icons.navigation,
+              label: 'Navigasi',
+              onTap: customer.hasLocation
+                  ? () => _launchUrl(
+                      'https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}')
+                  : null,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -617,10 +619,13 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
         loading: () => const Center(child: AppLoadingIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'pipelines_tab_fab',
-        onPressed: () => context.push('/home/pipelines/new?customerId=${widget.customerId}'),
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 72),
+        child: FloatingActionButton(
+          heroTag: 'pipelines_tab_fab',
+          onPressed: () => context.push('/home/pipelines/new?customerId=${widget.customerId}'),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -733,22 +738,25 @@ class _ActivitiesTab extends ConsumerWidget {
         loading: () => const Center(child: AppLoadingIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'activity_immediate_fab',
-            onPressed: () => _showImmediateSheet(context),
-            backgroundColor: AppColors.tertiary,
-            child: const Icon(Icons.flash_on),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            heroTag: 'activity_schedule_fab',
-            onPressed: () => _navigateToSchedule(context),
-            child: const Icon(Icons.add),
-          ),
-        ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 72),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'activity_immediate_fab',
+              onPressed: () => _showImmediateSheet(context),
+              backgroundColor: AppColors.tertiary,
+              child: const Icon(Icons.flash_on),
+            ),
+            const SizedBox(height: 8),
+            FloatingActionButton(
+              heroTag: 'activity_schedule_fab',
+              onPressed: () => _navigateToSchedule(context),
+              child: const Icon(Icons.add),
+            ),
+          ],
+        ),
       ),
     );
   }

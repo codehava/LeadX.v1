@@ -17120,9 +17120,6 @@ class $HvcsTable extends Hvcs with TableInfo<$HvcsTable, Hvc> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
   );
   static const VerificationMeta _isPendingSyncMeta = const VerificationMeta(
     'isPendingSync',
@@ -18760,9 +18757,6 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
   );
   static const VerificationMeta _isPendingSyncMeta = const VerificationMeta(
     'isPendingSync',
@@ -29636,6 +29630,36 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isPendingSyncMeta = const VerificationMeta(
+    'isPendingSync',
+  );
+  @override
+  late final GeneratedColumn<bool> isPendingSync = GeneratedColumn<bool>(
+    'is_pending_sync',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_pending_sync" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdLocallyMeta = const VerificationMeta(
+    'createdLocally',
+  );
+  @override
+  late final GeneratedColumn<bool> createdLocally = GeneratedColumn<bool>(
+    'created_locally',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("created_locally" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -29650,6 +29674,8 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
     latitude,
     longitude,
     cachedAt,
+    isPendingSync,
+    createdLocally,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -29751,6 +29777,24 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
     } else if (isInserting) {
       context.missing(_cachedAtMeta);
     }
+    if (data.containsKey('is_pending_sync')) {
+      context.handle(
+        _isPendingSyncMeta,
+        isPendingSync.isAcceptableOrUnknown(
+          data['is_pending_sync']!,
+          _isPendingSyncMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_locally')) {
+      context.handle(
+        _createdLocallyMeta,
+        createdLocally.isAcceptableOrUnknown(
+          data['created_locally']!,
+          _createdLocallyMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -29811,6 +29855,14 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
         DriftSqlType.dateTime,
         data['${effectivePrefix}cached_at'],
       )!,
+      isPendingSync: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_pending_sync'],
+      )!,
+      createdLocally: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}created_locally'],
+      )!,
     );
   }
 
@@ -29834,6 +29886,8 @@ class PipelineStageHistoryItem extends DataClass
   final double? latitude;
   final double? longitude;
   final DateTime cachedAt;
+  final bool isPendingSync;
+  final bool createdLocally;
   const PipelineStageHistoryItem({
     required this.id,
     required this.pipelineId,
@@ -29847,6 +29901,8 @@ class PipelineStageHistoryItem extends DataClass
     this.latitude,
     this.longitude,
     required this.cachedAt,
+    required this.isPendingSync,
+    required this.createdLocally,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -29877,6 +29933,8 @@ class PipelineStageHistoryItem extends DataClass
       map['longitude'] = Variable<double>(longitude);
     }
     map['cached_at'] = Variable<DateTime>(cachedAt);
+    map['is_pending_sync'] = Variable<bool>(isPendingSync);
+    map['created_locally'] = Variable<bool>(createdLocally);
     return map;
   }
 
@@ -29908,6 +29966,8 @@ class PipelineStageHistoryItem extends DataClass
           ? const Value.absent()
           : Value(longitude),
       cachedAt: Value(cachedAt),
+      isPendingSync: Value(isPendingSync),
+      createdLocally: Value(createdLocally),
     );
   }
 
@@ -29929,6 +29989,8 @@ class PipelineStageHistoryItem extends DataClass
       latitude: serializer.fromJson<double?>(json['latitude']),
       longitude: serializer.fromJson<double?>(json['longitude']),
       cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+      isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
+      createdLocally: serializer.fromJson<bool>(json['createdLocally']),
     );
   }
   @override
@@ -29947,6 +30009,8 @@ class PipelineStageHistoryItem extends DataClass
       'latitude': serializer.toJson<double?>(latitude),
       'longitude': serializer.toJson<double?>(longitude),
       'cachedAt': serializer.toJson<DateTime>(cachedAt),
+      'isPendingSync': serializer.toJson<bool>(isPendingSync),
+      'createdLocally': serializer.toJson<bool>(createdLocally),
     };
   }
 
@@ -29963,6 +30027,8 @@ class PipelineStageHistoryItem extends DataClass
     Value<double?> latitude = const Value.absent(),
     Value<double?> longitude = const Value.absent(),
     DateTime? cachedAt,
+    bool? isPendingSync,
+    bool? createdLocally,
   }) => PipelineStageHistoryItem(
     id: id ?? this.id,
     pipelineId: pipelineId ?? this.pipelineId,
@@ -29976,6 +30042,8 @@ class PipelineStageHistoryItem extends DataClass
     latitude: latitude.present ? latitude.value : this.latitude,
     longitude: longitude.present ? longitude.value : this.longitude,
     cachedAt: cachedAt ?? this.cachedAt,
+    isPendingSync: isPendingSync ?? this.isPendingSync,
+    createdLocally: createdLocally ?? this.createdLocally,
   );
   PipelineStageHistoryItem copyWithCompanion(
     PipelineStageHistoryItemsCompanion data,
@@ -30001,6 +30069,12 @@ class PipelineStageHistoryItem extends DataClass
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
       cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+      isPendingSync: data.isPendingSync.present
+          ? data.isPendingSync.value
+          : this.isPendingSync,
+      createdLocally: data.createdLocally.present
+          ? data.createdLocally.value
+          : this.createdLocally,
     );
   }
 
@@ -30018,7 +30092,9 @@ class PipelineStageHistoryItem extends DataClass
           ..write('changedAt: $changedAt, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
-          ..write('cachedAt: $cachedAt')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('isPendingSync: $isPendingSync, ')
+          ..write('createdLocally: $createdLocally')
           ..write(')'))
         .toString();
   }
@@ -30037,6 +30113,8 @@ class PipelineStageHistoryItem extends DataClass
     latitude,
     longitude,
     cachedAt,
+    isPendingSync,
+    createdLocally,
   );
   @override
   bool operator ==(Object other) =>
@@ -30053,7 +30131,9 @@ class PipelineStageHistoryItem extends DataClass
           other.changedAt == this.changedAt &&
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
-          other.cachedAt == this.cachedAt);
+          other.cachedAt == this.cachedAt &&
+          other.isPendingSync == this.isPendingSync &&
+          other.createdLocally == this.createdLocally);
 }
 
 class PipelineStageHistoryItemsCompanion
@@ -30070,6 +30150,8 @@ class PipelineStageHistoryItemsCompanion
   final Value<double?> latitude;
   final Value<double?> longitude;
   final Value<DateTime> cachedAt;
+  final Value<bool> isPendingSync;
+  final Value<bool> createdLocally;
   final Value<int> rowid;
   const PipelineStageHistoryItemsCompanion({
     this.id = const Value.absent(),
@@ -30084,6 +30166,8 @@ class PipelineStageHistoryItemsCompanion
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.cachedAt = const Value.absent(),
+    this.isPendingSync = const Value.absent(),
+    this.createdLocally = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PipelineStageHistoryItemsCompanion.insert({
@@ -30099,6 +30183,8 @@ class PipelineStageHistoryItemsCompanion
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     required DateTime cachedAt,
+    this.isPendingSync = const Value.absent(),
+    this.createdLocally = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        pipelineId = Value(pipelineId),
@@ -30118,6 +30204,8 @@ class PipelineStageHistoryItemsCompanion
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<DateTime>? cachedAt,
+    Expression<bool>? isPendingSync,
+    Expression<bool>? createdLocally,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -30133,6 +30221,8 @@ class PipelineStageHistoryItemsCompanion
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (cachedAt != null) 'cached_at': cachedAt,
+      if (isPendingSync != null) 'is_pending_sync': isPendingSync,
+      if (createdLocally != null) 'created_locally': createdLocally,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -30150,6 +30240,8 @@ class PipelineStageHistoryItemsCompanion
     Value<double?>? latitude,
     Value<double?>? longitude,
     Value<DateTime>? cachedAt,
+    Value<bool>? isPendingSync,
+    Value<bool>? createdLocally,
     Value<int>? rowid,
   }) {
     return PipelineStageHistoryItemsCompanion(
@@ -30165,6 +30257,8 @@ class PipelineStageHistoryItemsCompanion
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       cachedAt: cachedAt ?? this.cachedAt,
+      isPendingSync: isPendingSync ?? this.isPendingSync,
+      createdLocally: createdLocally ?? this.createdLocally,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -30208,6 +30302,12 @@ class PipelineStageHistoryItemsCompanion
     if (cachedAt.present) {
       map['cached_at'] = Variable<DateTime>(cachedAt.value);
     }
+    if (isPendingSync.present) {
+      map['is_pending_sync'] = Variable<bool>(isPendingSync.value);
+    }
+    if (createdLocally.present) {
+      map['created_locally'] = Variable<bool>(createdLocally.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -30229,6 +30329,8 @@ class PipelineStageHistoryItemsCompanion
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('cachedAt: $cachedAt, ')
+          ..write('isPendingSync: $isPendingSync, ')
+          ..write('createdLocally: $createdLocally, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -32254,25 +32356,6 @@ final class $$UsersTableReferences
     );
   }
 
-  static MultiTypedResultKey<$HvcsTable, List<Hvc>> _hvcsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.hvcs,
-    aliasName: $_aliasNameGenerator(db.users.id, db.hvcs.createdBy),
-  );
-
-  $$HvcsTableProcessedTableManager get hvcsRefs {
-    final manager = $$HvcsTableTableManager(
-      $_db,
-      $_db.hvcs,
-    ).filter((f) => f.createdBy.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_hvcsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$CustomerHvcLinksTable, List<CustomerHvcLink>>
   _customerHvcLinksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.customerHvcLinks,
@@ -32288,25 +32371,6 @@ final class $$UsersTableReferences
     final cache = $_typedResult.readTableOrNull(
       _customerHvcLinksRefsTable($_db),
     );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$BrokersTable, List<Broker>> _brokersRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.brokers,
-    aliasName: $_aliasNameGenerator(db.users.id, db.brokers.createdBy),
-  );
-
-  $$BrokersTableProcessedTableManager get brokersRefs {
-    final manager = $$BrokersTableTableManager(
-      $_db,
-      $_db.brokers,
-    ).filter((f) => f.createdBy.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_brokersRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -32678,31 +32742,6 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     return f(composer);
   }
 
-  Expression<bool> hvcsRefs(
-    Expression<bool> Function($$HvcsTableFilterComposer f) f,
-  ) {
-    final $$HvcsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.hvcs,
-      getReferencedColumn: (t) => t.createdBy,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$HvcsTableFilterComposer(
-            $db: $db,
-            $table: $db.hvcs,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<bool> customerHvcLinksRefs(
     Expression<bool> Function($$CustomerHvcLinksTableFilterComposer f) f,
   ) {
@@ -32719,31 +32758,6 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$CustomerHvcLinksTableFilterComposer(
             $db: $db,
             $table: $db.customerHvcLinks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> brokersRefs(
-    Expression<bool> Function($$BrokersTableFilterComposer f) f,
-  ) {
-    final $$BrokersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.brokers,
-      getReferencedColumn: (t) => t.createdBy,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$BrokersTableFilterComposer(
-            $db: $db,
-            $table: $db.brokers,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -33262,31 +33276,6 @@ class $$UsersTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> hvcsRefs<T extends Object>(
-    Expression<T> Function($$HvcsTableAnnotationComposer a) f,
-  ) {
-    final $$HvcsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.hvcs,
-      getReferencedColumn: (t) => t.createdBy,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$HvcsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.hvcs,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> customerHvcLinksRefs<T extends Object>(
     Expression<T> Function($$CustomerHvcLinksTableAnnotationComposer a) f,
   ) {
@@ -33303,31 +33292,6 @@ class $$UsersTableAnnotationComposer
           }) => $$CustomerHvcLinksTableAnnotationComposer(
             $db: $db,
             $table: $db.customerHvcLinks,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> brokersRefs<T extends Object>(
-    Expression<T> Function($$BrokersTableAnnotationComposer a) f,
-  ) {
-    final $$BrokersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.brokers,
-      getReferencedColumn: (t) => t.createdBy,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$BrokersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.brokers,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -33561,9 +33525,7 @@ class $$UsersTableTableManager
             bool regionalOfficeId,
             bool keyPersonsRefs,
             bool activityAuditLogsRefs,
-            bool hvcsRefs,
             bool customerHvcLinksRefs,
-            bool brokersRefs,
             bool userScoresRefs,
             bool periodSummaryScoresRefs,
             bool cadenceParticipantsRefs,
@@ -33670,9 +33632,7 @@ class $$UsersTableTableManager
                 regionalOfficeId = false,
                 keyPersonsRefs = false,
                 activityAuditLogsRefs = false,
-                hvcsRefs = false,
                 customerHvcLinksRefs = false,
-                brokersRefs = false,
                 userScoresRefs = false,
                 periodSummaryScoresRefs = false,
                 cadenceParticipantsRefs = false,
@@ -33687,9 +33647,7 @@ class $$UsersTableTableManager
                   explicitlyWatchedTables: [
                     if (keyPersonsRefs) db.keyPersons,
                     if (activityAuditLogsRefs) db.activityAuditLogs,
-                    if (hvcsRefs) db.hvcs,
                     if (customerHvcLinksRefs) db.customerHvcLinks,
-                    if (brokersRefs) db.brokers,
                     if (userScoresRefs) db.userScores,
                     if (periodSummaryScoresRefs) db.periodSummaryScores,
                     if (cadenceParticipantsRefs) db.cadenceParticipants,
@@ -33797,19 +33755,6 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (hvcsRefs)
-                        await $_getPrefetchedData<User, $UsersTable, Hvc>(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._hvcsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(db, table, p0).hvcsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.createdBy == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (customerHvcLinksRefs)
                         await $_getPrefetchedData<
                           User,
@@ -33825,19 +33770,6 @@ class $$UsersTableTableManager
                                 table,
                                 p0,
                               ).customerHvcLinksRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.createdBy == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (brokersRefs)
-                        await $_getPrefetchedData<User, $UsersTable, Broker>(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._brokersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(db, table, p0).brokersRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.createdBy == item.id,
@@ -34030,9 +33962,7 @@ typedef $$UsersTableProcessedTableManager =
         bool regionalOfficeId,
         bool keyPersonsRefs,
         bool activityAuditLogsRefs,
-        bool hvcsRefs,
         bool customerHvcLinksRefs,
-        bool brokersRefs,
         bool userScoresRefs,
         bool periodSummaryScoresRefs,
         bool cadenceParticipantsRefs,
@@ -44685,24 +44615,6 @@ final class $$HvcsTableReferences
     );
   }
 
-  static $UsersTable _createdByTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.hvcs.createdBy, db.users.id),
-  );
-
-  $$UsersTableProcessedTableManager get createdBy {
-    final $_column = $_itemColumn<String>('created_by')!;
-
-    final manager = $$UsersTableTableManager(
-      $_db,
-      $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_createdByTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
   static MultiTypedResultKey<$CustomerHvcLinksTable, List<CustomerHvcLink>>
   _customerHvcLinksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.customerHvcLinks,
@@ -44787,6 +44699,11 @@ class $$HvcsTableFilterComposer extends Composer<_$AppDatabase, $HvcsTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
     builder: (column) => ColumnFilters(column),
@@ -44821,29 +44738,6 @@ class $$HvcsTableFilterComposer extends Composer<_$AppDatabase, $HvcsTable> {
           }) => $$HvcTypesTableFilterComposer(
             $db: $db,
             $table: $db.hvcTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableFilterComposer get createdBy {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableFilterComposer(
-            $db: $db,
-            $table: $db.users,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -44942,6 +44836,11 @@ class $$HvcsTableOrderingComposer extends Composer<_$AppDatabase, $HvcsTable> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
     builder: (column) => ColumnOrderings(column),
@@ -44976,29 +44875,6 @@ class $$HvcsTableOrderingComposer extends Composer<_$AppDatabase, $HvcsTable> {
           }) => $$HvcTypesTableOrderingComposer(
             $db: $db,
             $table: $db.hvcTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableOrderingComposer get createdBy {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableOrderingComposer(
-            $db: $db,
-            $table: $db.users,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -45057,6 +44933,9 @@ class $$HvcsTableAnnotationComposer
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
   GeneratedColumn<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
     builder: (column) => column,
@@ -45085,29 +44964,6 @@ class $$HvcsTableAnnotationComposer
           }) => $$HvcTypesTableAnnotationComposer(
             $db: $db,
             $table: $db.hvcTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableAnnotationComposer get createdBy {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.users,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -45156,11 +45012,7 @@ class $$HvcsTableTableManager
           $$HvcsTableUpdateCompanionBuilder,
           (Hvc, $$HvcsTableReferences),
           Hvc,
-          PrefetchHooks Function({
-            bool typeId,
-            bool createdBy,
-            bool customerHvcLinksRefs,
-          })
+          PrefetchHooks Function({bool typeId, bool customerHvcLinksRefs})
         > {
   $$HvcsTableTableManager(_$AppDatabase db, $HvcsTable table)
     : super(
@@ -45260,11 +45112,7 @@ class $$HvcsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                typeId = false,
-                createdBy = false,
-                customerHvcLinksRefs = false,
-              }) {
+              ({typeId = false, customerHvcLinksRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
@@ -45295,19 +45143,6 @@ class $$HvcsTableTableManager
                                         ._typeIdTable(db),
                                     referencedColumn: $$HvcsTableReferences
                                         ._typeIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
-                        }
-                        if (createdBy) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.createdBy,
-                                    referencedTable: $$HvcsTableReferences
-                                        ._createdByTable(db),
-                                    referencedColumn: $$HvcsTableReferences
-                                        ._createdByTable(db)
                                         .id,
                                   )
                                   as T;
@@ -45357,11 +45192,7 @@ typedef $$HvcsTableProcessedTableManager =
       $$HvcsTableUpdateCompanionBuilder,
       (Hvc, $$HvcsTableReferences),
       Hvc,
-      PrefetchHooks Function({
-        bool typeId,
-        bool createdBy,
-        bool customerHvcLinksRefs,
-      })
+      PrefetchHooks Function({bool typeId, bool customerHvcLinksRefs})
     >;
 typedef $$CustomerHvcLinksTableCreateCompanionBuilder =
     CustomerHvcLinksCompanion Function({
@@ -45971,24 +45802,6 @@ final class $$BrokersTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
-
-  static $UsersTable _createdByTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.brokers.createdBy, db.users.id),
-  );
-
-  $$UsersTableProcessedTableManager get createdBy {
-    final $_column = $_itemColumn<String>('created_by')!;
-
-    final manager = $$UsersTableTableManager(
-      $_db,
-      $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_createdByTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
 }
 
 class $$BrokersTableFilterComposer
@@ -46070,6 +45883,11 @@ class $$BrokersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
     builder: (column) => ColumnFilters(column),
@@ -46127,29 +45945,6 @@ class $$BrokersTableFilterComposer
           }) => $$CitiesTableFilterComposer(
             $db: $db,
             $table: $db.cities,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableFilterComposer get createdBy {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableFilterComposer(
-            $db: $db,
-            $table: $db.users,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -46239,6 +46034,11 @@ class $$BrokersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
     builder: (column) => ColumnOrderings(column),
@@ -46304,29 +46104,6 @@ class $$BrokersTableOrderingComposer
     );
     return composer;
   }
-
-  $$UsersTableOrderingComposer get createdBy {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableOrderingComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$BrokersTableAnnotationComposer
@@ -46383,6 +46160,9 @@ class $$BrokersTableAnnotationComposer
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
 
   GeneratedColumn<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
@@ -46443,29 +46223,6 @@ class $$BrokersTableAnnotationComposer
     );
     return composer;
   }
-
-  $$UsersTableAnnotationComposer get createdBy {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.createdBy,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$BrokersTableTableManager
@@ -46481,7 +46238,7 @@ class $$BrokersTableTableManager
           $$BrokersTableUpdateCompanionBuilder,
           (Broker, $$BrokersTableReferences),
           Broker,
-          PrefetchHooks Function({bool provinceId, bool cityId, bool createdBy})
+          PrefetchHooks Function({bool provinceId, bool cityId})
         > {
   $$BrokersTableTableManager(_$AppDatabase db, $BrokersTable table)
     : super(
@@ -46598,74 +46355,60 @@ class $$BrokersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback:
-              ({provinceId = false, cityId = false, createdBy = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (provinceId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.provinceId,
-                                    referencedTable: $$BrokersTableReferences
-                                        ._provinceIdTable(db),
-                                    referencedColumn: $$BrokersTableReferences
-                                        ._provinceIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
-                        }
-                        if (cityId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.cityId,
-                                    referencedTable: $$BrokersTableReferences
-                                        ._cityIdTable(db),
-                                    referencedColumn: $$BrokersTableReferences
-                                        ._cityIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
-                        }
-                        if (createdBy) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.createdBy,
-                                    referencedTable: $$BrokersTableReferences
-                                        ._createdByTable(db),
-                                    referencedColumn: $$BrokersTableReferences
-                                        ._createdByTable(db)
-                                        .id,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: ({provinceId = false, cityId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (provinceId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.provinceId,
+                                referencedTable: $$BrokersTableReferences
+                                    ._provinceIdTable(db),
+                                referencedColumn: $$BrokersTableReferences
+                                    ._provinceIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (cityId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.cityId,
+                                referencedTable: $$BrokersTableReferences
+                                    ._cityIdTable(db),
+                                referencedColumn: $$BrokersTableReferences
+                                    ._cityIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
+                    return state;
                   },
-                );
+              getPrefetchedDataCallback: (items) async {
+                return [];
               },
+            );
+          },
         ),
       );
 }
@@ -46682,7 +46425,7 @@ typedef $$BrokersTableProcessedTableManager =
       $$BrokersTableUpdateCompanionBuilder,
       (Broker, $$BrokersTableReferences),
       Broker,
-      PrefetchHooks Function({bool provinceId, bool cityId, bool createdBy})
+      PrefetchHooks Function({bool provinceId, bool cityId})
     >;
 typedef $$MeasureDefinitionsTableCreateCompanionBuilder =
     MeasureDefinitionsCompanion Function({
@@ -54443,6 +54186,8 @@ typedef $$PipelineStageHistoryItemsTableCreateCompanionBuilder =
       Value<double?> latitude,
       Value<double?> longitude,
       required DateTime cachedAt,
+      Value<bool> isPendingSync,
+      Value<bool> createdLocally,
       Value<int> rowid,
     });
 typedef $$PipelineStageHistoryItemsTableUpdateCompanionBuilder =
@@ -54459,6 +54204,8 @@ typedef $$PipelineStageHistoryItemsTableUpdateCompanionBuilder =
       Value<double?> latitude,
       Value<double?> longitude,
       Value<DateTime> cachedAt,
+      Value<bool> isPendingSync,
+      Value<bool> createdLocally,
       Value<int> rowid,
     });
 
@@ -54528,6 +54275,16 @@ class $$PipelineStageHistoryItemsTableFilterComposer
 
   ColumnFilters<DateTime> get cachedAt => $composableBuilder(
     column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPendingSync => $composableBuilder(
+    column: $table.isPendingSync,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get createdLocally => $composableBuilder(
+    column: $table.createdLocally,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -54600,6 +54357,16 @@ class $$PipelineStageHistoryItemsTableOrderingComposer
     column: $table.cachedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isPendingSync => $composableBuilder(
+    column: $table.isPendingSync,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get createdLocally => $composableBuilder(
+    column: $table.createdLocally,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PipelineStageHistoryItemsTableAnnotationComposer
@@ -54654,6 +54421,16 @@ class $$PipelineStageHistoryItemsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get cachedAt =>
       $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPendingSync => $composableBuilder(
+    column: $table.isPendingSync,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get createdLocally => $composableBuilder(
+    column: $table.createdLocally,
+    builder: (column) => column,
+  );
 }
 
 class $$PipelineStageHistoryItemsTableTableManager
@@ -54714,6 +54491,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 Value<DateTime> cachedAt = const Value.absent(),
+                Value<bool> isPendingSync = const Value.absent(),
+                Value<bool> createdLocally = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineStageHistoryItemsCompanion(
                 id: id,
@@ -54728,6 +54507,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 cachedAt: cachedAt,
+                isPendingSync: isPendingSync,
+                createdLocally: createdLocally,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -54744,6 +54525,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 required DateTime cachedAt,
+                Value<bool> isPendingSync = const Value.absent(),
+                Value<bool> createdLocally = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineStageHistoryItemsCompanion.insert(
                 id: id,
@@ -54758,6 +54541,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 cachedAt: cachedAt,
+                isPendingSync: isPendingSync,
+                createdLocally: createdLocally,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

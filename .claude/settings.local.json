@@ -9,7 +9,9 @@
       "Bash(git log:*)",
       "Bash(flutter --version:*)",
       "Bash(git checkout:*)",
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

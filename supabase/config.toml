@@ -1,0 +1,9 @@
+# Edge Functions configuration
+# Disable gateway JWT verification - we verify the JWT ourselves inside the function
+# This allows us to get the actual token and verify it using auth.getUser()
+
+[functions.admin-create-user]
+verify_jwt = false
+
+[functions.admin-reset-password]
+verify_jwt = false

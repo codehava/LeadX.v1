@@ -258,37 +258,39 @@ class PipelineDetailScreen extends ConsumerWidget {
 
   Widget _buildQuickActions(BuildContext context, Pipeline pipeline, ThemeData theme) {
     if (pipeline.isClosed) return const SizedBox.shrink();
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => PipelineStageUpdateSheet.show(context, pipeline),
-              icon: const Icon(Icons.trending_up),
-              label: const Text('Pindah Stage'),
+
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => PipelineStatusUpdateSheet.show(context, pipeline),
-              icon: const Icon(Icons.flag),
-              label: const Text('Update Status'),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => PipelineStageUpdateSheet.show(context, pipeline),
+                icon: const Icon(Icons.trending_up),
+                label: const Text('Pindah Stage'),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => PipelineStatusUpdateSheet.show(context, pipeline),
+                icon: const Icon(Icons.flag),
+                label: const Text('Update Status'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

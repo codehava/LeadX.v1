@@ -273,6 +273,12 @@ class SyncService {
             .write(const db.BrokersCompanion(
               isPendingSync: Value(false),
             ));
+      case 'pipelineStageHistory':
+        await (_database.update(_database.pipelineStageHistoryItems)
+              ..where((h) => h.id.equals(entityId)))
+            .write(const db.PipelineStageHistoryItemsCompanion(
+              isPendingSync: Value(false),
+            ));
       default:
         print('[SyncService] Unknown entity type for marking synced: $entityType');
     }
@@ -309,6 +315,8 @@ class SyncService {
         return 'brokers';
       case 'customerHvcLink':
         return 'customer_hvc_links';
+      case 'pipelineStageHistory':
+        return 'pipeline_stage_history';
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }

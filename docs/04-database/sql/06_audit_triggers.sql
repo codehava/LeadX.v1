@@ -137,27 +137,37 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Only log when stage_id actually changes
   IF OLD.stage_id IS DISTINCT FROM NEW.stage_id THEN
-    INSERT INTO pipeline_stage_history (
-      pipeline_id,
-      from_stage_id,
-      to_stage_id,
-      from_status_id,
-      to_status_id,
-      notes,
-      changed_by,
-      changed_at
-    ) VALUES (
-      NEW.id,
-      OLD.stage_id,
-      NEW.stage_id,
-      OLD.status_id,
-      NEW.status_id,
-      NEW.notes,  -- Capture current notes as the change reason
-      auth.uid(),
-      NOW()
-    );
+    -- Check if this exact transition already exists (from client sync)
+    -- This prevents duplicates when client creates history and syncs
+    IF NOT EXISTS (
+      SELECT 1 FROM pipeline_stage_history
+      WHERE pipeline_id = NEW.id
+        AND from_stage_id IS NOT DISTINCT FROM OLD.stage_id
+        AND to_stage_id = NEW.stage_id
+        AND changed_at >= NOW() - INTERVAL '5 minutes'
+    ) THEN
+      INSERT INTO pipeline_stage_history (
+        pipeline_id,
+        from_stage_id,
+        to_stage_id,
+        from_status_id,
+        to_status_id,
+        notes,
+        changed_by,
+        changed_at
+      ) VALUES (
+        NEW.id,
+        OLD.stage_id,
+        NEW.stage_id,
+        OLD.status_id,
+        NEW.status_id,
+        NEW.notes,  -- Capture current notes as the change reason
+        auth.uid(),
+        NOW()
+      );
+    END IF;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -256,6 +266,7 @@ ALTER TABLE pipeline_stage_history ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "pipeline_stage_history_admin" ON pipeline_stage_history;
 DROP POLICY IF EXISTS "pipeline_stage_history_select_own" ON pipeline_stage_history;
 DROP POLICY IF EXISTS "pipeline_stage_history_select_subordinates" ON pipeline_stage_history;
+DROP POLICY IF EXISTS "pipeline_stage_history_insert_own" ON pipeline_stage_history;
 
 -- Admins can view all
 CREATE POLICY "pipeline_stage_history_admin" ON pipeline_stage_history
@@ -283,6 +294,12 @@ FOR SELECT USING (
       AND descendant_id = p.assigned_rm_id
     )
   )
+);
+
+-- Users can insert their own history entries (for offline sync)
+CREATE POLICY "pipeline_stage_history_insert_own" ON pipeline_stage_history
+FOR INSERT WITH CHECK (
+  changed_by = (SELECT auth.uid())
 );
 
 -- ============================================

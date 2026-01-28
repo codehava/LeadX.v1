@@ -102,11 +102,13 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Edit HVC' : 'Tambah HVC'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
             // HVC Type
             hvcTypesAsync.when(
               data: (types) => SearchableDropdown<String>(
@@ -240,8 +242,11 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
                     )
                   : Text(widget.isEditing ? 'Simpan' : 'Buat HVC'),
             ),
+            // Safe area bottom padding
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
           ],
         ),
+      ),
       ),
     );
   }

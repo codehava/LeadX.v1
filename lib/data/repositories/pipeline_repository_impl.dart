@@ -8,6 +8,7 @@ import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/customer_local_data_source.dart';
+import '../datasources/local/history_log_local_data_source.dart';
 import '../datasources/local/master_data_local_data_source.dart';
 import '../datasources/local/pipeline_local_data_source.dart';
 import '../datasources/remote/pipeline_remote_data_source.dart';
@@ -22,6 +23,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
     required MasterDataLocalDataSource masterDataSource,
     required CustomerLocalDataSource customerDataSource,
     required PipelineRemoteDataSource remoteDataSource,
+    required HistoryLogLocalDataSource historyLogDataSource,
     required SyncService syncService,
     required String currentUserId,
     required db.AppDatabase database,
@@ -29,6 +31,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         _masterDataSource = masterDataSource,
         _customerDataSource = customerDataSource,
         _remoteDataSource = remoteDataSource,
+        _historyLogDataSource = historyLogDataSource,
         _syncService = syncService,
         _currentUserId = currentUserId,
         _database = database;
@@ -37,6 +40,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
   final MasterDataLocalDataSource _masterDataSource;
   final CustomerLocalDataSource _customerDataSource;
   final PipelineRemoteDataSource _remoteDataSource;
+  final HistoryLogLocalDataSource _historyLogDataSource;
   final SyncService _syncService;
   final String _currentUserId;
   final db.AppDatabase _database;
@@ -291,6 +295,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
 
   /// Update pipeline stage (stage transition).
   /// Automatically assigns the default status for the new stage.
+  /// Creates a local history entry for offline stage changes.
   @override
   Future<Either<Failure, domain.Pipeline>> updatePipelineStage(
     String id,
@@ -323,6 +328,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
         closedAt = now;
       }
 
+      // Check if stage actually changed (for history tracking)
+      final stageChanged = existing.stageId != dto.stageId;
+
       final companion = db.PipelinesCompanion(
         stageId: Value(dto.stageId),
         statusId: Value(statusId),
@@ -351,7 +359,42 @@ class PipelineRepositoryImpl implements PipelineRepository {
         return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
       }
 
-      // Queue for sync
+      // Create local history entry if stage changed
+      // Each history entry has its own unique ID, so they won't be coalesced
+      if (stageChanged) {
+        final historyId = _uuid.v4();
+        await _historyLogDataSource.insertLocalHistoryEntry(
+          id: historyId,
+          pipelineId: id,
+          fromStageId: existing.stageId,
+          toStageId: dto.stageId,
+          fromStatusId: existing.statusId,
+          toStatusId: statusId,
+          notes: dto.notes,
+          changedBy: _currentUserId,
+          changedAt: now,
+        );
+
+        // Queue history entry for sync (CREATE operation with unique ID)
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipelineStageHistory,
+          entityId: historyId,
+          operation: SyncOperation.create,
+          payload: {
+            'id': historyId,
+            'pipeline_id': id,
+            'from_stage_id': _sanitizeUuid(existing.stageId),
+            'to_stage_id': dto.stageId,
+            'from_status_id': _sanitizeUuid(existing.statusId),
+            'to_status_id': _sanitizeUuid(statusId),
+            'notes': dto.notes,
+            'changed_by': _currentUserId,
+            'changed_at': now.toIso8601String(),
+          },
+        );
+      }
+
+      // Queue pipeline update for sync
       await _syncService.queueOperation(
         entityType: SyncEntityType.pipeline,
         entityId: id,

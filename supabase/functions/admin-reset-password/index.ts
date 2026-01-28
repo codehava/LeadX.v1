@@ -2,8 +2,7 @@
 // Resets a user's password and generates a temporary password
 // Requires service_role key for admin operations
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,14 +13,14 @@ interface ResetPasswordRequest {
   userId: string
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Verify the caller is authenticated
+    // Get Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -30,28 +29,11 @@ serve(async (req) => {
       )
     }
 
-    // Create Supabase client with the user's auth context
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    )
+    // Extract the token from "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '')
 
-    // Verify user from JWT
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: `Invalid authorization token: ${authError?.message}` }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Create admin client with service_role key for privileged operations
+    // Create admin client with service_role key
+    // Service role can verify any user's JWT
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -62,6 +44,16 @@ serve(async (req) => {
         }
       }
     )
+
+    // Verify user from JWT using admin client
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token)
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: `Unauthorized: ${authError?.message || 'Invalid token'}` }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Check if user is admin (use adminClient to bypass RLS)
     const { data: callerUser, error: callerError } = await adminClient

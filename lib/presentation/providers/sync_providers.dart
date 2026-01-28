@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/local/activity_local_data_source.dart';
 import '../../data/datasources/local/customer_local_data_source.dart';
+import '../../data/datasources/local/history_log_local_data_source.dart';
 import '../../data/datasources/local/key_person_local_data_source.dart';
 import '../../data/datasources/local/pipeline_local_data_source.dart';
 import '../../data/datasources/local/sync_queue_local_data_source.dart';
@@ -333,15 +334,17 @@ final _pipelineRepositoryProvider = Provider<PipelineRepository>((ref) {
   final masterDataSource = ref.watch(masterDataLocalDataSourceProvider);
   final customerDataSource = ref.watch(_customerLocalDataSourceProvider);
   final remoteDataSource = ref.watch(_pipelineRemoteDataSourceProvider);
+  final historyLogDataSource = ref.watch(_historyLogLocalDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   final database = ref.watch(databaseProvider);
-  
+
   return PipelineRepositoryImpl(
     localDataSource: localDataSource,
     masterDataSource: masterDataSource,
     customerDataSource: customerDataSource,
     remoteDataSource: remoteDataSource,
+    historyLogDataSource: historyLogDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
     database: database,
@@ -377,6 +380,11 @@ final _pipelineLocalDataSourceProvider = Provider((ref) {
 final _pipelineRemoteDataSourceProvider = Provider((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return PipelineRemoteDataSource(supabase);
+});
+
+final _historyLogLocalDataSourceProvider = Provider((ref) {
+  final db = ref.watch(databaseProvider);
+  return HistoryLogLocalDataSource(db);
 });
 
 /// Late-bound provider for activity repository to avoid circular imports.

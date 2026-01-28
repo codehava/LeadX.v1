@@ -20,6 +20,9 @@ class PipelineStageHistoryItems extends Table {
   RealColumn get longitude => real().nullable()();
   // Cache metadata
   DateTimeColumn get cachedAt => dateTime()();
+  // Sync tracking for locally created entries
+  BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
+  BoolColumn get createdLocally => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -16,6 +16,7 @@ import '../../presentation/screens/admin/users/user_form_screen.dart';
 import '../../presentation/screens/admin/users/user_list_screen.dart';
 import '../../presentation/screens/auth/forgot_password_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/auth/reset_password_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
 import '../../presentation/screens/customer/customer_detail_screen.dart';
 import '../../presentation/screens/customer/customer_form_screen.dart';
@@ -39,6 +40,10 @@ import '../../presentation/screens/sync/sync_queue_screen.dart';
 import '../../presentation/widgets/shell/responsive_shell.dart';
 import 'route_names.dart';
 
+/// Root navigator key for routes that should NOT be wrapped by the shell.
+/// Detail screens, form screens, etc. use this to render full-screen without bottom nav.
+final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 /// Stores the intended location when user navigates directly via URL bar
 /// This is used to restore the location after authentication check completes
 String? _pendingDeepLink;
@@ -59,6 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.splash,
     debugLogDiagnostics: true,
     
@@ -72,16 +78,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
         orElse: () => false,
       );
+      final isPasswordRecovery = authState.maybeWhen(
+        data: (auth) => auth.maybeWhen(
+          passwordRecovery: () => true,
+          orElse: () => false,
+        ),
+        orElse: () => false,
+      );
 
       final currentLocation = state.matchedLocation;
       final fullUri = state.uri.toString();
       final isSplash = currentLocation == RoutePaths.splash;
       final isLogin = currentLocation == RoutePaths.login;
       final isForgotPassword = currentLocation == RoutePaths.forgotPassword;
-      final isAuthPage = isSplash || isLogin || isForgotPassword;
+      final isResetPassword = currentLocation == RoutePaths.resetPassword;
+      final isAuthPage = isSplash || isLogin || isForgotPassword || isResetPassword;
+
+      // Password recovery flow - redirect to reset password screen
+      if (isPasswordRecovery && !isResetPassword) {
+        return RoutePaths.resetPassword;
+      }
 
       // Still loading - save intended location and redirect to splash
-      if (isLoading) {
+      // Exception: Don't redirect away from reset-password - it handles its own auth check
+      if (isLoading && !isResetPassword) {
         // Only save the deep link if it's not an auth page
         if (!isAuthPage && _pendingDeepLink == null) {
           _pendingDeepLink = fullUri;
@@ -97,7 +117,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // Logged in but on login/splash - check for pending deep link first
-      if (isLoggedIn && (isLogin || isSplash)) {
+      // Note: Don't redirect away from reset-password - user needs to set new password
+      if (isLoggedIn && (isLogin || isSplash) && !isResetPassword) {
         final pendingLink = _pendingDeepLink;
         _pendingDeepLink = null; // Clear pending link after use
         
@@ -133,6 +154,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.forgotPassword,
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.resetPassword,
+        name: RouteNames.resetPassword,
+        builder: (context, state) => const ResetPasswordScreen(),
       ),
 
       // ============================================
@@ -177,11 +203,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.customerCreate,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const CustomerFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.customerDetail,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return CustomerDetailScreen(customerId: id);
@@ -190,6 +218,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: RouteNames.customerEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return CustomerFormScreen(customerId: id);
@@ -198,6 +227,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'history',
                     name: 'customerHistory',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return CustomerHistoryScreen(customerId: id);
@@ -212,6 +242,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'pipelines/new',
             name: RouteNames.pipelineCreate,
+            parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) {
               final customerId = state.uri.queryParameters['customerId']!;
               return PipelineFormScreen(customerId: customerId);
@@ -220,6 +251,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'pipelines/:id',
             name: RouteNames.pipelineDetail,
+            parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               final customerId = state.uri.queryParameters['customerId'] ?? '';
@@ -229,6 +261,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'edit',
                 name: RouteNames.pipelineEdit,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   final customerId = state.uri.queryParameters['customerId'] ?? '';
@@ -238,6 +271,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'history',
                 name: 'pipelineHistory',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return PipelineHistoryScreen(pipelineId: id);
@@ -260,6 +294,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.activityCreate,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final objectType = state.uri.queryParameters['objectType'];
                   final objectId = state.uri.queryParameters['objectId'];
@@ -277,6 +312,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'immediate',
                 name: 'activityImmediate',
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final objectType = state.uri.queryParameters['objectType'];
                   final objectId = state.uri.queryParameters['objectId'];
@@ -292,6 +328,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':id',
                 name: RouteNames.activityDetail,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return ActivityDetailScreen(activityId: id);
@@ -324,11 +361,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: RouteNames.hvcCreate,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const HvcFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.hvcDetail,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return HvcDetailScreen(hvcId: id);
@@ -337,6 +376,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: RouteNames.hvcEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return HvcFormScreen(hvcId: id);
@@ -361,11 +401,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: RouteNames.brokerCreate,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const BrokerFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.brokerDetail,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return BrokerDetailScreen(brokerId: id);
@@ -374,6 +416,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: RouteNames.brokerEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return BrokerFormScreen(brokerId: id);
@@ -438,11 +481,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'edit',
                 name: RouteNames.editProfile,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const EditProfileScreen(),
               ),
               GoRoute(
                 path: 'change-password',
                 name: RouteNames.changePassword,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const ChangePasswordScreen(),
               ),
             ],
@@ -527,11 +572,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: RouteNames.adminUserCreate,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const UserFormScreen(),
               ),
               GoRoute(
                 path: ':id',
                 name: RouteNames.adminUserDetail,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return UserDetailScreen(userId: id);
@@ -540,6 +587,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: RouteNames.adminUserEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return UserFormScreen(userId: id);
@@ -564,6 +612,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':entityType',
                 name: RouteNames.adminMasterDataList,
+                parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) {
                   final entityType = state.pathParameters['entityType']!;
                   return MasterDataListScreen(entityType: entityType);
@@ -572,6 +621,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'create',
                     name: RouteNames.adminMasterDataCreate,
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final entityType = state.pathParameters['entityType']!;
                       final id = state.uri.queryParameters['id'];

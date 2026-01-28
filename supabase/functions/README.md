@@ -2,6 +2,8 @@
 
 This directory contains Edge Functions for admin operations that require the service_role key.
 
+These functions use the official Supabase pattern with `Deno.serve()` and JSR imports.
+
 ## Functions
 
 ### 1. admin-create-user

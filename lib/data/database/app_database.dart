@@ -110,7 +110,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -126,6 +126,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.createTable(pipelineStageHistoryItems);
             await m.createTable(auditLogCache);
+          }
+          // Migration from v3 to v4: Add sync tracking columns to pipeline stage history
+          if (from < 4) {
+            await m.addColumn(
+                pipelineStageHistoryItems, pipelineStageHistoryItems.isPendingSync);
+            await m.addColumn(
+                pipelineStageHistoryItems, pipelineStageHistoryItems.createdLocally);
           }
         },
         beforeOpen: (details) async {

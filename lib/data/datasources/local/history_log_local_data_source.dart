@@ -119,6 +119,61 @@ class HistoryLogLocalDataSource {
         .go();
   }
 
+  /// Insert a locally created history entry (for offline stage changes).
+  /// This entry will be synced to the server later.
+  Future<void> insertLocalHistoryEntry({
+    required String id,
+    required String pipelineId,
+    String? fromStageId,
+    required String toStageId,
+    String? fromStatusId,
+    String? toStatusId,
+    String? notes,
+    String? changedBy,
+    required DateTime changedAt,
+    double? latitude,
+    double? longitude,
+  }) async {
+    await _db.into(_db.pipelineStageHistoryItems).insert(
+          PipelineStageHistoryItemsCompanion.insert(
+            id: id,
+            pipelineId: pipelineId,
+            fromStageId: Value(fromStageId),
+            toStageId: toStageId,
+            fromStatusId: Value(fromStatusId),
+            toStatusId: Value(toStatusId),
+            notes: Value(notes),
+            changedBy: Value(changedBy),
+            changedAt: changedAt,
+            latitude: Value(latitude),
+            longitude: Value(longitude),
+            cachedAt: changedAt,
+            isPendingSync: const Value(true),
+            createdLocally: const Value(true),
+          ),
+        );
+  }
+
+  /// Mark a history entry as synced after successful upload.
+  Future<void> markHistoryAsSynced(String id) async {
+    await (_db.update(_db.pipelineStageHistoryItems)
+          ..where((t) => t.id.equals(id)))
+        .write(const PipelineStageHistoryItemsCompanion(
+          isPendingSync: Value(false),
+        ));
+  }
+
+  /// Watch pipeline stage history for real-time updates (includes local entries).
+  Stream<List<entity.PipelineStageHistory>> watchPipelineStageHistory(
+    String pipelineId,
+  ) {
+    return (_db.select(_db.pipelineStageHistoryItems)
+          ..where((t) => t.pipelineId.equals(pipelineId))
+          ..orderBy([(t) => OrderingTerm.desc(t.changedAt)]))
+        .watch()
+        .map((rows) => rows.map(_mapToCachedPipelineStageHistory).toList());
+  }
+
   // ============================================
   // CACHE MANAGEMENT
   // ============================================

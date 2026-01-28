@@ -122,11 +122,12 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
       appBar: AppBar(
         title: Text(widget.isImmediate ? 'Log Aktivitas' : 'Jadwalkan Aktivitas'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
             // Object Type Selection (if not pre-selected)
             if (widget.objectType == null) ...[
               Text(
@@ -227,6 +228,11 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                     return ChoiceChip(
                       label: Text(type.name),
                       selected: isSelected,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? theme.colorScheme.onSecondaryContainer
+                            : theme.colorScheme.onSurface,
+                      ),
                       onSelected: (selected) {
                         final newTypeId = selected ? type.id : null;
                         setState(() {
@@ -241,7 +247,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                         _getActivityTypeIcon(type.icon),
                         size: 18,
                         color: isSelected
-                            ? theme.colorScheme.onPrimaryContainer
+                            ? theme.colorScheme.onSecondaryContainer
                             : theme.colorScheme.onSurfaceVariant,
                       ),
                     );
@@ -340,8 +346,11 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                       ? 'Catat Aktivitas'
                       : 'Jadwalkan Aktivitas'),
             ),
+            // Safe area bottom padding
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
           ],
         ),
+      ),
       ),
     );
   }

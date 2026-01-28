@@ -258,16 +258,46 @@ FOR SELECT USING (
 );
 
 -- ============================================
--- HVC TABLE (Admin managed, read by all authenticated)
+-- HVC TABLE (Hierarchical access + customer links)
 -- ============================================
 
 ALTER TABLE hvcs ENABLE ROW LEVEL SECURITY;
 
--- All authenticated users can view HVC
-CREATE POLICY "hvcs_select_authenticated" ON hvcs
-FOR SELECT USING (auth.uid() IS NOT NULL);
+-- Users can view HVCs they created
+CREATE POLICY "hvcs_select_own" ON hvcs
+FOR SELECT USING (created_by = (SELECT auth.uid()));
 
--- Only admins can modify
+-- Users can view HVCs created by subordinates in their hierarchy
+CREATE POLICY "hvcs_select_hierarchy" ON hvcs
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND descendant_id = hvcs.created_by
+  )
+);
+
+-- Users can view HVCs linked to their customers or their subordinates' customers
+CREATE POLICY "hvcs_select_via_customer_link" ON hvcs
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM customer_hvc_links chl
+    JOIN customers c ON c.id = chl.customer_id
+    WHERE chl.hvc_id = hvcs.id
+    AND chl.deleted_at IS NULL
+    AND c.deleted_at IS NULL
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  )
+);
+
+-- Admins have full access
 CREATE POLICY "hvcs_admin_all" ON hvcs
 FOR ALL USING (is_admin());
 

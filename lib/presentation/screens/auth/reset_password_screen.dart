@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../config/routes/route_names.dart';
 import '../../providers/auth_providers.dart';
@@ -23,11 +25,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   bool _sessionValid = true;
+  bool _checkingSession = true;
 
   @override
   void initState() {
     super.initState();
-    _checkSession();
+    _waitForAuthState();
   }
 
   @override
@@ -37,12 +40,49 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     super.dispose();
   }
 
-  /// Check if user has valid password reset session
-  void _checkSession() {
-    final authRepo = ref.read(authRepositoryProvider);
-    if (!authRepo.isAuthenticated) {
-      // No valid session - token might be expired
+  /// Wait for auth state to settle and check for valid session.
+  /// This handles the timing issue where the URL code may not be processed yet.
+  Future<void> _waitForAuthState() async {
+    // Give Supabase time to process the URL code parameter
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    // Check Supabase session directly (faster than waiting for profile fetch)
+    var session = Supabase.instance.client.auth.currentSession;
+
+    if (session == null) {
+      // Still no session - try to process URL code manually (web only)
+      await _tryProcessUrlCode();
+
+      if (!mounted) return;
+
+      // Check again after manual processing
+      session = Supabase.instance.client.auth.currentSession;
+    }
+
+    if (!mounted) return;
+
+    setState(() => _checkingSession = false);
+
+    if (session == null) {
       _showExpiredTokenDialog();
+    }
+  }
+
+  /// Try to get session from URL (web platform only).
+  /// Uses getSessionFromUrl() which handles both PKCE and implicit flows.
+  /// Note: For PKCE, the reset link must be opened in the same browser
+  /// where the password reset was requested.
+  Future<void> _tryProcessUrlCode() async {
+    if (!kIsWeb) return;
+
+    try {
+      debugPrint('[ResetPassword] Attempting to get session from URL...');
+      await Supabase.instance.client.auth.getSessionFromUrl(Uri.base);
+      debugPrint('[ResetPassword] Session retrieved from URL successfully');
+    } catch (e) {
+      debugPrint('[ResetPassword] Failed to get session from URL: $e');
     }
   }
 
@@ -146,6 +186,25 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Show loading while checking session
+    if (_checkingSession) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Verifying reset link...',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (!_sessionValid) {
       return const Scaffold(

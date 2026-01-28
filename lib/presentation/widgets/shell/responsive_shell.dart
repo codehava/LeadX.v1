@@ -33,6 +33,13 @@ class ResponsiveShell extends ConsumerStatefulWidget {
 class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Set initial index directly (no setState needed before first build)
+    _selectedIndex = _getIndexForRoute(widget.currentRoute);
+  }
+
   static const List<_NavItem> _navItems = [
     _NavItem(
       icon: Icons.home_outlined,
@@ -66,21 +73,29 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     _updateSelectedIndex();
   }
 
-  void _updateSelectedIndex() {
-    final route = widget.currentRoute;
+  int _getIndexForRoute(String route) {
     if (route.contains('/profile')) {
-      _selectedIndex = 3;
+      return 3;
     } else if (route.contains('/activities')) {
-      _selectedIndex = 2;
+      return 2;
     } else if (route.contains('/customers')) {
-      _selectedIndex = 1;
-    } else if (route.contains('/hvcs') || route.contains('/brokers') || 
+      return 1;
+    } else if (route.contains('/hvcs') || route.contains('/brokers') ||
                route.contains('/scoreboard') || route.contains('/cadence')) {
       // These are sidebar items, not main nav items
       // Set to -1 so no bottom nav item is highlighted
-      _selectedIndex = -1;
+      return -1;
     } else {
-      _selectedIndex = 0;
+      return 0;
+    }
+  }
+
+  void _updateSelectedIndex() {
+    final newIndex = _getIndexForRoute(widget.currentRoute);
+    if (_selectedIndex != newIndex) {
+      setState(() {
+        _selectedIndex = newIndex;
+      });
     }
   }
 

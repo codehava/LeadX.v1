@@ -257,12 +257,23 @@ class _PipelineStageUpdateSheetState
               ],
               if (isCurrent) ...[
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_back, size: 14),
+                Icon(
+                  Icons.arrow_back,
+                  size: 14,
+                  color: isSelected
+                      ? theme.colorScheme.onSecondaryContainer
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
               ],
             ],
           ),
           selected: isSelected,
           selectedColor: stageColor?.withAlpha(50),
+          labelStyle: TextStyle(
+            color: isSelected
+                ? theme.colorScheme.onSecondaryContainer
+                : theme.colorScheme.onSurface,
+          ),
           onSelected: (selected) {
             if (selected) {
               setState(() {

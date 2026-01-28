@@ -123,11 +123,13 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
       appBar: AppBar(
         title: Text(_isEdit ? 'Edit Broker' : 'Tambah Broker'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
             // Basic Info Section
             _buildSectionHeader('Informasi Dasar'),
             const SizedBox(height: 16),
@@ -277,9 +279,11 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
                     )
                   : Text(_isEdit ? 'Simpan Perubahan' : 'Tambah Broker'),
             ),
-            const SizedBox(height: 16),
+            // Safe area bottom padding
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
           ],
         ),
+      ),
       ),
     );
   }

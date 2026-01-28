@@ -479,36 +479,38 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
   }
 
   Widget _buildBottomBar(PipelineFormState formState, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => context.pop(),
-              child: const Text('Batal'),
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: AppButton(
-              label: widget.isEditing ? 'Update' : 'Simpan',
-              isLoading: formState.isLoading,
-              onPressed: _handleSave,
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => context.pop(),
+                child: const Text('Batal'),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: AppButton(
+                label: widget.isEditing ? 'Update' : 'Simpan',
+                isLoading: formState.isLoading,
+                onPressed: _handleSave,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

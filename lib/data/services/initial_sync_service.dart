@@ -741,18 +741,28 @@ class InitialSyncService {
 
   Future<void> _syncUserHierarchy() async {
     final data = await _supabase.from('user_hierarchy').select();
-    
+
+    // Get all local user IDs to filter hierarchy entries
+    final localUsers = await _db.select(_db.users).get();
+    final localUserIdSet = localUsers.map((user) => user.id).toSet();
+
     await _db.batch((batch) {
       for (final row in data as List) {
-        batch.insert(
-          _db.userHierarchy,
-          UserHierarchyCompanion.insert(
-            ancestorId: row['ancestor_id'] as String,
-            descendantId: row['descendant_id'] as String,
-            depth: row['depth'] as int,
-          ),
-          mode: InsertMode.insertOrReplace,
-        );
+        final ancestorId = row['ancestor_id'] as String;
+        final descendantId = row['descendant_id'] as String;
+
+        // Only insert if both ancestor and descendant exist in local users table
+        if (localUserIdSet.contains(ancestorId) && localUserIdSet.contains(descendantId)) {
+          batch.insert(
+            _db.userHierarchy,
+            UserHierarchyCompanion.insert(
+              ancestorId: ancestorId,
+              descendantId: descendantId,
+              depth: row['depth'] as int,
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
       }
     });
   }
