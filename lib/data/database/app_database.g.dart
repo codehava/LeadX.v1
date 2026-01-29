@@ -11917,35 +11917,6 @@ class $PipelineReferralsTable extends PipelineReferrals
       'REFERENCES customers (id)',
     ),
   );
-  static const VerificationMeta _cobIdMeta = const VerificationMeta('cobId');
-  @override
-  late final GeneratedColumn<String> cobId = GeneratedColumn<String>(
-    'cob_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lobIdMeta = const VerificationMeta('lobId');
-  @override
-  late final GeneratedColumn<String> lobId = GeneratedColumn<String>(
-    'lob_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _potentialPremiumMeta = const VerificationMeta(
-    'potentialPremium',
-  );
-  @override
-  late final GeneratedColumn<double> potentialPremium = GeneratedColumn<double>(
-    'potential_premium',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _referrerRmIdMeta = const VerificationMeta(
     'referrerRmId',
   );
@@ -11981,9 +11952,9 @@ class $PipelineReferralsTable extends PipelineReferrals
   late final GeneratedColumn<String> referrerBranchId = GeneratedColumn<String>(
     'referrer_branch_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _receiverBranchIdMeta = const VerificationMeta(
     'receiverBranchId',
@@ -11992,9 +11963,43 @@ class $PipelineReferralsTable extends PipelineReferrals
   late final GeneratedColumn<String> receiverBranchId = GeneratedColumn<String>(
     'receiver_branch_id',
     aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _referrerRegionalOfficeIdMeta =
+      const VerificationMeta('referrerRegionalOfficeId');
+  @override
+  late final GeneratedColumn<String> referrerRegionalOfficeId =
+      GeneratedColumn<String>(
+        'referrer_regional_office_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _receiverRegionalOfficeIdMeta =
+      const VerificationMeta('receiverRegionalOfficeId');
+  @override
+  late final GeneratedColumn<String> receiverRegionalOfficeId =
+      GeneratedColumn<String>(
+        'receiver_regional_office_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _approverTypeMeta = const VerificationMeta(
+    'approverType',
+  );
+  @override
+  late final GeneratedColumn<String> approverType = GeneratedColumn<String>(
+    'approver_type',
+    aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('BM'),
   );
   static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
   @override
@@ -12021,19 +12026,9 @@ class $PipelineReferralsTable extends PipelineReferrals
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('PENDING_RECEIVER'),
   );
-  static const VerificationMeta _referrerApprovedAtMeta =
-      const VerificationMeta('referrerApprovedAt');
-  @override
-  late final GeneratedColumn<DateTime> referrerApprovedAt =
-      GeneratedColumn<DateTime>(
-        'referrer_approved_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
   static const VerificationMeta _receiverAcceptedAtMeta =
       const VerificationMeta('receiverAcceptedAt');
   @override
@@ -12067,6 +12062,17 @@ class $PipelineReferralsTable extends PipelineReferrals
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _receiverNotesMeta = const VerificationMeta(
+    'receiverNotes',
+  );
+  @override
+  late final GeneratedColumn<String> receiverNotes = GeneratedColumn<String>(
+    'receiver_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _bmApprovedAtMeta = const VerificationMeta(
     'bmApprovedAt',
   );
@@ -12114,12 +12120,71 @@ class $PipelineReferralsTable extends PipelineReferrals
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _pipelineIdMeta = const VerificationMeta(
-    'pipelineId',
+  static const VerificationMeta _bmNotesMeta = const VerificationMeta(
+    'bmNotes',
   );
   @override
-  late final GeneratedColumn<String> pipelineId = GeneratedColumn<String>(
-    'pipeline_id',
+  late final GeneratedColumn<String> bmNotes = GeneratedColumn<String>(
+    'bm_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bonusCalculatedMeta = const VerificationMeta(
+    'bonusCalculated',
+  );
+  @override
+  late final GeneratedColumn<bool> bonusCalculated = GeneratedColumn<bool>(
+    'bonus_calculated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("bonus_calculated" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _bonusAmountMeta = const VerificationMeta(
+    'bonusAmount',
+  );
+  @override
+  late final GeneratedColumn<double> bonusAmount = GeneratedColumn<double>(
+    'bonus_amount',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cancelledAtMeta = const VerificationMeta(
+    'cancelledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cancelledAt = GeneratedColumn<DateTime>(
+    'cancelled_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cancelReasonMeta = const VerificationMeta(
+    'cancelReason',
+  );
+  @override
+  late final GeneratedColumn<String> cancelReason = GeneratedColumn<String>(
+    'cancel_reason',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -12162,33 +12227,50 @@ class $PipelineReferralsTable extends PipelineReferrals
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     code,
     customerId,
-    cobId,
-    lobId,
-    potentialPremium,
     referrerRmId,
     receiverRmId,
     referrerBranchId,
     receiverBranchId,
+    referrerRegionalOfficeId,
+    receiverRegionalOfficeId,
+    approverType,
     reason,
     notes,
     status,
-    referrerApprovedAt,
     receiverAcceptedAt,
     receiverRejectedAt,
     receiverRejectReason,
+    receiverNotes,
     bmApprovedAt,
     bmApprovedBy,
     bmRejectedAt,
     bmRejectReason,
-    pipelineId,
+    bmNotes,
+    bonusCalculated,
+    bonusAmount,
+    expiresAt,
+    cancelledAt,
+    cancelReason,
     isPendingSync,
     createdAt,
     updatedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -12223,33 +12305,6 @@ class $PipelineReferralsTable extends PipelineReferrals
     } else if (isInserting) {
       context.missing(_customerIdMeta);
     }
-    if (data.containsKey('cob_id')) {
-      context.handle(
-        _cobIdMeta,
-        cobId.isAcceptableOrUnknown(data['cob_id']!, _cobIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_cobIdMeta);
-    }
-    if (data.containsKey('lob_id')) {
-      context.handle(
-        _lobIdMeta,
-        lobId.isAcceptableOrUnknown(data['lob_id']!, _lobIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_lobIdMeta);
-    }
-    if (data.containsKey('potential_premium')) {
-      context.handle(
-        _potentialPremiumMeta,
-        potentialPremium.isAcceptableOrUnknown(
-          data['potential_premium']!,
-          _potentialPremiumMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_potentialPremiumMeta);
-    }
     if (data.containsKey('referrer_rm_id')) {
       context.handle(
         _referrerRmIdMeta,
@@ -12280,8 +12335,6 @@ class $PipelineReferralsTable extends PipelineReferrals
           _referrerBranchIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_referrerBranchIdMeta);
     }
     if (data.containsKey('receiver_branch_id')) {
       context.handle(
@@ -12291,8 +12344,33 @@ class $PipelineReferralsTable extends PipelineReferrals
           _receiverBranchIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_receiverBranchIdMeta);
+    }
+    if (data.containsKey('referrer_regional_office_id')) {
+      context.handle(
+        _referrerRegionalOfficeIdMeta,
+        referrerRegionalOfficeId.isAcceptableOrUnknown(
+          data['referrer_regional_office_id']!,
+          _referrerRegionalOfficeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('receiver_regional_office_id')) {
+      context.handle(
+        _receiverRegionalOfficeIdMeta,
+        receiverRegionalOfficeId.isAcceptableOrUnknown(
+          data['receiver_regional_office_id']!,
+          _receiverRegionalOfficeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('approver_type')) {
+      context.handle(
+        _approverTypeMeta,
+        approverType.isAcceptableOrUnknown(
+          data['approver_type']!,
+          _approverTypeMeta,
+        ),
+      );
     }
     if (data.containsKey('reason')) {
       context.handle(
@@ -12312,17 +12390,6 @@ class $PipelineReferralsTable extends PipelineReferrals
       context.handle(
         _statusMeta,
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_statusMeta);
-    }
-    if (data.containsKey('referrer_approved_at')) {
-      context.handle(
-        _referrerApprovedAtMeta,
-        referrerApprovedAt.isAcceptableOrUnknown(
-          data['referrer_approved_at']!,
-          _referrerApprovedAtMeta,
-        ),
       );
     }
     if (data.containsKey('receiver_accepted_at')) {
@@ -12349,6 +12416,15 @@ class $PipelineReferralsTable extends PipelineReferrals
         receiverRejectReason.isAcceptableOrUnknown(
           data['receiver_reject_reason']!,
           _receiverRejectReasonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('receiver_notes')) {
+      context.handle(
+        _receiverNotesMeta,
+        receiverNotes.isAcceptableOrUnknown(
+          data['receiver_notes']!,
+          _receiverNotesMeta,
         ),
       );
     }
@@ -12388,10 +12464,52 @@ class $PipelineReferralsTable extends PipelineReferrals
         ),
       );
     }
-    if (data.containsKey('pipeline_id')) {
+    if (data.containsKey('bm_notes')) {
       context.handle(
-        _pipelineIdMeta,
-        pipelineId.isAcceptableOrUnknown(data['pipeline_id']!, _pipelineIdMeta),
+        _bmNotesMeta,
+        bmNotes.isAcceptableOrUnknown(data['bm_notes']!, _bmNotesMeta),
+      );
+    }
+    if (data.containsKey('bonus_calculated')) {
+      context.handle(
+        _bonusCalculatedMeta,
+        bonusCalculated.isAcceptableOrUnknown(
+          data['bonus_calculated']!,
+          _bonusCalculatedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bonus_amount')) {
+      context.handle(
+        _bonusAmountMeta,
+        bonusAmount.isAcceptableOrUnknown(
+          data['bonus_amount']!,
+          _bonusAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('cancelled_at')) {
+      context.handle(
+        _cancelledAtMeta,
+        cancelledAt.isAcceptableOrUnknown(
+          data['cancelled_at']!,
+          _cancelledAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cancel_reason')) {
+      context.handle(
+        _cancelReasonMeta,
+        cancelReason.isAcceptableOrUnknown(
+          data['cancel_reason']!,
+          _cancelReasonMeta,
+        ),
       );
     }
     if (data.containsKey('is_pending_sync')) {
@@ -12419,6 +12537,15 @@ class $PipelineReferralsTable extends PipelineReferrals
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -12440,18 +12567,6 @@ class $PipelineReferralsTable extends PipelineReferrals
         DriftSqlType.string,
         data['${effectivePrefix}customer_id'],
       )!,
-      cobId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}cob_id'],
-      )!,
-      lobId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}lob_id'],
-      )!,
-      potentialPremium: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}potential_premium'],
-      )!,
       referrerRmId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}referrer_rm_id'],
@@ -12463,10 +12578,22 @@ class $PipelineReferralsTable extends PipelineReferrals
       referrerBranchId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}referrer_branch_id'],
-      )!,
+      ),
       receiverBranchId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}receiver_branch_id'],
+      ),
+      referrerRegionalOfficeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}referrer_regional_office_id'],
+      ),
+      receiverRegionalOfficeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receiver_regional_office_id'],
+      ),
+      approverType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}approver_type'],
       )!,
       reason: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -12480,10 +12607,6 @@ class $PipelineReferralsTable extends PipelineReferrals
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
-      referrerApprovedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}referrer_approved_at'],
-      ),
       receiverAcceptedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}receiver_accepted_at'],
@@ -12495,6 +12618,10 @@ class $PipelineReferralsTable extends PipelineReferrals
       receiverRejectReason: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}receiver_reject_reason'],
+      ),
+      receiverNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receiver_notes'],
       ),
       bmApprovedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -12512,9 +12639,29 @@ class $PipelineReferralsTable extends PipelineReferrals
         DriftSqlType.string,
         data['${effectivePrefix}bm_reject_reason'],
       ),
-      pipelineId: attachedDatabase.typeMapping.read(
+      bmNotes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}pipeline_id'],
+        data['${effectivePrefix}bm_notes'],
+      ),
+      bonusCalculated: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}bonus_calculated'],
+      )!,
+      bonusAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}bonus_amount'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      cancelledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cancelled_at'],
+      ),
+      cancelReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cancel_reason'],
       ),
       isPendingSync: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -12528,6 +12675,10 @@ class $PipelineReferralsTable extends PipelineReferrals
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -12542,54 +12693,66 @@ class PipelineReferral extends DataClass
   final String id;
   final String code;
   final String customerId;
-  final String cobId;
-  final String lobId;
-  final double potentialPremium;
   final String referrerRmId;
   final String receiverRmId;
-  final String referrerBranchId;
-  final String receiverBranchId;
+  final String? referrerBranchId;
+  final String? receiverBranchId;
+  final String? referrerRegionalOfficeId;
+  final String? receiverRegionalOfficeId;
+  final String approverType;
   final String reason;
   final String? notes;
   final String status;
-  final DateTime? referrerApprovedAt;
   final DateTime? receiverAcceptedAt;
   final DateTime? receiverRejectedAt;
   final String? receiverRejectReason;
+  final String? receiverNotes;
   final DateTime? bmApprovedAt;
   final String? bmApprovedBy;
   final DateTime? bmRejectedAt;
   final String? bmRejectReason;
-  final String? pipelineId;
+  final String? bmNotes;
+  final bool bonusCalculated;
+  final double? bonusAmount;
+  final DateTime? expiresAt;
+  final DateTime? cancelledAt;
+  final String? cancelReason;
   final bool isPendingSync;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastSyncAt;
   const PipelineReferral({
     required this.id,
     required this.code,
     required this.customerId,
-    required this.cobId,
-    required this.lobId,
-    required this.potentialPremium,
     required this.referrerRmId,
     required this.receiverRmId,
-    required this.referrerBranchId,
-    required this.receiverBranchId,
+    this.referrerBranchId,
+    this.receiverBranchId,
+    this.referrerRegionalOfficeId,
+    this.receiverRegionalOfficeId,
+    required this.approverType,
     required this.reason,
     this.notes,
     required this.status,
-    this.referrerApprovedAt,
     this.receiverAcceptedAt,
     this.receiverRejectedAt,
     this.receiverRejectReason,
+    this.receiverNotes,
     this.bmApprovedAt,
     this.bmApprovedBy,
     this.bmRejectedAt,
     this.bmRejectReason,
-    this.pipelineId,
+    this.bmNotes,
+    required this.bonusCalculated,
+    this.bonusAmount,
+    this.expiresAt,
+    this.cancelledAt,
+    this.cancelReason,
     required this.isPendingSync,
     required this.createdAt,
     required this.updatedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -12597,21 +12760,30 @@ class PipelineReferral extends DataClass
     map['id'] = Variable<String>(id);
     map['code'] = Variable<String>(code);
     map['customer_id'] = Variable<String>(customerId);
-    map['cob_id'] = Variable<String>(cobId);
-    map['lob_id'] = Variable<String>(lobId);
-    map['potential_premium'] = Variable<double>(potentialPremium);
     map['referrer_rm_id'] = Variable<String>(referrerRmId);
     map['receiver_rm_id'] = Variable<String>(receiverRmId);
-    map['referrer_branch_id'] = Variable<String>(referrerBranchId);
-    map['receiver_branch_id'] = Variable<String>(receiverBranchId);
+    if (!nullToAbsent || referrerBranchId != null) {
+      map['referrer_branch_id'] = Variable<String>(referrerBranchId);
+    }
+    if (!nullToAbsent || receiverBranchId != null) {
+      map['receiver_branch_id'] = Variable<String>(receiverBranchId);
+    }
+    if (!nullToAbsent || referrerRegionalOfficeId != null) {
+      map['referrer_regional_office_id'] = Variable<String>(
+        referrerRegionalOfficeId,
+      );
+    }
+    if (!nullToAbsent || receiverRegionalOfficeId != null) {
+      map['receiver_regional_office_id'] = Variable<String>(
+        receiverRegionalOfficeId,
+      );
+    }
+    map['approver_type'] = Variable<String>(approverType);
     map['reason'] = Variable<String>(reason);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
     map['status'] = Variable<String>(status);
-    if (!nullToAbsent || referrerApprovedAt != null) {
-      map['referrer_approved_at'] = Variable<DateTime>(referrerApprovedAt);
-    }
     if (!nullToAbsent || receiverAcceptedAt != null) {
       map['receiver_accepted_at'] = Variable<DateTime>(receiverAcceptedAt);
     }
@@ -12620,6 +12792,9 @@ class PipelineReferral extends DataClass
     }
     if (!nullToAbsent || receiverRejectReason != null) {
       map['receiver_reject_reason'] = Variable<String>(receiverRejectReason);
+    }
+    if (!nullToAbsent || receiverNotes != null) {
+      map['receiver_notes'] = Variable<String>(receiverNotes);
     }
     if (!nullToAbsent || bmApprovedAt != null) {
       map['bm_approved_at'] = Variable<DateTime>(bmApprovedAt);
@@ -12633,12 +12808,28 @@ class PipelineReferral extends DataClass
     if (!nullToAbsent || bmRejectReason != null) {
       map['bm_reject_reason'] = Variable<String>(bmRejectReason);
     }
-    if (!nullToAbsent || pipelineId != null) {
-      map['pipeline_id'] = Variable<String>(pipelineId);
+    if (!nullToAbsent || bmNotes != null) {
+      map['bm_notes'] = Variable<String>(bmNotes);
+    }
+    map['bonus_calculated'] = Variable<bool>(bonusCalculated);
+    if (!nullToAbsent || bonusAmount != null) {
+      map['bonus_amount'] = Variable<double>(bonusAmount);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || cancelledAt != null) {
+      map['cancelled_at'] = Variable<DateTime>(cancelledAt);
+    }
+    if (!nullToAbsent || cancelReason != null) {
+      map['cancel_reason'] = Variable<String>(cancelReason);
     }
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
+    }
     return map;
   }
 
@@ -12647,21 +12838,26 @@ class PipelineReferral extends DataClass
       id: Value(id),
       code: Value(code),
       customerId: Value(customerId),
-      cobId: Value(cobId),
-      lobId: Value(lobId),
-      potentialPremium: Value(potentialPremium),
       referrerRmId: Value(referrerRmId),
       receiverRmId: Value(receiverRmId),
-      referrerBranchId: Value(referrerBranchId),
-      receiverBranchId: Value(receiverBranchId),
+      referrerBranchId: referrerBranchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referrerBranchId),
+      receiverBranchId: receiverBranchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiverBranchId),
+      referrerRegionalOfficeId: referrerRegionalOfficeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referrerRegionalOfficeId),
+      receiverRegionalOfficeId: receiverRegionalOfficeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiverRegionalOfficeId),
+      approverType: Value(approverType),
       reason: Value(reason),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
       status: Value(status),
-      referrerApprovedAt: referrerApprovedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(referrerApprovedAt),
       receiverAcceptedAt: receiverAcceptedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(receiverAcceptedAt),
@@ -12671,6 +12867,9 @@ class PipelineReferral extends DataClass
       receiverRejectReason: receiverRejectReason == null && nullToAbsent
           ? const Value.absent()
           : Value(receiverRejectReason),
+      receiverNotes: receiverNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiverNotes),
       bmApprovedAt: bmApprovedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(bmApprovedAt),
@@ -12683,12 +12882,28 @@ class PipelineReferral extends DataClass
       bmRejectReason: bmRejectReason == null && nullToAbsent
           ? const Value.absent()
           : Value(bmRejectReason),
-      pipelineId: pipelineId == null && nullToAbsent
+      bmNotes: bmNotes == null && nullToAbsent
           ? const Value.absent()
-          : Value(pipelineId),
+          : Value(bmNotes),
+      bonusCalculated: Value(bonusCalculated),
+      bonusAmount: bonusAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bonusAmount),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      cancelledAt: cancelledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelledAt),
+      cancelReason: cancelReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelReason),
       isPendingSync: Value(isPendingSync),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -12701,19 +12916,20 @@ class PipelineReferral extends DataClass
       id: serializer.fromJson<String>(json['id']),
       code: serializer.fromJson<String>(json['code']),
       customerId: serializer.fromJson<String>(json['customerId']),
-      cobId: serializer.fromJson<String>(json['cobId']),
-      lobId: serializer.fromJson<String>(json['lobId']),
-      potentialPremium: serializer.fromJson<double>(json['potentialPremium']),
       referrerRmId: serializer.fromJson<String>(json['referrerRmId']),
       receiverRmId: serializer.fromJson<String>(json['receiverRmId']),
-      referrerBranchId: serializer.fromJson<String>(json['referrerBranchId']),
-      receiverBranchId: serializer.fromJson<String>(json['receiverBranchId']),
+      referrerBranchId: serializer.fromJson<String?>(json['referrerBranchId']),
+      receiverBranchId: serializer.fromJson<String?>(json['receiverBranchId']),
+      referrerRegionalOfficeId: serializer.fromJson<String?>(
+        json['referrerRegionalOfficeId'],
+      ),
+      receiverRegionalOfficeId: serializer.fromJson<String?>(
+        json['receiverRegionalOfficeId'],
+      ),
+      approverType: serializer.fromJson<String>(json['approverType']),
       reason: serializer.fromJson<String>(json['reason']),
       notes: serializer.fromJson<String?>(json['notes']),
       status: serializer.fromJson<String>(json['status']),
-      referrerApprovedAt: serializer.fromJson<DateTime?>(
-        json['referrerApprovedAt'],
-      ),
       receiverAcceptedAt: serializer.fromJson<DateTime?>(
         json['receiverAcceptedAt'],
       ),
@@ -12723,14 +12939,21 @@ class PipelineReferral extends DataClass
       receiverRejectReason: serializer.fromJson<String?>(
         json['receiverRejectReason'],
       ),
+      receiverNotes: serializer.fromJson<String?>(json['receiverNotes']),
       bmApprovedAt: serializer.fromJson<DateTime?>(json['bmApprovedAt']),
       bmApprovedBy: serializer.fromJson<String?>(json['bmApprovedBy']),
       bmRejectedAt: serializer.fromJson<DateTime?>(json['bmRejectedAt']),
       bmRejectReason: serializer.fromJson<String?>(json['bmRejectReason']),
-      pipelineId: serializer.fromJson<String?>(json['pipelineId']),
+      bmNotes: serializer.fromJson<String?>(json['bmNotes']),
+      bonusCalculated: serializer.fromJson<bool>(json['bonusCalculated']),
+      bonusAmount: serializer.fromJson<double?>(json['bonusAmount']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      cancelledAt: serializer.fromJson<DateTime?>(json['cancelledAt']),
+      cancelReason: serializer.fromJson<String?>(json['cancelReason']),
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -12740,28 +12963,38 @@ class PipelineReferral extends DataClass
       'id': serializer.toJson<String>(id),
       'code': serializer.toJson<String>(code),
       'customerId': serializer.toJson<String>(customerId),
-      'cobId': serializer.toJson<String>(cobId),
-      'lobId': serializer.toJson<String>(lobId),
-      'potentialPremium': serializer.toJson<double>(potentialPremium),
       'referrerRmId': serializer.toJson<String>(referrerRmId),
       'receiverRmId': serializer.toJson<String>(receiverRmId),
-      'referrerBranchId': serializer.toJson<String>(referrerBranchId),
-      'receiverBranchId': serializer.toJson<String>(receiverBranchId),
+      'referrerBranchId': serializer.toJson<String?>(referrerBranchId),
+      'receiverBranchId': serializer.toJson<String?>(receiverBranchId),
+      'referrerRegionalOfficeId': serializer.toJson<String?>(
+        referrerRegionalOfficeId,
+      ),
+      'receiverRegionalOfficeId': serializer.toJson<String?>(
+        receiverRegionalOfficeId,
+      ),
+      'approverType': serializer.toJson<String>(approverType),
       'reason': serializer.toJson<String>(reason),
       'notes': serializer.toJson<String?>(notes),
       'status': serializer.toJson<String>(status),
-      'referrerApprovedAt': serializer.toJson<DateTime?>(referrerApprovedAt),
       'receiverAcceptedAt': serializer.toJson<DateTime?>(receiverAcceptedAt),
       'receiverRejectedAt': serializer.toJson<DateTime?>(receiverRejectedAt),
       'receiverRejectReason': serializer.toJson<String?>(receiverRejectReason),
+      'receiverNotes': serializer.toJson<String?>(receiverNotes),
       'bmApprovedAt': serializer.toJson<DateTime?>(bmApprovedAt),
       'bmApprovedBy': serializer.toJson<String?>(bmApprovedBy),
       'bmRejectedAt': serializer.toJson<DateTime?>(bmRejectedAt),
       'bmRejectReason': serializer.toJson<String?>(bmRejectReason),
-      'pipelineId': serializer.toJson<String?>(pipelineId),
+      'bmNotes': serializer.toJson<String?>(bmNotes),
+      'bonusCalculated': serializer.toJson<bool>(bonusCalculated),
+      'bonusAmount': serializer.toJson<double?>(bonusAmount),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'cancelledAt': serializer.toJson<DateTime?>(cancelledAt),
+      'cancelReason': serializer.toJson<String?>(cancelReason),
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -12769,45 +13002,56 @@ class PipelineReferral extends DataClass
     String? id,
     String? code,
     String? customerId,
-    String? cobId,
-    String? lobId,
-    double? potentialPremium,
     String? referrerRmId,
     String? receiverRmId,
-    String? referrerBranchId,
-    String? receiverBranchId,
+    Value<String?> referrerBranchId = const Value.absent(),
+    Value<String?> receiverBranchId = const Value.absent(),
+    Value<String?> referrerRegionalOfficeId = const Value.absent(),
+    Value<String?> receiverRegionalOfficeId = const Value.absent(),
+    String? approverType,
     String? reason,
     Value<String?> notes = const Value.absent(),
     String? status,
-    Value<DateTime?> referrerApprovedAt = const Value.absent(),
     Value<DateTime?> receiverAcceptedAt = const Value.absent(),
     Value<DateTime?> receiverRejectedAt = const Value.absent(),
     Value<String?> receiverRejectReason = const Value.absent(),
+    Value<String?> receiverNotes = const Value.absent(),
     Value<DateTime?> bmApprovedAt = const Value.absent(),
     Value<String?> bmApprovedBy = const Value.absent(),
     Value<DateTime?> bmRejectedAt = const Value.absent(),
     Value<String?> bmRejectReason = const Value.absent(),
-    Value<String?> pipelineId = const Value.absent(),
+    Value<String?> bmNotes = const Value.absent(),
+    bool? bonusCalculated,
+    Value<double?> bonusAmount = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<DateTime?> cancelledAt = const Value.absent(),
+    Value<String?> cancelReason = const Value.absent(),
     bool? isPendingSync,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => PipelineReferral(
     id: id ?? this.id,
     code: code ?? this.code,
     customerId: customerId ?? this.customerId,
-    cobId: cobId ?? this.cobId,
-    lobId: lobId ?? this.lobId,
-    potentialPremium: potentialPremium ?? this.potentialPremium,
     referrerRmId: referrerRmId ?? this.referrerRmId,
     receiverRmId: receiverRmId ?? this.receiverRmId,
-    referrerBranchId: referrerBranchId ?? this.referrerBranchId,
-    receiverBranchId: receiverBranchId ?? this.receiverBranchId,
+    referrerBranchId: referrerBranchId.present
+        ? referrerBranchId.value
+        : this.referrerBranchId,
+    receiverBranchId: receiverBranchId.present
+        ? receiverBranchId.value
+        : this.receiverBranchId,
+    referrerRegionalOfficeId: referrerRegionalOfficeId.present
+        ? referrerRegionalOfficeId.value
+        : this.referrerRegionalOfficeId,
+    receiverRegionalOfficeId: receiverRegionalOfficeId.present
+        ? receiverRegionalOfficeId.value
+        : this.receiverRegionalOfficeId,
+    approverType: approverType ?? this.approverType,
     reason: reason ?? this.reason,
     notes: notes.present ? notes.value : this.notes,
     status: status ?? this.status,
-    referrerApprovedAt: referrerApprovedAt.present
-        ? referrerApprovedAt.value
-        : this.referrerApprovedAt,
     receiverAcceptedAt: receiverAcceptedAt.present
         ? receiverAcceptedAt.value
         : this.receiverAcceptedAt,
@@ -12817,16 +13061,25 @@ class PipelineReferral extends DataClass
     receiverRejectReason: receiverRejectReason.present
         ? receiverRejectReason.value
         : this.receiverRejectReason,
+    receiverNotes: receiverNotes.present
+        ? receiverNotes.value
+        : this.receiverNotes,
     bmApprovedAt: bmApprovedAt.present ? bmApprovedAt.value : this.bmApprovedAt,
     bmApprovedBy: bmApprovedBy.present ? bmApprovedBy.value : this.bmApprovedBy,
     bmRejectedAt: bmRejectedAt.present ? bmRejectedAt.value : this.bmRejectedAt,
     bmRejectReason: bmRejectReason.present
         ? bmRejectReason.value
         : this.bmRejectReason,
-    pipelineId: pipelineId.present ? pipelineId.value : this.pipelineId,
+    bmNotes: bmNotes.present ? bmNotes.value : this.bmNotes,
+    bonusCalculated: bonusCalculated ?? this.bonusCalculated,
+    bonusAmount: bonusAmount.present ? bonusAmount.value : this.bonusAmount,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    cancelledAt: cancelledAt.present ? cancelledAt.value : this.cancelledAt,
+    cancelReason: cancelReason.present ? cancelReason.value : this.cancelReason,
     isPendingSync: isPendingSync ?? this.isPendingSync,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   PipelineReferral copyWithCompanion(PipelineReferralsCompanion data) {
     return PipelineReferral(
@@ -12835,11 +13088,6 @@ class PipelineReferral extends DataClass
       customerId: data.customerId.present
           ? data.customerId.value
           : this.customerId,
-      cobId: data.cobId.present ? data.cobId.value : this.cobId,
-      lobId: data.lobId.present ? data.lobId.value : this.lobId,
-      potentialPremium: data.potentialPremium.present
-          ? data.potentialPremium.value
-          : this.potentialPremium,
       referrerRmId: data.referrerRmId.present
           ? data.referrerRmId.value
           : this.referrerRmId,
@@ -12852,12 +13100,18 @@ class PipelineReferral extends DataClass
       receiverBranchId: data.receiverBranchId.present
           ? data.receiverBranchId.value
           : this.receiverBranchId,
+      referrerRegionalOfficeId: data.referrerRegionalOfficeId.present
+          ? data.referrerRegionalOfficeId.value
+          : this.referrerRegionalOfficeId,
+      receiverRegionalOfficeId: data.receiverRegionalOfficeId.present
+          ? data.receiverRegionalOfficeId.value
+          : this.receiverRegionalOfficeId,
+      approverType: data.approverType.present
+          ? data.approverType.value
+          : this.approverType,
       reason: data.reason.present ? data.reason.value : this.reason,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
-      referrerApprovedAt: data.referrerApprovedAt.present
-          ? data.referrerApprovedAt.value
-          : this.referrerApprovedAt,
       receiverAcceptedAt: data.receiverAcceptedAt.present
           ? data.receiverAcceptedAt.value
           : this.receiverAcceptedAt,
@@ -12867,6 +13121,9 @@ class PipelineReferral extends DataClass
       receiverRejectReason: data.receiverRejectReason.present
           ? data.receiverRejectReason.value
           : this.receiverRejectReason,
+      receiverNotes: data.receiverNotes.present
+          ? data.receiverNotes.value
+          : this.receiverNotes,
       bmApprovedAt: data.bmApprovedAt.present
           ? data.bmApprovedAt.value
           : this.bmApprovedAt,
@@ -12879,14 +13136,28 @@ class PipelineReferral extends DataClass
       bmRejectReason: data.bmRejectReason.present
           ? data.bmRejectReason.value
           : this.bmRejectReason,
-      pipelineId: data.pipelineId.present
-          ? data.pipelineId.value
-          : this.pipelineId,
+      bmNotes: data.bmNotes.present ? data.bmNotes.value : this.bmNotes,
+      bonusCalculated: data.bonusCalculated.present
+          ? data.bonusCalculated.value
+          : this.bonusCalculated,
+      bonusAmount: data.bonusAmount.present
+          ? data.bonusAmount.value
+          : this.bonusAmount,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      cancelledAt: data.cancelledAt.present
+          ? data.cancelledAt.value
+          : this.cancelledAt,
+      cancelReason: data.cancelReason.present
+          ? data.cancelReason.value
+          : this.cancelReason,
       isPendingSync: data.isPendingSync.present
           ? data.isPendingSync.value
           : this.isPendingSync,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -12896,28 +13167,34 @@ class PipelineReferral extends DataClass
           ..write('id: $id, ')
           ..write('code: $code, ')
           ..write('customerId: $customerId, ')
-          ..write('cobId: $cobId, ')
-          ..write('lobId: $lobId, ')
-          ..write('potentialPremium: $potentialPremium, ')
           ..write('referrerRmId: $referrerRmId, ')
           ..write('receiverRmId: $receiverRmId, ')
           ..write('referrerBranchId: $referrerBranchId, ')
           ..write('receiverBranchId: $receiverBranchId, ')
+          ..write('referrerRegionalOfficeId: $referrerRegionalOfficeId, ')
+          ..write('receiverRegionalOfficeId: $receiverRegionalOfficeId, ')
+          ..write('approverType: $approverType, ')
           ..write('reason: $reason, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
-          ..write('referrerApprovedAt: $referrerApprovedAt, ')
           ..write('receiverAcceptedAt: $receiverAcceptedAt, ')
           ..write('receiverRejectedAt: $receiverRejectedAt, ')
           ..write('receiverRejectReason: $receiverRejectReason, ')
+          ..write('receiverNotes: $receiverNotes, ')
           ..write('bmApprovedAt: $bmApprovedAt, ')
           ..write('bmApprovedBy: $bmApprovedBy, ')
           ..write('bmRejectedAt: $bmRejectedAt, ')
           ..write('bmRejectReason: $bmRejectReason, ')
-          ..write('pipelineId: $pipelineId, ')
+          ..write('bmNotes: $bmNotes, ')
+          ..write('bonusCalculated: $bonusCalculated, ')
+          ..write('bonusAmount: $bonusAmount, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('cancelledAt: $cancelledAt, ')
+          ..write('cancelReason: $cancelReason, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -12927,28 +13204,34 @@ class PipelineReferral extends DataClass
     id,
     code,
     customerId,
-    cobId,
-    lobId,
-    potentialPremium,
     referrerRmId,
     receiverRmId,
     referrerBranchId,
     receiverBranchId,
+    referrerRegionalOfficeId,
+    receiverRegionalOfficeId,
+    approverType,
     reason,
     notes,
     status,
-    referrerApprovedAt,
     receiverAcceptedAt,
     receiverRejectedAt,
     receiverRejectReason,
+    receiverNotes,
     bmApprovedAt,
     bmApprovedBy,
     bmRejectedAt,
     bmRejectReason,
-    pipelineId,
+    bmNotes,
+    bonusCalculated,
+    bonusAmount,
+    expiresAt,
+    cancelledAt,
+    cancelReason,
     isPendingSync,
     createdAt,
     updatedAt,
+    lastSyncAt,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -12957,184 +13240,215 @@ class PipelineReferral extends DataClass
           other.id == this.id &&
           other.code == this.code &&
           other.customerId == this.customerId &&
-          other.cobId == this.cobId &&
-          other.lobId == this.lobId &&
-          other.potentialPremium == this.potentialPremium &&
           other.referrerRmId == this.referrerRmId &&
           other.receiverRmId == this.receiverRmId &&
           other.referrerBranchId == this.referrerBranchId &&
           other.receiverBranchId == this.receiverBranchId &&
+          other.referrerRegionalOfficeId == this.referrerRegionalOfficeId &&
+          other.receiverRegionalOfficeId == this.receiverRegionalOfficeId &&
+          other.approverType == this.approverType &&
           other.reason == this.reason &&
           other.notes == this.notes &&
           other.status == this.status &&
-          other.referrerApprovedAt == this.referrerApprovedAt &&
           other.receiverAcceptedAt == this.receiverAcceptedAt &&
           other.receiverRejectedAt == this.receiverRejectedAt &&
           other.receiverRejectReason == this.receiverRejectReason &&
+          other.receiverNotes == this.receiverNotes &&
           other.bmApprovedAt == this.bmApprovedAt &&
           other.bmApprovedBy == this.bmApprovedBy &&
           other.bmRejectedAt == this.bmRejectedAt &&
           other.bmRejectReason == this.bmRejectReason &&
-          other.pipelineId == this.pipelineId &&
+          other.bmNotes == this.bmNotes &&
+          other.bonusCalculated == this.bonusCalculated &&
+          other.bonusAmount == this.bonusAmount &&
+          other.expiresAt == this.expiresAt &&
+          other.cancelledAt == this.cancelledAt &&
+          other.cancelReason == this.cancelReason &&
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
   final Value<String> id;
   final Value<String> code;
   final Value<String> customerId;
-  final Value<String> cobId;
-  final Value<String> lobId;
-  final Value<double> potentialPremium;
   final Value<String> referrerRmId;
   final Value<String> receiverRmId;
-  final Value<String> referrerBranchId;
-  final Value<String> receiverBranchId;
+  final Value<String?> referrerBranchId;
+  final Value<String?> receiverBranchId;
+  final Value<String?> referrerRegionalOfficeId;
+  final Value<String?> receiverRegionalOfficeId;
+  final Value<String> approverType;
   final Value<String> reason;
   final Value<String?> notes;
   final Value<String> status;
-  final Value<DateTime?> referrerApprovedAt;
   final Value<DateTime?> receiverAcceptedAt;
   final Value<DateTime?> receiverRejectedAt;
   final Value<String?> receiverRejectReason;
+  final Value<String?> receiverNotes;
   final Value<DateTime?> bmApprovedAt;
   final Value<String?> bmApprovedBy;
   final Value<DateTime?> bmRejectedAt;
   final Value<String?> bmRejectReason;
-  final Value<String?> pipelineId;
+  final Value<String?> bmNotes;
+  final Value<bool> bonusCalculated;
+  final Value<double?> bonusAmount;
+  final Value<DateTime?> expiresAt;
+  final Value<DateTime?> cancelledAt;
+  final Value<String?> cancelReason;
   final Value<bool> isPendingSync;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const PipelineReferralsCompanion({
     this.id = const Value.absent(),
     this.code = const Value.absent(),
     this.customerId = const Value.absent(),
-    this.cobId = const Value.absent(),
-    this.lobId = const Value.absent(),
-    this.potentialPremium = const Value.absent(),
     this.referrerRmId = const Value.absent(),
     this.receiverRmId = const Value.absent(),
     this.referrerBranchId = const Value.absent(),
     this.receiverBranchId = const Value.absent(),
+    this.referrerRegionalOfficeId = const Value.absent(),
+    this.receiverRegionalOfficeId = const Value.absent(),
+    this.approverType = const Value.absent(),
     this.reason = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
-    this.referrerApprovedAt = const Value.absent(),
     this.receiverAcceptedAt = const Value.absent(),
     this.receiverRejectedAt = const Value.absent(),
     this.receiverRejectReason = const Value.absent(),
+    this.receiverNotes = const Value.absent(),
     this.bmApprovedAt = const Value.absent(),
     this.bmApprovedBy = const Value.absent(),
     this.bmRejectedAt = const Value.absent(),
     this.bmRejectReason = const Value.absent(),
-    this.pipelineId = const Value.absent(),
+    this.bmNotes = const Value.absent(),
+    this.bonusCalculated = const Value.absent(),
+    this.bonusAmount = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.cancelledAt = const Value.absent(),
+    this.cancelReason = const Value.absent(),
     this.isPendingSync = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PipelineReferralsCompanion.insert({
     required String id,
     required String code,
     required String customerId,
-    required String cobId,
-    required String lobId,
-    required double potentialPremium,
     required String referrerRmId,
     required String receiverRmId,
-    required String referrerBranchId,
-    required String receiverBranchId,
+    this.referrerBranchId = const Value.absent(),
+    this.receiverBranchId = const Value.absent(),
+    this.referrerRegionalOfficeId = const Value.absent(),
+    this.receiverRegionalOfficeId = const Value.absent(),
+    this.approverType = const Value.absent(),
     required String reason,
     this.notes = const Value.absent(),
-    required String status,
-    this.referrerApprovedAt = const Value.absent(),
+    this.status = const Value.absent(),
     this.receiverAcceptedAt = const Value.absent(),
     this.receiverRejectedAt = const Value.absent(),
     this.receiverRejectReason = const Value.absent(),
+    this.receiverNotes = const Value.absent(),
     this.bmApprovedAt = const Value.absent(),
     this.bmApprovedBy = const Value.absent(),
     this.bmRejectedAt = const Value.absent(),
     this.bmRejectReason = const Value.absent(),
-    this.pipelineId = const Value.absent(),
+    this.bmNotes = const Value.absent(),
+    this.bonusCalculated = const Value.absent(),
+    this.bonusAmount = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.cancelledAt = const Value.absent(),
+    this.cancelReason = const Value.absent(),
     this.isPendingSync = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        code = Value(code),
        customerId = Value(customerId),
-       cobId = Value(cobId),
-       lobId = Value(lobId),
-       potentialPremium = Value(potentialPremium),
        referrerRmId = Value(referrerRmId),
        receiverRmId = Value(receiverRmId),
-       referrerBranchId = Value(referrerBranchId),
-       receiverBranchId = Value(receiverBranchId),
        reason = Value(reason),
-       status = Value(status),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<PipelineReferral> custom({
     Expression<String>? id,
     Expression<String>? code,
     Expression<String>? customerId,
-    Expression<String>? cobId,
-    Expression<String>? lobId,
-    Expression<double>? potentialPremium,
     Expression<String>? referrerRmId,
     Expression<String>? receiverRmId,
     Expression<String>? referrerBranchId,
     Expression<String>? receiverBranchId,
+    Expression<String>? referrerRegionalOfficeId,
+    Expression<String>? receiverRegionalOfficeId,
+    Expression<String>? approverType,
     Expression<String>? reason,
     Expression<String>? notes,
     Expression<String>? status,
-    Expression<DateTime>? referrerApprovedAt,
     Expression<DateTime>? receiverAcceptedAt,
     Expression<DateTime>? receiverRejectedAt,
     Expression<String>? receiverRejectReason,
+    Expression<String>? receiverNotes,
     Expression<DateTime>? bmApprovedAt,
     Expression<String>? bmApprovedBy,
     Expression<DateTime>? bmRejectedAt,
     Expression<String>? bmRejectReason,
-    Expression<String>? pipelineId,
+    Expression<String>? bmNotes,
+    Expression<bool>? bonusCalculated,
+    Expression<double>? bonusAmount,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? cancelledAt,
+    Expression<String>? cancelReason,
     Expression<bool>? isPendingSync,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (code != null) 'code': code,
       if (customerId != null) 'customer_id': customerId,
-      if (cobId != null) 'cob_id': cobId,
-      if (lobId != null) 'lob_id': lobId,
-      if (potentialPremium != null) 'potential_premium': potentialPremium,
       if (referrerRmId != null) 'referrer_rm_id': referrerRmId,
       if (receiverRmId != null) 'receiver_rm_id': receiverRmId,
       if (referrerBranchId != null) 'referrer_branch_id': referrerBranchId,
       if (receiverBranchId != null) 'receiver_branch_id': receiverBranchId,
+      if (referrerRegionalOfficeId != null)
+        'referrer_regional_office_id': referrerRegionalOfficeId,
+      if (receiverRegionalOfficeId != null)
+        'receiver_regional_office_id': receiverRegionalOfficeId,
+      if (approverType != null) 'approver_type': approverType,
       if (reason != null) 'reason': reason,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
-      if (referrerApprovedAt != null)
-        'referrer_approved_at': referrerApprovedAt,
       if (receiverAcceptedAt != null)
         'receiver_accepted_at': receiverAcceptedAt,
       if (receiverRejectedAt != null)
         'receiver_rejected_at': receiverRejectedAt,
       if (receiverRejectReason != null)
         'receiver_reject_reason': receiverRejectReason,
+      if (receiverNotes != null) 'receiver_notes': receiverNotes,
       if (bmApprovedAt != null) 'bm_approved_at': bmApprovedAt,
       if (bmApprovedBy != null) 'bm_approved_by': bmApprovedBy,
       if (bmRejectedAt != null) 'bm_rejected_at': bmRejectedAt,
       if (bmRejectReason != null) 'bm_reject_reason': bmRejectReason,
-      if (pipelineId != null) 'pipeline_id': pipelineId,
+      if (bmNotes != null) 'bm_notes': bmNotes,
+      if (bonusCalculated != null) 'bonus_calculated': bonusCalculated,
+      if (bonusAmount != null) 'bonus_amount': bonusAmount,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (cancelledAt != null) 'cancelled_at': cancelledAt,
+      if (cancelReason != null) 'cancel_reason': cancelReason,
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -13143,56 +13457,70 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     Value<String>? id,
     Value<String>? code,
     Value<String>? customerId,
-    Value<String>? cobId,
-    Value<String>? lobId,
-    Value<double>? potentialPremium,
     Value<String>? referrerRmId,
     Value<String>? receiverRmId,
-    Value<String>? referrerBranchId,
-    Value<String>? receiverBranchId,
+    Value<String?>? referrerBranchId,
+    Value<String?>? receiverBranchId,
+    Value<String?>? referrerRegionalOfficeId,
+    Value<String?>? receiverRegionalOfficeId,
+    Value<String>? approverType,
     Value<String>? reason,
     Value<String?>? notes,
     Value<String>? status,
-    Value<DateTime?>? referrerApprovedAt,
     Value<DateTime?>? receiverAcceptedAt,
     Value<DateTime?>? receiverRejectedAt,
     Value<String?>? receiverRejectReason,
+    Value<String?>? receiverNotes,
     Value<DateTime?>? bmApprovedAt,
     Value<String?>? bmApprovedBy,
     Value<DateTime?>? bmRejectedAt,
     Value<String?>? bmRejectReason,
-    Value<String?>? pipelineId,
+    Value<String?>? bmNotes,
+    Value<bool>? bonusCalculated,
+    Value<double?>? bonusAmount,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime?>? cancelledAt,
+    Value<String?>? cancelReason,
     Value<bool>? isPendingSync,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return PipelineReferralsCompanion(
       id: id ?? this.id,
       code: code ?? this.code,
       customerId: customerId ?? this.customerId,
-      cobId: cobId ?? this.cobId,
-      lobId: lobId ?? this.lobId,
-      potentialPremium: potentialPremium ?? this.potentialPremium,
       referrerRmId: referrerRmId ?? this.referrerRmId,
       receiverRmId: receiverRmId ?? this.receiverRmId,
       referrerBranchId: referrerBranchId ?? this.referrerBranchId,
       receiverBranchId: receiverBranchId ?? this.receiverBranchId,
+      referrerRegionalOfficeId:
+          referrerRegionalOfficeId ?? this.referrerRegionalOfficeId,
+      receiverRegionalOfficeId:
+          receiverRegionalOfficeId ?? this.receiverRegionalOfficeId,
+      approverType: approverType ?? this.approverType,
       reason: reason ?? this.reason,
       notes: notes ?? this.notes,
       status: status ?? this.status,
-      referrerApprovedAt: referrerApprovedAt ?? this.referrerApprovedAt,
       receiverAcceptedAt: receiverAcceptedAt ?? this.receiverAcceptedAt,
       receiverRejectedAt: receiverRejectedAt ?? this.receiverRejectedAt,
       receiverRejectReason: receiverRejectReason ?? this.receiverRejectReason,
+      receiverNotes: receiverNotes ?? this.receiverNotes,
       bmApprovedAt: bmApprovedAt ?? this.bmApprovedAt,
       bmApprovedBy: bmApprovedBy ?? this.bmApprovedBy,
       bmRejectedAt: bmRejectedAt ?? this.bmRejectedAt,
       bmRejectReason: bmRejectReason ?? this.bmRejectReason,
-      pipelineId: pipelineId ?? this.pipelineId,
+      bmNotes: bmNotes ?? this.bmNotes,
+      bonusCalculated: bonusCalculated ?? this.bonusCalculated,
+      bonusAmount: bonusAmount ?? this.bonusAmount,
+      expiresAt: expiresAt ?? this.expiresAt,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      cancelReason: cancelReason ?? this.cancelReason,
       isPendingSync: isPendingSync ?? this.isPendingSync,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -13209,15 +13537,6 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     if (customerId.present) {
       map['customer_id'] = Variable<String>(customerId.value);
     }
-    if (cobId.present) {
-      map['cob_id'] = Variable<String>(cobId.value);
-    }
-    if (lobId.present) {
-      map['lob_id'] = Variable<String>(lobId.value);
-    }
-    if (potentialPremium.present) {
-      map['potential_premium'] = Variable<double>(potentialPremium.value);
-    }
     if (referrerRmId.present) {
       map['referrer_rm_id'] = Variable<String>(referrerRmId.value);
     }
@@ -13230,6 +13549,19 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     if (receiverBranchId.present) {
       map['receiver_branch_id'] = Variable<String>(receiverBranchId.value);
     }
+    if (referrerRegionalOfficeId.present) {
+      map['referrer_regional_office_id'] = Variable<String>(
+        referrerRegionalOfficeId.value,
+      );
+    }
+    if (receiverRegionalOfficeId.present) {
+      map['receiver_regional_office_id'] = Variable<String>(
+        receiverRegionalOfficeId.value,
+      );
+    }
+    if (approverType.present) {
+      map['approver_type'] = Variable<String>(approverType.value);
+    }
     if (reason.present) {
       map['reason'] = Variable<String>(reason.value);
     }
@@ -13238,11 +13570,6 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
-    }
-    if (referrerApprovedAt.present) {
-      map['referrer_approved_at'] = Variable<DateTime>(
-        referrerApprovedAt.value,
-      );
     }
     if (receiverAcceptedAt.present) {
       map['receiver_accepted_at'] = Variable<DateTime>(
@@ -13259,6 +13586,9 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
         receiverRejectReason.value,
       );
     }
+    if (receiverNotes.present) {
+      map['receiver_notes'] = Variable<String>(receiverNotes.value);
+    }
     if (bmApprovedAt.present) {
       map['bm_approved_at'] = Variable<DateTime>(bmApprovedAt.value);
     }
@@ -13271,8 +13601,23 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     if (bmRejectReason.present) {
       map['bm_reject_reason'] = Variable<String>(bmRejectReason.value);
     }
-    if (pipelineId.present) {
-      map['pipeline_id'] = Variable<String>(pipelineId.value);
+    if (bmNotes.present) {
+      map['bm_notes'] = Variable<String>(bmNotes.value);
+    }
+    if (bonusCalculated.present) {
+      map['bonus_calculated'] = Variable<bool>(bonusCalculated.value);
+    }
+    if (bonusAmount.present) {
+      map['bonus_amount'] = Variable<double>(bonusAmount.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (cancelledAt.present) {
+      map['cancelled_at'] = Variable<DateTime>(cancelledAt.value);
+    }
+    if (cancelReason.present) {
+      map['cancel_reason'] = Variable<String>(cancelReason.value);
     }
     if (isPendingSync.present) {
       map['is_pending_sync'] = Variable<bool>(isPendingSync.value);
@@ -13282,6 +13627,9 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -13295,28 +13643,34 @@ class PipelineReferralsCompanion extends UpdateCompanion<PipelineReferral> {
           ..write('id: $id, ')
           ..write('code: $code, ')
           ..write('customerId: $customerId, ')
-          ..write('cobId: $cobId, ')
-          ..write('lobId: $lobId, ')
-          ..write('potentialPremium: $potentialPremium, ')
           ..write('referrerRmId: $referrerRmId, ')
           ..write('receiverRmId: $receiverRmId, ')
           ..write('referrerBranchId: $referrerBranchId, ')
           ..write('receiverBranchId: $receiverBranchId, ')
+          ..write('referrerRegionalOfficeId: $referrerRegionalOfficeId, ')
+          ..write('receiverRegionalOfficeId: $receiverRegionalOfficeId, ')
+          ..write('approverType: $approverType, ')
           ..write('reason: $reason, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
-          ..write('referrerApprovedAt: $referrerApprovedAt, ')
           ..write('receiverAcceptedAt: $receiverAcceptedAt, ')
           ..write('receiverRejectedAt: $receiverRejectedAt, ')
           ..write('receiverRejectReason: $receiverRejectReason, ')
+          ..write('receiverNotes: $receiverNotes, ')
           ..write('bmApprovedAt: $bmApprovedAt, ')
           ..write('bmApprovedBy: $bmApprovedBy, ')
           ..write('bmRejectedAt: $bmRejectedAt, ')
           ..write('bmRejectReason: $bmRejectReason, ')
-          ..write('pipelineId: $pipelineId, ')
+          ..write('bmNotes: $bmNotes, ')
+          ..write('bonusCalculated: $bonusCalculated, ')
+          ..write('bonusAmount: $bonusAmount, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('cancelledAt: $cancelledAt, ')
+          ..write('cancelReason: $cancelReason, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -24771,15 +25125,6 @@ class $CadenceParticipantsTable extends CadenceParticipants
       'REFERENCES users (id)',
     ),
   );
-  static const VerificationMeta _roleMeta = const VerificationMeta('role');
-  @override
-  late final GeneratedColumn<String> role = GeneratedColumn<String>(
-    'role',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _attendanceStatusMeta = const VerificationMeta(
     'attendanceStatus',
   );
@@ -24792,56 +25137,124 @@ class $CadenceParticipantsTable extends CadenceParticipants
     requiredDuringInsert: false,
     defaultValue: const Constant('PENDING'),
   );
-  static const VerificationMeta _preMeetingCommitmentMeta =
-      const VerificationMeta('preMeetingCommitment');
-  @override
-  late final GeneratedColumn<String> preMeetingCommitment =
-      GeneratedColumn<String>(
-        'pre_meeting_commitment',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _previousCommitmentStatusMeta =
-      const VerificationMeta('previousCommitmentStatus');
-  @override
-  late final GeneratedColumn<String> previousCommitmentStatus =
-      GeneratedColumn<String>(
-        'previous_commitment_status',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _blockersMeta = const VerificationMeta(
-    'blockers',
+  static const VerificationMeta _arrivedAtMeta = const VerificationMeta(
+    'arrivedAt',
   );
   @override
-  late final GeneratedColumn<String> blockers = GeneratedColumn<String>(
-    'blockers',
+  late final GeneratedColumn<DateTime> arrivedAt = GeneratedColumn<DateTime>(
+    'arrived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _excusedReasonMeta = const VerificationMeta(
+    'excusedReason',
+  );
+  @override
+  late final GeneratedColumn<String> excusedReason = GeneratedColumn<String>(
+    'excused_reason',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _postMeetingNotesMeta = const VerificationMeta(
-    'postMeetingNotes',
+  static const VerificationMeta _attendanceScoreImpactMeta =
+      const VerificationMeta('attendanceScoreImpact');
+  @override
+  late final GeneratedColumn<int> attendanceScoreImpact = GeneratedColumn<int>(
+    'attendance_score_impact',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _markedByMeta = const VerificationMeta(
+    'markedBy',
   );
   @override
-  late final GeneratedColumn<String> postMeetingNotes = GeneratedColumn<String>(
-    'post_meeting_notes',
+  late final GeneratedColumn<String> markedBy = GeneratedColumn<String>(
+    'marked_by',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _nextCommitmentMeta = const VerificationMeta(
-    'nextCommitment',
+  static const VerificationMeta _markedAtMeta = const VerificationMeta(
+    'markedAt',
   );
   @override
-  late final GeneratedColumn<String> nextCommitment = GeneratedColumn<String>(
-    'next_commitment',
+  late final GeneratedColumn<DateTime> markedAt = GeneratedColumn<DateTime>(
+    'marked_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _preMeetingSubmittedMeta =
+      const VerificationMeta('preMeetingSubmitted');
+  @override
+  late final GeneratedColumn<bool> preMeetingSubmitted = GeneratedColumn<bool>(
+    'pre_meeting_submitted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pre_meeting_submitted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _q1PreviousCommitmentMeta =
+      const VerificationMeta('q1PreviousCommitment');
+  @override
+  late final GeneratedColumn<String> q1PreviousCommitment =
+      GeneratedColumn<String>(
+        'q1_previous_commitment',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _q1CompletionStatusMeta =
+      const VerificationMeta('q1CompletionStatus');
+  @override
+  late final GeneratedColumn<String> q1CompletionStatus =
+      GeneratedColumn<String>(
+        'q1_completion_status',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _q2WhatAchievedMeta = const VerificationMeta(
+    'q2WhatAchieved',
+  );
+  @override
+  late final GeneratedColumn<String> q2WhatAchieved = GeneratedColumn<String>(
+    'q2_what_achieved',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _q3ObstaclesMeta = const VerificationMeta(
+    'q3Obstacles',
+  );
+  @override
+  late final GeneratedColumn<String> q3Obstacles = GeneratedColumn<String>(
+    'q3_obstacles',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _q4NextCommitmentMeta = const VerificationMeta(
+    'q4NextCommitment',
+  );
+  @override
+  late final GeneratedColumn<String> q4NextCommitment = GeneratedColumn<String>(
+    'q4_next_commitment',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -24854,6 +25267,74 @@ class $CadenceParticipantsTable extends CadenceParticipants
   late final GeneratedColumn<DateTime> formSubmittedAt =
       GeneratedColumn<DateTime>(
         'form_submitted_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _formSubmissionStatusMeta =
+      const VerificationMeta('formSubmissionStatus');
+  @override
+  late final GeneratedColumn<String> formSubmissionStatus =
+      GeneratedColumn<String>(
+        'form_submission_status',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _formScoreImpactMeta = const VerificationMeta(
+    'formScoreImpact',
+  );
+  @override
+  late final GeneratedColumn<int> formScoreImpact = GeneratedColumn<int>(
+    'form_score_impact',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hostNotesMeta = const VerificationMeta(
+    'hostNotes',
+  );
+  @override
+  late final GeneratedColumn<String> hostNotes = GeneratedColumn<String>(
+    'host_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feedbackTextMeta = const VerificationMeta(
+    'feedbackText',
+  );
+  @override
+  late final GeneratedColumn<String> feedbackText = GeneratedColumn<String>(
+    'feedback_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _feedbackGivenAtMeta = const VerificationMeta(
+    'feedbackGivenAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> feedbackGivenAt =
+      GeneratedColumn<DateTime>(
+        'feedback_given_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _feedbackUpdatedAtMeta = const VerificationMeta(
+    'feedbackUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> feedbackUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'feedback_updated_at',
         aliasedName,
         true,
         type: DriftSqlType.dateTime,
@@ -24873,6 +25354,17 @@ class $CadenceParticipantsTable extends CadenceParticipants
       'CHECK ("is_pending_sync" IN (0, 1))',
     ),
     defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -24901,15 +25393,27 @@ class $CadenceParticipantsTable extends CadenceParticipants
     id,
     meetingId,
     userId,
-    role,
     attendanceStatus,
-    preMeetingCommitment,
-    previousCommitmentStatus,
-    blockers,
-    postMeetingNotes,
-    nextCommitment,
+    arrivedAt,
+    excusedReason,
+    attendanceScoreImpact,
+    markedBy,
+    markedAt,
+    preMeetingSubmitted,
+    q1PreviousCommitment,
+    q1CompletionStatus,
+    q2WhatAchieved,
+    q3Obstacles,
+    q4NextCommitment,
     formSubmittedAt,
+    formSubmissionStatus,
+    formScoreImpact,
+    hostNotes,
+    feedbackText,
+    feedbackGivenAt,
+    feedbackUpdatedAt,
     isPendingSync,
+    lastSyncAt,
     createdAt,
     updatedAt,
   ];
@@ -24946,14 +25450,6 @@ class $CadenceParticipantsTable extends CadenceParticipants
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (data.containsKey('role')) {
-      context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_roleMeta);
-    }
     if (data.containsKey('attendance_status')) {
       context.handle(
         _attendanceStatusMeta,
@@ -24963,45 +25459,93 @@ class $CadenceParticipantsTable extends CadenceParticipants
         ),
       );
     }
-    if (data.containsKey('pre_meeting_commitment')) {
+    if (data.containsKey('arrived_at')) {
       context.handle(
-        _preMeetingCommitmentMeta,
-        preMeetingCommitment.isAcceptableOrUnknown(
-          data['pre_meeting_commitment']!,
-          _preMeetingCommitmentMeta,
+        _arrivedAtMeta,
+        arrivedAt.isAcceptableOrUnknown(data['arrived_at']!, _arrivedAtMeta),
+      );
+    }
+    if (data.containsKey('excused_reason')) {
+      context.handle(
+        _excusedReasonMeta,
+        excusedReason.isAcceptableOrUnknown(
+          data['excused_reason']!,
+          _excusedReasonMeta,
         ),
       );
     }
-    if (data.containsKey('previous_commitment_status')) {
+    if (data.containsKey('attendance_score_impact')) {
       context.handle(
-        _previousCommitmentStatusMeta,
-        previousCommitmentStatus.isAcceptableOrUnknown(
-          data['previous_commitment_status']!,
-          _previousCommitmentStatusMeta,
+        _attendanceScoreImpactMeta,
+        attendanceScoreImpact.isAcceptableOrUnknown(
+          data['attendance_score_impact']!,
+          _attendanceScoreImpactMeta,
         ),
       );
     }
-    if (data.containsKey('blockers')) {
+    if (data.containsKey('marked_by')) {
       context.handle(
-        _blockersMeta,
-        blockers.isAcceptableOrUnknown(data['blockers']!, _blockersMeta),
+        _markedByMeta,
+        markedBy.isAcceptableOrUnknown(data['marked_by']!, _markedByMeta),
       );
     }
-    if (data.containsKey('post_meeting_notes')) {
+    if (data.containsKey('marked_at')) {
       context.handle(
-        _postMeetingNotesMeta,
-        postMeetingNotes.isAcceptableOrUnknown(
-          data['post_meeting_notes']!,
-          _postMeetingNotesMeta,
+        _markedAtMeta,
+        markedAt.isAcceptableOrUnknown(data['marked_at']!, _markedAtMeta),
+      );
+    }
+    if (data.containsKey('pre_meeting_submitted')) {
+      context.handle(
+        _preMeetingSubmittedMeta,
+        preMeetingSubmitted.isAcceptableOrUnknown(
+          data['pre_meeting_submitted']!,
+          _preMeetingSubmittedMeta,
         ),
       );
     }
-    if (data.containsKey('next_commitment')) {
+    if (data.containsKey('q1_previous_commitment')) {
       context.handle(
-        _nextCommitmentMeta,
-        nextCommitment.isAcceptableOrUnknown(
-          data['next_commitment']!,
-          _nextCommitmentMeta,
+        _q1PreviousCommitmentMeta,
+        q1PreviousCommitment.isAcceptableOrUnknown(
+          data['q1_previous_commitment']!,
+          _q1PreviousCommitmentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('q1_completion_status')) {
+      context.handle(
+        _q1CompletionStatusMeta,
+        q1CompletionStatus.isAcceptableOrUnknown(
+          data['q1_completion_status']!,
+          _q1CompletionStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('q2_what_achieved')) {
+      context.handle(
+        _q2WhatAchievedMeta,
+        q2WhatAchieved.isAcceptableOrUnknown(
+          data['q2_what_achieved']!,
+          _q2WhatAchievedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('q3_obstacles')) {
+      context.handle(
+        _q3ObstaclesMeta,
+        q3Obstacles.isAcceptableOrUnknown(
+          data['q3_obstacles']!,
+          _q3ObstaclesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('q4_next_commitment')) {
+      context.handle(
+        _q4NextCommitmentMeta,
+        q4NextCommitment.isAcceptableOrUnknown(
+          data['q4_next_commitment']!,
+          _q4NextCommitmentMeta,
         ),
       );
     }
@@ -25014,12 +25558,72 @@ class $CadenceParticipantsTable extends CadenceParticipants
         ),
       );
     }
+    if (data.containsKey('form_submission_status')) {
+      context.handle(
+        _formSubmissionStatusMeta,
+        formSubmissionStatus.isAcceptableOrUnknown(
+          data['form_submission_status']!,
+          _formSubmissionStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('form_score_impact')) {
+      context.handle(
+        _formScoreImpactMeta,
+        formScoreImpact.isAcceptableOrUnknown(
+          data['form_score_impact']!,
+          _formScoreImpactMeta,
+        ),
+      );
+    }
+    if (data.containsKey('host_notes')) {
+      context.handle(
+        _hostNotesMeta,
+        hostNotes.isAcceptableOrUnknown(data['host_notes']!, _hostNotesMeta),
+      );
+    }
+    if (data.containsKey('feedback_text')) {
+      context.handle(
+        _feedbackTextMeta,
+        feedbackText.isAcceptableOrUnknown(
+          data['feedback_text']!,
+          _feedbackTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('feedback_given_at')) {
+      context.handle(
+        _feedbackGivenAtMeta,
+        feedbackGivenAt.isAcceptableOrUnknown(
+          data['feedback_given_at']!,
+          _feedbackGivenAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('feedback_updated_at')) {
+      context.handle(
+        _feedbackUpdatedAtMeta,
+        feedbackUpdatedAt.isAcceptableOrUnknown(
+          data['feedback_updated_at']!,
+          _feedbackUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_pending_sync')) {
       context.handle(
         _isPendingSyncMeta,
         isPendingSync.isAcceptableOrUnknown(
           data['is_pending_sync']!,
           _isPendingSyncMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
         ),
       );
     }
@@ -25060,42 +25664,90 @@ class $CadenceParticipantsTable extends CadenceParticipants
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
       )!,
-      role: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}role'],
-      )!,
       attendanceStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}attendance_status'],
       )!,
-      preMeetingCommitment: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}pre_meeting_commitment'],
+      arrivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}arrived_at'],
       ),
-      previousCommitmentStatus: attachedDatabase.typeMapping.read(
+      excusedReason: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}previous_commitment_status'],
+        data['${effectivePrefix}excused_reason'],
       ),
-      blockers: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}blockers'],
+      attendanceScoreImpact: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attendance_score_impact'],
       ),
-      postMeetingNotes: attachedDatabase.typeMapping.read(
+      markedBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}post_meeting_notes'],
+        data['${effectivePrefix}marked_by'],
       ),
-      nextCommitment: attachedDatabase.typeMapping.read(
+      markedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}marked_at'],
+      ),
+      preMeetingSubmitted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pre_meeting_submitted'],
+      )!,
+      q1PreviousCommitment: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}next_commitment'],
+        data['${effectivePrefix}q1_previous_commitment'],
+      ),
+      q1CompletionStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}q1_completion_status'],
+      ),
+      q2WhatAchieved: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}q2_what_achieved'],
+      ),
+      q3Obstacles: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}q3_obstacles'],
+      ),
+      q4NextCommitment: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}q4_next_commitment'],
       ),
       formSubmittedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}form_submitted_at'],
       ),
+      formSubmissionStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}form_submission_status'],
+      ),
+      formScoreImpact: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}form_score_impact'],
+      ),
+      hostNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}host_notes'],
+      ),
+      feedbackText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}feedback_text'],
+      ),
+      feedbackGivenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}feedback_given_at'],
+      ),
+      feedbackUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}feedback_updated_at'],
+      ),
       isPendingSync: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_pending_sync'],
       )!,
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -25118,30 +25770,72 @@ class CadenceParticipant extends DataClass
   final String id;
   final String meetingId;
   final String userId;
-  final String role;
+
+  /// Status: PENDING, PRESENT, LATE, EXCUSED, ABSENT
   final String attendanceStatus;
-  final String? preMeetingCommitment;
-  final String? previousCommitmentStatus;
-  final String? blockers;
-  final String? postMeetingNotes;
-  final String? nextCommitment;
+  final DateTime? arrivedAt;
+  final String? excusedReason;
+  final int? attendanceScoreImpact;
+  final String? markedBy;
+  final DateTime? markedAt;
+  final bool preMeetingSubmitted;
+
+  /// Q1: Previous commitment (auto-filled from last meeting's Q4)
+  final String? q1PreviousCommitment;
+
+  /// Q1: Status of previous commitment
+  final String? q1CompletionStatus;
+
+  /// Q2: What was achieved this period (required)
+  final String? q2WhatAchieved;
+
+  /// Q3: Obstacles/blockers faced (optional)
+  final String? q3Obstacles;
+
+  /// Q4: Commitment for next period (required)
+  final String? q4NextCommitment;
   final DateTime? formSubmittedAt;
+
+  /// Status: ON_TIME, LATE, VERY_LATE, NOT_SUBMITTED
+  final String? formSubmissionStatus;
+  final int? formScoreImpact;
+
+  /// Internal notes by host (not visible to participant)
+  final String? hostNotes;
+
+  /// Formal feedback visible to participant
+  final String? feedbackText;
+  final DateTime? feedbackGivenAt;
+  final DateTime? feedbackUpdatedAt;
   final bool isPendingSync;
+  final DateTime? lastSyncAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   const CadenceParticipant({
     required this.id,
     required this.meetingId,
     required this.userId,
-    required this.role,
     required this.attendanceStatus,
-    this.preMeetingCommitment,
-    this.previousCommitmentStatus,
-    this.blockers,
-    this.postMeetingNotes,
-    this.nextCommitment,
+    this.arrivedAt,
+    this.excusedReason,
+    this.attendanceScoreImpact,
+    this.markedBy,
+    this.markedAt,
+    required this.preMeetingSubmitted,
+    this.q1PreviousCommitment,
+    this.q1CompletionStatus,
+    this.q2WhatAchieved,
+    this.q3Obstacles,
+    this.q4NextCommitment,
     this.formSubmittedAt,
+    this.formSubmissionStatus,
+    this.formScoreImpact,
+    this.hostNotes,
+    this.feedbackText,
+    this.feedbackGivenAt,
+    this.feedbackUpdatedAt,
     required this.isPendingSync,
+    this.lastSyncAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -25151,29 +25845,63 @@ class CadenceParticipant extends DataClass
     map['id'] = Variable<String>(id);
     map['meeting_id'] = Variable<String>(meetingId);
     map['user_id'] = Variable<String>(userId);
-    map['role'] = Variable<String>(role);
     map['attendance_status'] = Variable<String>(attendanceStatus);
-    if (!nullToAbsent || preMeetingCommitment != null) {
-      map['pre_meeting_commitment'] = Variable<String>(preMeetingCommitment);
+    if (!nullToAbsent || arrivedAt != null) {
+      map['arrived_at'] = Variable<DateTime>(arrivedAt);
     }
-    if (!nullToAbsent || previousCommitmentStatus != null) {
-      map['previous_commitment_status'] = Variable<String>(
-        previousCommitmentStatus,
-      );
+    if (!nullToAbsent || excusedReason != null) {
+      map['excused_reason'] = Variable<String>(excusedReason);
     }
-    if (!nullToAbsent || blockers != null) {
-      map['blockers'] = Variable<String>(blockers);
+    if (!nullToAbsent || attendanceScoreImpact != null) {
+      map['attendance_score_impact'] = Variable<int>(attendanceScoreImpact);
     }
-    if (!nullToAbsent || postMeetingNotes != null) {
-      map['post_meeting_notes'] = Variable<String>(postMeetingNotes);
+    if (!nullToAbsent || markedBy != null) {
+      map['marked_by'] = Variable<String>(markedBy);
     }
-    if (!nullToAbsent || nextCommitment != null) {
-      map['next_commitment'] = Variable<String>(nextCommitment);
+    if (!nullToAbsent || markedAt != null) {
+      map['marked_at'] = Variable<DateTime>(markedAt);
+    }
+    map['pre_meeting_submitted'] = Variable<bool>(preMeetingSubmitted);
+    if (!nullToAbsent || q1PreviousCommitment != null) {
+      map['q1_previous_commitment'] = Variable<String>(q1PreviousCommitment);
+    }
+    if (!nullToAbsent || q1CompletionStatus != null) {
+      map['q1_completion_status'] = Variable<String>(q1CompletionStatus);
+    }
+    if (!nullToAbsent || q2WhatAchieved != null) {
+      map['q2_what_achieved'] = Variable<String>(q2WhatAchieved);
+    }
+    if (!nullToAbsent || q3Obstacles != null) {
+      map['q3_obstacles'] = Variable<String>(q3Obstacles);
+    }
+    if (!nullToAbsent || q4NextCommitment != null) {
+      map['q4_next_commitment'] = Variable<String>(q4NextCommitment);
     }
     if (!nullToAbsent || formSubmittedAt != null) {
       map['form_submitted_at'] = Variable<DateTime>(formSubmittedAt);
     }
+    if (!nullToAbsent || formSubmissionStatus != null) {
+      map['form_submission_status'] = Variable<String>(formSubmissionStatus);
+    }
+    if (!nullToAbsent || formScoreImpact != null) {
+      map['form_score_impact'] = Variable<int>(formScoreImpact);
+    }
+    if (!nullToAbsent || hostNotes != null) {
+      map['host_notes'] = Variable<String>(hostNotes);
+    }
+    if (!nullToAbsent || feedbackText != null) {
+      map['feedback_text'] = Variable<String>(feedbackText);
+    }
+    if (!nullToAbsent || feedbackGivenAt != null) {
+      map['feedback_given_at'] = Variable<DateTime>(feedbackGivenAt);
+    }
+    if (!nullToAbsent || feedbackUpdatedAt != null) {
+      map['feedback_updated_at'] = Variable<DateTime>(feedbackUpdatedAt);
+    }
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -25184,27 +25912,63 @@ class CadenceParticipant extends DataClass
       id: Value(id),
       meetingId: Value(meetingId),
       userId: Value(userId),
-      role: Value(role),
       attendanceStatus: Value(attendanceStatus),
-      preMeetingCommitment: preMeetingCommitment == null && nullToAbsent
+      arrivedAt: arrivedAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(preMeetingCommitment),
-      previousCommitmentStatus: previousCommitmentStatus == null && nullToAbsent
+          : Value(arrivedAt),
+      excusedReason: excusedReason == null && nullToAbsent
           ? const Value.absent()
-          : Value(previousCommitmentStatus),
-      blockers: blockers == null && nullToAbsent
+          : Value(excusedReason),
+      attendanceScoreImpact: attendanceScoreImpact == null && nullToAbsent
           ? const Value.absent()
-          : Value(blockers),
-      postMeetingNotes: postMeetingNotes == null && nullToAbsent
+          : Value(attendanceScoreImpact),
+      markedBy: markedBy == null && nullToAbsent
           ? const Value.absent()
-          : Value(postMeetingNotes),
-      nextCommitment: nextCommitment == null && nullToAbsent
+          : Value(markedBy),
+      markedAt: markedAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(nextCommitment),
+          : Value(markedAt),
+      preMeetingSubmitted: Value(preMeetingSubmitted),
+      q1PreviousCommitment: q1PreviousCommitment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(q1PreviousCommitment),
+      q1CompletionStatus: q1CompletionStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(q1CompletionStatus),
+      q2WhatAchieved: q2WhatAchieved == null && nullToAbsent
+          ? const Value.absent()
+          : Value(q2WhatAchieved),
+      q3Obstacles: q3Obstacles == null && nullToAbsent
+          ? const Value.absent()
+          : Value(q3Obstacles),
+      q4NextCommitment: q4NextCommitment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(q4NextCommitment),
       formSubmittedAt: formSubmittedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(formSubmittedAt),
+      formSubmissionStatus: formSubmissionStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(formSubmissionStatus),
+      formScoreImpact: formScoreImpact == null && nullToAbsent
+          ? const Value.absent()
+          : Value(formScoreImpact),
+      hostNotes: hostNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hostNotes),
+      feedbackText: feedbackText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackText),
+      feedbackGivenAt: feedbackGivenAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackGivenAt),
+      feedbackUpdatedAt: feedbackUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackUpdatedAt),
       isPendingSync: Value(isPendingSync),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -25219,19 +25983,39 @@ class CadenceParticipant extends DataClass
       id: serializer.fromJson<String>(json['id']),
       meetingId: serializer.fromJson<String>(json['meetingId']),
       userId: serializer.fromJson<String>(json['userId']),
-      role: serializer.fromJson<String>(json['role']),
       attendanceStatus: serializer.fromJson<String>(json['attendanceStatus']),
-      preMeetingCommitment: serializer.fromJson<String?>(
-        json['preMeetingCommitment'],
+      arrivedAt: serializer.fromJson<DateTime?>(json['arrivedAt']),
+      excusedReason: serializer.fromJson<String?>(json['excusedReason']),
+      attendanceScoreImpact: serializer.fromJson<int?>(
+        json['attendanceScoreImpact'],
       ),
-      previousCommitmentStatus: serializer.fromJson<String?>(
-        json['previousCommitmentStatus'],
+      markedBy: serializer.fromJson<String?>(json['markedBy']),
+      markedAt: serializer.fromJson<DateTime?>(json['markedAt']),
+      preMeetingSubmitted: serializer.fromJson<bool>(
+        json['preMeetingSubmitted'],
       ),
-      blockers: serializer.fromJson<String?>(json['blockers']),
-      postMeetingNotes: serializer.fromJson<String?>(json['postMeetingNotes']),
-      nextCommitment: serializer.fromJson<String?>(json['nextCommitment']),
+      q1PreviousCommitment: serializer.fromJson<String?>(
+        json['q1PreviousCommitment'],
+      ),
+      q1CompletionStatus: serializer.fromJson<String?>(
+        json['q1CompletionStatus'],
+      ),
+      q2WhatAchieved: serializer.fromJson<String?>(json['q2WhatAchieved']),
+      q3Obstacles: serializer.fromJson<String?>(json['q3Obstacles']),
+      q4NextCommitment: serializer.fromJson<String?>(json['q4NextCommitment']),
       formSubmittedAt: serializer.fromJson<DateTime?>(json['formSubmittedAt']),
+      formSubmissionStatus: serializer.fromJson<String?>(
+        json['formSubmissionStatus'],
+      ),
+      formScoreImpact: serializer.fromJson<int?>(json['formScoreImpact']),
+      hostNotes: serializer.fromJson<String?>(json['hostNotes']),
+      feedbackText: serializer.fromJson<String?>(json['feedbackText']),
+      feedbackGivenAt: serializer.fromJson<DateTime?>(json['feedbackGivenAt']),
+      feedbackUpdatedAt: serializer.fromJson<DateTime?>(
+        json['feedbackUpdatedAt'],
+      ),
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -25243,17 +26027,27 @@ class CadenceParticipant extends DataClass
       'id': serializer.toJson<String>(id),
       'meetingId': serializer.toJson<String>(meetingId),
       'userId': serializer.toJson<String>(userId),
-      'role': serializer.toJson<String>(role),
       'attendanceStatus': serializer.toJson<String>(attendanceStatus),
-      'preMeetingCommitment': serializer.toJson<String?>(preMeetingCommitment),
-      'previousCommitmentStatus': serializer.toJson<String?>(
-        previousCommitmentStatus,
-      ),
-      'blockers': serializer.toJson<String?>(blockers),
-      'postMeetingNotes': serializer.toJson<String?>(postMeetingNotes),
-      'nextCommitment': serializer.toJson<String?>(nextCommitment),
+      'arrivedAt': serializer.toJson<DateTime?>(arrivedAt),
+      'excusedReason': serializer.toJson<String?>(excusedReason),
+      'attendanceScoreImpact': serializer.toJson<int?>(attendanceScoreImpact),
+      'markedBy': serializer.toJson<String?>(markedBy),
+      'markedAt': serializer.toJson<DateTime?>(markedAt),
+      'preMeetingSubmitted': serializer.toJson<bool>(preMeetingSubmitted),
+      'q1PreviousCommitment': serializer.toJson<String?>(q1PreviousCommitment),
+      'q1CompletionStatus': serializer.toJson<String?>(q1CompletionStatus),
+      'q2WhatAchieved': serializer.toJson<String?>(q2WhatAchieved),
+      'q3Obstacles': serializer.toJson<String?>(q3Obstacles),
+      'q4NextCommitment': serializer.toJson<String?>(q4NextCommitment),
       'formSubmittedAt': serializer.toJson<DateTime?>(formSubmittedAt),
+      'formSubmissionStatus': serializer.toJson<String?>(formSubmissionStatus),
+      'formScoreImpact': serializer.toJson<int?>(formScoreImpact),
+      'hostNotes': serializer.toJson<String?>(hostNotes),
+      'feedbackText': serializer.toJson<String?>(feedbackText),
+      'feedbackGivenAt': serializer.toJson<DateTime?>(feedbackGivenAt),
+      'feedbackUpdatedAt': serializer.toJson<DateTime?>(feedbackUpdatedAt),
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -25263,40 +26057,76 @@ class CadenceParticipant extends DataClass
     String? id,
     String? meetingId,
     String? userId,
-    String? role,
     String? attendanceStatus,
-    Value<String?> preMeetingCommitment = const Value.absent(),
-    Value<String?> previousCommitmentStatus = const Value.absent(),
-    Value<String?> blockers = const Value.absent(),
-    Value<String?> postMeetingNotes = const Value.absent(),
-    Value<String?> nextCommitment = const Value.absent(),
+    Value<DateTime?> arrivedAt = const Value.absent(),
+    Value<String?> excusedReason = const Value.absent(),
+    Value<int?> attendanceScoreImpact = const Value.absent(),
+    Value<String?> markedBy = const Value.absent(),
+    Value<DateTime?> markedAt = const Value.absent(),
+    bool? preMeetingSubmitted,
+    Value<String?> q1PreviousCommitment = const Value.absent(),
+    Value<String?> q1CompletionStatus = const Value.absent(),
+    Value<String?> q2WhatAchieved = const Value.absent(),
+    Value<String?> q3Obstacles = const Value.absent(),
+    Value<String?> q4NextCommitment = const Value.absent(),
     Value<DateTime?> formSubmittedAt = const Value.absent(),
+    Value<String?> formSubmissionStatus = const Value.absent(),
+    Value<int?> formScoreImpact = const Value.absent(),
+    Value<String?> hostNotes = const Value.absent(),
+    Value<String?> feedbackText = const Value.absent(),
+    Value<DateTime?> feedbackGivenAt = const Value.absent(),
+    Value<DateTime?> feedbackUpdatedAt = const Value.absent(),
     bool? isPendingSync,
+    Value<DateTime?> lastSyncAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CadenceParticipant(
     id: id ?? this.id,
     meetingId: meetingId ?? this.meetingId,
     userId: userId ?? this.userId,
-    role: role ?? this.role,
     attendanceStatus: attendanceStatus ?? this.attendanceStatus,
-    preMeetingCommitment: preMeetingCommitment.present
-        ? preMeetingCommitment.value
-        : this.preMeetingCommitment,
-    previousCommitmentStatus: previousCommitmentStatus.present
-        ? previousCommitmentStatus.value
-        : this.previousCommitmentStatus,
-    blockers: blockers.present ? blockers.value : this.blockers,
-    postMeetingNotes: postMeetingNotes.present
-        ? postMeetingNotes.value
-        : this.postMeetingNotes,
-    nextCommitment: nextCommitment.present
-        ? nextCommitment.value
-        : this.nextCommitment,
+    arrivedAt: arrivedAt.present ? arrivedAt.value : this.arrivedAt,
+    excusedReason: excusedReason.present
+        ? excusedReason.value
+        : this.excusedReason,
+    attendanceScoreImpact: attendanceScoreImpact.present
+        ? attendanceScoreImpact.value
+        : this.attendanceScoreImpact,
+    markedBy: markedBy.present ? markedBy.value : this.markedBy,
+    markedAt: markedAt.present ? markedAt.value : this.markedAt,
+    preMeetingSubmitted: preMeetingSubmitted ?? this.preMeetingSubmitted,
+    q1PreviousCommitment: q1PreviousCommitment.present
+        ? q1PreviousCommitment.value
+        : this.q1PreviousCommitment,
+    q1CompletionStatus: q1CompletionStatus.present
+        ? q1CompletionStatus.value
+        : this.q1CompletionStatus,
+    q2WhatAchieved: q2WhatAchieved.present
+        ? q2WhatAchieved.value
+        : this.q2WhatAchieved,
+    q3Obstacles: q3Obstacles.present ? q3Obstacles.value : this.q3Obstacles,
+    q4NextCommitment: q4NextCommitment.present
+        ? q4NextCommitment.value
+        : this.q4NextCommitment,
     formSubmittedAt: formSubmittedAt.present
         ? formSubmittedAt.value
         : this.formSubmittedAt,
+    formSubmissionStatus: formSubmissionStatus.present
+        ? formSubmissionStatus.value
+        : this.formSubmissionStatus,
+    formScoreImpact: formScoreImpact.present
+        ? formScoreImpact.value
+        : this.formScoreImpact,
+    hostNotes: hostNotes.present ? hostNotes.value : this.hostNotes,
+    feedbackText: feedbackText.present ? feedbackText.value : this.feedbackText,
+    feedbackGivenAt: feedbackGivenAt.present
+        ? feedbackGivenAt.value
+        : this.feedbackGivenAt,
+    feedbackUpdatedAt: feedbackUpdatedAt.present
+        ? feedbackUpdatedAt.value
+        : this.feedbackUpdatedAt,
     isPendingSync: isPendingSync ?? this.isPendingSync,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -25305,29 +26135,61 @@ class CadenceParticipant extends DataClass
       id: data.id.present ? data.id.value : this.id,
       meetingId: data.meetingId.present ? data.meetingId.value : this.meetingId,
       userId: data.userId.present ? data.userId.value : this.userId,
-      role: data.role.present ? data.role.value : this.role,
       attendanceStatus: data.attendanceStatus.present
           ? data.attendanceStatus.value
           : this.attendanceStatus,
-      preMeetingCommitment: data.preMeetingCommitment.present
-          ? data.preMeetingCommitment.value
-          : this.preMeetingCommitment,
-      previousCommitmentStatus: data.previousCommitmentStatus.present
-          ? data.previousCommitmentStatus.value
-          : this.previousCommitmentStatus,
-      blockers: data.blockers.present ? data.blockers.value : this.blockers,
-      postMeetingNotes: data.postMeetingNotes.present
-          ? data.postMeetingNotes.value
-          : this.postMeetingNotes,
-      nextCommitment: data.nextCommitment.present
-          ? data.nextCommitment.value
-          : this.nextCommitment,
+      arrivedAt: data.arrivedAt.present ? data.arrivedAt.value : this.arrivedAt,
+      excusedReason: data.excusedReason.present
+          ? data.excusedReason.value
+          : this.excusedReason,
+      attendanceScoreImpact: data.attendanceScoreImpact.present
+          ? data.attendanceScoreImpact.value
+          : this.attendanceScoreImpact,
+      markedBy: data.markedBy.present ? data.markedBy.value : this.markedBy,
+      markedAt: data.markedAt.present ? data.markedAt.value : this.markedAt,
+      preMeetingSubmitted: data.preMeetingSubmitted.present
+          ? data.preMeetingSubmitted.value
+          : this.preMeetingSubmitted,
+      q1PreviousCommitment: data.q1PreviousCommitment.present
+          ? data.q1PreviousCommitment.value
+          : this.q1PreviousCommitment,
+      q1CompletionStatus: data.q1CompletionStatus.present
+          ? data.q1CompletionStatus.value
+          : this.q1CompletionStatus,
+      q2WhatAchieved: data.q2WhatAchieved.present
+          ? data.q2WhatAchieved.value
+          : this.q2WhatAchieved,
+      q3Obstacles: data.q3Obstacles.present
+          ? data.q3Obstacles.value
+          : this.q3Obstacles,
+      q4NextCommitment: data.q4NextCommitment.present
+          ? data.q4NextCommitment.value
+          : this.q4NextCommitment,
       formSubmittedAt: data.formSubmittedAt.present
           ? data.formSubmittedAt.value
           : this.formSubmittedAt,
+      formSubmissionStatus: data.formSubmissionStatus.present
+          ? data.formSubmissionStatus.value
+          : this.formSubmissionStatus,
+      formScoreImpact: data.formScoreImpact.present
+          ? data.formScoreImpact.value
+          : this.formScoreImpact,
+      hostNotes: data.hostNotes.present ? data.hostNotes.value : this.hostNotes,
+      feedbackText: data.feedbackText.present
+          ? data.feedbackText.value
+          : this.feedbackText,
+      feedbackGivenAt: data.feedbackGivenAt.present
+          ? data.feedbackGivenAt.value
+          : this.feedbackGivenAt,
+      feedbackUpdatedAt: data.feedbackUpdatedAt.present
+          ? data.feedbackUpdatedAt.value
+          : this.feedbackUpdatedAt,
       isPendingSync: data.isPendingSync.present
           ? data.isPendingSync.value
           : this.isPendingSync,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -25339,15 +26201,27 @@ class CadenceParticipant extends DataClass
           ..write('id: $id, ')
           ..write('meetingId: $meetingId, ')
           ..write('userId: $userId, ')
-          ..write('role: $role, ')
           ..write('attendanceStatus: $attendanceStatus, ')
-          ..write('preMeetingCommitment: $preMeetingCommitment, ')
-          ..write('previousCommitmentStatus: $previousCommitmentStatus, ')
-          ..write('blockers: $blockers, ')
-          ..write('postMeetingNotes: $postMeetingNotes, ')
-          ..write('nextCommitment: $nextCommitment, ')
+          ..write('arrivedAt: $arrivedAt, ')
+          ..write('excusedReason: $excusedReason, ')
+          ..write('attendanceScoreImpact: $attendanceScoreImpact, ')
+          ..write('markedBy: $markedBy, ')
+          ..write('markedAt: $markedAt, ')
+          ..write('preMeetingSubmitted: $preMeetingSubmitted, ')
+          ..write('q1PreviousCommitment: $q1PreviousCommitment, ')
+          ..write('q1CompletionStatus: $q1CompletionStatus, ')
+          ..write('q2WhatAchieved: $q2WhatAchieved, ')
+          ..write('q3Obstacles: $q3Obstacles, ')
+          ..write('q4NextCommitment: $q4NextCommitment, ')
           ..write('formSubmittedAt: $formSubmittedAt, ')
+          ..write('formSubmissionStatus: $formSubmissionStatus, ')
+          ..write('formScoreImpact: $formScoreImpact, ')
+          ..write('hostNotes: $hostNotes, ')
+          ..write('feedbackText: $feedbackText, ')
+          ..write('feedbackGivenAt: $feedbackGivenAt, ')
+          ..write('feedbackUpdatedAt: $feedbackUpdatedAt, ')
           ..write('isPendingSync: $isPendingSync, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -25355,22 +26229,34 @@ class CadenceParticipant extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     meetingId,
     userId,
-    role,
     attendanceStatus,
-    preMeetingCommitment,
-    previousCommitmentStatus,
-    blockers,
-    postMeetingNotes,
-    nextCommitment,
+    arrivedAt,
+    excusedReason,
+    attendanceScoreImpact,
+    markedBy,
+    markedAt,
+    preMeetingSubmitted,
+    q1PreviousCommitment,
+    q1CompletionStatus,
+    q2WhatAchieved,
+    q3Obstacles,
+    q4NextCommitment,
     formSubmittedAt,
+    formSubmissionStatus,
+    formScoreImpact,
+    hostNotes,
+    feedbackText,
+    feedbackGivenAt,
+    feedbackUpdatedAt,
     isPendingSync,
+    lastSyncAt,
     createdAt,
     updatedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -25378,15 +26264,27 @@ class CadenceParticipant extends DataClass
           other.id == this.id &&
           other.meetingId == this.meetingId &&
           other.userId == this.userId &&
-          other.role == this.role &&
           other.attendanceStatus == this.attendanceStatus &&
-          other.preMeetingCommitment == this.preMeetingCommitment &&
-          other.previousCommitmentStatus == this.previousCommitmentStatus &&
-          other.blockers == this.blockers &&
-          other.postMeetingNotes == this.postMeetingNotes &&
-          other.nextCommitment == this.nextCommitment &&
+          other.arrivedAt == this.arrivedAt &&
+          other.excusedReason == this.excusedReason &&
+          other.attendanceScoreImpact == this.attendanceScoreImpact &&
+          other.markedBy == this.markedBy &&
+          other.markedAt == this.markedAt &&
+          other.preMeetingSubmitted == this.preMeetingSubmitted &&
+          other.q1PreviousCommitment == this.q1PreviousCommitment &&
+          other.q1CompletionStatus == this.q1CompletionStatus &&
+          other.q2WhatAchieved == this.q2WhatAchieved &&
+          other.q3Obstacles == this.q3Obstacles &&
+          other.q4NextCommitment == this.q4NextCommitment &&
           other.formSubmittedAt == this.formSubmittedAt &&
+          other.formSubmissionStatus == this.formSubmissionStatus &&
+          other.formScoreImpact == this.formScoreImpact &&
+          other.hostNotes == this.hostNotes &&
+          other.feedbackText == this.feedbackText &&
+          other.feedbackGivenAt == this.feedbackGivenAt &&
+          other.feedbackUpdatedAt == this.feedbackUpdatedAt &&
           other.isPendingSync == this.isPendingSync &&
+          other.lastSyncAt == this.lastSyncAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -25395,15 +26293,27 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
   final Value<String> id;
   final Value<String> meetingId;
   final Value<String> userId;
-  final Value<String> role;
   final Value<String> attendanceStatus;
-  final Value<String?> preMeetingCommitment;
-  final Value<String?> previousCommitmentStatus;
-  final Value<String?> blockers;
-  final Value<String?> postMeetingNotes;
-  final Value<String?> nextCommitment;
+  final Value<DateTime?> arrivedAt;
+  final Value<String?> excusedReason;
+  final Value<int?> attendanceScoreImpact;
+  final Value<String?> markedBy;
+  final Value<DateTime?> markedAt;
+  final Value<bool> preMeetingSubmitted;
+  final Value<String?> q1PreviousCommitment;
+  final Value<String?> q1CompletionStatus;
+  final Value<String?> q2WhatAchieved;
+  final Value<String?> q3Obstacles;
+  final Value<String?> q4NextCommitment;
   final Value<DateTime?> formSubmittedAt;
+  final Value<String?> formSubmissionStatus;
+  final Value<int?> formScoreImpact;
+  final Value<String?> hostNotes;
+  final Value<String?> feedbackText;
+  final Value<DateTime?> feedbackGivenAt;
+  final Value<DateTime?> feedbackUpdatedAt;
   final Value<bool> isPendingSync;
+  final Value<DateTime?> lastSyncAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -25411,15 +26321,27 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
     this.id = const Value.absent(),
     this.meetingId = const Value.absent(),
     this.userId = const Value.absent(),
-    this.role = const Value.absent(),
     this.attendanceStatus = const Value.absent(),
-    this.preMeetingCommitment = const Value.absent(),
-    this.previousCommitmentStatus = const Value.absent(),
-    this.blockers = const Value.absent(),
-    this.postMeetingNotes = const Value.absent(),
-    this.nextCommitment = const Value.absent(),
+    this.arrivedAt = const Value.absent(),
+    this.excusedReason = const Value.absent(),
+    this.attendanceScoreImpact = const Value.absent(),
+    this.markedBy = const Value.absent(),
+    this.markedAt = const Value.absent(),
+    this.preMeetingSubmitted = const Value.absent(),
+    this.q1PreviousCommitment = const Value.absent(),
+    this.q1CompletionStatus = const Value.absent(),
+    this.q2WhatAchieved = const Value.absent(),
+    this.q3Obstacles = const Value.absent(),
+    this.q4NextCommitment = const Value.absent(),
     this.formSubmittedAt = const Value.absent(),
+    this.formSubmissionStatus = const Value.absent(),
+    this.formScoreImpact = const Value.absent(),
+    this.hostNotes = const Value.absent(),
+    this.feedbackText = const Value.absent(),
+    this.feedbackGivenAt = const Value.absent(),
+    this.feedbackUpdatedAt = const Value.absent(),
     this.isPendingSync = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -25428,37 +26350,60 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
     required String id,
     required String meetingId,
     required String userId,
-    required String role,
     this.attendanceStatus = const Value.absent(),
-    this.preMeetingCommitment = const Value.absent(),
-    this.previousCommitmentStatus = const Value.absent(),
-    this.blockers = const Value.absent(),
-    this.postMeetingNotes = const Value.absent(),
-    this.nextCommitment = const Value.absent(),
+    this.arrivedAt = const Value.absent(),
+    this.excusedReason = const Value.absent(),
+    this.attendanceScoreImpact = const Value.absent(),
+    this.markedBy = const Value.absent(),
+    this.markedAt = const Value.absent(),
+    this.preMeetingSubmitted = const Value.absent(),
+    this.q1PreviousCommitment = const Value.absent(),
+    this.q1CompletionStatus = const Value.absent(),
+    this.q2WhatAchieved = const Value.absent(),
+    this.q3Obstacles = const Value.absent(),
+    this.q4NextCommitment = const Value.absent(),
     this.formSubmittedAt = const Value.absent(),
+    this.formSubmissionStatus = const Value.absent(),
+    this.formScoreImpact = const Value.absent(),
+    this.hostNotes = const Value.absent(),
+    this.feedbackText = const Value.absent(),
+    this.feedbackGivenAt = const Value.absent(),
+    this.feedbackUpdatedAt = const Value.absent(),
     this.isPendingSync = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        meetingId = Value(meetingId),
        userId = Value(userId),
-       role = Value(role),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<CadenceParticipant> custom({
     Expression<String>? id,
     Expression<String>? meetingId,
     Expression<String>? userId,
-    Expression<String>? role,
     Expression<String>? attendanceStatus,
-    Expression<String>? preMeetingCommitment,
-    Expression<String>? previousCommitmentStatus,
-    Expression<String>? blockers,
-    Expression<String>? postMeetingNotes,
-    Expression<String>? nextCommitment,
+    Expression<DateTime>? arrivedAt,
+    Expression<String>? excusedReason,
+    Expression<int>? attendanceScoreImpact,
+    Expression<String>? markedBy,
+    Expression<DateTime>? markedAt,
+    Expression<bool>? preMeetingSubmitted,
+    Expression<String>? q1PreviousCommitment,
+    Expression<String>? q1CompletionStatus,
+    Expression<String>? q2WhatAchieved,
+    Expression<String>? q3Obstacles,
+    Expression<String>? q4NextCommitment,
     Expression<DateTime>? formSubmittedAt,
+    Expression<String>? formSubmissionStatus,
+    Expression<int>? formScoreImpact,
+    Expression<String>? hostNotes,
+    Expression<String>? feedbackText,
+    Expression<DateTime>? feedbackGivenAt,
+    Expression<DateTime>? feedbackUpdatedAt,
     Expression<bool>? isPendingSync,
+    Expression<DateTime>? lastSyncAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -25467,17 +26412,32 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
       if (id != null) 'id': id,
       if (meetingId != null) 'meeting_id': meetingId,
       if (userId != null) 'user_id': userId,
-      if (role != null) 'role': role,
       if (attendanceStatus != null) 'attendance_status': attendanceStatus,
-      if (preMeetingCommitment != null)
-        'pre_meeting_commitment': preMeetingCommitment,
-      if (previousCommitmentStatus != null)
-        'previous_commitment_status': previousCommitmentStatus,
-      if (blockers != null) 'blockers': blockers,
-      if (postMeetingNotes != null) 'post_meeting_notes': postMeetingNotes,
-      if (nextCommitment != null) 'next_commitment': nextCommitment,
+      if (arrivedAt != null) 'arrived_at': arrivedAt,
+      if (excusedReason != null) 'excused_reason': excusedReason,
+      if (attendanceScoreImpact != null)
+        'attendance_score_impact': attendanceScoreImpact,
+      if (markedBy != null) 'marked_by': markedBy,
+      if (markedAt != null) 'marked_at': markedAt,
+      if (preMeetingSubmitted != null)
+        'pre_meeting_submitted': preMeetingSubmitted,
+      if (q1PreviousCommitment != null)
+        'q1_previous_commitment': q1PreviousCommitment,
+      if (q1CompletionStatus != null)
+        'q1_completion_status': q1CompletionStatus,
+      if (q2WhatAchieved != null) 'q2_what_achieved': q2WhatAchieved,
+      if (q3Obstacles != null) 'q3_obstacles': q3Obstacles,
+      if (q4NextCommitment != null) 'q4_next_commitment': q4NextCommitment,
       if (formSubmittedAt != null) 'form_submitted_at': formSubmittedAt,
+      if (formSubmissionStatus != null)
+        'form_submission_status': formSubmissionStatus,
+      if (formScoreImpact != null) 'form_score_impact': formScoreImpact,
+      if (hostNotes != null) 'host_notes': hostNotes,
+      if (feedbackText != null) 'feedback_text': feedbackText,
+      if (feedbackGivenAt != null) 'feedback_given_at': feedbackGivenAt,
+      if (feedbackUpdatedAt != null) 'feedback_updated_at': feedbackUpdatedAt,
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -25488,15 +26448,27 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
     Value<String>? id,
     Value<String>? meetingId,
     Value<String>? userId,
-    Value<String>? role,
     Value<String>? attendanceStatus,
-    Value<String?>? preMeetingCommitment,
-    Value<String?>? previousCommitmentStatus,
-    Value<String?>? blockers,
-    Value<String?>? postMeetingNotes,
-    Value<String?>? nextCommitment,
+    Value<DateTime?>? arrivedAt,
+    Value<String?>? excusedReason,
+    Value<int?>? attendanceScoreImpact,
+    Value<String?>? markedBy,
+    Value<DateTime?>? markedAt,
+    Value<bool>? preMeetingSubmitted,
+    Value<String?>? q1PreviousCommitment,
+    Value<String?>? q1CompletionStatus,
+    Value<String?>? q2WhatAchieved,
+    Value<String?>? q3Obstacles,
+    Value<String?>? q4NextCommitment,
     Value<DateTime?>? formSubmittedAt,
+    Value<String?>? formSubmissionStatus,
+    Value<int?>? formScoreImpact,
+    Value<String?>? hostNotes,
+    Value<String?>? feedbackText,
+    Value<DateTime?>? feedbackGivenAt,
+    Value<DateTime?>? feedbackUpdatedAt,
     Value<bool>? isPendingSync,
+    Value<DateTime?>? lastSyncAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -25505,16 +26477,28 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
       id: id ?? this.id,
       meetingId: meetingId ?? this.meetingId,
       userId: userId ?? this.userId,
-      role: role ?? this.role,
       attendanceStatus: attendanceStatus ?? this.attendanceStatus,
-      preMeetingCommitment: preMeetingCommitment ?? this.preMeetingCommitment,
-      previousCommitmentStatus:
-          previousCommitmentStatus ?? this.previousCommitmentStatus,
-      blockers: blockers ?? this.blockers,
-      postMeetingNotes: postMeetingNotes ?? this.postMeetingNotes,
-      nextCommitment: nextCommitment ?? this.nextCommitment,
+      arrivedAt: arrivedAt ?? this.arrivedAt,
+      excusedReason: excusedReason ?? this.excusedReason,
+      attendanceScoreImpact:
+          attendanceScoreImpact ?? this.attendanceScoreImpact,
+      markedBy: markedBy ?? this.markedBy,
+      markedAt: markedAt ?? this.markedAt,
+      preMeetingSubmitted: preMeetingSubmitted ?? this.preMeetingSubmitted,
+      q1PreviousCommitment: q1PreviousCommitment ?? this.q1PreviousCommitment,
+      q1CompletionStatus: q1CompletionStatus ?? this.q1CompletionStatus,
+      q2WhatAchieved: q2WhatAchieved ?? this.q2WhatAchieved,
+      q3Obstacles: q3Obstacles ?? this.q3Obstacles,
+      q4NextCommitment: q4NextCommitment ?? this.q4NextCommitment,
       formSubmittedAt: formSubmittedAt ?? this.formSubmittedAt,
+      formSubmissionStatus: formSubmissionStatus ?? this.formSubmissionStatus,
+      formScoreImpact: formScoreImpact ?? this.formScoreImpact,
+      hostNotes: hostNotes ?? this.hostNotes,
+      feedbackText: feedbackText ?? this.feedbackText,
+      feedbackGivenAt: feedbackGivenAt ?? this.feedbackGivenAt,
+      feedbackUpdatedAt: feedbackUpdatedAt ?? this.feedbackUpdatedAt,
       isPendingSync: isPendingSync ?? this.isPendingSync,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -25533,36 +26517,74 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
     }
-    if (role.present) {
-      map['role'] = Variable<String>(role.value);
-    }
     if (attendanceStatus.present) {
       map['attendance_status'] = Variable<String>(attendanceStatus.value);
     }
-    if (preMeetingCommitment.present) {
-      map['pre_meeting_commitment'] = Variable<String>(
-        preMeetingCommitment.value,
+    if (arrivedAt.present) {
+      map['arrived_at'] = Variable<DateTime>(arrivedAt.value);
+    }
+    if (excusedReason.present) {
+      map['excused_reason'] = Variable<String>(excusedReason.value);
+    }
+    if (attendanceScoreImpact.present) {
+      map['attendance_score_impact'] = Variable<int>(
+        attendanceScoreImpact.value,
       );
     }
-    if (previousCommitmentStatus.present) {
-      map['previous_commitment_status'] = Variable<String>(
-        previousCommitmentStatus.value,
+    if (markedBy.present) {
+      map['marked_by'] = Variable<String>(markedBy.value);
+    }
+    if (markedAt.present) {
+      map['marked_at'] = Variable<DateTime>(markedAt.value);
+    }
+    if (preMeetingSubmitted.present) {
+      map['pre_meeting_submitted'] = Variable<bool>(preMeetingSubmitted.value);
+    }
+    if (q1PreviousCommitment.present) {
+      map['q1_previous_commitment'] = Variable<String>(
+        q1PreviousCommitment.value,
       );
     }
-    if (blockers.present) {
-      map['blockers'] = Variable<String>(blockers.value);
+    if (q1CompletionStatus.present) {
+      map['q1_completion_status'] = Variable<String>(q1CompletionStatus.value);
     }
-    if (postMeetingNotes.present) {
-      map['post_meeting_notes'] = Variable<String>(postMeetingNotes.value);
+    if (q2WhatAchieved.present) {
+      map['q2_what_achieved'] = Variable<String>(q2WhatAchieved.value);
     }
-    if (nextCommitment.present) {
-      map['next_commitment'] = Variable<String>(nextCommitment.value);
+    if (q3Obstacles.present) {
+      map['q3_obstacles'] = Variable<String>(q3Obstacles.value);
+    }
+    if (q4NextCommitment.present) {
+      map['q4_next_commitment'] = Variable<String>(q4NextCommitment.value);
     }
     if (formSubmittedAt.present) {
       map['form_submitted_at'] = Variable<DateTime>(formSubmittedAt.value);
     }
+    if (formSubmissionStatus.present) {
+      map['form_submission_status'] = Variable<String>(
+        formSubmissionStatus.value,
+      );
+    }
+    if (formScoreImpact.present) {
+      map['form_score_impact'] = Variable<int>(formScoreImpact.value);
+    }
+    if (hostNotes.present) {
+      map['host_notes'] = Variable<String>(hostNotes.value);
+    }
+    if (feedbackText.present) {
+      map['feedback_text'] = Variable<String>(feedbackText.value);
+    }
+    if (feedbackGivenAt.present) {
+      map['feedback_given_at'] = Variable<DateTime>(feedbackGivenAt.value);
+    }
+    if (feedbackUpdatedAt.present) {
+      map['feedback_updated_at'] = Variable<DateTime>(feedbackUpdatedAt.value);
+    }
     if (isPendingSync.present) {
       map['is_pending_sync'] = Variable<bool>(isPendingSync.value);
+    }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -25582,15 +26604,27 @@ class CadenceParticipantsCompanion extends UpdateCompanion<CadenceParticipant> {
           ..write('id: $id, ')
           ..write('meetingId: $meetingId, ')
           ..write('userId: $userId, ')
-          ..write('role: $role, ')
           ..write('attendanceStatus: $attendanceStatus, ')
-          ..write('preMeetingCommitment: $preMeetingCommitment, ')
-          ..write('previousCommitmentStatus: $previousCommitmentStatus, ')
-          ..write('blockers: $blockers, ')
-          ..write('postMeetingNotes: $postMeetingNotes, ')
-          ..write('nextCommitment: $nextCommitment, ')
+          ..write('arrivedAt: $arrivedAt, ')
+          ..write('excusedReason: $excusedReason, ')
+          ..write('attendanceScoreImpact: $attendanceScoreImpact, ')
+          ..write('markedBy: $markedBy, ')
+          ..write('markedAt: $markedAt, ')
+          ..write('preMeetingSubmitted: $preMeetingSubmitted, ')
+          ..write('q1PreviousCommitment: $q1PreviousCommitment, ')
+          ..write('q1CompletionStatus: $q1CompletionStatus, ')
+          ..write('q2WhatAchieved: $q2WhatAchieved, ')
+          ..write('q3Obstacles: $q3Obstacles, ')
+          ..write('q4NextCommitment: $q4NextCommitment, ')
           ..write('formSubmittedAt: $formSubmittedAt, ')
+          ..write('formSubmissionStatus: $formSubmissionStatus, ')
+          ..write('formScoreImpact: $formScoreImpact, ')
+          ..write('hostNotes: $hostNotes, ')
+          ..write('feedbackText: $feedbackText, ')
+          ..write('feedbackGivenAt: $feedbackGivenAt, ')
+          ..write('feedbackUpdatedAt: $feedbackUpdatedAt, ')
           ..write('isPendingSync: $isPendingSync, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -40848,28 +41882,34 @@ typedef $$PipelineReferralsTableCreateCompanionBuilder =
       required String id,
       required String code,
       required String customerId,
-      required String cobId,
-      required String lobId,
-      required double potentialPremium,
       required String referrerRmId,
       required String receiverRmId,
-      required String referrerBranchId,
-      required String receiverBranchId,
+      Value<String?> referrerBranchId,
+      Value<String?> receiverBranchId,
+      Value<String?> referrerRegionalOfficeId,
+      Value<String?> receiverRegionalOfficeId,
+      Value<String> approverType,
       required String reason,
       Value<String?> notes,
-      required String status,
-      Value<DateTime?> referrerApprovedAt,
+      Value<String> status,
       Value<DateTime?> receiverAcceptedAt,
       Value<DateTime?> receiverRejectedAt,
       Value<String?> receiverRejectReason,
+      Value<String?> receiverNotes,
       Value<DateTime?> bmApprovedAt,
       Value<String?> bmApprovedBy,
       Value<DateTime?> bmRejectedAt,
       Value<String?> bmRejectReason,
-      Value<String?> pipelineId,
+      Value<String?> bmNotes,
+      Value<bool> bonusCalculated,
+      Value<double?> bonusAmount,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> cancelledAt,
+      Value<String?> cancelReason,
       Value<bool> isPendingSync,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$PipelineReferralsTableUpdateCompanionBuilder =
@@ -40877,28 +41917,34 @@ typedef $$PipelineReferralsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> code,
       Value<String> customerId,
-      Value<String> cobId,
-      Value<String> lobId,
-      Value<double> potentialPremium,
       Value<String> referrerRmId,
       Value<String> receiverRmId,
-      Value<String> referrerBranchId,
-      Value<String> receiverBranchId,
+      Value<String?> referrerBranchId,
+      Value<String?> receiverBranchId,
+      Value<String?> referrerRegionalOfficeId,
+      Value<String?> receiverRegionalOfficeId,
+      Value<String> approverType,
       Value<String> reason,
       Value<String?> notes,
       Value<String> status,
-      Value<DateTime?> referrerApprovedAt,
       Value<DateTime?> receiverAcceptedAt,
       Value<DateTime?> receiverRejectedAt,
       Value<String?> receiverRejectReason,
+      Value<String?> receiverNotes,
       Value<DateTime?> bmApprovedAt,
       Value<String?> bmApprovedBy,
       Value<DateTime?> bmRejectedAt,
       Value<String?> bmRejectReason,
-      Value<String?> pipelineId,
+      Value<String?> bmNotes,
+      Value<bool> bonusCalculated,
+      Value<double?> bonusAmount,
+      Value<DateTime?> expiresAt,
+      Value<DateTime?> cancelledAt,
+      Value<String?> cancelReason,
       Value<bool> isPendingSync,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -41011,21 +42057,6 @@ class $$PipelineReferralsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get cobId => $composableBuilder(
-    column: $table.cobId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get lobId => $composableBuilder(
-    column: $table.lobId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get potentialPremium => $composableBuilder(
-    column: $table.potentialPremium,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get referrerBranchId => $composableBuilder(
     column: $table.referrerBranchId,
     builder: (column) => ColumnFilters(column),
@@ -41033,6 +42064,21 @@ class $$PipelineReferralsTableFilterComposer
 
   ColumnFilters<String> get receiverBranchId => $composableBuilder(
     column: $table.receiverBranchId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referrerRegionalOfficeId => $composableBuilder(
+    column: $table.referrerRegionalOfficeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiverRegionalOfficeId => $composableBuilder(
+    column: $table.receiverRegionalOfficeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get approverType => $composableBuilder(
+    column: $table.approverType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41051,11 +42097,6 @@ class $$PipelineReferralsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get referrerApprovedAt => $composableBuilder(
-    column: $table.referrerApprovedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<DateTime> get receiverAcceptedAt => $composableBuilder(
     column: $table.receiverAcceptedAt,
     builder: (column) => ColumnFilters(column),
@@ -41068,6 +42109,11 @@ class $$PipelineReferralsTableFilterComposer
 
   ColumnFilters<String> get receiverRejectReason => $composableBuilder(
     column: $table.receiverRejectReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiverNotes => $composableBuilder(
+    column: $table.receiverNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41086,8 +42132,33 @@ class $$PipelineReferralsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get pipelineId => $composableBuilder(
-    column: $table.pipelineId,
+  ColumnFilters<String> get bmNotes => $composableBuilder(
+    column: $table.bmNotes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get bonusCalculated => $composableBuilder(
+    column: $table.bonusCalculated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get bonusAmount => $composableBuilder(
+    column: $table.bonusAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cancelReason => $composableBuilder(
+    column: $table.cancelReason,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41103,6 +42174,11 @@ class $$PipelineReferralsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41218,21 +42294,6 @@ class $$PipelineReferralsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get cobId => $composableBuilder(
-    column: $table.cobId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get lobId => $composableBuilder(
-    column: $table.lobId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get potentialPremium => $composableBuilder(
-    column: $table.potentialPremium,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get referrerBranchId => $composableBuilder(
     column: $table.referrerBranchId,
     builder: (column) => ColumnOrderings(column),
@@ -41240,6 +42301,21 @@ class $$PipelineReferralsTableOrderingComposer
 
   ColumnOrderings<String> get receiverBranchId => $composableBuilder(
     column: $table.receiverBranchId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referrerRegionalOfficeId => $composableBuilder(
+    column: $table.referrerRegionalOfficeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiverRegionalOfficeId => $composableBuilder(
+    column: $table.receiverRegionalOfficeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get approverType => $composableBuilder(
+    column: $table.approverType,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41258,11 +42334,6 @@ class $$PipelineReferralsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get referrerApprovedAt => $composableBuilder(
-    column: $table.referrerApprovedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<DateTime> get receiverAcceptedAt => $composableBuilder(
     column: $table.receiverAcceptedAt,
     builder: (column) => ColumnOrderings(column),
@@ -41275,6 +42346,11 @@ class $$PipelineReferralsTableOrderingComposer
 
   ColumnOrderings<String> get receiverRejectReason => $composableBuilder(
     column: $table.receiverRejectReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiverNotes => $composableBuilder(
+    column: $table.receiverNotes,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41293,8 +42369,33 @@ class $$PipelineReferralsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get pipelineId => $composableBuilder(
-    column: $table.pipelineId,
+  ColumnOrderings<String> get bmNotes => $composableBuilder(
+    column: $table.bmNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get bonusCalculated => $composableBuilder(
+    column: $table.bonusCalculated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get bonusAmount => $composableBuilder(
+    column: $table.bonusAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cancelReason => $composableBuilder(
+    column: $table.cancelReason,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41310,6 +42411,11 @@ class $$PipelineReferralsTableOrderingComposer
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -41421,17 +42527,6 @@ class $$PipelineReferralsTableAnnotationComposer
   GeneratedColumn<String> get code =>
       $composableBuilder(column: $table.code, builder: (column) => column);
 
-  GeneratedColumn<String> get cobId =>
-      $composableBuilder(column: $table.cobId, builder: (column) => column);
-
-  GeneratedColumn<String> get lobId =>
-      $composableBuilder(column: $table.lobId, builder: (column) => column);
-
-  GeneratedColumn<double> get potentialPremium => $composableBuilder(
-    column: $table.potentialPremium,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get referrerBranchId => $composableBuilder(
     column: $table.referrerBranchId,
     builder: (column) => column,
@@ -41439,6 +42534,21 @@ class $$PipelineReferralsTableAnnotationComposer
 
   GeneratedColumn<String> get receiverBranchId => $composableBuilder(
     column: $table.receiverBranchId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referrerRegionalOfficeId => $composableBuilder(
+    column: $table.referrerRegionalOfficeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiverRegionalOfficeId => $composableBuilder(
+    column: $table.receiverRegionalOfficeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get approverType => $composableBuilder(
+    column: $table.approverType,
     builder: (column) => column,
   );
 
@@ -41450,11 +42560,6 @@ class $$PipelineReferralsTableAnnotationComposer
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get referrerApprovedAt => $composableBuilder(
-    column: $table.referrerApprovedAt,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<DateTime> get receiverAcceptedAt => $composableBuilder(
     column: $table.receiverAcceptedAt,
@@ -41468,6 +42573,11 @@ class $$PipelineReferralsTableAnnotationComposer
 
   GeneratedColumn<String> get receiverRejectReason => $composableBuilder(
     column: $table.receiverRejectReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiverNotes => $composableBuilder(
+    column: $table.receiverNotes,
     builder: (column) => column,
   );
 
@@ -41486,8 +42596,29 @@ class $$PipelineReferralsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get pipelineId => $composableBuilder(
-    column: $table.pipelineId,
+  GeneratedColumn<String> get bmNotes =>
+      $composableBuilder(column: $table.bmNotes, builder: (column) => column);
+
+  GeneratedColumn<bool> get bonusCalculated => $composableBuilder(
+    column: $table.bonusCalculated,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get bonusAmount => $composableBuilder(
+    column: $table.bonusAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cancelledAt => $composableBuilder(
+    column: $table.cancelledAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cancelReason => $composableBuilder(
+    column: $table.cancelReason,
     builder: (column) => column,
   );
 
@@ -41501,6 +42632,11 @@ class $$PipelineReferralsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
 
   $$CustomersTableAnnotationComposer get customerId {
     final $$CustomersTableAnnotationComposer composer = $composerBuilder(
@@ -41636,55 +42772,67 @@ class $$PipelineReferralsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> code = const Value.absent(),
                 Value<String> customerId = const Value.absent(),
-                Value<String> cobId = const Value.absent(),
-                Value<String> lobId = const Value.absent(),
-                Value<double> potentialPremium = const Value.absent(),
                 Value<String> referrerRmId = const Value.absent(),
                 Value<String> receiverRmId = const Value.absent(),
-                Value<String> referrerBranchId = const Value.absent(),
-                Value<String> receiverBranchId = const Value.absent(),
+                Value<String?> referrerBranchId = const Value.absent(),
+                Value<String?> receiverBranchId = const Value.absent(),
+                Value<String?> referrerRegionalOfficeId = const Value.absent(),
+                Value<String?> receiverRegionalOfficeId = const Value.absent(),
+                Value<String> approverType = const Value.absent(),
                 Value<String> reason = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String> status = const Value.absent(),
-                Value<DateTime?> referrerApprovedAt = const Value.absent(),
                 Value<DateTime?> receiverAcceptedAt = const Value.absent(),
                 Value<DateTime?> receiverRejectedAt = const Value.absent(),
                 Value<String?> receiverRejectReason = const Value.absent(),
+                Value<String?> receiverNotes = const Value.absent(),
                 Value<DateTime?> bmApprovedAt = const Value.absent(),
                 Value<String?> bmApprovedBy = const Value.absent(),
                 Value<DateTime?> bmRejectedAt = const Value.absent(),
                 Value<String?> bmRejectReason = const Value.absent(),
-                Value<String?> pipelineId = const Value.absent(),
+                Value<String?> bmNotes = const Value.absent(),
+                Value<bool> bonusCalculated = const Value.absent(),
+                Value<double?> bonusAmount = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> cancelledAt = const Value.absent(),
+                Value<String?> cancelReason = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineReferralsCompanion(
                 id: id,
                 code: code,
                 customerId: customerId,
-                cobId: cobId,
-                lobId: lobId,
-                potentialPremium: potentialPremium,
                 referrerRmId: referrerRmId,
                 receiverRmId: receiverRmId,
                 referrerBranchId: referrerBranchId,
                 receiverBranchId: receiverBranchId,
+                referrerRegionalOfficeId: referrerRegionalOfficeId,
+                receiverRegionalOfficeId: receiverRegionalOfficeId,
+                approverType: approverType,
                 reason: reason,
                 notes: notes,
                 status: status,
-                referrerApprovedAt: referrerApprovedAt,
                 receiverAcceptedAt: receiverAcceptedAt,
                 receiverRejectedAt: receiverRejectedAt,
                 receiverRejectReason: receiverRejectReason,
+                receiverNotes: receiverNotes,
                 bmApprovedAt: bmApprovedAt,
                 bmApprovedBy: bmApprovedBy,
                 bmRejectedAt: bmRejectedAt,
                 bmRejectReason: bmRejectReason,
-                pipelineId: pipelineId,
+                bmNotes: bmNotes,
+                bonusCalculated: bonusCalculated,
+                bonusAmount: bonusAmount,
+                expiresAt: expiresAt,
+                cancelledAt: cancelledAt,
+                cancelReason: cancelReason,
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -41692,55 +42840,67 @@ class $$PipelineReferralsTableTableManager
                 required String id,
                 required String code,
                 required String customerId,
-                required String cobId,
-                required String lobId,
-                required double potentialPremium,
                 required String referrerRmId,
                 required String receiverRmId,
-                required String referrerBranchId,
-                required String receiverBranchId,
+                Value<String?> referrerBranchId = const Value.absent(),
+                Value<String?> receiverBranchId = const Value.absent(),
+                Value<String?> referrerRegionalOfficeId = const Value.absent(),
+                Value<String?> receiverRegionalOfficeId = const Value.absent(),
+                Value<String> approverType = const Value.absent(),
                 required String reason,
                 Value<String?> notes = const Value.absent(),
-                required String status,
-                Value<DateTime?> referrerApprovedAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<DateTime?> receiverAcceptedAt = const Value.absent(),
                 Value<DateTime?> receiverRejectedAt = const Value.absent(),
                 Value<String?> receiverRejectReason = const Value.absent(),
+                Value<String?> receiverNotes = const Value.absent(),
                 Value<DateTime?> bmApprovedAt = const Value.absent(),
                 Value<String?> bmApprovedBy = const Value.absent(),
                 Value<DateTime?> bmRejectedAt = const Value.absent(),
                 Value<String?> bmRejectReason = const Value.absent(),
-                Value<String?> pipelineId = const Value.absent(),
+                Value<String?> bmNotes = const Value.absent(),
+                Value<bool> bonusCalculated = const Value.absent(),
+                Value<double?> bonusAmount = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime?> cancelledAt = const Value.absent(),
+                Value<String?> cancelReason = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineReferralsCompanion.insert(
                 id: id,
                 code: code,
                 customerId: customerId,
-                cobId: cobId,
-                lobId: lobId,
-                potentialPremium: potentialPremium,
                 referrerRmId: referrerRmId,
                 receiverRmId: receiverRmId,
                 referrerBranchId: referrerBranchId,
                 receiverBranchId: receiverBranchId,
+                referrerRegionalOfficeId: referrerRegionalOfficeId,
+                receiverRegionalOfficeId: receiverRegionalOfficeId,
+                approverType: approverType,
                 reason: reason,
                 notes: notes,
                 status: status,
-                referrerApprovedAt: referrerApprovedAt,
                 receiverAcceptedAt: receiverAcceptedAt,
                 receiverRejectedAt: receiverRejectedAt,
                 receiverRejectReason: receiverRejectReason,
+                receiverNotes: receiverNotes,
                 bmApprovedAt: bmApprovedAt,
                 bmApprovedBy: bmApprovedBy,
                 bmRejectedAt: bmRejectedAt,
                 bmRejectReason: bmRejectReason,
-                pipelineId: pipelineId,
+                bmNotes: bmNotes,
+                bonusCalculated: bonusCalculated,
+                bonusAmount: bonusAmount,
+                expiresAt: expiresAt,
+                cancelledAt: cancelledAt,
+                cancelReason: cancelReason,
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -50812,15 +51972,27 @@ typedef $$CadenceParticipantsTableCreateCompanionBuilder =
       required String id,
       required String meetingId,
       required String userId,
-      required String role,
       Value<String> attendanceStatus,
-      Value<String?> preMeetingCommitment,
-      Value<String?> previousCommitmentStatus,
-      Value<String?> blockers,
-      Value<String?> postMeetingNotes,
-      Value<String?> nextCommitment,
+      Value<DateTime?> arrivedAt,
+      Value<String?> excusedReason,
+      Value<int?> attendanceScoreImpact,
+      Value<String?> markedBy,
+      Value<DateTime?> markedAt,
+      Value<bool> preMeetingSubmitted,
+      Value<String?> q1PreviousCommitment,
+      Value<String?> q1CompletionStatus,
+      Value<String?> q2WhatAchieved,
+      Value<String?> q3Obstacles,
+      Value<String?> q4NextCommitment,
       Value<DateTime?> formSubmittedAt,
+      Value<String?> formSubmissionStatus,
+      Value<int?> formScoreImpact,
+      Value<String?> hostNotes,
+      Value<String?> feedbackText,
+      Value<DateTime?> feedbackGivenAt,
+      Value<DateTime?> feedbackUpdatedAt,
       Value<bool> isPendingSync,
+      Value<DateTime?> lastSyncAt,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -50830,15 +52002,27 @@ typedef $$CadenceParticipantsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> meetingId,
       Value<String> userId,
-      Value<String> role,
       Value<String> attendanceStatus,
-      Value<String?> preMeetingCommitment,
-      Value<String?> previousCommitmentStatus,
-      Value<String?> blockers,
-      Value<String?> postMeetingNotes,
-      Value<String?> nextCommitment,
+      Value<DateTime?> arrivedAt,
+      Value<String?> excusedReason,
+      Value<int?> attendanceScoreImpact,
+      Value<String?> markedBy,
+      Value<DateTime?> markedAt,
+      Value<bool> preMeetingSubmitted,
+      Value<String?> q1PreviousCommitment,
+      Value<String?> q1CompletionStatus,
+      Value<String?> q2WhatAchieved,
+      Value<String?> q3Obstacles,
+      Value<String?> q4NextCommitment,
       Value<DateTime?> formSubmittedAt,
+      Value<String?> formSubmissionStatus,
+      Value<int?> formScoreImpact,
+      Value<String?> hostNotes,
+      Value<String?> feedbackText,
+      Value<DateTime?> feedbackGivenAt,
+      Value<DateTime?> feedbackUpdatedAt,
       Value<bool> isPendingSync,
+      Value<DateTime?> lastSyncAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -50912,38 +52096,63 @@ class $$CadenceParticipantsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get attendanceStatus => $composableBuilder(
     column: $table.attendanceStatus,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get preMeetingCommitment => $composableBuilder(
-    column: $table.preMeetingCommitment,
+  ColumnFilters<DateTime> get arrivedAt => $composableBuilder(
+    column: $table.arrivedAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get previousCommitmentStatus => $composableBuilder(
-    column: $table.previousCommitmentStatus,
+  ColumnFilters<String> get excusedReason => $composableBuilder(
+    column: $table.excusedReason,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get blockers => $composableBuilder(
-    column: $table.blockers,
+  ColumnFilters<int> get attendanceScoreImpact => $composableBuilder(
+    column: $table.attendanceScoreImpact,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get postMeetingNotes => $composableBuilder(
-    column: $table.postMeetingNotes,
+  ColumnFilters<String> get markedBy => $composableBuilder(
+    column: $table.markedBy,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get nextCommitment => $composableBuilder(
-    column: $table.nextCommitment,
+  ColumnFilters<DateTime> get markedAt => $composableBuilder(
+    column: $table.markedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get preMeetingSubmitted => $composableBuilder(
+    column: $table.preMeetingSubmitted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get q1PreviousCommitment => $composableBuilder(
+    column: $table.q1PreviousCommitment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get q1CompletionStatus => $composableBuilder(
+    column: $table.q1CompletionStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get q2WhatAchieved => $composableBuilder(
+    column: $table.q2WhatAchieved,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get q3Obstacles => $composableBuilder(
+    column: $table.q3Obstacles,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get q4NextCommitment => $composableBuilder(
+    column: $table.q4NextCommitment,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -50952,8 +52161,43 @@ class $$CadenceParticipantsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get formSubmissionStatus => $composableBuilder(
+    column: $table.formSubmissionStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get formScoreImpact => $composableBuilder(
+    column: $table.formScoreImpact,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hostNotes => $composableBuilder(
+    column: $table.hostNotes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get feedbackText => $composableBuilder(
+    column: $table.feedbackText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get feedbackGivenAt => $composableBuilder(
+    column: $table.feedbackGivenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get feedbackUpdatedAt => $composableBuilder(
+    column: $table.feedbackUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -51028,38 +52272,63 @@ class $$CadenceParticipantsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get attendanceStatus => $composableBuilder(
     column: $table.attendanceStatus,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get preMeetingCommitment => $composableBuilder(
-    column: $table.preMeetingCommitment,
+  ColumnOrderings<DateTime> get arrivedAt => $composableBuilder(
+    column: $table.arrivedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get previousCommitmentStatus => $composableBuilder(
-    column: $table.previousCommitmentStatus,
+  ColumnOrderings<String> get excusedReason => $composableBuilder(
+    column: $table.excusedReason,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get blockers => $composableBuilder(
-    column: $table.blockers,
+  ColumnOrderings<int> get attendanceScoreImpact => $composableBuilder(
+    column: $table.attendanceScoreImpact,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get postMeetingNotes => $composableBuilder(
-    column: $table.postMeetingNotes,
+  ColumnOrderings<String> get markedBy => $composableBuilder(
+    column: $table.markedBy,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get nextCommitment => $composableBuilder(
-    column: $table.nextCommitment,
+  ColumnOrderings<DateTime> get markedAt => $composableBuilder(
+    column: $table.markedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get preMeetingSubmitted => $composableBuilder(
+    column: $table.preMeetingSubmitted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get q1PreviousCommitment => $composableBuilder(
+    column: $table.q1PreviousCommitment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get q1CompletionStatus => $composableBuilder(
+    column: $table.q1CompletionStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get q2WhatAchieved => $composableBuilder(
+    column: $table.q2WhatAchieved,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get q3Obstacles => $composableBuilder(
+    column: $table.q3Obstacles,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get q4NextCommitment => $composableBuilder(
+    column: $table.q4NextCommitment,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -51068,8 +52337,43 @@ class $$CadenceParticipantsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get formSubmissionStatus => $composableBuilder(
+    column: $table.formSubmissionStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get formScoreImpact => $composableBuilder(
+    column: $table.formScoreImpact,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hostNotes => $composableBuilder(
+    column: $table.hostNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get feedbackText => $composableBuilder(
+    column: $table.feedbackText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get feedbackGivenAt => $composableBuilder(
+    column: $table.feedbackGivenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get feedbackUpdatedAt => $composableBuilder(
+    column: $table.feedbackUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -51142,34 +52446,57 @@ class $$CadenceParticipantsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get role =>
-      $composableBuilder(column: $table.role, builder: (column) => column);
-
   GeneratedColumn<String> get attendanceStatus => $composableBuilder(
     column: $table.attendanceStatus,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get preMeetingCommitment => $composableBuilder(
-    column: $table.preMeetingCommitment,
+  GeneratedColumn<DateTime> get arrivedAt =>
+      $composableBuilder(column: $table.arrivedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get excusedReason => $composableBuilder(
+    column: $table.excusedReason,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get previousCommitmentStatus => $composableBuilder(
-    column: $table.previousCommitmentStatus,
+  GeneratedColumn<int> get attendanceScoreImpact => $composableBuilder(
+    column: $table.attendanceScoreImpact,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get blockers =>
-      $composableBuilder(column: $table.blockers, builder: (column) => column);
+  GeneratedColumn<String> get markedBy =>
+      $composableBuilder(column: $table.markedBy, builder: (column) => column);
 
-  GeneratedColumn<String> get postMeetingNotes => $composableBuilder(
-    column: $table.postMeetingNotes,
+  GeneratedColumn<DateTime> get markedAt =>
+      $composableBuilder(column: $table.markedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get preMeetingSubmitted => $composableBuilder(
+    column: $table.preMeetingSubmitted,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get nextCommitment => $composableBuilder(
-    column: $table.nextCommitment,
+  GeneratedColumn<String> get q1PreviousCommitment => $composableBuilder(
+    column: $table.q1PreviousCommitment,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get q1CompletionStatus => $composableBuilder(
+    column: $table.q1CompletionStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get q2WhatAchieved => $composableBuilder(
+    column: $table.q2WhatAchieved,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get q3Obstacles => $composableBuilder(
+    column: $table.q3Obstacles,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get q4NextCommitment => $composableBuilder(
+    column: $table.q4NextCommitment,
     builder: (column) => column,
   );
 
@@ -51178,8 +52505,41 @@ class $$CadenceParticipantsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get formSubmissionStatus => $composableBuilder(
+    column: $table.formSubmissionStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get formScoreImpact => $composableBuilder(
+    column: $table.formScoreImpact,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get hostNotes =>
+      $composableBuilder(column: $table.hostNotes, builder: (column) => column);
+
+  GeneratedColumn<String> get feedbackText => $composableBuilder(
+    column: $table.feedbackText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get feedbackGivenAt => $composableBuilder(
+    column: $table.feedbackGivenAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get feedbackUpdatedAt => $composableBuilder(
+    column: $table.feedbackUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isPendingSync => $composableBuilder(
     column: $table.isPendingSync,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => column,
   );
 
@@ -51275,15 +52635,27 @@ class $$CadenceParticipantsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> meetingId = const Value.absent(),
                 Value<String> userId = const Value.absent(),
-                Value<String> role = const Value.absent(),
                 Value<String> attendanceStatus = const Value.absent(),
-                Value<String?> preMeetingCommitment = const Value.absent(),
-                Value<String?> previousCommitmentStatus = const Value.absent(),
-                Value<String?> blockers = const Value.absent(),
-                Value<String?> postMeetingNotes = const Value.absent(),
-                Value<String?> nextCommitment = const Value.absent(),
+                Value<DateTime?> arrivedAt = const Value.absent(),
+                Value<String?> excusedReason = const Value.absent(),
+                Value<int?> attendanceScoreImpact = const Value.absent(),
+                Value<String?> markedBy = const Value.absent(),
+                Value<DateTime?> markedAt = const Value.absent(),
+                Value<bool> preMeetingSubmitted = const Value.absent(),
+                Value<String?> q1PreviousCommitment = const Value.absent(),
+                Value<String?> q1CompletionStatus = const Value.absent(),
+                Value<String?> q2WhatAchieved = const Value.absent(),
+                Value<String?> q3Obstacles = const Value.absent(),
+                Value<String?> q4NextCommitment = const Value.absent(),
                 Value<DateTime?> formSubmittedAt = const Value.absent(),
+                Value<String?> formSubmissionStatus = const Value.absent(),
+                Value<int?> formScoreImpact = const Value.absent(),
+                Value<String?> hostNotes = const Value.absent(),
+                Value<String?> feedbackText = const Value.absent(),
+                Value<DateTime?> feedbackGivenAt = const Value.absent(),
+                Value<DateTime?> feedbackUpdatedAt = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -51291,15 +52663,27 @@ class $$CadenceParticipantsTableTableManager
                 id: id,
                 meetingId: meetingId,
                 userId: userId,
-                role: role,
                 attendanceStatus: attendanceStatus,
-                preMeetingCommitment: preMeetingCommitment,
-                previousCommitmentStatus: previousCommitmentStatus,
-                blockers: blockers,
-                postMeetingNotes: postMeetingNotes,
-                nextCommitment: nextCommitment,
+                arrivedAt: arrivedAt,
+                excusedReason: excusedReason,
+                attendanceScoreImpact: attendanceScoreImpact,
+                markedBy: markedBy,
+                markedAt: markedAt,
+                preMeetingSubmitted: preMeetingSubmitted,
+                q1PreviousCommitment: q1PreviousCommitment,
+                q1CompletionStatus: q1CompletionStatus,
+                q2WhatAchieved: q2WhatAchieved,
+                q3Obstacles: q3Obstacles,
+                q4NextCommitment: q4NextCommitment,
                 formSubmittedAt: formSubmittedAt,
+                formSubmissionStatus: formSubmissionStatus,
+                formScoreImpact: formScoreImpact,
+                hostNotes: hostNotes,
+                feedbackText: feedbackText,
+                feedbackGivenAt: feedbackGivenAt,
+                feedbackUpdatedAt: feedbackUpdatedAt,
                 isPendingSync: isPendingSync,
+                lastSyncAt: lastSyncAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -51309,15 +52693,27 @@ class $$CadenceParticipantsTableTableManager
                 required String id,
                 required String meetingId,
                 required String userId,
-                required String role,
                 Value<String> attendanceStatus = const Value.absent(),
-                Value<String?> preMeetingCommitment = const Value.absent(),
-                Value<String?> previousCommitmentStatus = const Value.absent(),
-                Value<String?> blockers = const Value.absent(),
-                Value<String?> postMeetingNotes = const Value.absent(),
-                Value<String?> nextCommitment = const Value.absent(),
+                Value<DateTime?> arrivedAt = const Value.absent(),
+                Value<String?> excusedReason = const Value.absent(),
+                Value<int?> attendanceScoreImpact = const Value.absent(),
+                Value<String?> markedBy = const Value.absent(),
+                Value<DateTime?> markedAt = const Value.absent(),
+                Value<bool> preMeetingSubmitted = const Value.absent(),
+                Value<String?> q1PreviousCommitment = const Value.absent(),
+                Value<String?> q1CompletionStatus = const Value.absent(),
+                Value<String?> q2WhatAchieved = const Value.absent(),
+                Value<String?> q3Obstacles = const Value.absent(),
+                Value<String?> q4NextCommitment = const Value.absent(),
                 Value<DateTime?> formSubmittedAt = const Value.absent(),
+                Value<String?> formSubmissionStatus = const Value.absent(),
+                Value<int?> formScoreImpact = const Value.absent(),
+                Value<String?> hostNotes = const Value.absent(),
+                Value<String?> feedbackText = const Value.absent(),
+                Value<DateTime?> feedbackGivenAt = const Value.absent(),
+                Value<DateTime?> feedbackUpdatedAt = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -51325,15 +52721,27 @@ class $$CadenceParticipantsTableTableManager
                 id: id,
                 meetingId: meetingId,
                 userId: userId,
-                role: role,
                 attendanceStatus: attendanceStatus,
-                preMeetingCommitment: preMeetingCommitment,
-                previousCommitmentStatus: previousCommitmentStatus,
-                blockers: blockers,
-                postMeetingNotes: postMeetingNotes,
-                nextCommitment: nextCommitment,
+                arrivedAt: arrivedAt,
+                excusedReason: excusedReason,
+                attendanceScoreImpact: attendanceScoreImpact,
+                markedBy: markedBy,
+                markedAt: markedAt,
+                preMeetingSubmitted: preMeetingSubmitted,
+                q1PreviousCommitment: q1PreviousCommitment,
+                q1CompletionStatus: q1CompletionStatus,
+                q2WhatAchieved: q2WhatAchieved,
+                q3Obstacles: q3Obstacles,
+                q4NextCommitment: q4NextCommitment,
                 formSubmittedAt: formSubmittedAt,
+                formSubmissionStatus: formSubmissionStatus,
+                formScoreImpact: formScoreImpact,
+                hostNotes: hostNotes,
+                feedbackText: feedbackText,
+                feedbackGivenAt: feedbackGivenAt,
+                feedbackUpdatedAt: feedbackUpdatedAt,
                 isPendingSync: isPendingSync,
+                lastSyncAt: lastSyncAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

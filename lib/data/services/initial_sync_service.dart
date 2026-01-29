@@ -108,6 +108,7 @@ class InitialSyncService {
     'hvcs',
     'brokers',
     'customer_hvc_links',
+    'pipeline_referrals',
   ];
 
   /// Stream controller for progress updates.
@@ -939,7 +940,76 @@ class InitialSyncService {
       case 'customer_hvc_links':
         await _syncCustomerHvcLinks(since: since);
         break;
+      case 'pipeline_referrals':
+        await _syncPipelineReferrals(since: since);
+        break;
     }
+  }
+
+  // ============================================
+  // PIPELINE REFERRALS SYNC METHOD
+  // ============================================
+
+  Future<void> _syncPipelineReferrals({DateTime? since}) async {
+    var query = _supabase.from('pipeline_referrals').select();
+
+    if (since != null) {
+      // Delta sync: fetch updated since last sync
+      query = query.gte('updated_at', since.toIso8601String());
+    }
+
+    final data = await query;
+
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.pipelineReferrals,
+          PipelineReferralsCompanion.insert(
+            id: row['id'] as String,
+            code: row['code'] as String,
+            customerId: row['customer_id'] as String,
+            referrerRmId: row['referrer_rm_id'] as String,
+            receiverRmId: row['receiver_rm_id'] as String,
+            referrerBranchId: Value(row['referrer_branch_id'] as String?),
+            receiverBranchId: Value(row['receiver_branch_id'] as String?),
+            referrerRegionalOfficeId: Value(row['referrer_regional_office_id'] as String?),
+            receiverRegionalOfficeId: Value(row['receiver_regional_office_id'] as String?),
+            approverType: Value(row['approver_type'] as String? ?? 'BM'),
+            status: Value(row['status'] as String),
+            reason: row['reason'] as String,
+            notes: Value(row['notes'] as String?),
+            receiverNotes: Value(row['receiver_notes'] as String?),
+            receiverAcceptedAt: Value(row['receiver_accepted_at'] != null
+                ? DateTime.parse(row['receiver_accepted_at'] as String)
+                : null),
+            receiverRejectedAt: Value(row['receiver_rejected_at'] != null
+                ? DateTime.parse(row['receiver_rejected_at'] as String)
+                : null),
+            receiverRejectReason: Value(row['receiver_reject_reason'] as String?),
+            bmApprovedAt: Value(row['bm_approved_at'] != null
+                ? DateTime.parse(row['bm_approved_at'] as String)
+                : null),
+            bmApprovedBy: Value(row['bm_approved_by'] as String?),
+            bmNotes: Value(row['bm_notes'] as String?),
+            bmRejectedAt: Value(row['bm_rejected_at'] != null
+                ? DateTime.parse(row['bm_rejected_at'] as String)
+                : null),
+            bmRejectReason: Value(row['bm_reject_reason'] as String?),
+            cancelledAt: Value(row['cancelled_at'] != null
+                ? DateTime.parse(row['cancelled_at'] as String)
+                : null),
+            cancelReason: Value(row['cancel_reason'] as String?),
+            bonusCalculated: Value(row['bonus_calculated'] as bool? ?? false),
+            bonusAmount: Value((row['bonus_amount'] as num?)?.toDouble()),
+            isPendingSync: const Value(false),
+            lastSyncAt: Value(DateTime.now()),
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
   }
 
   /// Dispose resources.

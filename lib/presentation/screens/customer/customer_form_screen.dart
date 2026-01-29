@@ -213,15 +213,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             const SizedBox(height: 16),
             AppTextField(
               controller: _addressController,
-              label: 'Alamat *',
+              label: 'Alamat',
               hint: 'Masukkan alamat lengkap',
               maxLines: 3,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Alamat wajib diisi';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 16),
 
@@ -516,7 +510,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         widget.customerId!,
         CustomerUpdateDto(
           name: _nameController.text,
-          address: _addressController.text,
+          address: _addressController.text.isNotEmpty
+              ? _addressController.text
+              : null,
           provinceId: _selectedProvinceId,
           cityId: _selectedCityId,
           postalCode: _postalCodeController.text.isNotEmpty
@@ -538,7 +534,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       formNotifier.createCustomer(
         CustomerCreateDto(
           name: _nameController.text,
-          address: _addressController.text,
+          address: _addressController.text.isNotEmpty
+              ? _addressController.text
+              : null,
           provinceId: _selectedProvinceId!,
           cityId: _selectedCityId!,
           companyTypeId: _selectedCompanyTypeId!,

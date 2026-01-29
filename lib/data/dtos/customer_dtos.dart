@@ -8,7 +8,7 @@ part 'customer_dtos.g.dart';
 class CustomerCreateDto with _$CustomerCreateDto {
   const factory CustomerCreateDto({
     required String name,
-    required String address,
+    String? address,
     required String provinceId,
     required String cityId,
     required String companyTypeId,
@@ -65,7 +65,7 @@ class CustomerSyncDto with _$CustomerSyncDto {
     required String id,
     required String code,
     required String name,
-    required String address,
+    String? address,
     required String createdBy,
     required DateTime createdAt,
     required DateTime updatedAt,

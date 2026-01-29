@@ -7,6 +7,7 @@ class HomeDrawer extends StatelessWidget {
   final String userRole;
   final VoidCallback? onHvcTap;
   final VoidCallback? onBrokerTap;
+  final VoidCallback? onReferralsTap;
   final VoidCallback? onScoreboardTap;
   final VoidCallback? onCadenceTap;
   final VoidCallback? onSettingsTap;
@@ -27,6 +28,7 @@ class HomeDrawer extends StatelessWidget {
     required this.userRole,
     this.onHvcTap,
     this.onBrokerTap,
+    this.onReferralsTap,
     this.onScoreboardTap,
     this.onCadenceTap,
     this.onSettingsTap,
@@ -67,6 +69,13 @@ class HomeDrawer extends StatelessWidget {
             title: 'Broker',
             subtitle: 'Kelola broker dan mitra',
             onTap: onBrokerTap,
+          ),
+          _buildDrawerItem(
+            context,
+            icon: Icons.swap_horiz,
+            title: 'Referral',
+            subtitle: 'Transfer nasabah antar RM',
+            onTap: onReferralsTap,
           ),
 
           const Divider(height: 8),

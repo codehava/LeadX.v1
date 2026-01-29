@@ -35,6 +35,10 @@ import '../../presentation/screens/profile/about_screen.dart';
 import '../../presentation/screens/profile/change_password_screen.dart';
 import '../../presentation/screens/profile/edit_profile_screen.dart';
 import '../../presentation/screens/profile/settings_screen.dart';
+import '../../presentation/screens/referral/manager_approval_screen.dart';
+import '../../presentation/screens/referral/referral_create_screen.dart';
+import '../../presentation/screens/referral/referral_detail_screen.dart';
+import '../../presentation/screens/referral/referral_list_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
 import '../../presentation/widgets/shell/responsive_shell.dart';
@@ -423,6 +427,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+            ],
+          ),
+
+          // Referrals
+          GoRoute(
+            path: 'referrals',
+            name: RouteNames.referrals,
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: const ReferralListScreen(),
+              ),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: RouteNames.referralCreate,
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const ReferralCreateScreen(),
+              ),
+              GoRoute(
+                path: 'approvals',
+                name: RouteNames.managerApprovals,
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const ManagerApprovalScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.referralDetail,
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ReferralDetailScreen(referralId: id);
+                },
               ),
             ],
           ),

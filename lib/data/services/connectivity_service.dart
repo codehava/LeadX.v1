@@ -11,9 +11,9 @@ class ConnectivityService {
     SupabaseClient? supabaseClient,
   })  : _connectivity = connectivity ?? Connectivity(),
         _supabaseClient = supabaseClient,
-        // Default to true to avoid showing offline indicator immediately.
-        // Will be properly updated by initialize() with actual connectivity check.
-        _isConnected = true;
+        // Default to false until we verify actual connectivity.
+        // This prevents showing "online" when we haven't checked yet.
+        _isConnected = false;
 
   final Connectivity _connectivity;
   final SupabaseClient? _supabaseClient;
@@ -40,31 +40,47 @@ class ConnectivityService {
   Future<void> initialize() async {
     _controller = StreamController<bool>.broadcast();
 
-    // Get initial connectivity status
+    // Get initial connectivity status from platform
     final results = await _connectivity.checkConnectivity();
-    _isConnected = _hasConnection(results);
-    
-    print('[ConnectivityService] Initial connectivity check: results=$results, isConnected=$_isConnected, kIsWeb=$kIsWeb');
+    final hasInterface = _hasConnection(results);
+
+    print('[ConnectivityService] Initial connectivity check: results=$results, hasInterface=$hasInterface, kIsWeb=$kIsWeb');
 
     // On web, connectivity_plus has limited support
-    // If we're on web and results show no connection, assume we're online
-    // (since the app is running in a browser which requires internet)
-    if (kIsWeb && !_isConnected) {
-      print('[ConnectivityService] Web platform detected, assuming online');
+    // If we're on web, assume we're online (since the app is running in a browser)
+    if (kIsWeb) {
       _isConnected = true;
+      print('[ConnectivityService] Web platform detected, assuming online');
+    } else if (hasInterface) {
+      // On mobile, having a network interface doesn't mean we have internet
+      // Verify by actually trying to reach the server
+      print('[ConnectivityService] Verifying server reachability...');
+      _isConnected = await checkServerReachability();
+      print('[ConnectivityService] Server reachable: $_isConnected');
+    } else {
+      _isConnected = false;
     }
 
+    // Emit initial state to the stream so UI gets the correct value immediately
+    _controller?.add(_isConnected);
+
     // Listen for connectivity changes
-    _subscription = _connectivity.onConnectivityChanged.listen((results) {
+    _subscription = _connectivity.onConnectivityChanged.listen((results) async {
       var connected = _hasConnection(results);
-      
+
       // On web, if no connection detected, still assume online
       if (kIsWeb && !connected) {
         connected = true;
       }
-      
+
+      // On mobile, verify actual server reachability when interface becomes available
+      if (!kIsWeb && connected && !_isConnected) {
+        print('[ConnectivityService] Interface available, verifying reachability...');
+        connected = await checkServerReachability();
+      }
+
       print('[ConnectivityService] Connectivity changed: results=$results, connected=$connected');
-      
+
       if (connected != _isConnected) {
         _isConnected = connected;
         _controller?.add(_isConnected);
@@ -82,10 +98,13 @@ class ConnectivityService {
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(_pollInterval, (_) async {
       final results = await _connectivity.checkConnectivity();
-      final connected = _hasConnection(results);
-      
+      final hasInterface = _hasConnection(results);
+
+      // If we have an interface, verify actual server reachability
+      final connected = hasInterface && await checkServerReachability();
+
       if (connected != _isConnected) {
-        print('[ConnectivityService] Poll detected change: $connected');
+        print('[ConnectivityService] Poll detected change: $connected (interface: $hasInterface)');
         _isConnected = connected;
         _controller?.add(_isConnected);
       }

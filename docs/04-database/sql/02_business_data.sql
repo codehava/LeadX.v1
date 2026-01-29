@@ -166,16 +166,26 @@ CREATE TABLE pipeline_referrals (
     'PENDING_RECEIVER', 'RECEIVER_ACCEPTED', 'RECEIVER_REJECTED',
     'PENDING_BM', 'BM_APPROVED', 'BM_REJECTED', 'COMPLETED', 'CANCELLED'
   )),
-  referrer_approved_at TIMESTAMPTZ,
+  -- Receiver Response
   receiver_accepted_at TIMESTAMPTZ,
   receiver_rejected_at TIMESTAMPTZ,
   receiver_reject_reason TEXT,
+  receiver_notes TEXT,
   -- Manager approval (BM or ROH based on approver_type)
   bm_approved_at TIMESTAMPTZ,
   bm_approved_by UUID REFERENCES users(id),
   bm_rejected_at TIMESTAMPTZ,
   bm_reject_reason TEXT,
+  bm_notes TEXT,
+  -- Result
   pipeline_id UUID,
+  bonus_calculated BOOLEAN NOT NULL DEFAULT false,
+  bonus_amount DECIMAL(18, 2),
+  -- Expiration & Cancellation
+  expires_at TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  cancel_reason TEXT,
+  -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

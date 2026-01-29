@@ -10,7 +10,7 @@ _$CustomerCreateDtoImpl _$$CustomerCreateDtoImplFromJson(
   Map<String, dynamic> json,
 ) => _$CustomerCreateDtoImpl(
   name: json['name'] as String,
-  address: json['address'] as String,
+  address: json['address'] as String?,
   provinceId: json['provinceId'] as String,
   cityId: json['cityId'] as String,
   companyTypeId: json['companyTypeId'] as String,
@@ -102,7 +102,7 @@ _$CustomerSyncDtoImpl _$$CustomerSyncDtoImplFromJson(
   id: json['id'] as String,
   code: json['code'] as String,
   name: json['name'] as String,
-  address: json['address'] as String,
+  address: json['address'] as String?,
   createdBy: json['createdBy'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),

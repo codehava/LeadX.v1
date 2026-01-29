@@ -81,7 +81,8 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     } else if (route.contains('/customers')) {
       return 1;
     } else if (route.contains('/hvcs') || route.contains('/brokers') ||
-               route.contains('/scoreboard') || route.contains('/cadence')) {
+               route.contains('/referrals') || route.contains('/scoreboard') ||
+               route.contains('/cadence')) {
       // These are sidebar items, not main nav items
       // Set to -1 so no bottom nav item is highlighted
       return -1;
@@ -393,6 +394,13 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 ),
                 _buildRailTrailingItem(
                   context,
+                  icon: Icons.swap_horiz,
+                  label: 'Referral',
+                  isSelected: widget.currentRoute.contains('/referrals'),
+                  onTap: () => context.go(RoutePaths.referrals),
+                ),
+                _buildRailTrailingItem(
+                  context,
                   icon: Icons.leaderboard,
                   label: 'Score',
                   isSelected: widget.currentRoute.contains('/scoreboard'),
@@ -633,6 +641,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 _buildSidebarItem(context, Icons.handshake, 'Broker', -1,
                     routePattern: '/brokers',
                     onTap: () => context.go(RoutePaths.brokers)),
+                _buildSidebarItem(context, Icons.swap_horiz, 'Referral', -1,
+                    routePattern: '/referrals',
+                    onTap: () => context.go(RoutePaths.referrals)),
 
                 // 4DX & PERFORMANCE
                 const SizedBox(height: 8),
@@ -878,6 +889,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           onBrokerTap: () {
             Navigator.pop(context);
             context.push(RoutePaths.brokers);
+          },
+          onReferralsTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.referrals);
           },
           onScoreboardTap: () {
             Navigator.pop(context);

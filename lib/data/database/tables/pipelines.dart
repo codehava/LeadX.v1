@@ -40,33 +40,63 @@ class Pipelines extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Pipeline referrals - RM-to-RM referral handshake with BM approval.
+/// Pipeline referrals - RM-to-RM referral handshake with manager approval.
+/// Supports both BM and ROH approval based on receiver's organizational position.
+/// Note: This is an online-only operation - customer transfers require network.
 class PipelineReferrals extends Table {
   TextColumn get id => text()();
   TextColumn get code => text().unique()(); // REF-YYYYMMDD-XXX
+
+  // Customer Info
   TextColumn get customerId => text().references(Customers, #id)();
-  TextColumn get cobId => text()();
-  TextColumn get lobId => text()();
-  RealColumn get potentialPremium => real()();
+
+  // Parties Involved
   TextColumn get referrerRmId => text().references(Users, #id)();
   TextColumn get receiverRmId => text().references(Users, #id)();
-  TextColumn get referrerBranchId => text()();
-  TextColumn get receiverBranchId => text()();
+
+  // Branch IDs (nullable for kanwil-level RMs)
+  TextColumn get referrerBranchId => text().nullable()();
+  TextColumn get receiverBranchId => text().nullable()();
+
+  // Regional Office IDs (for ROH fallback approval)
+  TextColumn get referrerRegionalOfficeId => text().nullable()();
+  TextColumn get receiverRegionalOfficeId => text().nullable()();
+
+  // Approver type: BM or ROH (determined at creation based on receiver's hierarchy)
+  TextColumn get approverType => text().withDefault(const Constant('BM'))();
+
+  // Referral Details
   TextColumn get reason => text()();
   TextColumn get notes => text().nullable()();
-  TextColumn get status => text()(); // See status flow
-  DateTimeColumn get referrerApprovedAt => dateTime().nullable()();
+
+  // Status Tracking
+  TextColumn get status => text().withDefault(const Constant('PENDING_RECEIVER'))();
+
+  // Receiver Response
   DateTimeColumn get receiverAcceptedAt => dateTime().nullable()();
   DateTimeColumn get receiverRejectedAt => dateTime().nullable()();
   TextColumn get receiverRejectReason => text().nullable()();
+  TextColumn get receiverNotes => text().nullable()();
+
+  // Manager Approval (BM or ROH based on approverType)
   DateTimeColumn get bmApprovedAt => dateTime().nullable()();
   TextColumn get bmApprovedBy => text().nullable().references(Users, #id)();
   DateTimeColumn get bmRejectedAt => dateTime().nullable()();
   TextColumn get bmRejectReason => text().nullable()();
-  TextColumn get pipelineId => text().nullable()(); // Created after approval
+  TextColumn get bmNotes => text().nullable()();
+
+  // Result
+  BoolColumn get bonusCalculated => boolean().withDefault(const Constant(false))();
+  RealColumn get bonusAmount => real().nullable()();
+
+  // Timestamps & Sync
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  DateTimeColumn get cancelledAt => dateTime().nullable()();
+  TextColumn get cancelReason => text().nullable()();
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -71,7 +71,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
         id: id,
         code: code,
         name: dto.name,
-        address: dto.address,
+        address: dto.address ?? '',
         provinceId: dto.provinceId,
         cityId: dto.cityId,
         postalCode: Value(dto.postalCode),

@@ -22,7 +22,7 @@ CustomerCreateDto _$CustomerCreateDtoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$CustomerCreateDto {
   String get name => throw _privateConstructorUsedError;
-  String get address => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
   String get provinceId => throw _privateConstructorUsedError;
   String get cityId => throw _privateConstructorUsedError;
   String get companyTypeId => throw _privateConstructorUsedError;
@@ -58,7 +58,7 @@ abstract class $CustomerCreateDtoCopyWith<$Res> {
   @useResult
   $Res call({
     String name,
-    String address,
+    String? address,
     String provinceId,
     String cityId,
     String companyTypeId,
@@ -93,7 +93,7 @@ class _$CustomerCreateDtoCopyWithImpl<$Res, $Val extends CustomerCreateDto>
   @override
   $Res call({
     Object? name = null,
-    Object? address = null,
+    Object? address = freezed,
     Object? provinceId = null,
     Object? cityId = null,
     Object? companyTypeId = null,
@@ -116,10 +116,10 @@ class _$CustomerCreateDtoCopyWithImpl<$Res, $Val extends CustomerCreateDto>
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
-            address: null == address
+            address: freezed == address
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             provinceId: null == provinceId
                 ? _value.provinceId
                 : provinceId // ignore: cast_nullable_to_non_nullable
@@ -197,7 +197,7 @@ abstract class _$$CustomerCreateDtoImplCopyWith<$Res>
   @useResult
   $Res call({
     String name,
-    String address,
+    String? address,
     String provinceId,
     String cityId,
     String companyTypeId,
@@ -231,7 +231,7 @@ class __$$CustomerCreateDtoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? name = null,
-    Object? address = null,
+    Object? address = freezed,
     Object? provinceId = null,
     Object? cityId = null,
     Object? companyTypeId = null,
@@ -254,10 +254,10 @@ class __$$CustomerCreateDtoImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
-        address: null == address
+        address: freezed == address
             ? _value.address
             : address // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         provinceId: null == provinceId
             ? _value.provinceId
             : provinceId // ignore: cast_nullable_to_non_nullable
@@ -328,7 +328,7 @@ class __$$CustomerCreateDtoImplCopyWithImpl<$Res>
 class _$CustomerCreateDtoImpl implements _CustomerCreateDto {
   const _$CustomerCreateDtoImpl({
     required this.name,
-    required this.address,
+    this.address,
     required this.provinceId,
     required this.cityId,
     required this.companyTypeId,
@@ -352,7 +352,7 @@ class _$CustomerCreateDtoImpl implements _CustomerCreateDto {
   @override
   final String name;
   @override
-  final String address;
+  final String? address;
   @override
   final String provinceId;
   @override
@@ -465,7 +465,7 @@ class _$CustomerCreateDtoImpl implements _CustomerCreateDto {
 abstract class _CustomerCreateDto implements CustomerCreateDto {
   const factory _CustomerCreateDto({
     required final String name,
-    required final String address,
+    final String? address,
     required final String provinceId,
     required final String cityId,
     required final String companyTypeId,
@@ -489,7 +489,7 @@ abstract class _CustomerCreateDto implements CustomerCreateDto {
   @override
   String get name;
   @override
-  String get address;
+  String? get address;
   @override
   String get provinceId;
   @override
@@ -1074,7 +1074,7 @@ mixin _$CustomerSyncDto {
   String get id => throw _privateConstructorUsedError;
   String get code => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get address => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
   String get createdBy => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
@@ -1127,7 +1127,7 @@ abstract class $CustomerSyncDtoCopyWith<$Res> {
     String id,
     String code,
     String name,
-    String address,
+    String? address,
     String createdBy,
     DateTime createdAt,
     DateTime updatedAt,
@@ -1169,7 +1169,7 @@ class _$CustomerSyncDtoCopyWithImpl<$Res, $Val extends CustomerSyncDto>
     Object? id = null,
     Object? code = null,
     Object? name = null,
-    Object? address = null,
+    Object? address = freezed,
     Object? createdBy = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -1205,10 +1205,10 @@ class _$CustomerSyncDtoCopyWithImpl<$Res, $Val extends CustomerSyncDto>
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
-            address: null == address
+            address: freezed == address
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             createdBy: null == createdBy
                 ? _value.createdBy
                 : createdBy // ignore: cast_nullable_to_non_nullable
@@ -1308,7 +1308,7 @@ abstract class _$$CustomerSyncDtoImplCopyWith<$Res>
     String id,
     String code,
     String name,
-    String address,
+    String? address,
     String createdBy,
     DateTime createdAt,
     DateTime updatedAt,
@@ -1349,7 +1349,7 @@ class __$$CustomerSyncDtoImplCopyWithImpl<$Res>
     Object? id = null,
     Object? code = null,
     Object? name = null,
-    Object? address = null,
+    Object? address = freezed,
     Object? createdBy = null,
     Object? createdAt = null,
     Object? updatedAt = null,
@@ -1385,10 +1385,10 @@ class __$$CustomerSyncDtoImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
-        address: null == address
+        address: freezed == address
             ? _value.address
             : address // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         createdBy: null == createdBy
             ? _value.createdBy
             : createdBy // ignore: cast_nullable_to_non_nullable
@@ -1481,7 +1481,7 @@ class _$CustomerSyncDtoImpl implements _CustomerSyncDto {
     required this.id,
     required this.code,
     required this.name,
-    required this.address,
+    this.address,
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
@@ -1514,7 +1514,7 @@ class _$CustomerSyncDtoImpl implements _CustomerSyncDto {
   @override
   final String name;
   @override
-  final String address;
+  final String? address;
   @override
   final String createdBy;
   @override
@@ -1668,7 +1668,7 @@ abstract class _CustomerSyncDto implements CustomerSyncDto {
     required final String id,
     required final String code,
     required final String name,
-    required final String address,
+    final String? address,
     required final String createdBy,
     required final DateTime createdAt,
     required final DateTime updatedAt,
@@ -1701,7 +1701,7 @@ abstract class _CustomerSyncDto implements CustomerSyncDto {
   @override
   String get name;
   @override
-  String get address;
+  String? get address;
   @override
   String get createdBy;
   @override

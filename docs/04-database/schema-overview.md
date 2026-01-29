@@ -389,7 +389,6 @@ Data pipeline penjualan
 | `reason` | TEXT | NOT NULL | Alasan referral |
 | `notes` | TEXT | | Catatan tambahan |
 | `status` | VARCHAR(30) | NOT NULL | See status flow below |
-| `referrer_approved_at` | TIMESTAMPTZ | | Timestamp referrer confirm |
 | `receiver_accepted_at` | TIMESTAMPTZ | | Timestamp receiver accept |
 | `receiver_rejected_at` | TIMESTAMPTZ | | Timestamp receiver reject |
 | `receiver_reject_reason` | TEXT | | Alasan ditolak receiver |

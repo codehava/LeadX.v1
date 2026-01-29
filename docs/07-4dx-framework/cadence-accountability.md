@@ -266,88 +266,105 @@ Minimum: -10 points (-3 no form + -5 no-show + -2 no commitment)
 
 ## 🗄️ Database Schema
 
+> **Note:** Uses a **combined table approach** where `cadence_participants` contains
+> attendance, form submission, and feedback data in a single record per participant per meeting.
+> This simplifies offline-first sync and conflict resolution.
+
 ```sql
--- Cadence Schedule Configuration
-CREATE TABLE cadence_schedules (
+-- ============================================
+-- CADENCE SCHEDULE CONFIGURATION
+-- ============================================
+CREATE TABLE cadence_schedule_config (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  level VARCHAR(20) NOT NULL, -- TEAM, BRANCH, REGIONAL, COMPANY
-  host_user_id UUID REFERENCES users(id),
-  branch_id UUID REFERENCES branches(id),
-  regional_id UUID REFERENCES regional_offices(id),
-  frequency VARCHAR(20) NOT NULL, -- WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY
-  day_of_week INTEGER, -- 0=Sunday, 1=Monday, ...
-  week_of_month INTEGER, -- 1,2,3,4 or -1 for last
-  start_time TIME NOT NULL,
-  duration_minutes INTEGER NOT NULL,
-  pre_form_deadline_hours INTEGER DEFAULT 24, -- Hours before meeting
+  day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+  time_of_day TIME NOT NULL,
+  duration_minutes INTEGER DEFAULT 60,
+  pre_meeting_hours INTEGER DEFAULT 24, -- Hours before meeting for form deadline
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Individual Cadence Meetings
+-- ============================================
+-- CADENCE MEETINGS
+-- ============================================
 CREATE TABLE cadence_meetings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  schedule_id UUID REFERENCES cadence_schedules(id),
-  meeting_date DATE NOT NULL,
-  meeting_time TIME NOT NULL,
-  status VARCHAR(20) DEFAULT 'SCHEDULED', -- SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  host_id UUID REFERENCES users(id),
+  meeting_type VARCHAR(50) DEFAULT 'WEEKLY', -- WEEKLY, MONTHLY, QUARTERLY
+  status VARCHAR(20) DEFAULT 'SCHEDULED'
+    CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+  notes TEXT, -- General meeting notes by host
   started_at TIMESTAMPTZ,
   ended_at TIMESTAMPTZ,
-  host_notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Pre-Meeting Form Submissions
-CREATE TABLE cadence_submissions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  meeting_id UUID NOT NULL REFERENCES cadence_meetings(id),
-  user_id UUID NOT NULL REFERENCES users(id),
-  q1_previous_commitment TEXT, -- Auto-populated from previous Q4
-  q2_what_achieved TEXT NOT NULL,
-  q3_obstacles TEXT,
-  q4_next_commitment TEXT NOT NULL,
-  submitted_at TIMESTAMPTZ,
-  is_on_time BOOLEAN,
-  submission_status VARCHAR(20), -- ON_TIME, LATE, VERY_LATE, NOT_SUBMITTED
-  score_impact INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(meeting_id, user_id)
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Meeting Attendance
-CREATE TABLE cadence_attendance (
+-- ============================================
+-- CADENCE PARTICIPANTS (Combined Table)
+-- Contains: Attendance + Form Submission + Feedback
+-- ============================================
+CREATE TABLE cadence_participants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  meeting_id UUID NOT NULL REFERENCES cadence_meetings(id),
-  user_id UUID NOT NULL REFERENCES users(id),
-  status VARCHAR(20) NOT NULL, -- PRESENT, LATE, EXCUSED, NO_SHOW
+  meeting_id UUID REFERENCES cadence_meetings(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id),
+
+  -- ATTENDANCE (marked during meeting by host)
+  attendance_status VARCHAR(20) DEFAULT 'PENDING'
+    CHECK (attendance_status IN ('PENDING', 'PRESENT', 'LATE', 'EXCUSED', 'ABSENT')),
   arrived_at TIMESTAMPTZ,
   excused_reason TEXT,
-  score_impact INTEGER,
+  attendance_score_impact INTEGER, -- +3 present, +1 late, 0 excused, -5 absent
   marked_by UUID REFERENCES users(id),
-  marked_at TIMESTAMPTZ DEFAULT NOW(),
+  marked_at TIMESTAMPTZ,
+
+  -- PRE-MEETING FORM (Q1-Q4)
+  pre_meeting_submitted BOOLEAN DEFAULT FALSE,
+  q1_previous_commitment TEXT,      -- Auto-filled from last meeting's Q4
+  q1_completion_status VARCHAR(20)  -- COMPLETED, PARTIAL, NOT_DONE
+    CHECK (q1_completion_status IS NULL OR q1_completion_status IN ('COMPLETED', 'PARTIAL', 'NOT_DONE')),
+  q2_what_achieved TEXT,            -- What was achieved (required)
+  q3_obstacles TEXT,                -- Obstacles faced (optional)
+  q4_next_commitment TEXT,          -- Next commitment (required)
+  form_submitted_at TIMESTAMPTZ,
+  form_submission_status VARCHAR(20) -- ON_TIME, LATE, VERY_LATE, NOT_SUBMITTED
+    CHECK (form_submission_status IS NULL OR form_submission_status IN ('ON_TIME', 'LATE', 'VERY_LATE', 'NOT_SUBMITTED')),
+  form_score_impact INTEGER,        -- +2 on-time, 0 late, -1 very late, -3 not submitted
+
+  -- HOST NOTES & FEEDBACK
+  host_notes TEXT,                  -- Internal notes (not visible to participant)
+  feedback_text TEXT,               -- Formal feedback visible to participant
+  feedback_given_at TIMESTAMPTZ,
+  feedback_updated_at TIMESTAMPTZ,
+
+  -- SYNC
+  last_sync_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
   UNIQUE(meeting_id, user_id)
 );
 
--- Commitment Tracking
-CREATE TABLE cadence_commitments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  submission_id UUID NOT NULL REFERENCES cadence_submissions(id),
-  commitment_text TEXT NOT NULL,
-  completion_status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, COMPLETED, PARTIAL, NOT_COMPLETED
-  completion_notes TEXT,
-  score_impact INTEGER,
-  reviewed_by UUID REFERENCES users(id),
-  reviewed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Indexes for performance
-CREATE INDEX idx_meetings_date ON cadence_meetings(meeting_date);
-CREATE INDEX idx_submissions_meeting ON cadence_submissions(meeting_id);
-CREATE INDEX idx_attendance_meeting ON cadence_attendance(meeting_id);
+-- ============================================
+-- INDEXES FOR PERFORMANCE
+-- ============================================
+CREATE INDEX idx_cadence_meetings_scheduled ON cadence_meetings(scheduled_at);
+CREATE INDEX idx_cadence_participants_meeting ON cadence_participants(meeting_id);
+CREATE INDEX idx_cadence_participants_user ON cadence_participants(user_id);
+CREATE INDEX idx_cadence_participants_attendance ON cadence_participants(attendance_status);
+CREATE INDEX idx_cadence_participants_form ON cadence_participants(form_submission_status);
 ```
+
+### Why Combined Table?
+
+| Aspect | Benefit |
+|--------|---------|
+| **Offline-First** | Single record to sync per participant per meeting |
+| **Conflict Resolution** | No cross-table conflicts to resolve |
+| **Query Performance** | No joins needed - all data in one place |
+| **Data Integrity** | 1:1 relationship enforced by UNIQUE constraint |
 
 ---
 

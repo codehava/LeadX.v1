@@ -50,25 +50,58 @@ class CadenceMeetings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Cadence meeting participants with pre-meeting form.
+/// Cadence meeting participants - combined table for attendance, form submission, and feedback.
+/// This is the single source of truth for all participant data per meeting.
 class CadenceParticipants extends Table {
   TextColumn get id => text()();
   TextColumn get meetingId => text().references(CadenceMeetings, #id)();
   TextColumn get userId => text().references(Users, #id)();
-  TextColumn get role => text()(); // 'FACILITATOR', 'PARTICIPANT', 'OBSERVER'
-  TextColumn get attendanceStatus => text().withDefault(const Constant('PENDING'))(); // PENDING, CONFIRMED, ATTENDED, ABSENT
-  
-  // Pre-meeting form (WIG commitment)
-  TextColumn get preMeetingCommitment => text().nullable()(); // What they commit to achieve
-  TextColumn get previousCommitmentStatus => text().nullable()(); // COMPLETED, PARTIAL, NOT_DONE
-  TextColumn get blockers => text().nullable()();
-  
-  // Post-meeting updates
-  TextColumn get postMeetingNotes => text().nullable()();
-  TextColumn get nextCommitment => text().nullable()();
-  
+
+  // ============================================
+  // ATTENDANCE (marked during meeting by host)
+  // ============================================
+  /// Status: PENDING, PRESENT, LATE, EXCUSED, ABSENT
+  TextColumn get attendanceStatus => text().withDefault(const Constant('PENDING'))();
+  DateTimeColumn get arrivedAt => dateTime().nullable()();
+  TextColumn get excusedReason => text().nullable()();
+  IntColumn get attendanceScoreImpact => integer().nullable()(); // +3 present, +1 late, 0 excused, -5 absent
+  TextColumn get markedBy => text().nullable()(); // Host who marked attendance
+  DateTimeColumn get markedAt => dateTime().nullable()();
+
+  // ============================================
+  // PRE-MEETING FORM (Q1-Q4, submitted before meeting)
+  // ============================================
+  BoolColumn get preMeetingSubmitted => boolean().withDefault(const Constant(false))();
+  /// Q1: Previous commitment (auto-filled from last meeting's Q4)
+  TextColumn get q1PreviousCommitment => text().nullable()();
+  /// Q1: Status of previous commitment
+  TextColumn get q1CompletionStatus => text().nullable()(); // COMPLETED, PARTIAL, NOT_DONE
+  /// Q2: What was achieved this period (required)
+  TextColumn get q2WhatAchieved => text().nullable()();
+  /// Q3: Obstacles/blockers faced (optional)
+  TextColumn get q3Obstacles => text().nullable()();
+  /// Q4: Commitment for next period (required)
+  TextColumn get q4NextCommitment => text().nullable()();
   DateTimeColumn get formSubmittedAt => dateTime().nullable()();
+  /// Status: ON_TIME, LATE, VERY_LATE, NOT_SUBMITTED
+  TextColumn get formSubmissionStatus => text().nullable()();
+  IntColumn get formScoreImpact => integer().nullable()(); // +2 on-time, 0 late, -1 very late, -3 not submitted
+
+  // ============================================
+  // HOST NOTES & FEEDBACK (during/after meeting)
+  // ============================================
+  /// Internal notes by host (not visible to participant)
+  TextColumn get hostNotes => text().nullable()();
+  /// Formal feedback visible to participant
+  TextColumn get feedbackText => text().nullable()();
+  DateTimeColumn get feedbackGivenAt => dateTime().nullable()();
+  DateTimeColumn get feedbackUpdatedAt => dateTime().nullable()();
+
+  // ============================================
+  // SYNC
+  // ============================================
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

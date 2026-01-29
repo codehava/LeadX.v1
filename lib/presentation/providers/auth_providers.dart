@@ -5,6 +5,7 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/app_auth_state.dart';
 import '../../domain/entities/user.dart' as domain;
 import '../../domain/repositories/auth_repository.dart';
+import 'database_provider.dart';
 
 /// Provider for Supabase client.
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -14,7 +15,8 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 /// Provider for auth repository.
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final client = ref.watch(supabaseClientProvider);
-  return AuthRepositoryImpl(client);
+  final database = ref.watch(databaseProvider);
+  return AuthRepositoryImpl(client, database: database);
 });
 
 /// Provider for current auth state.

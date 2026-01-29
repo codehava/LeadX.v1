@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -80,9 +81,9 @@ class SyncService {
       );
     }
 
-    // Check connectivity
+    // Check connectivity - first the cached state
     if (!_connectivityService.isConnected) {
-      print('[SyncService] Device is offline, returning');
+      print('[SyncService] Device is offline (cached state), returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -90,6 +91,21 @@ class SyncService {
         successCount: 0,
         failedCount: 0,
         errors: ['Device is offline'],
+        syncedAt: DateTime.now(),
+      );
+    }
+
+    // Verify server is actually reachable before attempting sync
+    final isReachable = await _connectivityService.checkServerReachability();
+    if (!isReachable) {
+      print('[SyncService] Server is unreachable, returning');
+      _updateState(const SyncState.offline());
+      return SyncResult(
+        success: false,
+        processedCount: 0,
+        successCount: 0,
+        failedCount: 0,
+        errors: ['Server is unreachable'],
         syncedAt: DateTime.now(),
       );
     }
@@ -194,29 +210,46 @@ class SyncService {
 
   /// Process a single sync queue item.
   Future<void> _processItem(db.SyncQueueItem item) async {
-    final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+    // Parse payload with error handling
+    final Map<String, dynamic> payload;
+    try {
+      payload = jsonDecode(item.payload) as Map<String, dynamic>;
+    } on FormatException catch (e) {
+      throw FormatException(
+        'Invalid JSON payload for ${item.entityType}/${item.entityId}: $e',
+      );
+    }
+
     final tableName = _getTableName(item.entityType);
 
-    switch (item.operation) {
-      case 'create':
-        await _supabaseClient.from(tableName).insert(payload);
-      case 'update':
-        await _supabaseClient
-            .from(tableName)
-            .update(payload)
-            .eq('id', item.entityId);
-      case 'delete':
-        // Hard delete for tables without deleted_at column (e.g., customer_hvc_links)
-        // Soft delete for others
-        if (item.entityType == 'customerHvcLink') {
-          await _supabaseClient.from(tableName).delete().eq('id', item.entityId);
-        } else {
-          await _supabaseClient.from(tableName).update({
-            'deleted_at': DateTime.now().toIso8601String(),
-          }).eq('id', item.entityId);
-        }
-      default:
-        throw ArgumentError('Unknown operation: ${item.operation}');
+    try {
+      switch (item.operation) {
+        case 'create':
+          await _supabaseClient.from(tableName).insert(payload);
+        case 'update':
+          await _supabaseClient
+              .from(tableName)
+              .update(payload)
+              .eq('id', item.entityId);
+        case 'delete':
+          // Hard delete for tables without deleted_at column (e.g., customer_hvc_links)
+          // Soft delete for others
+          if (item.entityType == 'customerHvcLink') {
+            await _supabaseClient.from(tableName).delete().eq('id', item.entityId);
+          } else {
+            await _supabaseClient.from(tableName).update({
+              'deleted_at': DateTime.now().toIso8601String(),
+            }).eq('id', item.entityId);
+          }
+        default:
+          throw ArgumentError('Unknown operation: ${item.operation}');
+      }
+    } on SocketException catch (e) {
+      // Network unreachable
+      throw Exception('Network error: Device appears to be offline. $e');
+    } on TimeoutException catch (e) {
+      // Server not responding
+      throw Exception('Network timeout: Server not responding. $e');
     }
   }
 
@@ -279,6 +312,13 @@ class SyncService {
             .write(const db.PipelineStageHistoryItemsCompanion(
               isPendingSync: Value(false),
             ));
+      case 'pipelineReferral':
+        await (_database.update(_database.pipelineReferrals)
+              ..where((r) => r.id.equals(entityId)))
+            .write(db.PipelineReferralsCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
       default:
         print('[SyncService] Unknown entity type for marking synced: $entityType');
     }
@@ -317,6 +357,8 @@ class SyncService {
         return 'customer_hvc_links';
       case 'pipelineStageHistory':
         return 'pipeline_stage_history';
+      case 'pipelineReferral':
+        return 'pipeline_referrals';
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }

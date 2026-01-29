@@ -10,17 +10,23 @@ import '../../core/errors/failures.dart';
 import '../../domain/entities/app_auth_state.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../database/app_database.dart' as db;
 
 /// Supabase implementation of AuthRepository.
 class AuthRepositoryImpl implements AuthRepository {
   final supabase.SupabaseClient _client;
+  final db.AppDatabase? _database;
+
+  /// Timeout duration for network requests.
+  static const Duration _networkTimeout = Duration(seconds: 5);
 
   AuthSession? _currentSession;
   User? _currentUser;
   final _authStateController = StreamController<AppAuthState>.broadcast();
   bool _initialized = false;
 
-  AuthRepositoryImpl(this._client) {
+  AuthRepositoryImpl(this._client, {db.AppDatabase? database})
+      : _database = database {
     // Initialize auth state from persisted session immediately
     _initializeAuthState();
 
@@ -96,7 +102,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     try {
-      final user = await _fetchUserProfile(session.user.id);
+      final user = await _fetchUserWithFallback(session);
       _currentUser = user;
       _currentSession = AuthSession(
         accessToken: session.accessToken,
@@ -162,6 +168,119 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// Attempt to fetch user from local SQLite database.
+  /// Returns null if not found or database not available.
+  Future<User?> _fetchLocalUser(String userId) async {
+    if (_database == null) return null;
+
+    try {
+      final localUser = await (_database.select(_database.users)
+            ..where((t) => t.id.equals(userId)))
+          .getSingleOrNull();
+
+      if (localUser == null) return null;
+
+      return User(
+        id: localUser.id,
+        email: localUser.email,
+        name: localUser.name,
+        nip: localUser.nip,
+        phone: localUser.phone,
+        role: _parseRole(localUser.role),
+        parentId: localUser.parentId,
+        branchId: localUser.branchId,
+        regionalOfficeId: localUser.regionalOfficeId,
+        photoUrl: localUser.photoUrl,
+        isActive: localUser.isActive,
+        lastLoginAt: localUser.lastLoginAt,
+        createdAt: localUser.createdAt,
+        updatedAt: localUser.updatedAt,
+      );
+    } catch (e) {
+      debugPrint('[Auth] Failed to fetch local user: $e');
+      return null;
+    }
+  }
+
+  /// Create a minimal User from session data when offline.
+  /// Uses JWT claims for basic info.
+  User _createMinimalUserFromSession(supabase.Session session) {
+    return User(
+      id: session.user.id,
+      email: session.user.email ?? '',
+      name: '',
+      nip: null,
+      phone: session.user.phone,
+      role: UserRole.rm, // Default role - will be updated when online
+      parentId: null,
+      branchId: null,
+      regionalOfficeId: null,
+      photoUrl: null,
+      isActive: true,
+      lastLoginAt: null,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Fetch user with timeout and fallback to local storage.
+  /// Priority: 1) Remote API 2) Local database 3) Minimal from session
+  Future<User> _fetchUserWithFallback(supabase.Session session) async {
+    final userId = session.user.id;
+
+    try {
+      // Try remote fetch with timeout
+      final user = await _fetchUserProfile(userId).timeout(_networkTimeout);
+
+      // Insert current user into local DB to satisfy FK constraints
+      // This ensures customer creation works even if full sync hasn't completed
+      await _upsertCurrentUserLocally(user);
+
+      return user;
+    } catch (e) {
+      debugPrint('[Auth] Remote fetch failed: $e - trying local database');
+
+      // Try local database
+      final localUser = await _fetchLocalUser(userId);
+      if (localUser != null) {
+        debugPrint('[Auth] Found user in local database');
+        return localUser;
+      }
+
+      // Fall back to minimal user from session
+      debugPrint('[Auth] Using minimal user from session');
+      final minimalUser = _createMinimalUserFromSession(session);
+
+      // Also insert minimal user to satisfy FK constraints
+      await _upsertCurrentUserLocally(minimalUser);
+
+      return minimalUser;
+    }
+  }
+
+  /// Upsert current user into local database to satisfy FK constraints.
+  /// This ensures operations like customer creation work before full sync completes.
+  Future<void> _upsertCurrentUserLocally(User user) async {
+    if (_database == null) return;
+
+    try {
+      await _database!.into(_database!.users).insertOnConflictUpdate(
+        db.UsersCompanion.insert(
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role.name,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        ),
+      );
+      debugPrint('[Auth] Upserted current user to local DB: ${user.id}');
+    } catch (e) {
+      debugPrint('[Auth] Failed to upsert user locally: $e');
+      // Don't throw - this is a best-effort optimization
+    }
+  }
+
   @override
   Future<AppAuthState> getAuthState() async {
     // Wait for initialization to complete with timeout
@@ -187,30 +306,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     try {
-      // Try to fetch user profile with a timeout
-      final user = await _fetchUserProfile(session.user.id).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          debugPrint('[Auth] User profile fetch timeout - user may be offline');
-          // If offline, create a minimal user from session for auth purposes
-          return User(
-            id: session.user.id,
-            email: session.user.email ?? '',
-            name: '',
-            nip: null,
-            phone: null,
-            role: UserRole.rm, // Default role
-            parentId: null,
-            branchId: null,
-            regionalOfficeId: null,
-            photoUrl: null,
-            isActive: true,
-            lastLoginAt: null,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
-        },
-      );
+      final user = await _fetchUserWithFallback(session);
       _currentUser = user;
       _currentSession = AuthSession(
         accessToken: session.accessToken,
@@ -302,14 +398,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User?> getCurrentUser() async {
     if (_currentUser != null) return _currentUser;
-    
+
     final session = _client.auth.currentSession;
     if (session == null) return null;
 
     try {
-      _currentUser = await _fetchUserProfile(session.user.id);
+      _currentUser = await _fetchUserWithFallback(session);
       return _currentUser;
     } catch (e) {
+      debugPrint('[Auth] getCurrentUser error: $e');
       return null;
     }
   }
@@ -317,12 +414,18 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AuthSession>> refreshSession() async {
     try {
-      final response = await _client.auth.refreshSession();
+      final response = await _client.auth.refreshSession().timeout(
+        _networkTimeout,
+        onTimeout: () {
+          throw TimeoutException('Session refresh timeout');
+        },
+      );
+
       if (response.session == null) {
         return Left(AuthFailure(message: 'Session refresh failed'));
       }
 
-      final user = await _fetchUserProfile(response.user!.id);
+      final user = await _fetchUserWithFallback(response.session!);
       final session = AuthSession(
         accessToken: response.session!.accessToken,
         refreshToken: response.session!.refreshToken ?? '',
@@ -335,6 +438,13 @@ class AuthRepositoryImpl implements AuthRepository {
       _currentUser = user;
 
       return Right(session);
+    } on TimeoutException {
+      // If refresh times out but we have cached data, return that
+      if (_currentSession != null) {
+        debugPrint('[Auth] Session refresh timeout - returning cached session');
+        return Right(_currentSession!);
+      }
+      return Left(AuthFailure(message: 'Session refresh timeout - offline'));
     } catch (e) {
       return Left(AuthFailure(message: 'Session refresh failed'));
     }

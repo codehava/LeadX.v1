@@ -54,11 +54,20 @@ abstract class RouteNames {
   // ============================================
   // BROKER ROUTES
   // ============================================
-  
+
   static const String brokers = 'brokers';
   static const String brokerDetail = 'broker-detail';
   static const String brokerCreate = 'broker-create';
   static const String brokerEdit = 'broker-edit';
+
+  // ============================================
+  // REFERRAL ROUTES
+  // ============================================
+
+  static const String referrals = 'referrals';
+  static const String referralDetail = 'referral-detail';
+  static const String referralCreate = 'referral-create';
+  static const String managerApprovals = 'manager-approvals';
 
   // ============================================
   // 4DX ROUTES
@@ -154,6 +163,12 @@ abstract class RoutePaths {
   static const String brokerDetail = '/home/brokers/:id';
   static const String brokerCreate = '/home/brokers/create';
   static const String brokerEdit = '/home/brokers/:id/edit';
+
+  // Referrals
+  static const String referrals = '/home/referrals';
+  static const String referralDetail = '/home/referrals/:id';
+  static const String referralCreate = '/home/referrals/new';
+  static const String managerApprovals = '/home/referrals/approvals';
 
   // 4DX
   static const String scoreboard = '/home/scoreboard';

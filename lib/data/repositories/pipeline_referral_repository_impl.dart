@@ -1,0 +1,655 @@
+import 'dart:io';
+
+import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../core/errors/failures.dart';
+import '../../domain/entities/pipeline_referral.dart' as domain;
+import '../../domain/entities/sync_models.dart';
+import '../../domain/repositories/pipeline_referral_repository.dart';
+import '../database/app_database.dart' as db;
+import '../datasources/local/pipeline_referral_local_data_source.dart';
+import '../datasources/remote/pipeline_referral_remote_data_source.dart';
+import '../dtos/pipeline_referral_dtos.dart';
+import '../services/sync_service.dart';
+
+/// Implementation of PipelineReferralRepository with offline-first pattern.
+class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
+  PipelineReferralRepositoryImpl({
+    required PipelineReferralLocalDataSource localDataSource,
+    required PipelineReferralRemoteDataSource remoteDataSource,
+    required SyncService syncService,
+    required String currentUserId,
+    required db.AppDatabase database,
+  })  : _localDataSource = localDataSource,
+        _remoteDataSource = remoteDataSource,
+        _syncService = syncService,
+        _currentUserId = currentUserId,
+        _database = database;
+
+  final PipelineReferralLocalDataSource _localDataSource;
+  final PipelineReferralRemoteDataSource _remoteDataSource;
+  final SyncService _syncService;
+  final String _currentUserId;
+  final db.AppDatabase _database;
+  final _uuid = const Uuid();
+
+  // Lookup caches
+  Map<String, String>? _userNameCache;
+  Map<String, String>? _customerNameCache;
+  Map<String, String>? _branchNameCache;
+
+  // ==========================================
+  // Stream Operations
+  // ==========================================
+
+  @override
+  Stream<List<domain.PipelineReferral>> watchOutboundReferrals(String userId) {
+    return _localDataSource.watchByReferrer(userId).asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToReferral).toList();
+    });
+  }
+
+  @override
+  Stream<List<domain.PipelineReferral>> watchInboundReferrals(String userId) {
+    return _localDataSource.watchByReceiver(userId).asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToReferral).toList();
+    });
+  }
+
+  @override
+  Stream<List<domain.PipelineReferral>> watchPendingApprovals(String managerId) {
+    // Note: This returns ALL pending approvals.
+    // The UI should filter by checking if the current user is the designated approver.
+    return _localDataSource.watchPendingApprovals().asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToReferral).toList();
+    });
+  }
+
+  // ==========================================
+  // Read Operations
+  // ==========================================
+
+  @override
+  Future<domain.PipelineReferral?> getReferralById(String id) async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getReferralById(id);
+    return data != null ? _mapToReferral(data) : null;
+  }
+
+  @override
+  Future<List<domain.PipelineReferral>> getOutboundReferrals(String userId) async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getByReferrer(userId);
+    return data.map(_mapToReferral).toList();
+  }
+
+  @override
+  Future<List<domain.PipelineReferral>> getInboundReferrals(String userId) async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getByReceiver(userId);
+    return data.map(_mapToReferral).toList();
+  }
+
+  @override
+  Future<List<domain.PipelineReferral>> getPendingApprovals(String managerId) async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getPendingApprovals();
+    return data.map(_mapToReferral).toList();
+  }
+
+  @override
+  Future<List<domain.PipelineReferral>> getPendingSyncReferrals() async {
+    await _ensureCachesLoaded();
+    final data = await _localDataSource.getPendingSyncReferrals();
+    return data.map(_mapToReferral).toList();
+  }
+
+  // ==========================================
+  // Create Referral (ONLINE ONLY)
+  // ==========================================
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> createReferral(
+    PipelineReferralCreateDto dto,
+  ) async {
+    try {
+      final now = DateTime.now();
+      final id = _uuid.v4();
+      final code = _generateReferralCode();
+
+      // Get current user info from remote (online-only operation)
+      final currentUser = await _remoteDataSource.getUserById(_currentUserId);
+      if (currentUser == null) {
+        return Left(AuthFailure(message: 'Current user not found'));
+      }
+
+      // Get receiver info from remote
+      final receiverUser = await _remoteDataSource.getUserById(dto.receiverRmId);
+      if (receiverUser == null) {
+        return Left(ValidationFailure(message: 'Receiver user not found'));
+      }
+
+      // Determine approver based on receiver's hierarchy
+      final approverInfo = await findApproverForUser(dto.receiverRmId);
+      if (approverInfo == null) {
+        return Left(ValidationFailure(
+          message: 'No approver found for receiver. Cannot create referral.',
+        ));
+      }
+
+      // Create directly on server (online-only)
+      final payload = {
+        'id': id,
+        'code': code,
+        'customer_id': dto.customerId,
+        'referrer_rm_id': _currentUserId,
+        'receiver_rm_id': dto.receiverRmId,
+        'referrer_branch_id': currentUser['branch_id'],
+        'receiver_branch_id': receiverUser['branch_id'],
+        'referrer_regional_office_id': currentUser['regional_office_id'],
+        'receiver_regional_office_id': receiverUser['regional_office_id'],
+        'approver_type': approverInfo.approverType.value,
+        'reason': dto.reason,
+        'notes': dto.notes,
+        'status': 'PENDING_RECEIVER',
+        'created_at': now.toIso8601String(),
+        'updated_at': now.toIso8601String(),
+      };
+
+      final remoteResult = await _remoteDataSource.createReferral(payload);
+
+      // Save to local database for offline viewing
+      final companion = db.PipelineReferralsCompanion.insert(
+        id: remoteResult['id'] as String,
+        code: remoteResult['code'] as String,
+        customerId: remoteResult['customer_id'] as String,
+        referrerRmId: remoteResult['referrer_rm_id'] as String,
+        receiverRmId: remoteResult['receiver_rm_id'] as String,
+        referrerBranchId: Value(remoteResult['referrer_branch_id'] as String?),
+        receiverBranchId: Value(remoteResult['receiver_branch_id'] as String?),
+        referrerRegionalOfficeId: Value(remoteResult['referrer_regional_office_id'] as String?),
+        receiverRegionalOfficeId: Value(remoteResult['receiver_regional_office_id'] as String?),
+        approverType: Value(remoteResult['approver_type'] as String? ?? 'BM'),
+        reason: remoteResult['reason'] as String,
+        notes: Value(remoteResult['notes'] as String?),
+        status: Value(remoteResult['status'] as String),
+        isPendingSync: const Value(false),
+        createdAt: DateTime.parse(remoteResult['created_at'] as String),
+        updatedAt: DateTime.parse(remoteResult['updated_at'] as String),
+        lastSyncAt: Value(DateTime.now()),
+      );
+
+      await _localDataSource.insertReferral(companion);
+
+      // Return the created referral
+      await _ensureCachesLoaded();
+      final localData = await _localDataSource.getReferralById(id);
+      return Right(_mapToReferral(localData!));
+    } on SocketException {
+      return Left(NetworkFailure(
+        message: 'No internet connection. Referral creation requires network.',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: 'Failed to create referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  // ==========================================
+  // Receiver Actions
+  // ==========================================
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> acceptReferral(
+    String id,
+    String? notes,
+  ) async {
+    try {
+      final existing = await _localDataSource.getReferralById(id);
+      if (existing == null) {
+        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+      }
+
+      if (existing.status != 'PENDING_RECEIVER') {
+        return Left(ValidationFailure(
+          message: 'Referral cannot be accepted in current status: ${existing.status}',
+        ));
+      }
+
+      if (existing.receiverRmId != _currentUserId) {
+        return Left(AuthFailure(
+          message: 'Only the receiver can accept this referral',
+        ));
+      }
+
+      // Update locally
+      await _localDataSource.markReceiverAccepted(id, notes);
+
+      // Queue for sync
+      final now = DateTime.now();
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.pipelineReferral,
+        entityId: id,
+        operation: SyncOperation.update,
+        payload: {
+          'id': id,
+          'status': 'RECEIVER_ACCEPTED',
+          'receiver_accepted_at': now.toIso8601String(),
+          'receiver_notes': notes,
+          'updated_at': now.toIso8601String(),
+        },
+      );
+
+      _syncService.triggerSync();
+
+      final referral = await getReferralById(id);
+      return Right(referral!);
+    } catch (e) {
+      return Left(DatabaseFailure(
+        message: 'Failed to accept referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> rejectReferral(
+    String id,
+    String reason,
+  ) async {
+    try {
+      final existing = await _localDataSource.getReferralById(id);
+      if (existing == null) {
+        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+      }
+
+      if (existing.status != 'PENDING_RECEIVER') {
+        return Left(ValidationFailure(
+          message: 'Referral cannot be rejected in current status: ${existing.status}',
+        ));
+      }
+
+      if (existing.receiverRmId != _currentUserId) {
+        return Left(AuthFailure(
+          message: 'Only the receiver can reject this referral',
+        ));
+      }
+
+      // Update locally
+      await _localDataSource.markReceiverRejected(id, reason);
+
+      // Queue for sync
+      final now = DateTime.now();
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.pipelineReferral,
+        entityId: id,
+        operation: SyncOperation.update,
+        payload: {
+          'id': id,
+          'status': 'RECEIVER_REJECTED',
+          'receiver_rejected_at': now.toIso8601String(),
+          'receiver_reject_reason': reason,
+          'updated_at': now.toIso8601String(),
+        },
+      );
+
+      _syncService.triggerSync();
+
+      final referral = await getReferralById(id);
+      return Right(referral!);
+    } catch (e) {
+      return Left(DatabaseFailure(
+        message: 'Failed to reject referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  // ==========================================
+  // Manager Actions
+  // ==========================================
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> approveReferral(
+    String id,
+    String approverId,
+    String? notes,
+  ) async {
+    try {
+      final existing = await _localDataSource.getReferralById(id);
+      if (existing == null) {
+        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+      }
+
+      if (existing.status != 'RECEIVER_ACCEPTED') {
+        return Left(ValidationFailure(
+          message: 'Referral cannot be approved in current status: ${existing.status}',
+        ));
+      }
+
+      // Update locally - this sets status to BM_APPROVED
+      // The server-side trigger will then:
+      // 1. Reassign customer
+      // 2. Reassign existing pipelines
+      // 3. Create new pipeline
+      // 4. Set status to COMPLETED
+      await _localDataSource.markManagerApproved(id, approverId, notes);
+
+      // Queue for sync
+      final now = DateTime.now();
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.pipelineReferral,
+        entityId: id,
+        operation: SyncOperation.update,
+        payload: {
+          'id': id,
+          'status': 'BM_APPROVED',
+          'bm_approved_at': now.toIso8601String(),
+          'bm_approved_by': approverId,
+          'bm_notes': notes,
+          'updated_at': now.toIso8601String(),
+        },
+      );
+
+      _syncService.triggerSync();
+
+      final referral = await getReferralById(id);
+      return Right(referral!);
+    } catch (e) {
+      return Left(DatabaseFailure(
+        message: 'Failed to approve referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> rejectAsManager(
+    String id,
+    String approverId,
+    String reason,
+  ) async {
+    try {
+      final existing = await _localDataSource.getReferralById(id);
+      if (existing == null) {
+        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+      }
+
+      if (existing.status != 'RECEIVER_ACCEPTED') {
+        return Left(ValidationFailure(
+          message: 'Referral cannot be rejected in current status: ${existing.status}',
+        ));
+      }
+
+      // Update locally
+      await _localDataSource.markManagerRejected(id, approverId, reason);
+
+      // Queue for sync
+      final now = DateTime.now();
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.pipelineReferral,
+        entityId: id,
+        operation: SyncOperation.update,
+        payload: {
+          'id': id,
+          'status': 'BM_REJECTED',
+          'bm_rejected_at': now.toIso8601String(),
+          'bm_approved_by': approverId,
+          'bm_reject_reason': reason,
+          'updated_at': now.toIso8601String(),
+        },
+      );
+
+      _syncService.triggerSync();
+
+      final referral = await getReferralById(id);
+      return Right(referral!);
+    } catch (e) {
+      return Left(DatabaseFailure(
+        message: 'Failed to reject referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  // ==========================================
+  // Referrer Actions
+  // ==========================================
+
+  @override
+  Future<Either<Failure, domain.PipelineReferral>> cancelReferral(
+    String id,
+    String reason,
+  ) async {
+    try {
+      final existing = await _localDataSource.getReferralById(id);
+      if (existing == null) {
+        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+      }
+
+      // Can only cancel if not yet completed/rejected
+      final cancellableStatuses = ['PENDING_RECEIVER', 'RECEIVER_ACCEPTED'];
+      if (!cancellableStatuses.contains(existing.status)) {
+        return Left(ValidationFailure(
+          message: 'Referral cannot be cancelled in current status: ${existing.status}',
+        ));
+      }
+
+      if (existing.referrerRmId != _currentUserId) {
+        return Left(AuthFailure(
+          message: 'Only the referrer can cancel this referral',
+        ));
+      }
+
+      // Update locally
+      await _localDataSource.markCancelled(id, reason);
+
+      // Queue for sync
+      final now = DateTime.now();
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.pipelineReferral,
+        entityId: id,
+        operation: SyncOperation.update,
+        payload: {
+          'id': id,
+          'status': 'CANCELLED',
+          'cancelled_at': now.toIso8601String(),
+          'cancel_reason': reason,
+          'updated_at': now.toIso8601String(),
+        },
+      );
+
+      _syncService.triggerSync();
+
+      final referral = await getReferralById(id);
+      return Right(referral!);
+    } catch (e) {
+      return Left(DatabaseFailure(
+        message: 'Failed to cancel referral: $e',
+        originalError: e,
+      ));
+    }
+  }
+
+  // ==========================================
+  // Approver Determination
+  // ==========================================
+
+  @override
+  Future<domain.ApproverInfo?> findApproverForUser(String userId) async {
+    try {
+      final result = await _remoteDataSource.findApproverForUser(userId);
+      if (result == null) return null;
+
+      return domain.ApproverInfo(
+        approverId: result['approver_id'] as String,
+        approverType: domain.ApproverTypeX.fromString(
+          result['approver_type'] as String,
+        ),
+        approverName: result['approver_name'] as String?,
+      );
+    } catch (e) {
+      print('[ReferralRepo] Error finding approver: $e');
+      return null;
+    }
+  }
+
+  // ==========================================
+  // Sync Operations
+  // ==========================================
+
+  @override
+  Future<void> syncFromRemote({DateTime? since}) async {
+    try {
+      final remoteData = await _remoteDataSource.fetchReferrals(since: since);
+      print('[ReferralRepo] Fetched ${remoteData.length} referrals from remote');
+
+      final companions = remoteData.map((data) {
+        return db.PipelineReferralsCompanion(
+          id: Value(data['id'] as String),
+          code: Value(data['code'] as String),
+          customerId: Value(data['customer_id'] as String),
+          referrerRmId: Value(data['referrer_rm_id'] as String),
+          receiverRmId: Value(data['receiver_rm_id'] as String),
+          referrerBranchId: Value(data['referrer_branch_id'] as String?),
+          receiverBranchId: Value(data['receiver_branch_id'] as String?),
+          referrerRegionalOfficeId: Value(data['referrer_regional_office_id'] as String?),
+          receiverRegionalOfficeId: Value(data['receiver_regional_office_id'] as String?),
+          approverType: Value(data['approver_type'] as String? ?? 'BM'),
+          reason: Value(data['reason'] as String),
+          notes: Value(data['notes'] as String?),
+          status: Value(data['status'] as String),
+          receiverAcceptedAt: Value(_parseDateTime(data['receiver_accepted_at'])),
+          receiverRejectedAt: Value(_parseDateTime(data['receiver_rejected_at'])),
+          receiverRejectReason: Value(data['receiver_reject_reason'] as String?),
+          receiverNotes: Value(data['receiver_notes'] as String?),
+          bmApprovedAt: Value(_parseDateTime(data['bm_approved_at'])),
+          bmApprovedBy: Value(data['bm_approved_by'] as String?),
+          bmRejectedAt: Value(_parseDateTime(data['bm_rejected_at'])),
+          bmRejectReason: Value(data['bm_reject_reason'] as String?),
+          bmNotes: Value(data['bm_notes'] as String?),
+          bonusCalculated: Value(data['bonus_calculated'] as bool? ?? false),
+          bonusAmount: Value((data['bonus_amount'] as num?)?.toDouble()),
+          expiresAt: Value(_parseDateTime(data['expires_at'])),
+          cancelledAt: Value(_parseDateTime(data['cancelled_at'])),
+          cancelReason: Value(data['cancel_reason'] as String?),
+          isPendingSync: const Value(false),
+          createdAt: Value(DateTime.parse(data['created_at'] as String)),
+          updatedAt: Value(DateTime.parse(data['updated_at'] as String)),
+          lastSyncAt: Value(DateTime.now()),
+        );
+      }).toList();
+
+      await _localDataSource.upsertReferrals(companions);
+      print('[ReferralRepo] Upserted ${companions.length} referrals locally');
+    } catch (e) {
+      print('[ReferralRepo] Sync error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> markAsSynced(String id, DateTime syncedAt) =>
+      _localDataSource.markAsSynced(id, syncedAt);
+
+  // ==========================================
+  // Private Helpers
+  // ==========================================
+
+  /// Generate a unique referral code.
+  String _generateReferralCode() {
+    final now = DateTime.now();
+    final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final seq = now.millisecondsSinceEpoch.toString().substring(8);
+    return 'REF-$dateStr-$seq';
+  }
+
+  /// Parse datetime from JSON (handles null).
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  /// Get branch name from cache (handles null).
+  String? _getBranchName(String? branchId) {
+    if (branchId == null) return null;
+    return _branchNameCache?[branchId];
+  }
+
+  /// Get user name from cache (handles null).
+  String? _getUserName(String? userId) {
+    if (userId == null) return null;
+    return _userNameCache?[userId];
+  }
+
+  /// Initialize lookup caches.
+  Future<void> _ensureCachesLoaded() async {
+    if (_userNameCache == null) {
+      final users = await _database.select(_database.users).get();
+      _userNameCache = {for (final u in users) u.id: u.name};
+    }
+    if (_customerNameCache == null) {
+      final customers = await (_database.select(_database.customers)
+            ..where((c) => c.deletedAt.isNull()))
+          .get();
+      _customerNameCache = {for (final c in customers) c.id: c.name};
+    }
+    if (_branchNameCache == null) {
+      final branches = await _database.select(_database.branches).get();
+      _branchNameCache = {for (final b in branches) b.id: b.name};
+    }
+  }
+
+  /// Map database record to domain entity.
+  domain.PipelineReferral _mapToReferral(db.PipelineReferral data) {
+    return domain.PipelineReferral(
+      id: data.id,
+      code: data.code,
+      customerId: data.customerId,
+      referrerRmId: data.referrerRmId,
+      receiverRmId: data.receiverRmId,
+      referrerBranchId: data.referrerBranchId,
+      receiverBranchId: data.receiverBranchId,
+      referrerRegionalOfficeId: data.referrerRegionalOfficeId,
+      receiverRegionalOfficeId: data.receiverRegionalOfficeId,
+      approverType: domain.ApproverTypeX.fromString(data.approverType),
+      reason: data.reason,
+      notes: data.notes,
+      status: domain.ReferralStatusX.fromString(data.status),
+      receiverAcceptedAt: data.receiverAcceptedAt,
+      receiverRejectedAt: data.receiverRejectedAt,
+      receiverRejectReason: data.receiverRejectReason,
+      receiverNotes: data.receiverNotes,
+      bmApprovedAt: data.bmApprovedAt,
+      bmApprovedBy: data.bmApprovedBy,
+      bmRejectedAt: data.bmRejectedAt,
+      bmRejectReason: data.bmRejectReason,
+      bmNotes: data.bmNotes,
+      bonusCalculated: data.bonusCalculated,
+      bonusAmount: data.bonusAmount,
+      expiresAt: data.expiresAt,
+      cancelledAt: data.cancelledAt,
+      cancelReason: data.cancelReason,
+      isPendingSync: data.isPendingSync,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      lastSyncAt: data.lastSyncAt,
+      // Lookup fields
+      customerName: _customerNameCache?[data.customerId],
+      referrerRmName: _userNameCache?[data.referrerRmId],
+      receiverRmName: _userNameCache?[data.receiverRmId],
+      referrerBranchName: _getBranchName(data.referrerBranchId),
+      receiverBranchName: _getBranchName(data.receiverBranchId),
+      approverName: _getUserName(data.bmApprovedBy),
+    );
+  }
+}

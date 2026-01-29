@@ -14,6 +14,7 @@ enum SyncEntityType {
   customer,
   keyPerson,
   pipeline,
+  pipelineReferral,
   activity,
   hvc,
   broker,
