@@ -15,7 +15,7 @@ This checklist provides a structured approach to developing LeadX CRM, organized
 - 🔄 `[/]` - In Progress
 - ⬜ `[ ]` - Not Started
 
-**Last Updated:** January 28, 2026
+**Last Updated:** January 29, 2026
 
 ---
 
@@ -588,9 +588,8 @@ class CustomerForm extends _$CustomerForm {
 - [x] Create `ActivityRepository` interface
   - [x] `getUserActivities(userId, dateRange)`
   - [x] `getCustomerActivities(customerId)`
-  - [ ] `getPipelineActivities(pipelineId)`
-  - [ ] `getHvcActivities(hvcId)`
-  - [ ] `getBrokerActivities(brokerId)`
+  - [x] `getHvcActivities(hvcId)`
+  - [x] `getBrokerActivities(brokerId)`
   - [x] `createActivity(activity)` - Scheduled
   - [x] `createImmediateActivity(activity)` - Instant
   - [x] `executeActivity(id, execution)` - Mark complete with GPS
@@ -1073,7 +1072,7 @@ class CustomerForm extends _$CustomerForm {
 
 - [x] Implement `EditProfileScreen`
   - [x] Name edit
-  - [/] Avatar upload (backend ready via Supabase Storage, UI integration pending)
+  - [x] Avatar upload (backend ready via Supabase Storage, UI integration pending)
   - [x] Phone edit
 
 - [x] Implement `ChangePasswordScreen`
@@ -1269,12 +1268,21 @@ class CustomerForm extends _$CustomerForm {
 
 ### 14. Pipeline Referral Module ⬜
 
+> **Note**: This module supports ROH approval fallback for kanwil-level RMs who have no BM.
+> See [Pipeline Referral System](../03-architecture/pipeline-referral-system.md) for workflow details.
+
 #### Data Layer ✅
 - [x] `pipeline_referrals` table defined
+  - [x] `referrer_branch_id` nullable (for kanwil-level RMs)
+  - [x] `receiver_branch_id` nullable (for kanwil-level RMs)
+  - [x] `referrer_regional_office_id` for ROH fallback
+  - [x] `receiver_regional_office_id` for ROH fallback
+  - [x] `approver_type` column (BM or ROH)
 
 **Domain Models** ⬜
 - [ ] Create `PipelineReferral` entity
 - [ ] Create `ReferralStatus` enum
+- [ ] Create `ApproverType` enum (BM, ROH)
 
 **Data Sources** ⬜
 - [ ] Create `ReferralLocalDataSource`
@@ -1282,22 +1290,24 @@ class CustomerForm extends _$CustomerForm {
 
 #### Repository Layer ⬜
 - [ ] Create `ReferralRepository` interface
-  - [ ] `createReferral(referral)` - Referrer action
+  - [ ] `createReferral(referral)` - Referrer action (auto-determines approver_type)
   - [ ] `acceptReferral(id)` - Receiver action
   - [ ] `rejectReferral(id, reason)` - Receiver action
-  - [ ] `approveReferral(id)` - BM action
-  - [ ] `rejectReferralAsBm(id, reason)` - BM action
+  - [ ] `approveReferral(id)` - BM/ROH action (based on approver_type)
+  - [ ] `rejectReferralAsManager(id, reason)` - BM/ROH action
   - [ ] `getInboundReferrals(userId)` - Receiver's inbox
   - [ ] `getOutboundReferrals(userId)` - Referrer's sent
-  - [ ] `getPendingApprovals(bmId)` - BM's queue
+  - [ ] `getPendingApprovals(managerId)` - BM/ROH queue
   - [ ] `getReferralById(id)`
+  - [ ] `findApproverForUser(userId)` - Returns (approverId, approverType)
 - [ ] Implement `ReferralRepositoryImpl`
+  - [ ] Approver determination logic (BM → ROH fallback)
 
 #### Presentation Layer ⬜
 **Providers**
 - [ ] Create `referralInboxProvider` (StreamProvider) - Received referrals
 - [ ] Create `referralOutboxProvider` (StreamProvider) - Sent referrals
-- [ ] Create `pendingApprovalsProvider` (StreamProvider) - BM queue
+- [ ] Create `pendingApprovalsProvider` (StreamProvider) - BM/ROH queue
 - [ ] Create `ReferralActionNotifier` (AsyncNotifier + @riverpod)
 
 **Screens**
@@ -1306,27 +1316,30 @@ class CustomerForm extends _$CustomerForm {
   - [ ] COB/LOB picker
   - [ ] Potential premium input
   - [ ] Receiver RM picker
+  - [ ] Show designated approver (BM or ROH) after receiver selection
   - [ ] Reason input
   - [ ] Notes input
   - [ ] Submit button
 
 - [ ] Implement `ReferralInboxScreen`
   - [ ] Tabs: Received | Sent
-  - [ ] Referral cards with status
+  - [ ] Referral cards with status and approver_type badge
   - [ ] Accept/reject actions
   - [ ] Detail view
 
-- [ ] Implement `ReferralApprovalScreen` (BM)
-  - [ ] Pending approvals list
-  - [ ] Referral details
+- [ ] Implement `ManagerApprovalScreen` (BM/ROH)
+  - [ ] Pending approvals list (filtered by current user as designated approver)
+  - [ ] Referral details with approver_type indicator
   - [ ] Approve/reject actions
 
 - [ ] Implement referral notifications integration
 
 #### Testing ⬜
 - [ ] Unit tests for `ReferralRepositoryImpl`
+  - [ ] Approver determination (BM found, no BM → ROH, kanwil RM → ROH)
 - [ ] Widget tests for referral flow
 - [ ] Status transition tests
+- [ ] ROH approval fallback tests
 
 ---
 
@@ -1516,4 +1529,4 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-*Implementation checklist for LeadX CRM - Updated January 28, 2026*
+*Implementation checklist for LeadX CRM - Updated January 29, 2026*

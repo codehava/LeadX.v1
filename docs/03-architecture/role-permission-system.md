@@ -143,11 +143,15 @@ LeadX CRM menggunakan sistem **Role-Based Access Control (RBAC)** dengan permiss
 | Permission | RM | BH | BM | ROH | ADMIN |
 |------------|:--:|:--:|:--:|:---:|:-----:|
 | referral.create | ✅ | ✅ | ✅ | ✅ | ✅ |
-| referral.accept_as_receiver | ✅ | ✅ | ✅ | ✅ | ✅ |
-| referral.reject_as_receiver | ✅ | ✅ | ✅ | ✅ | ✅ |
-| referral.approve_as_bm | ❌ | ❌ | ✅ | ✅ | ✅ |
-| referral.reject_as_bm | ❌ | ❌ | ✅ | ✅ | ✅ |
+| referral.view_own | ✅ | ✅ | ✅ | ✅ | ✅ |
+| referral.view_subordinate | ❌ | ✅ | ✅ | ✅ | ✅ |
 | referral.view_all | ❌ | ❌ | ❌ | ❌ | ✅ |
+| referral.accept | ✅ | ✅ | ✅ | ✅ | ✅ |
+| referral.reject | ✅ | ✅ | ✅ | ✅ | ✅ |
+| referral.approve | ❌ | ❌ | ✅ | ✅ | ✅ |
+| referral.cancel | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> **Note on referral.approve**: BM can approve referrals where they are the designated approver (receiver has BM in hierarchy). ROH can approve referrals where they are the designated approver (receiver has no BM, or is at kanwil level). See [Pipeline Referral System](pipeline-referral-system.md#-approver-determination) for details.
 
 #### 4DX & Cadence
 

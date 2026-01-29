@@ -126,8 +126,14 @@ CREATE TABLE customer_hvc_links (
   notes TEXT,
   linked_at TIMESTAMPTZ DEFAULT NOW(),
   linked_by UUID REFERENCES users(id),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
   UNIQUE(customer_id, hvc_id)
 );
+
+-- Index for delta sync queries
+CREATE INDEX idx_customer_hvc_links_updated_at ON customer_hvc_links(updated_at);
+CREATE INDEX idx_customer_hvc_links_deleted_at ON customer_hvc_links(deleted_at) WHERE deleted_at IS NOT NULL;
 
 -- Update key_persons FKs
 ALTER TABLE key_persons ADD CONSTRAINT fk_key_persons_broker FOREIGN KEY (broker_id) REFERENCES brokers(id);
@@ -146,8 +152,14 @@ CREATE TABLE pipeline_referrals (
   potential_premium DECIMAL(18, 2) NOT NULL,
   referrer_rm_id UUID REFERENCES users(id) NOT NULL,
   receiver_rm_id UUID REFERENCES users(id) NOT NULL,
-  referrer_branch_id UUID REFERENCES branches(id) NOT NULL,
-  receiver_branch_id UUID REFERENCES branches(id) NOT NULL,
+  -- Branch IDs nullable for kanwil-level RMs
+  referrer_branch_id UUID REFERENCES branches(id),
+  receiver_branch_id UUID REFERENCES branches(id),
+  -- Regional office for ROH fallback approval
+  referrer_regional_office_id UUID REFERENCES regional_offices(id),
+  receiver_regional_office_id UUID REFERENCES regional_offices(id),
+  -- Approver type: BM or ROH (determined at creation based on receiver's hierarchy)
+  approver_type VARCHAR(10) NOT NULL DEFAULT 'BM' CHECK (approver_type IN ('BM', 'ROH')),
   reason TEXT NOT NULL,
   notes TEXT,
   status VARCHAR(30) NOT NULL DEFAULT 'PENDING_RECEIVER' CHECK (status IN (
@@ -158,6 +170,7 @@ CREATE TABLE pipeline_referrals (
   receiver_accepted_at TIMESTAMPTZ,
   receiver_rejected_at TIMESTAMPTZ,
   receiver_reject_reason TEXT,
+  -- Manager approval (BM or ROH based on approver_type)
   bm_approved_at TIMESTAMPTZ,
   bm_approved_by UUID REFERENCES users(id),
   bm_rejected_at TIMESTAMPTZ,
@@ -289,6 +302,7 @@ CREATE TRIGGER hvc_updated_at BEFORE UPDATE ON hvcs FOR EACH ROW EXECUTE FUNCTIO
 CREATE TRIGGER brokers_updated_at BEFORE UPDATE ON brokers FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER pipelines_updated_at BEFORE UPDATE ON pipelines FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER activities_updated_at BEFORE UPDATE ON activities FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER customer_hvc_links_updated_at BEFORE UPDATE ON customer_hvc_links FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================
 -- END PART 2

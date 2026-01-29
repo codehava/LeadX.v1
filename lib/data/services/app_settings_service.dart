@@ -96,9 +96,44 @@ class AppSettingsService {
   Future<bool> hasInterruptedSync() async {
     final inProgress = await get(keySyncInProgress);
     if (inProgress != 'true') return false;
-    
+
     final completed = await hasInitialSyncCompleted();
     return !completed;
+  }
+
+  // ========================================
+  // PER-TABLE DELTA SYNC TIMESTAMPS
+  // ========================================
+
+  /// Key prefix for per-table sync timestamps.
+  static const String _keyTableSyncPrefix = 'table_sync_at_';
+
+  /// Get the last sync timestamp for a specific table.
+  /// Returns null if the table has never been synced (triggers full sync).
+  Future<DateTime?> getTableLastSyncAt(String tableName) async {
+    final value = await get('$_keyTableSyncPrefix$tableName');
+    if (value == null) return null;
+    return DateTime.tryParse(value);
+  }
+
+  /// Set the last sync timestamp for a specific table.
+  Future<void> setTableLastSyncAt(String tableName, DateTime timestamp) async {
+    await set('$_keyTableSyncPrefix$tableName', timestamp.toIso8601String());
+  }
+
+  /// Clear the sync timestamp for a specific table (forces full re-sync).
+  Future<void> clearTableSyncAt(String tableName) async {
+    await delete('$_keyTableSyncPrefix$tableName');
+  }
+
+  /// Clear all table sync timestamps (for logout or full reset).
+  Future<void> clearAllTableSyncTimestamps() async {
+    final settings = await _db.select(_db.appSettings).get();
+    for (final setting in settings) {
+      if (setting.key.startsWith(_keyTableSyncPrefix)) {
+        await delete(setting.key);
+      }
+    }
   }
 
   /// Clear all settings (for logout).

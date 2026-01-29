@@ -6,7 +6,7 @@
 
 ## 📋 Overview
 
-Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke RM lain dengan proses handshake yang memastikan kedua belah pihak setuju, dan approval dari Branch Manager.
+Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke RM lain dengan proses handshake yang memastikan kedua belah pihak setuju, dan approval dari Manager (BM atau ROH).
 
 ### Use Cases
 
@@ -58,11 +58,13 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 │                                         │                                    │
 │                                         ▼                                    │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ STEP 3: BRANCH MANAGER Approval                                          ││
+│  │ STEP 3: MANAGER (BM/ROH) Approval                                        ││
 │  │                                                                          ││
-│  │  BM of receiver's branch receives approval request.                     ││
-│  │  BM reviews the referral details:                                       ││
+│  │  The designated approver receives the approval request:                 ││
+│  │  • If receiver has a BM in hierarchy → BM approves                      ││
+│  │  • If receiver has no BM (kanwil RM) → ROH approves                     ││
 │  │                                                                          ││
+│  │  Approver reviews the referral details:                                 ││
 │  │  • Customer information                                                  ││
 │  │  • Estimated premium value                                               ││
 │  │  • Referrer confirmation                                                 ││
@@ -101,19 +103,47 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 
 ---
 
+## 👤 Approver Determination
+
+The system automatically determines who should approve the referral based on the receiver RM's organizational position:
+
+| Scenario | Approver | `approver_type` |
+|----------|----------|-----------------|
+| Receiver has a branch with BM in hierarchy | BM of receiver | `BM` |
+| Receiver has a branch but no BM in hierarchy | ROH of receiver's region | `ROH` |
+| Receiver is at kanwil level (no branch) | ROH of receiver's region | `ROH` |
+
+### Approver Lookup Logic
+
+```
+1. Check if receiver RM has a branch_id
+2. If yes, search user_hierarchy for ancestor with role = 'BM'
+3. If BM found → approver_type = 'BM'
+4. If no BM found (or no branch):
+   a. Search user_hierarchy for ancestor with role = 'ROH'
+   b. If not found, find ROH by matching regional_office_id
+   c. approver_type = 'ROH'
+```
+
+> **Note**: The `approver_type` is determined at referral creation time and stored in the `pipeline_referrals` table.
+
+---
+
 ## 📊 Status Definitions
 
 | Status | Description | Next Actions |
 |--------|-------------|--------------|
 | `PENDING_RECEIVER` | Referral created, waiting for receiver response | Receiver: Accept/Reject |
-| `RECEIVER_ACCEPTED` | Receiver accepted, waiting for BM approval | BM: Approve/Reject |
+| `RECEIVER_ACCEPTED` | Receiver accepted, waiting for manager approval | BM/ROH: Approve/Reject |
 | `RECEIVER_REJECTED` | Receiver declined the referral | **END STATE** |
-| `PENDING_BM_APPROVAL` | Same as RECEIVER_ACCEPTED | BM: Approve/Reject |
-| `BM_REJECTED` | BM declined the referral | **END STATE** |
+| `PENDING_BM_APPROVAL` | Same as RECEIVER_ACCEPTED (alias) | BM/ROH: Approve/Reject |
+| `BM_REJECTED` | Manager (BM or ROH) declined the referral | **END STATE** |
 | `APPROVED` | All parties agreed | System: Create Pipeline |
 | `PIPELINE_CREATED` | Pipeline has been created | **END STATE** |
 | `CANCELLED` | Referrer cancelled before completion | **END STATE** |
 | `EXPIRED` | No response within timeout period | **END STATE** |
+
+> **Note**: Status names use "BM" for backward compatibility, but the actual approver may be BM or ROH based on `approver_type`.
 
 ---
 
@@ -122,8 +152,11 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 | Stage | Timeout | Action |
 |-------|---------|--------|
 | Receiver Response | 48 hours | Auto-cancel, notify referrer |
-| BM Approval | 24 hours | Escalate to ROH notification |
+| Manager Approval (BM) | 24 hours | Escalate to ROH notification |
+| Manager Approval (ROH) | 24 hours | Escalate to Admin notification |
 | Overall | 7 days | Auto-expire referral |
+
+> **Note**: Escalation differs based on `approver_type`. If ROH is already the approver, escalation goes to Admin.
 
 ---
 
@@ -159,44 +192,53 @@ Example:
 CREATE TABLE pipeline_referrals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code VARCHAR(20) UNIQUE NOT NULL, -- REF-YYYYMMDD-XXX
-  
+
   -- Customer & Business Info
   customer_id UUID NOT NULL REFERENCES customers(id),
   cob_id UUID NOT NULL REFERENCES cob(id),
   lob_id UUID NOT NULL REFERENCES lob(id),
   potential_premium DECIMAL(18,2) NOT NULL,
-  
+
   -- Parties Involved
   referrer_rm_id UUID NOT NULL REFERENCES users(id),
   receiver_rm_id UUID NOT NULL REFERENCES users(id),
-  referrer_branch_id UUID NOT NULL REFERENCES branches(id),
-  receiver_branch_id UUID NOT NULL REFERENCES branches(id),
-  
+
+  -- Branch (nullable for kanwil-level RMs)
+  referrer_branch_id UUID REFERENCES branches(id),      -- nullable
+  receiver_branch_id UUID REFERENCES branches(id),      -- nullable
+
+  -- Regional Office (for ROH fallback approval)
+  referrer_regional_office_id UUID REFERENCES regional_offices(id),
+  receiver_regional_office_id UUID REFERENCES regional_offices(id),
+
+  -- Approver Type (determined at creation based on receiver's hierarchy)
+  approver_type VARCHAR(10) NOT NULL DEFAULT 'BM' CHECK (approver_type IN ('BM', 'ROH')),
+
   -- Referral Details
   reason TEXT NOT NULL,
   notes TEXT,
-  
+
   -- Status Tracking
   status VARCHAR(30) NOT NULL DEFAULT 'PENDING_RECEIVER',
-  
+
   -- Receiver Response
   receiver_accepted_at TIMESTAMPTZ,
   receiver_rejected_at TIMESTAMPTZ,
   receiver_reject_reason TEXT,
   receiver_notes TEXT,
-  
-  -- BM Approval
+
+  -- Manager Approval (BM or ROH based on approver_type)
   bm_approved_at TIMESTAMPTZ,
   bm_approved_by UUID REFERENCES users(id),
   bm_rejected_at TIMESTAMPTZ,
   bm_reject_reason TEXT,
   bm_notes TEXT,
-  
+
   -- Result
   pipeline_id UUID REFERENCES pipelines(id),
   bonus_calculated BOOLEAN DEFAULT FALSE,
   bonus_amount DECIMAL(18,2),
-  
+
   -- Timestamps
   expires_at TIMESTAMPTZ,
   cancelled_at TIMESTAMPTZ,
@@ -247,7 +289,7 @@ FOR SELECT USING (
 │  │  Customer: PT ABC Indonesia                               │  │
 │  │  To: Budi Santoso (JKT-02)                               │  │
 │  │  Premium: Rp 500.000.000                                  │  │
-│  │  Status: ⏳ Waiting BM Approval                           │  │
+│  │  Status: ⏳ Waiting Manager Approval                       │  │
 │  │  [View Details]                                           │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
@@ -264,11 +306,11 @@ FOR SELECT USING (
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### BM Approval Dashboard
+### Manager Approval Dashboard (BM/ROH)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  REFERRALS PENDING MY APPROVAL                     [BM Dashboard]│
+│  REFERRALS PENDING MY APPROVAL                [Manager Dashboard]│
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │

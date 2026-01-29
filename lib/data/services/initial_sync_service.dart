@@ -75,13 +75,14 @@ class InitialSyncService {
   static const int pageSize = 50;
 
   /// Tables to sync in order (dependencies first).
+  /// These are static/reference tables that use full sync.
   static const List<String> _tablesToSync = [
     // User hierarchy (Must be first as Users are referenced by created_by in other tables)
     'regional_offices',
     'branches',
     'users',
     'user_hierarchy',
-    
+
     // Master data
     'provinces',
     'cities',
@@ -96,14 +97,17 @@ class InitialSyncService {
     'lead_sources',
     'decline_reasons',
     'hvc_types',
-    // HVC transactional data
-    'hvcs',
-    'customer_hvc_links',
-    // Brokers
-    'brokers',
-    // 4DX Scoring (added)
+    // 4DX Scoring
     'measure_definitions',
     'scoring_periods',
+  ];
+
+  /// Transactional tables that use delta sync (fetch only changes since last sync).
+  /// These tables grow over time and benefit from incremental sync.
+  static const List<String> _deltaSyncTables = [
+    'hvcs',
+    'brokers',
+    'customer_hvc_links',
   ];
 
   /// Stream controller for progress updates.
@@ -261,15 +265,7 @@ class InitialSyncService {
       case 'hvc_types':
         await _syncHvcTypes();
         break;
-      case 'hvcs':
-        await _syncHvcs();
-        break;
-      case 'customer_hvc_links':
-        await _syncCustomerHvcLinks();
-        break;
-      case 'brokers':
-        await _syncBrokers();
-        break;
+      // Note: hvcs, brokers, customer_hvc_links moved to delta sync (performDeltaSync)
       // 4DX Scoring
       case 'measure_definitions':
         await _syncMeasureDefinitions();
@@ -517,11 +513,40 @@ class InitialSyncService {
     });
   }
 
-  Future<void> _syncHvcs() async {
-    final data = await _supabase.from('hvcs').select().isFilter('deleted_at', null);
-    
+  Future<void> _syncHvcs({DateTime? since}) async {
+    var query = _supabase.from('hvcs').select();
+
+    if (since != null) {
+      // Delta sync: fetch updated OR deleted since last sync
+      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+    } else {
+      // Full sync: only non-deleted records
+      query = query.isFilter('deleted_at', null);
+    }
+
+    final data = await query;
+
+    // Collect IDs of deleted records for batch deletion
+    final deletedIds = <String>[];
+    final recordsToUpsert = <Map<String, dynamic>>[];
+
+    for (final row in data as List) {
+      final deletedAt = row['deleted_at'] as String?;
+      if (deletedAt != null) {
+        deletedIds.add(row['id'] as String);
+      } else {
+        recordsToUpsert.add(row as Map<String, dynamic>);
+      }
+    }
+
+    // Delete removed records
+    if (deletedIds.isNotEmpty) {
+      await (_db.delete(_db.hvcs)..where((t) => t.id.isIn(deletedIds))).go();
+    }
+
+    // Upsert active records
     await _db.batch((batch) {
-      for (final row in data as List) {
+      for (final row in recordsToUpsert) {
         batch.insert(
           _db.hvcs,
           HvcsCompanion.insert(
@@ -548,20 +573,51 @@ class InitialSyncService {
     });
   }
 
-  Future<void> _syncCustomerHvcLinks() async {
-    // Note: Supabase table has different schema than local table
-    // Supabase: id, customer_id, hvc_id, relationship_type, notes, linked_at, linked_by
-    // Local: adds is_active, is_pending_sync, created_at, updated_at, deleted_at
-    final data = await _supabase.from('customer_hvc_links').select();
-    
+  Future<void> _syncCustomerHvcLinks({DateTime? since}) async {
+    // Note: After migration, Supabase table has updated_at and deleted_at columns
+    // Supabase: id, customer_id, hvc_id, relationship_type, notes, linked_at, linked_by, updated_at, deleted_at
+    // Local: id, customer_id, hvc_id, relationship_type, is_active, created_by, is_pending_sync, created_at, updated_at, deleted_at
+    var query = _supabase.from('customer_hvc_links').select();
+
+    if (since != null) {
+      // Delta sync: fetch updated OR deleted since last sync
+      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+    }
+    // Note: No deleted_at filter for full sync since customer_hvc_links may not have deleted_at yet
+
+    final data = await query;
+
+    // Collect IDs of deleted records for batch deletion
+    final deletedIds = <String>[];
+    final recordsToUpsert = <Map<String, dynamic>>[];
+
+    for (final row in data as List) {
+      final deletedAt = row['deleted_at'] as String?;
+      if (deletedAt != null) {
+        deletedIds.add(row['id'] as String);
+      } else {
+        recordsToUpsert.add(row as Map<String, dynamic>);
+      }
+    }
+
+    // Delete removed records
+    if (deletedIds.isNotEmpty) {
+      await (_db.delete(_db.customerHvcLinks)..where((t) => t.id.isIn(deletedIds))).go();
+    }
+
+    // Upsert active records
     await _db.batch((batch) {
-      for (final row in data as List) {
+      for (final row in recordsToUpsert) {
         // Map Supabase linked_at/linked_by to local created_at/created_by
-        final linkedAt = row['linked_at'] != null 
-            ? DateTime.parse(row['linked_at'] as String) 
+        final linkedAt = row['linked_at'] != null
+            ? DateTime.parse(row['linked_at'] as String)
             : DateTime.now();
         final linkedBy = row['linked_by'] as String? ?? 'system';
-        
+        // Use updated_at if available (after migration), otherwise fall back to linked_at
+        final updatedAt = row['updated_at'] != null
+            ? DateTime.parse(row['updated_at'] as String)
+            : linkedAt;
+
         batch.insert(
           _db.customerHvcLinks,
           CustomerHvcLinksCompanion.insert(
@@ -569,11 +625,11 @@ class InitialSyncService {
             customerId: row['customer_id'] as String,
             hvcId: row['hvc_id'] as String,
             relationshipType: row['relationship_type'] as String? ?? 'MEMBER',
-            isActive: const Value(true), // Default, not in Supabase schema
+            isActive: const Value(true),
             createdBy: linkedBy,
             isPendingSync: const Value(false),
             createdAt: linkedAt,
-            updatedAt: linkedAt,
+            updatedAt: updatedAt,
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -585,11 +641,40 @@ class InitialSyncService {
   // BROKER SYNC METHOD
   // ============================================
 
-  Future<void> _syncBrokers() async {
-    final data = await _supabase.from('brokers').select().isFilter('deleted_at', null);
-    
+  Future<void> _syncBrokers({DateTime? since}) async {
+    var query = _supabase.from('brokers').select();
+
+    if (since != null) {
+      // Delta sync: fetch updated OR deleted since last sync
+      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+    } else {
+      // Full sync: only non-deleted records
+      query = query.isFilter('deleted_at', null);
+    }
+
+    final data = await query;
+
+    // Collect IDs of deleted records for batch deletion
+    final deletedIds = <String>[];
+    final recordsToUpsert = <Map<String, dynamic>>[];
+
+    for (final row in data as List) {
+      final deletedAt = row['deleted_at'] as String?;
+      if (deletedAt != null) {
+        deletedIds.add(row['id'] as String);
+      } else {
+        recordsToUpsert.add(row as Map<String, dynamic>);
+      }
+    }
+
+    // Delete removed records
+    if (deletedIds.isNotEmpty) {
+      await (_db.delete(_db.brokers)..where((t) => t.id.isIn(deletedIds))).go();
+    }
+
+    // Upsert active records
     await _db.batch((batch) {
-      for (final row in data as List) {
+      for (final row in recordsToUpsert) {
         batch.insert(
           _db.brokers,
           BrokersCompanion.insert(
@@ -765,6 +850,96 @@ class InitialSyncService {
         }
       }
     });
+  }
+
+  // ============================================
+  // DELTA SYNC FOR TRANSACTIONAL TABLES
+  // ============================================
+
+  /// Perform delta sync for transactional tables (hvcs, brokers, customer_hvc_links).
+  /// Only fetches records updated since the last sync timestamp.
+  /// Call this periodically after initial sync is complete.
+  Future<SyncResult> performDeltaSync({
+    InitialSyncProgressCallback? onProgress,
+  }) async {
+    if (_isSyncing) {
+      return SyncResult(
+        success: false,
+        processedCount: 0,
+        successCount: 0,
+        failedCount: 0,
+        errors: ['Sync already in progress'],
+        syncedAt: DateTime.now(),
+      );
+    }
+
+    _isSyncing = true;
+    final errors = <String>[];
+    var successCount = 0;
+    var failedCount = 0;
+
+    try {
+      for (var i = 0; i < _deltaSyncTables.length; i++) {
+        final tableName = _deltaSyncTables[i];
+
+        _emitProgress(
+          InitialSyncProgress(
+            currentTable: tableName,
+            currentTableIndex: i + 1,
+            totalTables: _deltaSyncTables.length,
+            currentPage: 0,
+            totalRows: 0,
+            percentage: (i / _deltaSyncTables.length) * 100,
+            message: 'Delta sync: $tableName...',
+          ),
+          onProgress,
+        );
+
+        try {
+          // Get last sync timestamp for this table
+          final lastSyncAt = await _appSettings?.getTableLastSyncAt(tableName);
+
+          // Perform delta sync
+          await _syncTableDelta(tableName, lastSyncAt);
+
+          // Update last sync timestamp
+          await _appSettings?.setTableLastSyncAt(tableName, DateTime.now());
+
+          successCount++;
+        } catch (e) {
+          errors.add('Failed to delta sync $tableName: $e');
+          failedCount++;
+        }
+      }
+
+      _emitProgress(InitialSyncProgress.completed(), onProgress);
+
+      return SyncResult(
+        success: errors.isEmpty,
+        processedCount: _deltaSyncTables.length,
+        successCount: successCount,
+        failedCount: failedCount,
+        errors: errors,
+        syncedAt: DateTime.now(),
+      );
+    } finally {
+      _isSyncing = false;
+    }
+  }
+
+  /// Sync a delta table with optional since timestamp.
+  Future<void> _syncTableDelta(String tableName, DateTime? since) async {
+    switch (tableName) {
+      case 'hvcs':
+        await _syncHvcs(since: since);
+        break;
+      case 'brokers':
+        await _syncBrokers(since: since);
+        break;
+      case 'customer_hvc_links':
+        await _syncCustomerHvcLinks(since: since);
+        break;
+    }
   }
 
   /// Dispose resources.
