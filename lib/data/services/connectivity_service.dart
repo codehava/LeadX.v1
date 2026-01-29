@@ -11,9 +11,9 @@ class ConnectivityService {
     SupabaseClient? supabaseClient,
   })  : _connectivity = connectivity ?? Connectivity(),
         _supabaseClient = supabaseClient,
-        // Default to false until we verify actual connectivity.
-        // This prevents showing "online" when we haven't checked yet.
-        _isConnected = false;
+        // On web, default to true (browser requires internet to load app).
+        // On mobile, default to false until we verify actual connectivity.
+        _isConnected = kIsWeb;
 
   final Connectivity _connectivity;
   final SupabaseClient? _supabaseClient;
@@ -125,8 +125,6 @@ class ConnectivityService {
   /// Check if the Supabase server is reachable.
   /// Returns true if we can successfully call a simple API.
   Future<bool> checkServerReachability() async {
-    if (!_isConnected) return false;
-
     try {
       if (_supabaseClient == null) return false;
 

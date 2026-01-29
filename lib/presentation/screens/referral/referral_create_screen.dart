@@ -242,10 +242,39 @@ class _ReferralCreateScreenState extends ConsumerState<ReferralCreateScreen> {
   }
 
   Widget _buildCustomerPicker() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final customersAsync = ref.watch(customerListStreamProvider);
 
     return customersAsync.when(
       data: (customers) {
+        if (customers.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.outline),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Belum ada nasabah. Silakan sinkronisasi data terlebih dahulu.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
         return DropdownButtonFormField<String>(
           value: _selectedCustomerId,
           decoration: const InputDecoration(
@@ -273,7 +302,17 @@ class _ReferralCreateScreenState extends ConsumerState<ReferralCreateScreen> {
         );
       },
       loading: () => const LinearProgressIndicator(),
-      error: (_, __) => const Text('Error loading customers'),
+      error: (error, _) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.red),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          'Error loading customers: $error',
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.red),
+        ),
+      ),
     );
   }
 
