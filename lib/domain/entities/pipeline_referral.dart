@@ -109,13 +109,19 @@ extension ReferralStatusX on ReferralStatus {
   }
 }
 
-/// Approver type enum - BM (Branch Manager) or ROH (Regional Office Head).
+/// Approver type enum - any role besides RM can be an approver.
 @JsonEnum(alwaysCreate: true)
 enum ApproverType {
+  @JsonValue('BH')
+  bh,
   @JsonValue('BM')
   bm,
   @JsonValue('ROH')
   roh,
+  @JsonValue('ADMIN')
+  admin,
+  @JsonValue('SUPERADMIN')
+  superadmin,
 }
 
 /// Extension methods for ApproverType.
@@ -123,30 +129,48 @@ extension ApproverTypeX on ApproverType {
   /// Get display name.
   String get displayName {
     switch (this) {
+      case ApproverType.bh:
+        return 'Business Head';
       case ApproverType.bm:
         return 'Branch Manager';
       case ApproverType.roh:
         return 'Regional Office Head';
+      case ApproverType.admin:
+        return 'Admin';
+      case ApproverType.superadmin:
+        return 'Super Admin';
     }
   }
 
   /// Get short display name.
   String get shortName {
     switch (this) {
+      case ApproverType.bh:
+        return 'BH';
       case ApproverType.bm:
         return 'BM';
       case ApproverType.roh:
         return 'ROH';
+      case ApproverType.admin:
+        return 'Admin';
+      case ApproverType.superadmin:
+        return 'Superadmin';
     }
   }
 
   /// Get string value for database.
   String get value {
     switch (this) {
+      case ApproverType.bh:
+        return 'BH';
       case ApproverType.bm:
         return 'BM';
       case ApproverType.roh:
         return 'ROH';
+      case ApproverType.admin:
+        return 'ADMIN';
+      case ApproverType.superadmin:
+        return 'SUPERADMIN';
     }
   }
 
@@ -155,6 +179,12 @@ extension ApproverTypeX on ApproverType {
     switch (value.toUpperCase()) {
       case 'ROH':
         return ApproverType.roh;
+      case 'BH':
+        return ApproverType.bh;
+      case 'ADMIN':
+        return ApproverType.admin;
+      case 'SUPERADMIN':
+        return ApproverType.superadmin;
       case 'BM':
       default:
         return ApproverType.bm;

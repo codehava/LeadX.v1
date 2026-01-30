@@ -293,7 +293,10 @@ class ReferralDetailScreen extends ConsumerWidget {
     // Show action buttons only for pending items
     if (!referral.status.isActionable) return null;
 
-    // Receiver actions
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final isManager = currentUser?.canManageSubordinates ?? false;
+
+    // Receiver actions - Accept/Reject referral
     if (isReceiver && referral.canBeAccepted) {
       return SafeArea(
         child: Padding(
@@ -318,6 +321,42 @@ class ReferralDetailScreen extends ConsumerWidget {
                   onPressed: () => _showAcceptDialog(context, ref, referral),
                   icon: const Icon(Icons.check),
                   label: const Text('Terima'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Manager actions - Approve/Reject after receiver accepted
+    if (isManager && referral.canBeApproved) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showManagerRejectDialog(context, ref, referral),
+                  icon: const Icon(Icons.close),
+                  label: const Text('Tolak'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _showManagerApproveDialog(context, ref, referral),
+                  icon: const Icon(Icons.check),
+                  label: const Text('Setujui'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
@@ -544,6 +583,148 @@ class ReferralDetailScreen extends ConsumerWidget {
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.grey),
             child: const Text('Batalkan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManagerApproveDialog(
+    BuildContext context,
+    WidgetRef ref,
+    PipelineReferral referral,
+  ) {
+    final notesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Setujui Referral'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Anda akan menyetujui transfer nasabah "${referral.customerName}" '
+              'dari ${referral.referrerRmName} ke ${referral.receiverRmName}.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: notesController,
+              decoration: const InputDecoration(
+                labelText: 'Catatan (opsional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final notifier = ref.read(referralActionNotifierProvider.notifier);
+              final success = await notifier.approveReferral(
+                referral.id,
+                notes: notesController.text.isEmpty ? null : notesController.text,
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Referral berhasil disetujui'
+                          : 'Gagal menyetujui referral',
+                    ),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+                if (success) {
+                  ref.invalidate(referralDetailProvider(referralId));
+                }
+              }
+            },
+            child: const Text('Setujui'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManagerRejectDialog(
+    BuildContext context,
+    WidgetRef ref,
+    PipelineReferral referral,
+  ) {
+    final reasonController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tolak Referral'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Anda akan menolak transfer nasabah "${referral.customerName}" '
+              'dari ${referral.referrerRmName} ke ${referral.receiverRmName}.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: 'Alasan penolakan *',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (reasonController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Alasan penolakan harus diisi'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context);
+              final notifier = ref.read(referralActionNotifierProvider.notifier);
+              final success = await notifier.rejectAsManager(
+                referral.id,
+                reasonController.text,
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Referral berhasil ditolak'
+                          : 'Gagal menolak referral',
+                    ),
+                    backgroundColor: success ? Colors.orange : Colors.red,
+                  ),
+                );
+                if (success) {
+                  ref.invalidate(referralDetailProvider(referralId));
+                }
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Tolak'),
           ),
         ],
       ),

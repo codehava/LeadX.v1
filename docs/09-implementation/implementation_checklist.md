@@ -1197,68 +1197,121 @@ class CustomerForm extends _$CustomerForm {
 
 ---
 
-### 13. Cadence Meeting Module ⬜
+### 13. Cadence Meeting Module ✅ 95% COMPLETE
 
 #### Data Layer ✅
 - [x] `cadence_schedule_config` table defined
 - [x] `cadence_meetings` table defined
 - [x] `cadence_participants` table defined
 
-**Domain Models** ⬜
-- [ ] Create `CadenceConfig` entity
-- [ ] Create `CadenceMeeting` entity
-- [ ] Create `CadenceParticipant` entity
-- [ ] Create `PreMeetingForm` model
+**Domain Models** ✅
+- [x] Create `CadenceScheduleConfig` entity (`lib/domain/entities/cadence.dart`)
+- [x] Create `CadenceMeeting` entity
+- [x] Create `CadenceParticipant` entity
+- [x] Create `CadenceFormSubmission` model
+- [x] Create `CadenceMeetingWithParticipants` aggregate
+- [x] Enums: MeetingFrequency, MeetingStatus, AttendanceStatus, FormSubmissionStatus, CommitmentCompletionStatus
 
-**Data Sources** ⬜
-- [ ] Create `CadenceLocalDataSource`
-- [ ] Create `CadenceRemoteDataSource`
+**DTOs** ✅
+- [x] Create `CadenceScheduleConfigDto` (`lib/data/dtos/cadence_dtos.dart`)
+- [x] Create `CadenceMeetingDto`
+- [x] Create `CadenceParticipantDto`
+- [x] Create `CadenceFormCreateDto`
+- [x] Create `AttendanceUpdateDto`
+- [x] Create `FeedbackUpdateDto`
+- [x] Create `CadenceMeetingCreateDto`
+- [x] Create `CadenceParticipantCreateDto`
 
-#### Repository Layer ⬜
-- [ ] Create `CadenceRepository` interface
-  - [ ] `getUpcomingMeetings(userId)`
-  - [ ] `getMeetingById(id)`
-  - [ ] `submitPreMeetingForm(meetingId, form)`
-  - [ ] `markAttendance(meetingId, userId, attended)`
-  - [ ] `startMeeting(meetingId)` - Host only
-  - [ ] `completeMeeting(meetingId, notes)`
-  - [ ] `getParticipants(meetingId)`
-  - [ ] `getMyPendingForms()`
-- [ ] Implement `CadenceRepositoryImpl`
+**Data Sources** ✅
+- [x] Create `CadenceLocalDataSource` (`lib/data/datasources/local/cadence_local_data_source.dart`)
+- [x] Create `CadenceRemoteDataSource` (`lib/data/datasources/remote/cadence_remote_data_source.dart`)
 
-#### Presentation Layer ⬜
-**Providers**
-- [ ] Create `cadenceListProvider` (StreamProvider) - Upcoming/past meetings
-- [ ] Create `cadenceMeetingProvider` (FutureProvider.family)
-- [ ] Create `pendingFormsProvider` (StreamProvider)
-- [ ] Create `PreMeetingFormNotifier` (AsyncNotifier + @riverpod)
+#### Repository Layer ✅
+- [x] Create `CadenceRepository` interface (`lib/domain/repositories/cadence_repository.dart`)
+  - [x] `watchUpcomingMeetings()` - Stream
+  - [x] `watchPastMeetings()` - Stream
+  - [x] `watchHostedMeetings()` - Stream
+  - [x] `watchMeeting(meetingId)` - Stream
+  - [x] `watchMeetingParticipants(meetingId)` - Stream
+  - [x] `watchMyParticipation(meetingId)` - Stream
+  - [x] `submitPreMeetingForm(submission)`
+  - [x] `saveFormDraft(submission)`
+  - [x] `markAttendance(participantId, status, reason)`
+  - [x] `batchMarkAttendance(meetingId, attendanceMap)`
+  - [x] `startMeeting(meetingId)` - Host only
+  - [x] `endMeeting(meetingId)` - Host only
+  - [x] `cancelMeeting(meetingId, reason)` - Host only
+  - [x] `saveHostNotes(participantId, notes)`
+  - [x] `saveFeedback(participantId, feedbackText)`
+  - [x] `ensureUpcomingMeetings(weeksAhead)` - Auto-generate meetings
+  - [x] `getPreviousCommitment(userId, facilitatorId)` - Q1 auto-fill
+  - [x] Sync operations (getPendingSync, markAsSynced)
+- [x] Implement `CadenceRepositoryImpl` (`lib/data/repositories/cadence_repository_impl.dart`)
+  - [x] Offline-first pattern
+  - [x] Score calculation (attendance + form submission)
 
-**Screens**
-- [ ] Implement `CadenceListScreen`
-  - [ ] Upcoming meetings list
-  - [ ] Past meetings list
-  - [ ] Pre-meeting deadline indicators
+#### Presentation Layer ✅
+**Providers** ✅ (`lib/presentation/providers/cadence_providers.dart`)
+- [x] Create `cadenceRepositoryProvider`
+- [x] Create `upcomingMeetingsProvider` (StreamProvider)
+- [x] Create `pastMeetingsProvider` (StreamProvider)
+- [x] Create `hostedMeetingsProvider` (StreamProvider)
+- [x] Create `cadenceMeetingProvider` (StreamProvider.family)
+- [x] Create `meetingParticipantsProvider` (StreamProvider.family)
+- [x] Create `myParticipationProvider` (StreamProvider.family)
+- [x] Create `myFacilitatorConfigProvider` (FutureProvider)
+- [x] Create `CadenceFormNotifier` (StateNotifier)
+- [x] Create `HostActionNotifier` (StateNotifier)
 
-- [ ] Implement `CadenceMeetingScreen`
-  - [ ] Meeting info
-  - [ ] Participant list
-  - [ ] Form submission status
-  - [ ] Join button for participants
-  - [ ] Host controls (start, mark attendance, complete)
+**Screens** ✅
+- [x] Implement `CadenceListScreen` (`lib/presentation/screens/cadence/cadence_list_screen.dart`)
+  - [x] Upcoming/Past tabs
+  - [x] Meeting cards with status badges
+  - [x] Pre-meeting deadline indicators
+  - [x] Pull-to-refresh
+  - [x] Empty states
 
-- [ ] Implement `PreMeetingFormScreen`
-  - [ ] Previous commitment status (COMPLETED/PARTIAL/NOT_DONE)
-  - [ ] Current commitment input
-  - [ ] Blockers input
-  - [ ] Submit button
-  - [ ] Deadline countdown
+- [x] Implement `CadenceDetailScreen` (`lib/presentation/screens/cadence/cadence_detail_screen.dart`)
+  - [x] Meeting info card
+  - [x] Host view with participant list
+  - [x] Participant view with form status
+  - [x] Start/End meeting controls (host)
+  - [x] Attendance marking bottom sheet (host)
+  - [x] Form detail bottom sheet (host)
+  - [x] Feedback bottom sheet (host)
 
-- [ ] Implement `CadenceHostScreen` (BH/BM/ROH)
-  - [ ] Attendance marking
-  - [ ] Form review for each participant
-  - [ ] Meeting notes
-  - [ ] Complete meeting action
+- [x] Implement `CadenceFormScreen` (`lib/presentation/screens/cadence/cadence_form_screen.dart`)
+  - [x] Q1: Previous commitment status (COMPLETED/PARTIAL/NOT_DONE)
+  - [x] Q2: What I achieved (required)
+  - [x] Q3: Obstacles (optional)
+  - [x] Q4: Next commitment (required)
+  - [x] Save draft action
+  - [x] Submit button
+  - [x] Deadline warning
 
+- [x] Implement `HostDashboardScreen` (`lib/presentation/screens/cadence/host_dashboard_screen.dart`)
+  - [x] Config info card
+  - [x] Upcoming meetings
+  - [x] Recent completed meetings
+  - [x] Generate meetings FAB
+
+**Widgets** ✅
+- [x] `MeetingCard` widget (`lib/presentation/screens/cadence/widgets/meeting_card.dart`)
+- [x] `ParticipantCard` widget (`lib/presentation/screens/cadence/widgets/participant_card.dart`)
+
+**Routes** ✅
+- [x] `/home/cadence` - CadenceListScreen
+- [x] `/home/cadence/host` - HostDashboardScreen
+- [x] `/home/cadence/:id` - CadenceDetailScreen
+- [x] `/home/cadence/:id/form` - CadenceFormScreen
+
+#### Not Yet Implemented ⬜
+- [ ] `getTeamMemberIds()` - Query user_hierarchy for subordinates
+- [ ] Notification integration (form deadline reminders)
+- [ ] Integration with main UserScores table
+- [ ] Admin cadence config management UI
+- [x] Sync handlers in SyncService ✅
+- [ ] implement edge function for automatic creation
 #### Testing ⬜
 - [ ] Unit tests for `CadenceRepositoryImpl`
 - [ ] Widget tests for form submission

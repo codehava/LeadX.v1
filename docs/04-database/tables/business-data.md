@@ -58,15 +58,50 @@ See: [activities.md](activities.md)
 
 ### pipeline_referrals
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| referrer_id | UUID | FK to users |
-| receiver_id | UUID | FK to users |
-| customer_id | UUID | FK to customers |
-| status | VARCHAR(20) | PENDING/ACCEPTED/DECLINED |
-| resulting_pipeline_id | UUID | FK to pipelines |
+Transfer nasabah antar RM dengan approval workflow. Seluruh nasabah (termasuk semua pipeline) ditransfer, bukan per-produk.
+
+| Column | Type | Nullable | Description |
+|--------|------|----------|-------------|
+| id | UUID | NO | Primary key |
+| code | VARCHAR(20) | NO | Unique code (REF-YYYYMMDD-XXX) |
+| customer_id | UUID | NO | FK to customers |
+| referrer_rm_id | UUID | NO | RM yang mereferral |
+| receiver_rm_id | UUID | NO | RM tujuan |
+| referrer_branch_id | UUID | YES | Branch referrer (nullable untuk kanwil) |
+| receiver_branch_id | UUID | YES | Branch receiver (nullable untuk kanwil) |
+| referrer_regional_office_id | UUID | YES | Kanwil referrer |
+| receiver_regional_office_id | UUID | YES | Kanwil receiver |
+| approver_type | VARCHAR(10) | NO | 'BM' atau 'ROH' |
+| reason | TEXT | NO | Alasan referral |
+| notes | TEXT | YES | Catatan tambahan |
+| status | VARCHAR(30) | NO | Status workflow |
+| receiver_accepted_at | TIMESTAMPTZ | YES | Waktu receiver accept |
+| receiver_rejected_at | TIMESTAMPTZ | YES | Waktu receiver reject |
+| receiver_reject_reason | TEXT | YES | Alasan penolakan receiver |
+| receiver_notes | TEXT | YES | Catatan dari receiver |
+| bm_approved_at | TIMESTAMPTZ | YES | Waktu manager approve |
+| bm_approved_by | UUID | YES | FK to users (approver) |
+| bm_rejected_at | TIMESTAMPTZ | YES | Waktu manager reject |
+| bm_reject_reason | TEXT | YES | Alasan penolakan manager |
+| bm_notes | TEXT | YES | Catatan dari manager |
+| bonus_calculated | BOOLEAN | NO | Bonus sudah dihitung? |
+| bonus_amount | DECIMAL(18,2) | YES | Jumlah bonus |
+| expires_at | TIMESTAMPTZ | YES | Waktu kadaluarsa |
+| cancelled_at | TIMESTAMPTZ | YES | Waktu dibatalkan |
+| cancel_reason | TEXT | YES | Alasan pembatalan |
+| created_at | TIMESTAMPTZ | YES | Waktu dibuat |
+| updated_at | TIMESTAMPTZ | YES | Waktu update terakhir |
+
+**Status Flow:**
+```
+PENDING_RECEIVER → RECEIVER_ACCEPTED → BM_APPROVED → COMPLETED
+                 ↘ RECEIVER_REJECTED (END)
+                                     ↘ BM_REJECTED (END)
+                 ↘ CANCELLED (END)
+```
+
+See: [Pipeline Referral System](../../03-architecture/pipeline-referral-system.md)
 
 ---
 
-*Business Data Tables - January 2025*
+*Business Data Tables - January 2026*

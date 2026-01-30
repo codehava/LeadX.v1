@@ -66,10 +66,9 @@ Pipeline Referral memungkinkan RM untuk meneruskan prospek ke RM lain (biasanya 
 
 ### Create Referral Screen
 - Customer selection (own customers)
-- COB/LOB selection
-- Estimated premium input
 - Target RM search
-- Reason/notes
+- Reason (required)
+- Notes (optional)
 
 ### Incoming Referrals (Receiver)
 - List pending referrals

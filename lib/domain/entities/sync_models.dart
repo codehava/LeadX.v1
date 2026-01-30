@@ -20,6 +20,9 @@ enum SyncEntityType {
   broker,
   customerHvcLink,
   pipelineStageHistory,
+  cadenceConfig,
+  cadenceMeeting,
+  cadenceParticipant,
 }
 
 /// Represents an item in the sync queue.

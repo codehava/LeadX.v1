@@ -19,11 +19,13 @@ import '../../data/services/sync_service.dart';
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/broker_repository.dart';
+import '../../domain/repositories/cadence_repository.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../../domain/repositories/hvc_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import 'auth_providers.dart';
 import 'broker_providers.dart';
+import 'cadence_providers.dart';
 import 'database_provider.dart';
 import 'hvc_providers.dart';
 import 'master_data_providers.dart';
@@ -109,6 +111,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._activityRepository,
     this._hvcRepository,
     this._brokerRepository,
+    this._cadenceRepository,
     this._connectivityService,
   ) : super(const AsyncValue.data(null));
 
@@ -118,6 +121,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   final ActivityRepository _activityRepository;
   final HvcRepository _hvcRepository;
   final BrokerRepository _brokerRepository;
+  final CadenceRepository _cadenceRepository;
   final ConnectivityService _connectivityService;
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
@@ -176,15 +180,19 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
 
   /// Pull data from Supabase to local database.
   Future<void> _pullFromRemote() async {
+    print('[SyncNotifier] Starting _pullFromRemote...');
+
     // Pull customers
     try {
+      print('[SyncNotifier] Calling customerRepository.syncFromRemote...');
       final customerResult = await _customerRepository.syncFromRemote();
       customerResult.fold(
         (failure) => print('[SyncNotifier] Customer pull failed: ${failure.message}'),
         (count) => print('[SyncNotifier] Pulled $count customers'),
       );
-    } catch (e) {
+    } catch (e, st) {
       print('[SyncNotifier] Customer pull error: $e');
+      print('[SyncNotifier] Stack trace: $st');
     }
 
     // Pull key persons
@@ -250,6 +258,14 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     } catch (e) {
       print('[SyncNotifier] Broker pull error: $e');
     }
+
+    // Pull Cadence configs and meetings
+    try {
+      await _cadenceRepository.syncFromRemote();
+      print('[SyncNotifier] Pulled cadence data');
+    } catch (e) {
+      print('[SyncNotifier] Cadence pull error: $e');
+    }
   }
 
   /// Check if sync is currently in progress.
@@ -289,14 +305,15 @@ final syncNotifierProvider =
     StateNotifierProvider<SyncNotifier, AsyncValue<SyncResult?>>((ref) {
   final syncService = ref.watch(syncServiceProvider);
   final connectivityService = ref.watch(connectivityServiceProvider);
-  
+
   // Import repositories lazily to avoid circular dependencies
   final customerRepository = ref.watch(_customerRepositoryProvider);
   final pipelineRepository = ref.watch(_pipelineRepositoryProvider);
   final activityRepository = ref.watch(_activityRepositoryProvider);
   final hvcRepository = ref.watch(hvcRepositoryProvider);
   final brokerRepository = ref.watch(brokerRepositoryProvider);
-  
+  final cadenceRepository = ref.watch(cadenceRepositoryProvider);
+
   return SyncNotifier(
     syncService,
     customerRepository,
@@ -304,6 +321,7 @@ final syncNotifierProvider =
     activityRepository,
     hvcRepository,
     brokerRepository,
+    cadenceRepository,
     connectivityService,
   );
 });

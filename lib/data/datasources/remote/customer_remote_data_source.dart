@@ -9,6 +9,9 @@ class CustomerRemoteDataSource {
   /// Fetch all customers, optionally filtered by updatedAt for incremental sync.
   /// Returns raw JSON data from Supabase.
   Future<List<Map<String, dynamic>>> fetchCustomers({DateTime? since}) async {
+    print('[CustomerRemoteDS] fetchCustomers called, since=$since');
+    print('[CustomerRemoteDS] auth.uid=${_client.auth.currentUser?.id}');
+
     var query = _client.from('customers').select();
 
     if (since != null) {
@@ -16,6 +19,7 @@ class CustomerRemoteDataSource {
     }
 
     final response = await query.order('updated_at', ascending: true);
+    print('[CustomerRemoteDS] Query returned ${response.length} customers');
     return List<Map<String, dynamic>>.from(response);
   }
 

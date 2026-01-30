@@ -406,35 +406,40 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
     try {
+      print('[CustomerRepo] syncFromRemote called, currentUserId=$_currentUserId, since=$since');
       final remoteData = await _remoteDataSource.fetchCustomers(since: since);
+      print('[CustomerRepo] fetchCustomers returned ${remoteData.length} records');
 
       if (remoteData.isEmpty) {
+        print('[CustomerRepo] No customers returned from remote - check RLS policies if unexpected');
         return const Right(0);
       }
 
       final companions = remoteData.map((data) {
+        // Handle potentially null fields - some customers may have null values
+        // for fields that are required locally, so we provide empty defaults
         return db.CustomersCompanion(
           id: Value(data['id'] as String),
           code: Value(data['code'] as String),
-          name: Value(data['name'] as String),
-          address: Value(data['address'] as String),
-          provinceId: Value(data['province_id'] as String),
-          cityId: Value(data['city_id'] as String),
+          name: Value(data['name'] as String? ?? ''),
+          address: Value(data['address'] as String? ?? ''),
+          provinceId: Value(data['province_id'] as String? ?? ''),
+          cityId: Value(data['city_id'] as String? ?? ''),
           postalCode: Value(data['postal_code'] as String?),
-          latitude: Value(data['latitude'] as double?),
-          longitude: Value(data['longitude'] as double?),
+          latitude: Value((data['latitude'] as num?)?.toDouble()),
+          longitude: Value((data['longitude'] as num?)?.toDouble()),
           phone: Value(data['phone'] as String?),
           email: Value(data['email'] as String?),
           website: Value(data['website'] as String?),
-          companyTypeId: Value(data['company_type_id'] as String),
-          ownershipTypeId: Value(data['ownership_type_id'] as String),
-          industryId: Value(data['industry_id'] as String),
+          companyTypeId: Value(data['company_type_id'] as String? ?? ''),
+          ownershipTypeId: Value(data['ownership_type_id'] as String? ?? ''),
+          industryId: Value(data['industry_id'] as String? ?? ''),
           npwp: Value(data['npwp'] as String?),
-          assignedRmId: Value(data['assigned_rm_id'] as String),
+          assignedRmId: Value(data['assigned_rm_id'] as String? ?? ''),
           imageUrl: Value(data['image_url'] as String?),
           notes: Value(data['notes'] as String?),
           isActive: Value(data['is_active'] as bool? ?? true),
-          createdBy: Value(data['created_by'] as String),
+          createdBy: Value(data['created_by'] as String? ?? ''),
           isPendingSync: const Value(false),
           createdAt: Value(DateTime.parse(data['created_at'] as String)),
           updatedAt: Value(DateTime.parse(data['updated_at'] as String)),

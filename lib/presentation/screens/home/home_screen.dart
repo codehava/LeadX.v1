@@ -33,17 +33,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Check if initial sync has been completed, if not show sync progress sheet.
+  /// This is a backup check for cases when login screen was bypassed (e.g., token refresh).
   Future<void> _checkInitialSync() async {
     final appSettings = ref.read(appSettingsServiceProvider);
     final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
-    
+
     print('[HomeScreen] Checking initial sync: hasInitialSynced=$hasInitialSynced');
-    
+
     if (!hasInitialSynced && mounted) {
-      print('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
-      await SyncProgressSheet.show(context);
-      await appSettings.markInitialSyncCompleted();
-      print('[HomeScreen] Initial sync completed and marked');
+      // Double-check with a small delay to allow LoginScreen's markInitialSyncCompleted to persist
+      await Future.delayed(const Duration(milliseconds: 100));
+      final stillNotSynced = !await appSettings.hasInitialSyncCompleted();
+
+      if (stillNotSynced && mounted) {
+        print('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
+        await SyncProgressSheet.show(context);
+        // Only mark completed if SyncProgressSheet actually ran (not skipped due to _isShowing)
+        final nowSynced = await appSettings.hasInitialSyncCompleted();
+        if (!nowSynced) {
+          await appSettings.markInitialSyncCompleted();
+          print('[HomeScreen] Initial sync completed and marked');
+        }
+      }
     }
   }
 

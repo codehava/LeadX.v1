@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/failures.dart';
@@ -122,36 +123,79 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final id = _uuid.v4();
       final code = _generateReferralCode();
 
-      // Get current user info from remote (online-only operation)
-      final currentUser = await _remoteDataSource.getUserById(_currentUserId);
-      if (currentUser == null) {
-        return Left(AuthFailure(message: 'Current user not found'));
+      debugPrint('[ReferralRepo] === CREATE REFERRAL START ===');
+      debugPrint('[ReferralRepo] DTO: customerId=${dto.customerId}, receiverRmId=${dto.receiverRmId}');
+      debugPrint('[ReferralRepo] Generated: id=$id, code=$code');
+
+      // Validate current user ID
+      if (_currentUserId.isEmpty) {
+        debugPrint('[ReferralRepo] ERROR: currentUserId is empty');
+        return Left(AuthFailure(message: 'User belum login. Silakan login ulang.'));
       }
+      debugPrint('[ReferralRepo] currentUserId=$_currentUserId');
+
+      // Get customer info to find the current assigned RM (the actual referrer)
+      debugPrint('[ReferralRepo] Fetching customer info...');
+      final customer = await _remoteDataSource.getCustomerById(dto.customerId);
+      if (customer == null) {
+        debugPrint('[ReferralRepo] ERROR: customer is null');
+        return Left(ValidationFailure(message: 'Customer tidak ditemukan.'));
+      }
+      final referrerRmId = customer['assigned_rm_id'] as String?;
+      if (referrerRmId == null || referrerRmId.isEmpty) {
+        debugPrint('[ReferralRepo] ERROR: customer has no assigned RM');
+        return Left(ValidationFailure(message: 'Customer belum memiliki RM yang ditugaskan.'));
+      }
+      debugPrint('[ReferralRepo] Customer assigned RM (referrer): $referrerRmId');
+
+      // Get referrer (customer's current RM) info from remote
+      debugPrint('[ReferralRepo] Fetching referrer user info...');
+      final referrerUser = await _remoteDataSource.getUserById(referrerRmId);
+      if (referrerUser == null) {
+        debugPrint('[ReferralRepo] ERROR: referrerUser is null');
+        return Left(ValidationFailure(message: 'Data RM asal tidak ditemukan.'));
+      }
+      debugPrint('[ReferralRepo] referrerUser: branch_id=${referrerUser['branch_id']}, regional_office_id=${referrerUser['regional_office_id']}');
 
       // Get receiver info from remote
+      debugPrint('[ReferralRepo] Fetching receiver user info...');
       final receiverUser = await _remoteDataSource.getUserById(dto.receiverRmId);
       if (receiverUser == null) {
+        debugPrint('[ReferralRepo] ERROR: receiverUser is null');
         return Left(ValidationFailure(message: 'Receiver user not found'));
+      }
+      debugPrint('[ReferralRepo] receiverUser: branch_id=${receiverUser['branch_id']}, regional_office_id=${receiverUser['regional_office_id']}');
+
+      // Prevent referring to the same RM
+      if (referrerRmId == dto.receiverRmId) {
+        debugPrint('[ReferralRepo] ERROR: referrer and receiver are the same');
+        return Left(ValidationFailure(
+          message: 'Tidak dapat mereferral ke RM yang sama dengan RM saat ini.',
+        ));
       }
 
       // Determine approver based on receiver's hierarchy
+      debugPrint('[ReferralRepo] Finding approver for receiver...');
       final approverInfo = await findApproverForUser(dto.receiverRmId);
       if (approverInfo == null) {
+        debugPrint('[ReferralRepo] ERROR: approverInfo is null');
         return Left(ValidationFailure(
           message: 'No approver found for receiver. Cannot create referral.',
         ));
       }
+      debugPrint('[ReferralRepo] approverInfo: id=${approverInfo.approverId}, type=${approverInfo.approverType.value}, name=${approverInfo.approverName}');
 
       // Create directly on server (online-only)
+      // referrer_rm_id is the customer's current assigned RM (not the user creating the referral)
       final payload = {
         'id': id,
         'code': code,
         'customer_id': dto.customerId,
-        'referrer_rm_id': _currentUserId,
+        'referrer_rm_id': referrerRmId,
         'receiver_rm_id': dto.receiverRmId,
-        'referrer_branch_id': currentUser['branch_id'],
+        'referrer_branch_id': referrerUser['branch_id'],
         'receiver_branch_id': receiverUser['branch_id'],
-        'referrer_regional_office_id': currentUser['regional_office_id'],
+        'referrer_regional_office_id': referrerUser['regional_office_id'],
         'receiver_regional_office_id': receiverUser['regional_office_id'],
         'approver_type': approverInfo.approverType.value,
         'reason': dto.reason,
@@ -161,7 +205,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         'updated_at': now.toIso8601String(),
       };
 
+      debugPrint('[ReferralRepo] Payload: $payload');
+      debugPrint('[ReferralRepo] Calling remote createReferral...');
       final remoteResult = await _remoteDataSource.createReferral(payload);
+      debugPrint('[ReferralRepo] Remote result: $remoteResult');
 
       // Save to local database for offline viewing
       final companion = db.PipelineReferralsCompanion.insert(
@@ -184,19 +231,48 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         lastSyncAt: Value(DateTime.now()),
       );
 
+      debugPrint('[ReferralRepo] Saving to local database...');
       await _localDataSource.insertReferral(companion);
+      debugPrint('[ReferralRepo] Local save successful');
 
       // Return the created referral
       await _ensureCachesLoaded();
       final localData = await _localDataSource.getReferralById(id);
+      debugPrint('[ReferralRepo] === CREATE REFERRAL SUCCESS ===');
       return Right(_mapToReferral(localData!));
-    } on SocketException {
+    } on SocketException catch (e, stackTrace) {
+      debugPrint('[ReferralRepo] === SOCKET EXCEPTION ===');
+      debugPrint('[ReferralRepo] Error: $e');
+      debugPrint('[ReferralRepo] StackTrace: $stackTrace');
       return Left(NetworkFailure(
-        message: 'No internet connection. Referral creation requires network.',
+        message: 'Tidak ada koneksi internet. Pembuatan referral membutuhkan jaringan.',
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[ReferralRepo] === ERROR ===');
+      debugPrint('[ReferralRepo] Error type: ${e.runtimeType}');
+      debugPrint('[ReferralRepo] Error: $e');
+      debugPrint('[ReferralRepo] StackTrace: $stackTrace');
+
+      // Parse PostgrestException for better error messages
+      final errorStr = e.toString();
+      var message = 'Gagal membuat referral';
+
+      if (errorStr.contains('violates row-level security')) {
+        message = 'Tidak memiliki izin untuk membuat referral. Pastikan Anda sudah login.';
+      } else if (errorStr.contains('violates foreign key constraint')) {
+        message = 'Data referensi tidak valid. Pastikan customer dan user tujuan valid.';
+      } else if (errorStr.contains('duplicate key')) {
+        message = 'Referral dengan kode ini sudah ada.';
+      } else if (errorStr.contains('null value')) {
+        message = 'Data tidak lengkap. Pastikan semua field terisi.';
+      } else {
+        message = 'Gagal membuat referral: $e';
+      }
+
+      debugPrint('[ReferralRepo] Returning failure with message: $message');
+
       return Left(ServerFailure(
-        message: 'Failed to create referral: $e',
+        message: message,
         originalError: e,
       ));
     }

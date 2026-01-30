@@ -20154,17 +20154,30 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('COUNT'),
   );
   static const VerificationMeta _unitMeta = const VerificationMeta('unit');
   @override
   late final GeneratedColumn<String> unit = GeneratedColumn<String>(
     'unit',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
+  static const VerificationMeta _calculationMethodMeta = const VerificationMeta(
+    'calculationMethod',
+  );
+  @override
+  late final GeneratedColumn<String> calculationMethod =
+      GeneratedColumn<String>(
+        'calculation_method',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _calculationFormulaMeta =
       const VerificationMeta('calculationFormula');
   @override
@@ -20197,6 +20210,39 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  @override
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+    'weight',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  static const VerificationMeta _defaultTargetMeta = const VerificationMeta(
+    'defaultTarget',
+  );
+  @override
+  late final GeneratedColumn<double> defaultTarget = GeneratedColumn<double>(
+    'default_target',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _periodTypeMeta = const VerificationMeta(
+    'periodType',
+  );
+  @override
+  late final GeneratedColumn<String> periodType = GeneratedColumn<String>(
+    'period_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('WEEKLY'),
   );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
@@ -20256,9 +20302,13 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     measureType,
     dataType,
     unit,
+    calculationMethod,
     calculationFormula,
     sourceTable,
     sourceCondition,
+    weight,
+    defaultTarget,
+    periodType,
     isActive,
     sortOrder,
     createdAt,
@@ -20322,13 +20372,22 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
         _dataTypeMeta,
         dataType.isAcceptableOrUnknown(data['data_type']!, _dataTypeMeta),
       );
-    } else if (isInserting) {
-      context.missing(_dataTypeMeta);
     }
     if (data.containsKey('unit')) {
       context.handle(
         _unitMeta,
         unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (data.containsKey('calculation_method')) {
+      context.handle(
+        _calculationMethodMeta,
+        calculationMethod.isAcceptableOrUnknown(
+          data['calculation_method']!,
+          _calculationMethodMeta,
+        ),
       );
     }
     if (data.containsKey('calculation_formula')) {
@@ -20356,6 +20415,27 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
           data['source_condition']!,
           _sourceConditionMeta,
         ),
+      );
+    }
+    if (data.containsKey('weight')) {
+      context.handle(
+        _weightMeta,
+        weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
+      );
+    }
+    if (data.containsKey('default_target')) {
+      context.handle(
+        _defaultTargetMeta,
+        defaultTarget.isAcceptableOrUnknown(
+          data['default_target']!,
+          _defaultTargetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('period_type')) {
+      context.handle(
+        _periodTypeMeta,
+        periodType.isAcceptableOrUnknown(data['period_type']!, _periodTypeMeta),
       );
     }
     if (data.containsKey('is_active')) {
@@ -20422,6 +20502,10 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
       unit: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
+      )!,
+      calculationMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}calculation_method'],
       ),
       calculationFormula: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -20435,6 +20519,18 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
         DriftSqlType.string,
         data['${effectivePrefix}source_condition'],
       ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight'],
+      )!,
+      defaultTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}default_target'],
+      ),
+      periodType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}period_type'],
+      )!,
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -20468,10 +20564,14 @@ class MeasureDefinition extends DataClass
   final String? description;
   final String measureType;
   final String dataType;
-  final String? unit;
+  final String unit;
+  final String? calculationMethod;
   final String? calculationFormula;
   final String? sourceTable;
   final String? sourceCondition;
+  final double weight;
+  final double? defaultTarget;
+  final String periodType;
   final bool isActive;
   final int sortOrder;
   final DateTime createdAt;
@@ -20483,10 +20583,14 @@ class MeasureDefinition extends DataClass
     this.description,
     required this.measureType,
     required this.dataType,
-    this.unit,
+    required this.unit,
+    this.calculationMethod,
     this.calculationFormula,
     this.sourceTable,
     this.sourceCondition,
+    required this.weight,
+    this.defaultTarget,
+    required this.periodType,
     required this.isActive,
     required this.sortOrder,
     required this.createdAt,
@@ -20503,8 +20607,9 @@ class MeasureDefinition extends DataClass
     }
     map['measure_type'] = Variable<String>(measureType);
     map['data_type'] = Variable<String>(dataType);
-    if (!nullToAbsent || unit != null) {
-      map['unit'] = Variable<String>(unit);
+    map['unit'] = Variable<String>(unit);
+    if (!nullToAbsent || calculationMethod != null) {
+      map['calculation_method'] = Variable<String>(calculationMethod);
     }
     if (!nullToAbsent || calculationFormula != null) {
       map['calculation_formula'] = Variable<String>(calculationFormula);
@@ -20515,6 +20620,11 @@ class MeasureDefinition extends DataClass
     if (!nullToAbsent || sourceCondition != null) {
       map['source_condition'] = Variable<String>(sourceCondition);
     }
+    map['weight'] = Variable<double>(weight);
+    if (!nullToAbsent || defaultTarget != null) {
+      map['default_target'] = Variable<double>(defaultTarget);
+    }
+    map['period_type'] = Variable<String>(periodType);
     map['is_active'] = Variable<bool>(isActive);
     map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -20532,7 +20642,10 @@ class MeasureDefinition extends DataClass
           : Value(description),
       measureType: Value(measureType),
       dataType: Value(dataType),
-      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      unit: Value(unit),
+      calculationMethod: calculationMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calculationMethod),
       calculationFormula: calculationFormula == null && nullToAbsent
           ? const Value.absent()
           : Value(calculationFormula),
@@ -20542,6 +20655,11 @@ class MeasureDefinition extends DataClass
       sourceCondition: sourceCondition == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceCondition),
+      weight: Value(weight),
+      defaultTarget: defaultTarget == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultTarget),
+      periodType: Value(periodType),
       isActive: Value(isActive),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
@@ -20561,12 +20679,18 @@ class MeasureDefinition extends DataClass
       description: serializer.fromJson<String?>(json['description']),
       measureType: serializer.fromJson<String>(json['measureType']),
       dataType: serializer.fromJson<String>(json['dataType']),
-      unit: serializer.fromJson<String?>(json['unit']),
+      unit: serializer.fromJson<String>(json['unit']),
+      calculationMethod: serializer.fromJson<String?>(
+        json['calculationMethod'],
+      ),
       calculationFormula: serializer.fromJson<String?>(
         json['calculationFormula'],
       ),
       sourceTable: serializer.fromJson<String?>(json['sourceTable']),
       sourceCondition: serializer.fromJson<String?>(json['sourceCondition']),
+      weight: serializer.fromJson<double>(json['weight']),
+      defaultTarget: serializer.fromJson<double?>(json['defaultTarget']),
+      periodType: serializer.fromJson<String>(json['periodType']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -20583,10 +20707,14 @@ class MeasureDefinition extends DataClass
       'description': serializer.toJson<String?>(description),
       'measureType': serializer.toJson<String>(measureType),
       'dataType': serializer.toJson<String>(dataType),
-      'unit': serializer.toJson<String?>(unit),
+      'unit': serializer.toJson<String>(unit),
+      'calculationMethod': serializer.toJson<String?>(calculationMethod),
       'calculationFormula': serializer.toJson<String?>(calculationFormula),
       'sourceTable': serializer.toJson<String?>(sourceTable),
       'sourceCondition': serializer.toJson<String?>(sourceCondition),
+      'weight': serializer.toJson<double>(weight),
+      'defaultTarget': serializer.toJson<double?>(defaultTarget),
+      'periodType': serializer.toJson<String>(periodType),
       'isActive': serializer.toJson<bool>(isActive),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -20601,10 +20729,14 @@ class MeasureDefinition extends DataClass
     Value<String?> description = const Value.absent(),
     String? measureType,
     String? dataType,
-    Value<String?> unit = const Value.absent(),
+    String? unit,
+    Value<String?> calculationMethod = const Value.absent(),
     Value<String?> calculationFormula = const Value.absent(),
     Value<String?> sourceTable = const Value.absent(),
     Value<String?> sourceCondition = const Value.absent(),
+    double? weight,
+    Value<double?> defaultTarget = const Value.absent(),
+    String? periodType,
     bool? isActive,
     int? sortOrder,
     DateTime? createdAt,
@@ -20616,7 +20748,10 @@ class MeasureDefinition extends DataClass
     description: description.present ? description.value : this.description,
     measureType: measureType ?? this.measureType,
     dataType: dataType ?? this.dataType,
-    unit: unit.present ? unit.value : this.unit,
+    unit: unit ?? this.unit,
+    calculationMethod: calculationMethod.present
+        ? calculationMethod.value
+        : this.calculationMethod,
     calculationFormula: calculationFormula.present
         ? calculationFormula.value
         : this.calculationFormula,
@@ -20624,6 +20759,11 @@ class MeasureDefinition extends DataClass
     sourceCondition: sourceCondition.present
         ? sourceCondition.value
         : this.sourceCondition,
+    weight: weight ?? this.weight,
+    defaultTarget: defaultTarget.present
+        ? defaultTarget.value
+        : this.defaultTarget,
+    periodType: periodType ?? this.periodType,
     isActive: isActive ?? this.isActive,
     sortOrder: sortOrder ?? this.sortOrder,
     createdAt: createdAt ?? this.createdAt,
@@ -20642,6 +20782,9 @@ class MeasureDefinition extends DataClass
           : this.measureType,
       dataType: data.dataType.present ? data.dataType.value : this.dataType,
       unit: data.unit.present ? data.unit.value : this.unit,
+      calculationMethod: data.calculationMethod.present
+          ? data.calculationMethod.value
+          : this.calculationMethod,
       calculationFormula: data.calculationFormula.present
           ? data.calculationFormula.value
           : this.calculationFormula,
@@ -20651,6 +20794,13 @@ class MeasureDefinition extends DataClass
       sourceCondition: data.sourceCondition.present
           ? data.sourceCondition.value
           : this.sourceCondition,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      defaultTarget: data.defaultTarget.present
+          ? data.defaultTarget.value
+          : this.defaultTarget,
+      periodType: data.periodType.present
+          ? data.periodType.value
+          : this.periodType,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -20668,9 +20818,13 @@ class MeasureDefinition extends DataClass
           ..write('measureType: $measureType, ')
           ..write('dataType: $dataType, ')
           ..write('unit: $unit, ')
+          ..write('calculationMethod: $calculationMethod, ')
           ..write('calculationFormula: $calculationFormula, ')
           ..write('sourceTable: $sourceTable, ')
           ..write('sourceCondition: $sourceCondition, ')
+          ..write('weight: $weight, ')
+          ..write('defaultTarget: $defaultTarget, ')
+          ..write('periodType: $periodType, ')
           ..write('isActive: $isActive, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
@@ -20688,9 +20842,13 @@ class MeasureDefinition extends DataClass
     measureType,
     dataType,
     unit,
+    calculationMethod,
     calculationFormula,
     sourceTable,
     sourceCondition,
+    weight,
+    defaultTarget,
+    periodType,
     isActive,
     sortOrder,
     createdAt,
@@ -20707,9 +20865,13 @@ class MeasureDefinition extends DataClass
           other.measureType == this.measureType &&
           other.dataType == this.dataType &&
           other.unit == this.unit &&
+          other.calculationMethod == this.calculationMethod &&
           other.calculationFormula == this.calculationFormula &&
           other.sourceTable == this.sourceTable &&
           other.sourceCondition == this.sourceCondition &&
+          other.weight == this.weight &&
+          other.defaultTarget == this.defaultTarget &&
+          other.periodType == this.periodType &&
           other.isActive == this.isActive &&
           other.sortOrder == this.sortOrder &&
           other.createdAt == this.createdAt &&
@@ -20723,10 +20885,14 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
   final Value<String?> description;
   final Value<String> measureType;
   final Value<String> dataType;
-  final Value<String?> unit;
+  final Value<String> unit;
+  final Value<String?> calculationMethod;
   final Value<String?> calculationFormula;
   final Value<String?> sourceTable;
   final Value<String?> sourceCondition;
+  final Value<double> weight;
+  final Value<double?> defaultTarget;
+  final Value<String> periodType;
   final Value<bool> isActive;
   final Value<int> sortOrder;
   final Value<DateTime> createdAt;
@@ -20740,9 +20906,13 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     this.measureType = const Value.absent(),
     this.dataType = const Value.absent(),
     this.unit = const Value.absent(),
+    this.calculationMethod = const Value.absent(),
     this.calculationFormula = const Value.absent(),
     this.sourceTable = const Value.absent(),
     this.sourceCondition = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.defaultTarget = const Value.absent(),
+    this.periodType = const Value.absent(),
     this.isActive = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -20755,11 +20925,15 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     required String name,
     this.description = const Value.absent(),
     required String measureType,
-    required String dataType,
-    this.unit = const Value.absent(),
+    this.dataType = const Value.absent(),
+    required String unit,
+    this.calculationMethod = const Value.absent(),
     this.calculationFormula = const Value.absent(),
     this.sourceTable = const Value.absent(),
     this.sourceCondition = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.defaultTarget = const Value.absent(),
+    this.periodType = const Value.absent(),
     this.isActive = const Value.absent(),
     this.sortOrder = const Value.absent(),
     required DateTime createdAt,
@@ -20769,7 +20943,7 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
        code = Value(code),
        name = Value(name),
        measureType = Value(measureType),
-       dataType = Value(dataType),
+       unit = Value(unit),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<MeasureDefinition> custom({
@@ -20780,9 +20954,13 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     Expression<String>? measureType,
     Expression<String>? dataType,
     Expression<String>? unit,
+    Expression<String>? calculationMethod,
     Expression<String>? calculationFormula,
     Expression<String>? sourceTable,
     Expression<String>? sourceCondition,
+    Expression<double>? weight,
+    Expression<double>? defaultTarget,
+    Expression<String>? periodType,
     Expression<bool>? isActive,
     Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
@@ -20797,9 +20975,13 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
       if (measureType != null) 'measure_type': measureType,
       if (dataType != null) 'data_type': dataType,
       if (unit != null) 'unit': unit,
+      if (calculationMethod != null) 'calculation_method': calculationMethod,
       if (calculationFormula != null) 'calculation_formula': calculationFormula,
       if (sourceTable != null) 'source_table': sourceTable,
       if (sourceCondition != null) 'source_condition': sourceCondition,
+      if (weight != null) 'weight': weight,
+      if (defaultTarget != null) 'default_target': defaultTarget,
+      if (periodType != null) 'period_type': periodType,
       if (isActive != null) 'is_active': isActive,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
@@ -20815,10 +20997,14 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     Value<String?>? description,
     Value<String>? measureType,
     Value<String>? dataType,
-    Value<String?>? unit,
+    Value<String>? unit,
+    Value<String?>? calculationMethod,
     Value<String?>? calculationFormula,
     Value<String?>? sourceTable,
     Value<String?>? sourceCondition,
+    Value<double>? weight,
+    Value<double?>? defaultTarget,
+    Value<String>? periodType,
     Value<bool>? isActive,
     Value<int>? sortOrder,
     Value<DateTime>? createdAt,
@@ -20833,9 +21019,13 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
       measureType: measureType ?? this.measureType,
       dataType: dataType ?? this.dataType,
       unit: unit ?? this.unit,
+      calculationMethod: calculationMethod ?? this.calculationMethod,
       calculationFormula: calculationFormula ?? this.calculationFormula,
       sourceTable: sourceTable ?? this.sourceTable,
       sourceCondition: sourceCondition ?? this.sourceCondition,
+      weight: weight ?? this.weight,
+      defaultTarget: defaultTarget ?? this.defaultTarget,
+      periodType: periodType ?? this.periodType,
       isActive: isActive ?? this.isActive,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
@@ -20868,6 +21058,9 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
     }
+    if (calculationMethod.present) {
+      map['calculation_method'] = Variable<String>(calculationMethod.value);
+    }
     if (calculationFormula.present) {
       map['calculation_formula'] = Variable<String>(calculationFormula.value);
     }
@@ -20876,6 +21069,15 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     }
     if (sourceCondition.present) {
       map['source_condition'] = Variable<String>(sourceCondition.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (defaultTarget.present) {
+      map['default_target'] = Variable<double>(defaultTarget.value);
+    }
+    if (periodType.present) {
+      map['period_type'] = Variable<String>(periodType.value);
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -20905,9 +21107,13 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
           ..write('measureType: $measureType, ')
           ..write('dataType: $dataType, ')
           ..write('unit: $unit, ')
+          ..write('calculationMethod: $calculationMethod, ')
           ..write('calculationFormula: $calculationFormula, ')
           ..write('sourceTable: $sourceTable, ')
           ..write('sourceCondition: $sourceCondition, ')
+          ..write('weight: $weight, ')
+          ..write('defaultTarget: $defaultTarget, ')
+          ..write('periodType: $periodType, ')
           ..write('isActive: $isActive, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
@@ -21005,6 +21211,21 @@ class $ScoringPeriodsTable extends ScoringPeriods
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isLockedMeta = const VerificationMeta(
+    'isLocked',
+  );
+  @override
+  late final GeneratedColumn<bool> isLocked = GeneratedColumn<bool>(
+    'is_locked',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_locked" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -21036,6 +21257,7 @@ class $ScoringPeriodsTable extends ScoringPeriods
     endDate,
     isActive,
     isCurrent,
+    isLocked,
     createdAt,
     updatedAt,
   ];
@@ -21100,6 +21322,12 @@ class $ScoringPeriodsTable extends ScoringPeriods
         isCurrent.isAcceptableOrUnknown(data['is_current']!, _isCurrentMeta),
       );
     }
+    if (data.containsKey('is_locked')) {
+      context.handle(
+        _isLockedMeta,
+        isLocked.isAcceptableOrUnknown(data['is_locked']!, _isLockedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -21153,6 +21381,10 @@ class $ScoringPeriodsTable extends ScoringPeriods
         DriftSqlType.bool,
         data['${effectivePrefix}is_current'],
       )!,
+      isLocked: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_locked'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -21178,6 +21410,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
   final DateTime endDate;
   final bool isActive;
   final bool isCurrent;
+  final bool isLocked;
   final DateTime createdAt;
   final DateTime updatedAt;
   const ScoringPeriod({
@@ -21188,6 +21421,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
     required this.endDate,
     required this.isActive,
     required this.isCurrent,
+    required this.isLocked,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -21201,6 +21435,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
     map['end_date'] = Variable<DateTime>(endDate);
     map['is_active'] = Variable<bool>(isActive);
     map['is_current'] = Variable<bool>(isCurrent);
+    map['is_locked'] = Variable<bool>(isLocked);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -21215,6 +21450,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
       endDate: Value(endDate),
       isActive: Value(isActive),
       isCurrent: Value(isCurrent),
+      isLocked: Value(isLocked),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -21233,6 +21469,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
       endDate: serializer.fromJson<DateTime>(json['endDate']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       isCurrent: serializer.fromJson<bool>(json['isCurrent']),
+      isLocked: serializer.fromJson<bool>(json['isLocked']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -21248,6 +21485,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
       'endDate': serializer.toJson<DateTime>(endDate),
       'isActive': serializer.toJson<bool>(isActive),
       'isCurrent': serializer.toJson<bool>(isCurrent),
+      'isLocked': serializer.toJson<bool>(isLocked),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -21261,6 +21499,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
     DateTime? endDate,
     bool? isActive,
     bool? isCurrent,
+    bool? isLocked,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => ScoringPeriod(
@@ -21271,6 +21510,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
     endDate: endDate ?? this.endDate,
     isActive: isActive ?? this.isActive,
     isCurrent: isCurrent ?? this.isCurrent,
+    isLocked: isLocked ?? this.isLocked,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -21285,6 +21525,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       isCurrent: data.isCurrent.present ? data.isCurrent.value : this.isCurrent,
+      isLocked: data.isLocked.present ? data.isLocked.value : this.isLocked,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -21300,6 +21541,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
           ..write('endDate: $endDate, ')
           ..write('isActive: $isActive, ')
           ..write('isCurrent: $isCurrent, ')
+          ..write('isLocked: $isLocked, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -21315,6 +21557,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
     endDate,
     isActive,
     isCurrent,
+    isLocked,
     createdAt,
     updatedAt,
   );
@@ -21329,6 +21572,7 @@ class ScoringPeriod extends DataClass implements Insertable<ScoringPeriod> {
           other.endDate == this.endDate &&
           other.isActive == this.isActive &&
           other.isCurrent == this.isCurrent &&
+          other.isLocked == this.isLocked &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -21341,6 +21585,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
   final Value<DateTime> endDate;
   final Value<bool> isActive;
   final Value<bool> isCurrent;
+  final Value<bool> isLocked;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -21352,6 +21597,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
     this.endDate = const Value.absent(),
     this.isActive = const Value.absent(),
     this.isCurrent = const Value.absent(),
+    this.isLocked = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -21364,6 +21610,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
     required DateTime endDate,
     this.isActive = const Value.absent(),
     this.isCurrent = const Value.absent(),
+    this.isLocked = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -21382,6 +21629,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
     Expression<DateTime>? endDate,
     Expression<bool>? isActive,
     Expression<bool>? isCurrent,
+    Expression<bool>? isLocked,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -21394,6 +21642,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
       if (endDate != null) 'end_date': endDate,
       if (isActive != null) 'is_active': isActive,
       if (isCurrent != null) 'is_current': isCurrent,
+      if (isLocked != null) 'is_locked': isLocked,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -21408,6 +21657,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
     Value<DateTime>? endDate,
     Value<bool>? isActive,
     Value<bool>? isCurrent,
+    Value<bool>? isLocked,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -21420,6 +21670,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
       endDate: endDate ?? this.endDate,
       isActive: isActive ?? this.isActive,
       isCurrent: isCurrent ?? this.isCurrent,
+      isLocked: isLocked ?? this.isLocked,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -21450,6 +21701,9 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
     if (isCurrent.present) {
       map['is_current'] = Variable<bool>(isCurrent.value);
     }
+    if (isLocked.present) {
+      map['is_locked'] = Variable<bool>(isLocked.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -21472,6 +21726,7 @@ class ScoringPeriodsCompanion extends UpdateCompanion<ScoringPeriod> {
           ..write('endDate: $endDate, ')
           ..write('isActive: $isActive, ')
           ..write('isCurrent: $isCurrent, ')
+          ..write('isLocked: $isLocked, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -21560,6 +21815,17 @@ class $UserTargetsTable extends UserTargets
       'REFERENCES users (id)',
     ),
   );
+  static const VerificationMeta _assignedAtMeta = const VerificationMeta(
+    'assignedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> assignedAt = GeneratedColumn<DateTime>(
+    'assigned_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -21590,6 +21856,7 @@ class $UserTargetsTable extends UserTargets
     periodId,
     targetValue,
     assignedBy,
+    assignedAt,
     createdAt,
     updatedAt,
   ];
@@ -21653,6 +21920,14 @@ class $UserTargetsTable extends UserTargets
     } else if (isInserting) {
       context.missing(_assignedByMeta);
     }
+    if (data.containsKey('assigned_at')) {
+      context.handle(
+        _assignedAtMeta,
+        assignedAt.isAcceptableOrUnknown(data['assigned_at']!, _assignedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_assignedAtMeta);
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -21702,6 +21977,10 @@ class $UserTargetsTable extends UserTargets
         DriftSqlType.string,
         data['${effectivePrefix}assigned_by'],
       )!,
+      assignedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}assigned_at'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -21726,6 +22005,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
   final String periodId;
   final double targetValue;
   final String assignedBy;
+  final DateTime assignedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   const UserTarget({
@@ -21735,6 +22015,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
     required this.periodId,
     required this.targetValue,
     required this.assignedBy,
+    required this.assignedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -21747,6 +22028,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
     map['period_id'] = Variable<String>(periodId);
     map['target_value'] = Variable<double>(targetValue);
     map['assigned_by'] = Variable<String>(assignedBy);
+    map['assigned_at'] = Variable<DateTime>(assignedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -21760,6 +22042,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
       periodId: Value(periodId),
       targetValue: Value(targetValue),
       assignedBy: Value(assignedBy),
+      assignedAt: Value(assignedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -21777,6 +22060,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
       periodId: serializer.fromJson<String>(json['periodId']),
       targetValue: serializer.fromJson<double>(json['targetValue']),
       assignedBy: serializer.fromJson<String>(json['assignedBy']),
+      assignedAt: serializer.fromJson<DateTime>(json['assignedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -21791,6 +22075,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
       'periodId': serializer.toJson<String>(periodId),
       'targetValue': serializer.toJson<double>(targetValue),
       'assignedBy': serializer.toJson<String>(assignedBy),
+      'assignedAt': serializer.toJson<DateTime>(assignedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -21803,6 +22088,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
     String? periodId,
     double? targetValue,
     String? assignedBy,
+    DateTime? assignedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => UserTarget(
@@ -21812,6 +22098,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
     periodId: periodId ?? this.periodId,
     targetValue: targetValue ?? this.targetValue,
     assignedBy: assignedBy ?? this.assignedBy,
+    assignedAt: assignedAt ?? this.assignedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -21827,6 +22114,9 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
       assignedBy: data.assignedBy.present
           ? data.assignedBy.value
           : this.assignedBy,
+      assignedAt: data.assignedAt.present
+          ? data.assignedAt.value
+          : this.assignedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -21841,6 +22131,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
           ..write('periodId: $periodId, ')
           ..write('targetValue: $targetValue, ')
           ..write('assignedBy: $assignedBy, ')
+          ..write('assignedAt: $assignedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -21855,6 +22146,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
     periodId,
     targetValue,
     assignedBy,
+    assignedAt,
     createdAt,
     updatedAt,
   );
@@ -21868,6 +22160,7 @@ class UserTarget extends DataClass implements Insertable<UserTarget> {
           other.periodId == this.periodId &&
           other.targetValue == this.targetValue &&
           other.assignedBy == this.assignedBy &&
+          other.assignedAt == this.assignedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -21879,6 +22172,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
   final Value<String> periodId;
   final Value<double> targetValue;
   final Value<String> assignedBy;
+  final Value<DateTime> assignedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -21889,6 +22183,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
     this.periodId = const Value.absent(),
     this.targetValue = const Value.absent(),
     this.assignedBy = const Value.absent(),
+    this.assignedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -21900,6 +22195,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
     required String periodId,
     required double targetValue,
     required String assignedBy,
+    required DateTime assignedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -21909,6 +22205,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
        periodId = Value(periodId),
        targetValue = Value(targetValue),
        assignedBy = Value(assignedBy),
+       assignedAt = Value(assignedAt),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
   static Insertable<UserTarget> custom({
@@ -21918,6 +22215,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
     Expression<String>? periodId,
     Expression<double>? targetValue,
     Expression<String>? assignedBy,
+    Expression<DateTime>? assignedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -21929,6 +22227,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
       if (periodId != null) 'period_id': periodId,
       if (targetValue != null) 'target_value': targetValue,
       if (assignedBy != null) 'assigned_by': assignedBy,
+      if (assignedAt != null) 'assigned_at': assignedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -21942,6 +22241,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
     Value<String>? periodId,
     Value<double>? targetValue,
     Value<String>? assignedBy,
+    Value<DateTime>? assignedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -21953,6 +22253,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
       periodId: periodId ?? this.periodId,
       targetValue: targetValue ?? this.targetValue,
       assignedBy: assignedBy ?? this.assignedBy,
+      assignedAt: assignedAt ?? this.assignedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -21980,6 +22281,9 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
     if (assignedBy.present) {
       map['assigned_by'] = Variable<String>(assignedBy.value);
     }
+    if (assignedAt.present) {
+      map['assigned_at'] = Variable<DateTime>(assignedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -22001,6 +22305,7 @@ class UserTargetsCompanion extends UpdateCompanion<UserTarget> {
           ..write('periodId: $periodId, ')
           ..write('targetValue: $targetValue, ')
           ..write('assignedBy: $assignedBy, ')
+          ..write('assignedAt: $assignedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -22064,17 +22369,6 @@ class $UserScoresTable extends UserScores
       'REFERENCES scoring_periods (id)',
     ),
   );
-  static const VerificationMeta _actualValueMeta = const VerificationMeta(
-    'actualValue',
-  );
-  @override
-  late final GeneratedColumn<double> actualValue = GeneratedColumn<double>(
-    'actual_value',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _targetValueMeta = const VerificationMeta(
     'targetValue',
   );
@@ -22086,6 +22380,18 @@ class $UserScoresTable extends UserScores
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _actualValueMeta = const VerificationMeta(
+    'actualValue',
+  );
+  @override
+  late final GeneratedColumn<double> actualValue = GeneratedColumn<double>(
+    'actual_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _percentageMeta = const VerificationMeta(
     'percentage',
   );
@@ -22093,8 +22399,28 @@ class $UserScoresTable extends UserScores
   late final GeneratedColumn<double> percentage = GeneratedColumn<double>(
     'percentage',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<double> score = GeneratedColumn<double>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _rankMeta = const VerificationMeta('rank');
+  @override
+  late final GeneratedColumn<int> rank = GeneratedColumn<int>(
+    'rank',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _calculatedAtMeta = const VerificationMeta(
@@ -22136,9 +22462,11 @@ class $UserScoresTable extends UserScores
     userId,
     measureId,
     periodId,
-    actualValue,
     targetValue,
+    actualValue,
     percentage,
+    score,
+    rank,
     calculatedAt,
     createdAt,
     updatedAt,
@@ -22184,17 +22512,6 @@ class $UserScoresTable extends UserScores
     } else if (isInserting) {
       context.missing(_periodIdMeta);
     }
-    if (data.containsKey('actual_value')) {
-      context.handle(
-        _actualValueMeta,
-        actualValue.isAcceptableOrUnknown(
-          data['actual_value']!,
-          _actualValueMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_actualValueMeta);
-    }
     if (data.containsKey('target_value')) {
       context.handle(
         _targetValueMeta,
@@ -22206,10 +22523,31 @@ class $UserScoresTable extends UserScores
     } else if (isInserting) {
       context.missing(_targetValueMeta);
     }
+    if (data.containsKey('actual_value')) {
+      context.handle(
+        _actualValueMeta,
+        actualValue.isAcceptableOrUnknown(
+          data['actual_value']!,
+          _actualValueMeta,
+        ),
+      );
+    }
     if (data.containsKey('percentage')) {
       context.handle(
         _percentageMeta,
         percentage.isAcceptableOrUnknown(data['percentage']!, _percentageMeta),
+      );
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
+    if (data.containsKey('rank')) {
+      context.handle(
+        _rankMeta,
+        rank.isAcceptableOrUnknown(data['rank']!, _rankMeta),
       );
     }
     if (data.containsKey('calculated_at')) {
@@ -22264,17 +22602,25 @@ class $UserScoresTable extends UserScores
         DriftSqlType.string,
         data['${effectivePrefix}period_id'],
       )!,
-      actualValue: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}actual_value'],
-      )!,
       targetValue: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}target_value'],
       )!,
+      actualValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}actual_value'],
+      )!,
       percentage: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}percentage'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}score'],
+      )!,
+      rank: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rank'],
       ),
       calculatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -22302,9 +22648,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
   final String userId;
   final String measureId;
   final String periodId;
-  final double actualValue;
   final double targetValue;
-  final double? percentage;
+  final double actualValue;
+  final double percentage;
+  final double score;
+  final int? rank;
   final DateTime calculatedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -22313,9 +22661,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
     required this.userId,
     required this.measureId,
     required this.periodId,
-    required this.actualValue,
     required this.targetValue,
-    this.percentage,
+    required this.actualValue,
+    required this.percentage,
+    required this.score,
+    this.rank,
     required this.calculatedAt,
     required this.createdAt,
     required this.updatedAt,
@@ -22327,10 +22677,12 @@ class UserScore extends DataClass implements Insertable<UserScore> {
     map['user_id'] = Variable<String>(userId);
     map['measure_id'] = Variable<String>(measureId);
     map['period_id'] = Variable<String>(periodId);
-    map['actual_value'] = Variable<double>(actualValue);
     map['target_value'] = Variable<double>(targetValue);
-    if (!nullToAbsent || percentage != null) {
-      map['percentage'] = Variable<double>(percentage);
+    map['actual_value'] = Variable<double>(actualValue);
+    map['percentage'] = Variable<double>(percentage);
+    map['score'] = Variable<double>(score);
+    if (!nullToAbsent || rank != null) {
+      map['rank'] = Variable<int>(rank);
     }
     map['calculated_at'] = Variable<DateTime>(calculatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -22344,11 +22696,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
       userId: Value(userId),
       measureId: Value(measureId),
       periodId: Value(periodId),
-      actualValue: Value(actualValue),
       targetValue: Value(targetValue),
-      percentage: percentage == null && nullToAbsent
-          ? const Value.absent()
-          : Value(percentage),
+      actualValue: Value(actualValue),
+      percentage: Value(percentage),
+      score: Value(score),
+      rank: rank == null && nullToAbsent ? const Value.absent() : Value(rank),
       calculatedAt: Value(calculatedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -22365,9 +22717,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
       userId: serializer.fromJson<String>(json['userId']),
       measureId: serializer.fromJson<String>(json['measureId']),
       periodId: serializer.fromJson<String>(json['periodId']),
-      actualValue: serializer.fromJson<double>(json['actualValue']),
       targetValue: serializer.fromJson<double>(json['targetValue']),
-      percentage: serializer.fromJson<double?>(json['percentage']),
+      actualValue: serializer.fromJson<double>(json['actualValue']),
+      percentage: serializer.fromJson<double>(json['percentage']),
+      score: serializer.fromJson<double>(json['score']),
+      rank: serializer.fromJson<int?>(json['rank']),
       calculatedAt: serializer.fromJson<DateTime>(json['calculatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -22381,9 +22735,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
       'userId': serializer.toJson<String>(userId),
       'measureId': serializer.toJson<String>(measureId),
       'periodId': serializer.toJson<String>(periodId),
-      'actualValue': serializer.toJson<double>(actualValue),
       'targetValue': serializer.toJson<double>(targetValue),
-      'percentage': serializer.toJson<double?>(percentage),
+      'actualValue': serializer.toJson<double>(actualValue),
+      'percentage': serializer.toJson<double>(percentage),
+      'score': serializer.toJson<double>(score),
+      'rank': serializer.toJson<int?>(rank),
       'calculatedAt': serializer.toJson<DateTime>(calculatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -22395,9 +22751,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
     String? userId,
     String? measureId,
     String? periodId,
-    double? actualValue,
     double? targetValue,
-    Value<double?> percentage = const Value.absent(),
+    double? actualValue,
+    double? percentage,
+    double? score,
+    Value<int?> rank = const Value.absent(),
     DateTime? calculatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -22406,9 +22764,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
     userId: userId ?? this.userId,
     measureId: measureId ?? this.measureId,
     periodId: periodId ?? this.periodId,
-    actualValue: actualValue ?? this.actualValue,
     targetValue: targetValue ?? this.targetValue,
-    percentage: percentage.present ? percentage.value : this.percentage,
+    actualValue: actualValue ?? this.actualValue,
+    percentage: percentage ?? this.percentage,
+    score: score ?? this.score,
+    rank: rank.present ? rank.value : this.rank,
     calculatedAt: calculatedAt ?? this.calculatedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -22419,15 +22779,17 @@ class UserScore extends DataClass implements Insertable<UserScore> {
       userId: data.userId.present ? data.userId.value : this.userId,
       measureId: data.measureId.present ? data.measureId.value : this.measureId,
       periodId: data.periodId.present ? data.periodId.value : this.periodId,
-      actualValue: data.actualValue.present
-          ? data.actualValue.value
-          : this.actualValue,
       targetValue: data.targetValue.present
           ? data.targetValue.value
           : this.targetValue,
+      actualValue: data.actualValue.present
+          ? data.actualValue.value
+          : this.actualValue,
       percentage: data.percentage.present
           ? data.percentage.value
           : this.percentage,
+      score: data.score.present ? data.score.value : this.score,
+      rank: data.rank.present ? data.rank.value : this.rank,
       calculatedAt: data.calculatedAt.present
           ? data.calculatedAt.value
           : this.calculatedAt,
@@ -22443,9 +22805,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
           ..write('userId: $userId, ')
           ..write('measureId: $measureId, ')
           ..write('periodId: $periodId, ')
-          ..write('actualValue: $actualValue, ')
           ..write('targetValue: $targetValue, ')
+          ..write('actualValue: $actualValue, ')
           ..write('percentage: $percentage, ')
+          ..write('score: $score, ')
+          ..write('rank: $rank, ')
           ..write('calculatedAt: $calculatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -22459,9 +22823,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
     userId,
     measureId,
     periodId,
-    actualValue,
     targetValue,
+    actualValue,
     percentage,
+    score,
+    rank,
     calculatedAt,
     createdAt,
     updatedAt,
@@ -22474,9 +22840,11 @@ class UserScore extends DataClass implements Insertable<UserScore> {
           other.userId == this.userId &&
           other.measureId == this.measureId &&
           other.periodId == this.periodId &&
-          other.actualValue == this.actualValue &&
           other.targetValue == this.targetValue &&
+          other.actualValue == this.actualValue &&
           other.percentage == this.percentage &&
+          other.score == this.score &&
+          other.rank == this.rank &&
           other.calculatedAt == this.calculatedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -22487,9 +22855,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
   final Value<String> userId;
   final Value<String> measureId;
   final Value<String> periodId;
-  final Value<double> actualValue;
   final Value<double> targetValue;
-  final Value<double?> percentage;
+  final Value<double> actualValue;
+  final Value<double> percentage;
+  final Value<double> score;
+  final Value<int?> rank;
   final Value<DateTime> calculatedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -22499,9 +22869,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
     this.userId = const Value.absent(),
     this.measureId = const Value.absent(),
     this.periodId = const Value.absent(),
-    this.actualValue = const Value.absent(),
     this.targetValue = const Value.absent(),
+    this.actualValue = const Value.absent(),
     this.percentage = const Value.absent(),
+    this.score = const Value.absent(),
+    this.rank = const Value.absent(),
     this.calculatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -22512,9 +22884,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
     required String userId,
     required String measureId,
     required String periodId,
-    required double actualValue,
     required double targetValue,
+    this.actualValue = const Value.absent(),
     this.percentage = const Value.absent(),
+    this.score = const Value.absent(),
+    this.rank = const Value.absent(),
     required DateTime calculatedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -22523,7 +22897,6 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
        userId = Value(userId),
        measureId = Value(measureId),
        periodId = Value(periodId),
-       actualValue = Value(actualValue),
        targetValue = Value(targetValue),
        calculatedAt = Value(calculatedAt),
        createdAt = Value(createdAt),
@@ -22533,9 +22906,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
     Expression<String>? userId,
     Expression<String>? measureId,
     Expression<String>? periodId,
-    Expression<double>? actualValue,
     Expression<double>? targetValue,
+    Expression<double>? actualValue,
     Expression<double>? percentage,
+    Expression<double>? score,
+    Expression<int>? rank,
     Expression<DateTime>? calculatedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -22546,9 +22921,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
       if (userId != null) 'user_id': userId,
       if (measureId != null) 'measure_id': measureId,
       if (periodId != null) 'period_id': periodId,
-      if (actualValue != null) 'actual_value': actualValue,
       if (targetValue != null) 'target_value': targetValue,
+      if (actualValue != null) 'actual_value': actualValue,
       if (percentage != null) 'percentage': percentage,
+      if (score != null) 'score': score,
+      if (rank != null) 'rank': rank,
       if (calculatedAt != null) 'calculated_at': calculatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -22561,9 +22938,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
     Value<String>? userId,
     Value<String>? measureId,
     Value<String>? periodId,
-    Value<double>? actualValue,
     Value<double>? targetValue,
-    Value<double?>? percentage,
+    Value<double>? actualValue,
+    Value<double>? percentage,
+    Value<double>? score,
+    Value<int?>? rank,
     Value<DateTime>? calculatedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -22574,9 +22953,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
       userId: userId ?? this.userId,
       measureId: measureId ?? this.measureId,
       periodId: periodId ?? this.periodId,
-      actualValue: actualValue ?? this.actualValue,
       targetValue: targetValue ?? this.targetValue,
+      actualValue: actualValue ?? this.actualValue,
       percentage: percentage ?? this.percentage,
+      score: score ?? this.score,
+      rank: rank ?? this.rank,
       calculatedAt: calculatedAt ?? this.calculatedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -22599,14 +22980,20 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
     if (periodId.present) {
       map['period_id'] = Variable<String>(periodId.value);
     }
-    if (actualValue.present) {
-      map['actual_value'] = Variable<double>(actualValue.value);
-    }
     if (targetValue.present) {
       map['target_value'] = Variable<double>(targetValue.value);
     }
+    if (actualValue.present) {
+      map['actual_value'] = Variable<double>(actualValue.value);
+    }
     if (percentage.present) {
       map['percentage'] = Variable<double>(percentage.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<double>(score.value);
+    }
+    if (rank.present) {
+      map['rank'] = Variable<int>(rank.value);
     }
     if (calculatedAt.present) {
       map['calculated_at'] = Variable<DateTime>(calculatedAt.value);
@@ -22630,9 +23017,11 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
           ..write('userId: $userId, ')
           ..write('measureId: $measureId, ')
           ..write('periodId: $periodId, ')
-          ..write('actualValue: $actualValue, ')
           ..write('targetValue: $targetValue, ')
+          ..write('actualValue: $actualValue, ')
           ..write('percentage: $percentage, ')
+          ..write('score: $score, ')
+          ..write('rank: $rank, ')
           ..write('calculatedAt: $calculatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -22642,12 +23031,12 @@ class UserScoresCompanion extends UpdateCompanion<UserScore> {
   }
 }
 
-class $PeriodSummaryScoresTable extends PeriodSummaryScores
-    with TableInfo<$PeriodSummaryScoresTable, PeriodSummaryScore> {
+class $UserScoreSnapshotsTable extends UserScoreSnapshots
+    with TableInfo<$UserScoreSnapshotsTable, UserScoreSnapshot> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $PeriodSummaryScoresTable(this.attachedDatabase, [this._alias]);
+  $UserScoreSnapshotsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -22683,36 +23072,60 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
       'REFERENCES scoring_periods (id)',
     ),
   );
-  static const VerificationMeta _totalLeadScoreMeta = const VerificationMeta(
-    'totalLeadScore',
+  static const VerificationMeta _leadScoreMeta = const VerificationMeta(
+    'leadScore',
   );
   @override
-  late final GeneratedColumn<double> totalLeadScore = GeneratedColumn<double>(
-    'total_lead_score',
+  late final GeneratedColumn<double> leadScore = GeneratedColumn<double>(
+    'lead_score',
     aliasedName,
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _totalLagScoreMeta = const VerificationMeta(
-    'totalLagScore',
+  static const VerificationMeta _lagScoreMeta = const VerificationMeta(
+    'lagScore',
   );
   @override
-  late final GeneratedColumn<double> totalLagScore = GeneratedColumn<double>(
-    'total_lag_score',
+  late final GeneratedColumn<double> lagScore = GeneratedColumn<double>(
+    'lag_score',
     aliasedName,
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _compositeScoreMeta = const VerificationMeta(
-    'compositeScore',
+  static const VerificationMeta _bonusPointsMeta = const VerificationMeta(
+    'bonusPoints',
   );
   @override
-  late final GeneratedColumn<double> compositeScore = GeneratedColumn<double>(
-    'composite_score',
+  late final GeneratedColumn<double> bonusPoints = GeneratedColumn<double>(
+    'bonus_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _penaltyPointsMeta = const VerificationMeta(
+    'penaltyPoints',
+  );
+  @override
+  late final GeneratedColumn<double> penaltyPoints = GeneratedColumn<double>(
+    'penalty_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _totalScoreMeta = const VerificationMeta(
+    'totalScore',
+  );
+  @override
+  late final GeneratedColumn<double> totalScore = GeneratedColumn<double>(
+    'total_score',
     aliasedName,
     false,
     type: DriftSqlType.double,
@@ -22761,39 +23174,29 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     userId,
     periodId,
-    totalLeadScore,
-    totalLagScore,
-    compositeScore,
+    leadScore,
+    lagScore,
+    bonusPoints,
+    penaltyPoints,
+    totalScore,
     rank,
     rankChange,
     calculatedAt,
     createdAt,
-    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'period_summary_scores';
+  static const String $name = 'user_score_snapshots';
   @override
   VerificationContext validateIntegrity(
-    Insertable<PeriodSummaryScore> instance, {
+    Insertable<UserScoreSnapshot> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -22819,31 +23222,40 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
     } else if (isInserting) {
       context.missing(_periodIdMeta);
     }
-    if (data.containsKey('total_lead_score')) {
+    if (data.containsKey('lead_score')) {
       context.handle(
-        _totalLeadScoreMeta,
-        totalLeadScore.isAcceptableOrUnknown(
-          data['total_lead_score']!,
-          _totalLeadScoreMeta,
+        _leadScoreMeta,
+        leadScore.isAcceptableOrUnknown(data['lead_score']!, _leadScoreMeta),
+      );
+    }
+    if (data.containsKey('lag_score')) {
+      context.handle(
+        _lagScoreMeta,
+        lagScore.isAcceptableOrUnknown(data['lag_score']!, _lagScoreMeta),
+      );
+    }
+    if (data.containsKey('bonus_points')) {
+      context.handle(
+        _bonusPointsMeta,
+        bonusPoints.isAcceptableOrUnknown(
+          data['bonus_points']!,
+          _bonusPointsMeta,
         ),
       );
     }
-    if (data.containsKey('total_lag_score')) {
+    if (data.containsKey('penalty_points')) {
       context.handle(
-        _totalLagScoreMeta,
-        totalLagScore.isAcceptableOrUnknown(
-          data['total_lag_score']!,
-          _totalLagScoreMeta,
+        _penaltyPointsMeta,
+        penaltyPoints.isAcceptableOrUnknown(
+          data['penalty_points']!,
+          _penaltyPointsMeta,
         ),
       );
     }
-    if (data.containsKey('composite_score')) {
+    if (data.containsKey('total_score')) {
       context.handle(
-        _compositeScoreMeta,
-        compositeScore.isAcceptableOrUnknown(
-          data['composite_score']!,
-          _compositeScoreMeta,
-        ),
+        _totalScoreMeta,
+        totalScore.isAcceptableOrUnknown(data['total_score']!, _totalScoreMeta),
       );
     }
     if (data.containsKey('rank')) {
@@ -22877,23 +23289,15 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  PeriodSummaryScore map(Map<String, dynamic> data, {String? tablePrefix}) {
+  UserScoreSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PeriodSummaryScore(
+    return UserScoreSnapshot(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -22906,17 +23310,25 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
         DriftSqlType.string,
         data['${effectivePrefix}period_id'],
       )!,
-      totalLeadScore: attachedDatabase.typeMapping.read(
+      leadScore: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
-        data['${effectivePrefix}total_lead_score'],
+        data['${effectivePrefix}lead_score'],
       )!,
-      totalLagScore: attachedDatabase.typeMapping.read(
+      lagScore: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
-        data['${effectivePrefix}total_lag_score'],
+        data['${effectivePrefix}lag_score'],
       )!,
-      compositeScore: attachedDatabase.typeMapping.read(
+      bonusPoints: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
-        data['${effectivePrefix}composite_score'],
+        data['${effectivePrefix}bonus_points'],
+      )!,
+      penaltyPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}penalty_points'],
+      )!,
+      totalScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_score'],
       )!,
       rank: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -22934,44 +23346,42 @@ class $PeriodSummaryScoresTable extends PeriodSummaryScores
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
     );
   }
 
   @override
-  $PeriodSummaryScoresTable createAlias(String alias) {
-    return $PeriodSummaryScoresTable(attachedDatabase, alias);
+  $UserScoreSnapshotsTable createAlias(String alias) {
+    return $UserScoreSnapshotsTable(attachedDatabase, alias);
   }
 }
 
-class PeriodSummaryScore extends DataClass
-    implements Insertable<PeriodSummaryScore> {
+class UserScoreSnapshot extends DataClass
+    implements Insertable<UserScoreSnapshot> {
   final String id;
   final String userId;
   final String periodId;
-  final double totalLeadScore;
-  final double totalLagScore;
-  final double compositeScore;
+  final double leadScore;
+  final double lagScore;
+  final double bonusPoints;
+  final double penaltyPoints;
+  final double totalScore;
   final int? rank;
   final int? rankChange;
   final DateTime calculatedAt;
   final DateTime createdAt;
-  final DateTime updatedAt;
-  const PeriodSummaryScore({
+  const UserScoreSnapshot({
     required this.id,
     required this.userId,
     required this.periodId,
-    required this.totalLeadScore,
-    required this.totalLagScore,
-    required this.compositeScore,
+    required this.leadScore,
+    required this.lagScore,
+    required this.bonusPoints,
+    required this.penaltyPoints,
+    required this.totalScore,
     this.rank,
     this.rankChange,
     required this.calculatedAt,
     required this.createdAt,
-    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22979,9 +23389,11 @@ class PeriodSummaryScore extends DataClass
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
     map['period_id'] = Variable<String>(periodId);
-    map['total_lead_score'] = Variable<double>(totalLeadScore);
-    map['total_lag_score'] = Variable<double>(totalLagScore);
-    map['composite_score'] = Variable<double>(compositeScore);
+    map['lead_score'] = Variable<double>(leadScore);
+    map['lag_score'] = Variable<double>(lagScore);
+    map['bonus_points'] = Variable<double>(bonusPoints);
+    map['penalty_points'] = Variable<double>(penaltyPoints);
+    map['total_score'] = Variable<double>(totalScore);
     if (!nullToAbsent || rank != null) {
       map['rank'] = Variable<int>(rank);
     }
@@ -22990,45 +23402,46 @@ class PeriodSummaryScore extends DataClass
     }
     map['calculated_at'] = Variable<DateTime>(calculatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  PeriodSummaryScoresCompanion toCompanion(bool nullToAbsent) {
-    return PeriodSummaryScoresCompanion(
+  UserScoreSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return UserScoreSnapshotsCompanion(
       id: Value(id),
       userId: Value(userId),
       periodId: Value(periodId),
-      totalLeadScore: Value(totalLeadScore),
-      totalLagScore: Value(totalLagScore),
-      compositeScore: Value(compositeScore),
+      leadScore: Value(leadScore),
+      lagScore: Value(lagScore),
+      bonusPoints: Value(bonusPoints),
+      penaltyPoints: Value(penaltyPoints),
+      totalScore: Value(totalScore),
       rank: rank == null && nullToAbsent ? const Value.absent() : Value(rank),
       rankChange: rankChange == null && nullToAbsent
           ? const Value.absent()
           : Value(rankChange),
       calculatedAt: Value(calculatedAt),
       createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
     );
   }
 
-  factory PeriodSummaryScore.fromJson(
+  factory UserScoreSnapshot.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PeriodSummaryScore(
+    return UserScoreSnapshot(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       periodId: serializer.fromJson<String>(json['periodId']),
-      totalLeadScore: serializer.fromJson<double>(json['totalLeadScore']),
-      totalLagScore: serializer.fromJson<double>(json['totalLagScore']),
-      compositeScore: serializer.fromJson<double>(json['compositeScore']),
+      leadScore: serializer.fromJson<double>(json['leadScore']),
+      lagScore: serializer.fromJson<double>(json['lagScore']),
+      bonusPoints: serializer.fromJson<double>(json['bonusPoints']),
+      penaltyPoints: serializer.fromJson<double>(json['penaltyPoints']),
+      totalScore: serializer.fromJson<double>(json['totalScore']),
       rank: serializer.fromJson<int?>(json['rank']),
       rankChange: serializer.fromJson<int?>(json['rankChange']),
       calculatedAt: serializer.fromJson<DateTime>(json['calculatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -23038,56 +23451,61 @@ class PeriodSummaryScore extends DataClass
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'periodId': serializer.toJson<String>(periodId),
-      'totalLeadScore': serializer.toJson<double>(totalLeadScore),
-      'totalLagScore': serializer.toJson<double>(totalLagScore),
-      'compositeScore': serializer.toJson<double>(compositeScore),
+      'leadScore': serializer.toJson<double>(leadScore),
+      'lagScore': serializer.toJson<double>(lagScore),
+      'bonusPoints': serializer.toJson<double>(bonusPoints),
+      'penaltyPoints': serializer.toJson<double>(penaltyPoints),
+      'totalScore': serializer.toJson<double>(totalScore),
       'rank': serializer.toJson<int?>(rank),
       'rankChange': serializer.toJson<int?>(rankChange),
       'calculatedAt': serializer.toJson<DateTime>(calculatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  PeriodSummaryScore copyWith({
+  UserScoreSnapshot copyWith({
     String? id,
     String? userId,
     String? periodId,
-    double? totalLeadScore,
-    double? totalLagScore,
-    double? compositeScore,
+    double? leadScore,
+    double? lagScore,
+    double? bonusPoints,
+    double? penaltyPoints,
+    double? totalScore,
     Value<int?> rank = const Value.absent(),
     Value<int?> rankChange = const Value.absent(),
     DateTime? calculatedAt,
     DateTime? createdAt,
-    DateTime? updatedAt,
-  }) => PeriodSummaryScore(
+  }) => UserScoreSnapshot(
     id: id ?? this.id,
     userId: userId ?? this.userId,
     periodId: periodId ?? this.periodId,
-    totalLeadScore: totalLeadScore ?? this.totalLeadScore,
-    totalLagScore: totalLagScore ?? this.totalLagScore,
-    compositeScore: compositeScore ?? this.compositeScore,
+    leadScore: leadScore ?? this.leadScore,
+    lagScore: lagScore ?? this.lagScore,
+    bonusPoints: bonusPoints ?? this.bonusPoints,
+    penaltyPoints: penaltyPoints ?? this.penaltyPoints,
+    totalScore: totalScore ?? this.totalScore,
     rank: rank.present ? rank.value : this.rank,
     rankChange: rankChange.present ? rankChange.value : this.rankChange,
     calculatedAt: calculatedAt ?? this.calculatedAt,
     createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
   );
-  PeriodSummaryScore copyWithCompanion(PeriodSummaryScoresCompanion data) {
-    return PeriodSummaryScore(
+  UserScoreSnapshot copyWithCompanion(UserScoreSnapshotsCompanion data) {
+    return UserScoreSnapshot(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
       periodId: data.periodId.present ? data.periodId.value : this.periodId,
-      totalLeadScore: data.totalLeadScore.present
-          ? data.totalLeadScore.value
-          : this.totalLeadScore,
-      totalLagScore: data.totalLagScore.present
-          ? data.totalLagScore.value
-          : this.totalLagScore,
-      compositeScore: data.compositeScore.present
-          ? data.compositeScore.value
-          : this.compositeScore,
+      leadScore: data.leadScore.present ? data.leadScore.value : this.leadScore,
+      lagScore: data.lagScore.present ? data.lagScore.value : this.lagScore,
+      bonusPoints: data.bonusPoints.present
+          ? data.bonusPoints.value
+          : this.bonusPoints,
+      penaltyPoints: data.penaltyPoints.present
+          ? data.penaltyPoints.value
+          : this.penaltyPoints,
+      totalScore: data.totalScore.present
+          ? data.totalScore.value
+          : this.totalScore,
       rank: data.rank.present ? data.rank.value : this.rank,
       rankChange: data.rankChange.present
           ? data.rankChange.value
@@ -23096,24 +23514,24 @@ class PeriodSummaryScore extends DataClass
           ? data.calculatedAt.value
           : this.calculatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('PeriodSummaryScore(')
+    return (StringBuffer('UserScoreSnapshot(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('periodId: $periodId, ')
-          ..write('totalLeadScore: $totalLeadScore, ')
-          ..write('totalLagScore: $totalLagScore, ')
-          ..write('compositeScore: $compositeScore, ')
+          ..write('leadScore: $leadScore, ')
+          ..write('lagScore: $lagScore, ')
+          ..write('bonusPoints: $bonusPoints, ')
+          ..write('penaltyPoints: $penaltyPoints, ')
+          ..write('totalScore: $totalScore, ')
           ..write('rank: $rank, ')
           ..write('rankChange: $rankChange, ')
           ..write('calculatedAt: $calculatedAt, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -23123,134 +23541,142 @@ class PeriodSummaryScore extends DataClass
     id,
     userId,
     periodId,
-    totalLeadScore,
-    totalLagScore,
-    compositeScore,
+    leadScore,
+    lagScore,
+    bonusPoints,
+    penaltyPoints,
+    totalScore,
     rank,
     rankChange,
     calculatedAt,
     createdAt,
-    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PeriodSummaryScore &&
+      (other is UserScoreSnapshot &&
           other.id == this.id &&
           other.userId == this.userId &&
           other.periodId == this.periodId &&
-          other.totalLeadScore == this.totalLeadScore &&
-          other.totalLagScore == this.totalLagScore &&
-          other.compositeScore == this.compositeScore &&
+          other.leadScore == this.leadScore &&
+          other.lagScore == this.lagScore &&
+          other.bonusPoints == this.bonusPoints &&
+          other.penaltyPoints == this.penaltyPoints &&
+          other.totalScore == this.totalScore &&
           other.rank == this.rank &&
           other.rankChange == this.rankChange &&
           other.calculatedAt == this.calculatedAt &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.createdAt == this.createdAt);
 }
 
-class PeriodSummaryScoresCompanion extends UpdateCompanion<PeriodSummaryScore> {
+class UserScoreSnapshotsCompanion extends UpdateCompanion<UserScoreSnapshot> {
   final Value<String> id;
   final Value<String> userId;
   final Value<String> periodId;
-  final Value<double> totalLeadScore;
-  final Value<double> totalLagScore;
-  final Value<double> compositeScore;
+  final Value<double> leadScore;
+  final Value<double> lagScore;
+  final Value<double> bonusPoints;
+  final Value<double> penaltyPoints;
+  final Value<double> totalScore;
   final Value<int?> rank;
   final Value<int?> rankChange;
   final Value<DateTime> calculatedAt;
   final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const PeriodSummaryScoresCompanion({
+  const UserScoreSnapshotsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.periodId = const Value.absent(),
-    this.totalLeadScore = const Value.absent(),
-    this.totalLagScore = const Value.absent(),
-    this.compositeScore = const Value.absent(),
+    this.leadScore = const Value.absent(),
+    this.lagScore = const Value.absent(),
+    this.bonusPoints = const Value.absent(),
+    this.penaltyPoints = const Value.absent(),
+    this.totalScore = const Value.absent(),
     this.rank = const Value.absent(),
     this.rankChange = const Value.absent(),
     this.calculatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  PeriodSummaryScoresCompanion.insert({
+  UserScoreSnapshotsCompanion.insert({
     required String id,
     required String userId,
     required String periodId,
-    this.totalLeadScore = const Value.absent(),
-    this.totalLagScore = const Value.absent(),
-    this.compositeScore = const Value.absent(),
+    this.leadScore = const Value.absent(),
+    this.lagScore = const Value.absent(),
+    this.bonusPoints = const Value.absent(),
+    this.penaltyPoints = const Value.absent(),
+    this.totalScore = const Value.absent(),
     this.rank = const Value.absent(),
     this.rankChange = const Value.absent(),
     required DateTime calculatedAt,
     required DateTime createdAt,
-    required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
        periodId = Value(periodId),
        calculatedAt = Value(calculatedAt),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
-  static Insertable<PeriodSummaryScore> custom({
+       createdAt = Value(createdAt);
+  static Insertable<UserScoreSnapshot> custom({
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? periodId,
-    Expression<double>? totalLeadScore,
-    Expression<double>? totalLagScore,
-    Expression<double>? compositeScore,
+    Expression<double>? leadScore,
+    Expression<double>? lagScore,
+    Expression<double>? bonusPoints,
+    Expression<double>? penaltyPoints,
+    Expression<double>? totalScore,
     Expression<int>? rank,
     Expression<int>? rankChange,
     Expression<DateTime>? calculatedAt,
     Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (periodId != null) 'period_id': periodId,
-      if (totalLeadScore != null) 'total_lead_score': totalLeadScore,
-      if (totalLagScore != null) 'total_lag_score': totalLagScore,
-      if (compositeScore != null) 'composite_score': compositeScore,
+      if (leadScore != null) 'lead_score': leadScore,
+      if (lagScore != null) 'lag_score': lagScore,
+      if (bonusPoints != null) 'bonus_points': bonusPoints,
+      if (penaltyPoints != null) 'penalty_points': penaltyPoints,
+      if (totalScore != null) 'total_score': totalScore,
       if (rank != null) 'rank': rank,
       if (rankChange != null) 'rank_change': rankChange,
       if (calculatedAt != null) 'calculated_at': calculatedAt,
       if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  PeriodSummaryScoresCompanion copyWith({
+  UserScoreSnapshotsCompanion copyWith({
     Value<String>? id,
     Value<String>? userId,
     Value<String>? periodId,
-    Value<double>? totalLeadScore,
-    Value<double>? totalLagScore,
-    Value<double>? compositeScore,
+    Value<double>? leadScore,
+    Value<double>? lagScore,
+    Value<double>? bonusPoints,
+    Value<double>? penaltyPoints,
+    Value<double>? totalScore,
     Value<int?>? rank,
     Value<int?>? rankChange,
     Value<DateTime>? calculatedAt,
     Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
-    return PeriodSummaryScoresCompanion(
+    return UserScoreSnapshotsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       periodId: periodId ?? this.periodId,
-      totalLeadScore: totalLeadScore ?? this.totalLeadScore,
-      totalLagScore: totalLagScore ?? this.totalLagScore,
-      compositeScore: compositeScore ?? this.compositeScore,
+      leadScore: leadScore ?? this.leadScore,
+      lagScore: lagScore ?? this.lagScore,
+      bonusPoints: bonusPoints ?? this.bonusPoints,
+      penaltyPoints: penaltyPoints ?? this.penaltyPoints,
+      totalScore: totalScore ?? this.totalScore,
       rank: rank ?? this.rank,
       rankChange: rankChange ?? this.rankChange,
       calculatedAt: calculatedAt ?? this.calculatedAt,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -23267,14 +23693,20 @@ class PeriodSummaryScoresCompanion extends UpdateCompanion<PeriodSummaryScore> {
     if (periodId.present) {
       map['period_id'] = Variable<String>(periodId.value);
     }
-    if (totalLeadScore.present) {
-      map['total_lead_score'] = Variable<double>(totalLeadScore.value);
+    if (leadScore.present) {
+      map['lead_score'] = Variable<double>(leadScore.value);
     }
-    if (totalLagScore.present) {
-      map['total_lag_score'] = Variable<double>(totalLagScore.value);
+    if (lagScore.present) {
+      map['lag_score'] = Variable<double>(lagScore.value);
     }
-    if (compositeScore.present) {
-      map['composite_score'] = Variable<double>(compositeScore.value);
+    if (bonusPoints.present) {
+      map['bonus_points'] = Variable<double>(bonusPoints.value);
+    }
+    if (penaltyPoints.present) {
+      map['penalty_points'] = Variable<double>(penaltyPoints.value);
+    }
+    if (totalScore.present) {
+      map['total_score'] = Variable<double>(totalScore.value);
     }
     if (rank.present) {
       map['rank'] = Variable<int>(rank.value);
@@ -23288,8 +23720,1348 @@ class PeriodSummaryScoresCompanion extends UpdateCompanion<PeriodSummaryScore> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserScoreSnapshotsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('periodId: $periodId, ')
+          ..write('leadScore: $leadScore, ')
+          ..write('lagScore: $lagScore, ')
+          ..write('bonusPoints: $bonusPoints, ')
+          ..write('penaltyPoints: $penaltyPoints, ')
+          ..write('totalScore: $totalScore, ')
+          ..write('rank: $rank, ')
+          ..write('rankChange: $rankChange, ')
+          ..write('calculatedAt: $calculatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WigsTable extends Wigs with TableInfo<$WigsTable, Wig> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WigsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<String> level = GeneratedColumn<String>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerIdMeta = const VerificationMeta(
+    'ownerId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerId = GeneratedColumn<String>(
+    'owner_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _parentWigIdMeta = const VerificationMeta(
+    'parentWigId',
+  );
+  @override
+  late final GeneratedColumn<String> parentWigId = GeneratedColumn<String>(
+    'parent_wig_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _measureTypeMeta = const VerificationMeta(
+    'measureType',
+  );
+  @override
+  late final GeneratedColumn<String> measureType = GeneratedColumn<String>(
+    'measure_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _measureIdMeta = const VerificationMeta(
+    'measureId',
+  );
+  @override
+  late final GeneratedColumn<String> measureId = GeneratedColumn<String>(
+    'measure_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES measure_definitions (id)',
+    ),
+  );
+  static const VerificationMeta _baselineValueMeta = const VerificationMeta(
+    'baselineValue',
+  );
+  @override
+  late final GeneratedColumn<double> baselineValue = GeneratedColumn<double>(
+    'baseline_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetValueMeta = const VerificationMeta(
+    'targetValue',
+  );
+  @override
+  late final GeneratedColumn<double> targetValue = GeneratedColumn<double>(
+    'target_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currentValueMeta = const VerificationMeta(
+    'currentValue',
+  );
+  @override
+  late final GeneratedColumn<double> currentValue = GeneratedColumn<double>(
+    'current_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+    'start_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+    'end_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DRAFT'),
+  );
+  static const VerificationMeta _submittedAtMeta = const VerificationMeta(
+    'submittedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> submittedAt = GeneratedColumn<DateTime>(
+    'submitted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _approvedByMeta = const VerificationMeta(
+    'approvedBy',
+  );
+  @override
+  late final GeneratedColumn<String> approvedBy = GeneratedColumn<String>(
+    'approved_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _approvedAtMeta = const VerificationMeta(
+    'approvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> approvedAt = GeneratedColumn<DateTime>(
+    'approved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rejectionReasonMeta = const VerificationMeta(
+    'rejectionReason',
+  );
+  @override
+  late final GeneratedColumn<String> rejectionReason = GeneratedColumn<String>(
+    'rejection_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastProgressUpdateMeta =
+      const VerificationMeta('lastProgressUpdate');
+  @override
+  late final GeneratedColumn<DateTime> lastProgressUpdate =
+      GeneratedColumn<DateTime>(
+        'last_progress_update',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _progressPercentageMeta =
+      const VerificationMeta('progressPercentage');
+  @override
+  late final GeneratedColumn<double> progressPercentage =
+      GeneratedColumn<double>(
+        'progress_percentage',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    description,
+    level,
+    ownerId,
+    parentWigId,
+    measureType,
+    measureId,
+    baselineValue,
+    targetValue,
+    currentValue,
+    startDate,
+    endDate,
+    status,
+    submittedAt,
+    approvedBy,
+    approvedAt,
+    rejectionReason,
+    lastProgressUpdate,
+    progressPercentage,
+    createdBy,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'wigs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Wig> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('owner_id')) {
+      context.handle(
+        _ownerIdMeta,
+        ownerId.isAcceptableOrUnknown(data['owner_id']!, _ownerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerIdMeta);
+    }
+    if (data.containsKey('parent_wig_id')) {
+      context.handle(
+        _parentWigIdMeta,
+        parentWigId.isAcceptableOrUnknown(
+          data['parent_wig_id']!,
+          _parentWigIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('measure_type')) {
+      context.handle(
+        _measureTypeMeta,
+        measureType.isAcceptableOrUnknown(
+          data['measure_type']!,
+          _measureTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('measure_id')) {
+      context.handle(
+        _measureIdMeta,
+        measureId.isAcceptableOrUnknown(data['measure_id']!, _measureIdMeta),
+      );
+    }
+    if (data.containsKey('baseline_value')) {
+      context.handle(
+        _baselineValueMeta,
+        baselineValue.isAcceptableOrUnknown(
+          data['baseline_value']!,
+          _baselineValueMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_baselineValueMeta);
+    }
+    if (data.containsKey('target_value')) {
+      context.handle(
+        _targetValueMeta,
+        targetValue.isAcceptableOrUnknown(
+          data['target_value']!,
+          _targetValueMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetValueMeta);
+    }
+    if (data.containsKey('current_value')) {
+      context.handle(
+        _currentValueMeta,
+        currentValue.isAcceptableOrUnknown(
+          data['current_value']!,
+          _currentValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endDateMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('submitted_at')) {
+      context.handle(
+        _submittedAtMeta,
+        submittedAt.isAcceptableOrUnknown(
+          data['submitted_at']!,
+          _submittedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('approved_by')) {
+      context.handle(
+        _approvedByMeta,
+        approvedBy.isAcceptableOrUnknown(data['approved_by']!, _approvedByMeta),
+      );
+    }
+    if (data.containsKey('approved_at')) {
+      context.handle(
+        _approvedAtMeta,
+        approvedAt.isAcceptableOrUnknown(data['approved_at']!, _approvedAtMeta),
+      );
+    }
+    if (data.containsKey('rejection_reason')) {
+      context.handle(
+        _rejectionReasonMeta,
+        rejectionReason.isAcceptableOrUnknown(
+          data['rejection_reason']!,
+          _rejectionReasonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_progress_update')) {
+      context.handle(
+        _lastProgressUpdateMeta,
+        lastProgressUpdate.isAcceptableOrUnknown(
+          data['last_progress_update']!,
+          _lastProgressUpdateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('progress_percentage')) {
+      context.handle(
+        _progressPercentageMeta,
+        progressPercentage.isAcceptableOrUnknown(
+          data['progress_percentage']!,
+          _progressPercentageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Wig map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Wig(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}level'],
+      )!,
+      ownerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_id'],
+      )!,
+      parentWigId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_wig_id'],
+      ),
+      measureType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}measure_type'],
+      ),
+      measureId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}measure_id'],
+      ),
+      baselineValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}baseline_value'],
+      )!,
+      targetValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}target_value'],
+      )!,
+      currentValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}current_value'],
+      )!,
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_date'],
+      )!,
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_date'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      submittedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}submitted_at'],
+      ),
+      approvedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}approved_by'],
+      ),
+      approvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}approved_at'],
+      ),
+      rejectionReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rejection_reason'],
+      ),
+      lastProgressUpdate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_progress_update'],
+      ),
+      progressPercentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}progress_percentage'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $WigsTable createAlias(String alias) {
+    return $WigsTable(attachedDatabase, alias);
+  }
+}
+
+class Wig extends DataClass implements Insertable<Wig> {
+  final String id;
+  final String title;
+  final String? description;
+  final String level;
+  final String ownerId;
+  final String? parentWigId;
+  final String? measureType;
+  final String? measureId;
+  final double baselineValue;
+  final double targetValue;
+  final double currentValue;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String status;
+  final DateTime? submittedAt;
+  final String? approvedBy;
+  final DateTime? approvedAt;
+  final String? rejectionReason;
+  final DateTime? lastProgressUpdate;
+  final double progressPercentage;
+  final String? createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const Wig({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.level,
+    required this.ownerId,
+    this.parentWigId,
+    this.measureType,
+    this.measureId,
+    required this.baselineValue,
+    required this.targetValue,
+    required this.currentValue,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
+    this.submittedAt,
+    this.approvedBy,
+    this.approvedAt,
+    this.rejectionReason,
+    this.lastProgressUpdate,
+    required this.progressPercentage,
+    this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['level'] = Variable<String>(level);
+    map['owner_id'] = Variable<String>(ownerId);
+    if (!nullToAbsent || parentWigId != null) {
+      map['parent_wig_id'] = Variable<String>(parentWigId);
+    }
+    if (!nullToAbsent || measureType != null) {
+      map['measure_type'] = Variable<String>(measureType);
+    }
+    if (!nullToAbsent || measureId != null) {
+      map['measure_id'] = Variable<String>(measureId);
+    }
+    map['baseline_value'] = Variable<double>(baselineValue);
+    map['target_value'] = Variable<double>(targetValue);
+    map['current_value'] = Variable<double>(currentValue);
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['end_date'] = Variable<DateTime>(endDate);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || submittedAt != null) {
+      map['submitted_at'] = Variable<DateTime>(submittedAt);
+    }
+    if (!nullToAbsent || approvedBy != null) {
+      map['approved_by'] = Variable<String>(approvedBy);
+    }
+    if (!nullToAbsent || approvedAt != null) {
+      map['approved_at'] = Variable<DateTime>(approvedAt);
+    }
+    if (!nullToAbsent || rejectionReason != null) {
+      map['rejection_reason'] = Variable<String>(rejectionReason);
+    }
+    if (!nullToAbsent || lastProgressUpdate != null) {
+      map['last_progress_update'] = Variable<DateTime>(lastProgressUpdate);
+    }
+    map['progress_percentage'] = Variable<double>(progressPercentage);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  WigsCompanion toCompanion(bool nullToAbsent) {
+    return WigsCompanion(
+      id: Value(id),
+      title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      level: Value(level),
+      ownerId: Value(ownerId),
+      parentWigId: parentWigId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentWigId),
+      measureType: measureType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(measureType),
+      measureId: measureId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(measureId),
+      baselineValue: Value(baselineValue),
+      targetValue: Value(targetValue),
+      currentValue: Value(currentValue),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      status: Value(status),
+      submittedAt: submittedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(submittedAt),
+      approvedBy: approvedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(approvedBy),
+      approvedAt: approvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(approvedAt),
+      rejectionReason: rejectionReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rejectionReason),
+      lastProgressUpdate: lastProgressUpdate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastProgressUpdate),
+      progressPercentage: Value(progressPercentage),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory Wig.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Wig(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      level: serializer.fromJson<String>(json['level']),
+      ownerId: serializer.fromJson<String>(json['ownerId']),
+      parentWigId: serializer.fromJson<String?>(json['parentWigId']),
+      measureType: serializer.fromJson<String?>(json['measureType']),
+      measureId: serializer.fromJson<String?>(json['measureId']),
+      baselineValue: serializer.fromJson<double>(json['baselineValue']),
+      targetValue: serializer.fromJson<double>(json['targetValue']),
+      currentValue: serializer.fromJson<double>(json['currentValue']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      status: serializer.fromJson<String>(json['status']),
+      submittedAt: serializer.fromJson<DateTime?>(json['submittedAt']),
+      approvedBy: serializer.fromJson<String?>(json['approvedBy']),
+      approvedAt: serializer.fromJson<DateTime?>(json['approvedAt']),
+      rejectionReason: serializer.fromJson<String?>(json['rejectionReason']),
+      lastProgressUpdate: serializer.fromJson<DateTime?>(
+        json['lastProgressUpdate'],
+      ),
+      progressPercentage: serializer.fromJson<double>(
+        json['progressPercentage'],
+      ),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
+      'level': serializer.toJson<String>(level),
+      'ownerId': serializer.toJson<String>(ownerId),
+      'parentWigId': serializer.toJson<String?>(parentWigId),
+      'measureType': serializer.toJson<String?>(measureType),
+      'measureId': serializer.toJson<String?>(measureId),
+      'baselineValue': serializer.toJson<double>(baselineValue),
+      'targetValue': serializer.toJson<double>(targetValue),
+      'currentValue': serializer.toJson<double>(currentValue),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'status': serializer.toJson<String>(status),
+      'submittedAt': serializer.toJson<DateTime?>(submittedAt),
+      'approvedBy': serializer.toJson<String?>(approvedBy),
+      'approvedAt': serializer.toJson<DateTime?>(approvedAt),
+      'rejectionReason': serializer.toJson<String?>(rejectionReason),
+      'lastProgressUpdate': serializer.toJson<DateTime?>(lastProgressUpdate),
+      'progressPercentage': serializer.toJson<double>(progressPercentage),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  Wig copyWith({
+    String? id,
+    String? title,
+    Value<String?> description = const Value.absent(),
+    String? level,
+    String? ownerId,
+    Value<String?> parentWigId = const Value.absent(),
+    Value<String?> measureType = const Value.absent(),
+    Value<String?> measureId = const Value.absent(),
+    double? baselineValue,
+    double? targetValue,
+    double? currentValue,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    Value<DateTime?> submittedAt = const Value.absent(),
+    Value<String?> approvedBy = const Value.absent(),
+    Value<DateTime?> approvedAt = const Value.absent(),
+    Value<String?> rejectionReason = const Value.absent(),
+    Value<DateTime?> lastProgressUpdate = const Value.absent(),
+    double? progressPercentage,
+    Value<String?> createdBy = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => Wig(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
+    level: level ?? this.level,
+    ownerId: ownerId ?? this.ownerId,
+    parentWigId: parentWigId.present ? parentWigId.value : this.parentWigId,
+    measureType: measureType.present ? measureType.value : this.measureType,
+    measureId: measureId.present ? measureId.value : this.measureId,
+    baselineValue: baselineValue ?? this.baselineValue,
+    targetValue: targetValue ?? this.targetValue,
+    currentValue: currentValue ?? this.currentValue,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    status: status ?? this.status,
+    submittedAt: submittedAt.present ? submittedAt.value : this.submittedAt,
+    approvedBy: approvedBy.present ? approvedBy.value : this.approvedBy,
+    approvedAt: approvedAt.present ? approvedAt.value : this.approvedAt,
+    rejectionReason: rejectionReason.present
+        ? rejectionReason.value
+        : this.rejectionReason,
+    lastProgressUpdate: lastProgressUpdate.present
+        ? lastProgressUpdate.value
+        : this.lastProgressUpdate,
+    progressPercentage: progressPercentage ?? this.progressPercentage,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  Wig copyWithCompanion(WigsCompanion data) {
+    return Wig(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      level: data.level.present ? data.level.value : this.level,
+      ownerId: data.ownerId.present ? data.ownerId.value : this.ownerId,
+      parentWigId: data.parentWigId.present
+          ? data.parentWigId.value
+          : this.parentWigId,
+      measureType: data.measureType.present
+          ? data.measureType.value
+          : this.measureType,
+      measureId: data.measureId.present ? data.measureId.value : this.measureId,
+      baselineValue: data.baselineValue.present
+          ? data.baselineValue.value
+          : this.baselineValue,
+      targetValue: data.targetValue.present
+          ? data.targetValue.value
+          : this.targetValue,
+      currentValue: data.currentValue.present
+          ? data.currentValue.value
+          : this.currentValue,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      status: data.status.present ? data.status.value : this.status,
+      submittedAt: data.submittedAt.present
+          ? data.submittedAt.value
+          : this.submittedAt,
+      approvedBy: data.approvedBy.present
+          ? data.approvedBy.value
+          : this.approvedBy,
+      approvedAt: data.approvedAt.present
+          ? data.approvedAt.value
+          : this.approvedAt,
+      rejectionReason: data.rejectionReason.present
+          ? data.rejectionReason.value
+          : this.rejectionReason,
+      lastProgressUpdate: data.lastProgressUpdate.present
+          ? data.lastProgressUpdate.value
+          : this.lastProgressUpdate,
+      progressPercentage: data.progressPercentage.present
+          ? data.progressPercentage.value
+          : this.progressPercentage,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Wig(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('level: $level, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('parentWigId: $parentWigId, ')
+          ..write('measureType: $measureType, ')
+          ..write('measureId: $measureId, ')
+          ..write('baselineValue: $baselineValue, ')
+          ..write('targetValue: $targetValue, ')
+          ..write('currentValue: $currentValue, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('status: $status, ')
+          ..write('submittedAt: $submittedAt, ')
+          ..write('approvedBy: $approvedBy, ')
+          ..write('approvedAt: $approvedAt, ')
+          ..write('rejectionReason: $rejectionReason, ')
+          ..write('lastProgressUpdate: $lastProgressUpdate, ')
+          ..write('progressPercentage: $progressPercentage, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    title,
+    description,
+    level,
+    ownerId,
+    parentWigId,
+    measureType,
+    measureId,
+    baselineValue,
+    targetValue,
+    currentValue,
+    startDate,
+    endDate,
+    status,
+    submittedAt,
+    approvedBy,
+    approvedAt,
+    rejectionReason,
+    lastProgressUpdate,
+    progressPercentage,
+    createdBy,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Wig &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.level == this.level &&
+          other.ownerId == this.ownerId &&
+          other.parentWigId == this.parentWigId &&
+          other.measureType == this.measureType &&
+          other.measureId == this.measureId &&
+          other.baselineValue == this.baselineValue &&
+          other.targetValue == this.targetValue &&
+          other.currentValue == this.currentValue &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.status == this.status &&
+          other.submittedAt == this.submittedAt &&
+          other.approvedBy == this.approvedBy &&
+          other.approvedAt == this.approvedAt &&
+          other.rejectionReason == this.rejectionReason &&
+          other.lastProgressUpdate == this.lastProgressUpdate &&
+          other.progressPercentage == this.progressPercentage &&
+          other.createdBy == this.createdBy &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class WigsCompanion extends UpdateCompanion<Wig> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> description;
+  final Value<String> level;
+  final Value<String> ownerId;
+  final Value<String?> parentWigId;
+  final Value<String?> measureType;
+  final Value<String?> measureId;
+  final Value<double> baselineValue;
+  final Value<double> targetValue;
+  final Value<double> currentValue;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<String> status;
+  final Value<DateTime?> submittedAt;
+  final Value<String?> approvedBy;
+  final Value<DateTime?> approvedAt;
+  final Value<String?> rejectionReason;
+  final Value<DateTime?> lastProgressUpdate;
+  final Value<double> progressPercentage;
+  final Value<String?> createdBy;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const WigsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.level = const Value.absent(),
+    this.ownerId = const Value.absent(),
+    this.parentWigId = const Value.absent(),
+    this.measureType = const Value.absent(),
+    this.measureId = const Value.absent(),
+    this.baselineValue = const Value.absent(),
+    this.targetValue = const Value.absent(),
+    this.currentValue = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.submittedAt = const Value.absent(),
+    this.approvedBy = const Value.absent(),
+    this.approvedAt = const Value.absent(),
+    this.rejectionReason = const Value.absent(),
+    this.lastProgressUpdate = const Value.absent(),
+    this.progressPercentage = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WigsCompanion.insert({
+    required String id,
+    required String title,
+    this.description = const Value.absent(),
+    required String level,
+    required String ownerId,
+    this.parentWigId = const Value.absent(),
+    this.measureType = const Value.absent(),
+    this.measureId = const Value.absent(),
+    required double baselineValue,
+    required double targetValue,
+    this.currentValue = const Value.absent(),
+    required DateTime startDate,
+    required DateTime endDate,
+    this.status = const Value.absent(),
+    this.submittedAt = const Value.absent(),
+    this.approvedBy = const Value.absent(),
+    this.approvedAt = const Value.absent(),
+    this.rejectionReason = const Value.absent(),
+    this.lastProgressUpdate = const Value.absent(),
+    this.progressPercentage = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       level = Value(level),
+       ownerId = Value(ownerId),
+       baselineValue = Value(baselineValue),
+       targetValue = Value(targetValue),
+       startDate = Value(startDate),
+       endDate = Value(endDate),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Wig> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? level,
+    Expression<String>? ownerId,
+    Expression<String>? parentWigId,
+    Expression<String>? measureType,
+    Expression<String>? measureId,
+    Expression<double>? baselineValue,
+    Expression<double>? targetValue,
+    Expression<double>? currentValue,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
+    Expression<String>? status,
+    Expression<DateTime>? submittedAt,
+    Expression<String>? approvedBy,
+    Expression<DateTime>? approvedAt,
+    Expression<String>? rejectionReason,
+    Expression<DateTime>? lastProgressUpdate,
+    Expression<double>? progressPercentage,
+    Expression<String>? createdBy,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (level != null) 'level': level,
+      if (ownerId != null) 'owner_id': ownerId,
+      if (parentWigId != null) 'parent_wig_id': parentWigId,
+      if (measureType != null) 'measure_type': measureType,
+      if (measureId != null) 'measure_id': measureId,
+      if (baselineValue != null) 'baseline_value': baselineValue,
+      if (targetValue != null) 'target_value': targetValue,
+      if (currentValue != null) 'current_value': currentValue,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (status != null) 'status': status,
+      if (submittedAt != null) 'submitted_at': submittedAt,
+      if (approvedBy != null) 'approved_by': approvedBy,
+      if (approvedAt != null) 'approved_at': approvedAt,
+      if (rejectionReason != null) 'rejection_reason': rejectionReason,
+      if (lastProgressUpdate != null)
+        'last_progress_update': lastProgressUpdate,
+      if (progressPercentage != null) 'progress_percentage': progressPercentage,
+      if (createdBy != null) 'created_by': createdBy,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WigsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String?>? description,
+    Value<String>? level,
+    Value<String>? ownerId,
+    Value<String?>? parentWigId,
+    Value<String?>? measureType,
+    Value<String?>? measureId,
+    Value<double>? baselineValue,
+    Value<double>? targetValue,
+    Value<double>? currentValue,
+    Value<DateTime>? startDate,
+    Value<DateTime>? endDate,
+    Value<String>? status,
+    Value<DateTime?>? submittedAt,
+    Value<String?>? approvedBy,
+    Value<DateTime?>? approvedAt,
+    Value<String?>? rejectionReason,
+    Value<DateTime?>? lastProgressUpdate,
+    Value<double>? progressPercentage,
+    Value<String?>? createdBy,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return WigsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      level: level ?? this.level,
+      ownerId: ownerId ?? this.ownerId,
+      parentWigId: parentWigId ?? this.parentWigId,
+      measureType: measureType ?? this.measureType,
+      measureId: measureId ?? this.measureId,
+      baselineValue: baselineValue ?? this.baselineValue,
+      targetValue: targetValue ?? this.targetValue,
+      currentValue: currentValue ?? this.currentValue,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      submittedAt: submittedAt ?? this.submittedAt,
+      approvedBy: approvedBy ?? this.approvedBy,
+      approvedAt: approvedAt ?? this.approvedAt,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      lastProgressUpdate: lastProgressUpdate ?? this.lastProgressUpdate,
+      progressPercentage: progressPercentage ?? this.progressPercentage,
+      createdBy: createdBy ?? this.createdBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<String>(level.value);
+    }
+    if (ownerId.present) {
+      map['owner_id'] = Variable<String>(ownerId.value);
+    }
+    if (parentWigId.present) {
+      map['parent_wig_id'] = Variable<String>(parentWigId.value);
+    }
+    if (measureType.present) {
+      map['measure_type'] = Variable<String>(measureType.value);
+    }
+    if (measureId.present) {
+      map['measure_id'] = Variable<String>(measureId.value);
+    }
+    if (baselineValue.present) {
+      map['baseline_value'] = Variable<double>(baselineValue.value);
+    }
+    if (targetValue.present) {
+      map['target_value'] = Variable<double>(targetValue.value);
+    }
+    if (currentValue.present) {
+      map['current_value'] = Variable<double>(currentValue.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (submittedAt.present) {
+      map['submitted_at'] = Variable<DateTime>(submittedAt.value);
+    }
+    if (approvedBy.present) {
+      map['approved_by'] = Variable<String>(approvedBy.value);
+    }
+    if (approvedAt.present) {
+      map['approved_at'] = Variable<DateTime>(approvedAt.value);
+    }
+    if (rejectionReason.present) {
+      map['rejection_reason'] = Variable<String>(rejectionReason.value);
+    }
+    if (lastProgressUpdate.present) {
+      map['last_progress_update'] = Variable<DateTime>(
+        lastProgressUpdate.value,
+      );
+    }
+    if (progressPercentage.present) {
+      map['progress_percentage'] = Variable<double>(progressPercentage.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -23299,18 +25071,606 @@ class PeriodSummaryScoresCompanion extends UpdateCompanion<PeriodSummaryScore> {
 
   @override
   String toString() {
-    return (StringBuffer('PeriodSummaryScoresCompanion(')
+    return (StringBuffer('WigsCompanion(')
           ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('periodId: $periodId, ')
-          ..write('totalLeadScore: $totalLeadScore, ')
-          ..write('totalLagScore: $totalLagScore, ')
-          ..write('compositeScore: $compositeScore, ')
-          ..write('rank: $rank, ')
-          ..write('rankChange: $rankChange, ')
-          ..write('calculatedAt: $calculatedAt, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('level: $level, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('parentWigId: $parentWigId, ')
+          ..write('measureType: $measureType, ')
+          ..write('measureId: $measureId, ')
+          ..write('baselineValue: $baselineValue, ')
+          ..write('targetValue: $targetValue, ')
+          ..write('currentValue: $currentValue, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('status: $status, ')
+          ..write('submittedAt: $submittedAt, ')
+          ..write('approvedBy: $approvedBy, ')
+          ..write('approvedAt: $approvedAt, ')
+          ..write('rejectionReason: $rejectionReason, ')
+          ..write('lastProgressUpdate: $lastProgressUpdate, ')
+          ..write('progressPercentage: $progressPercentage, ')
+          ..write('createdBy: $createdBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WigProgressTable extends WigProgress
+    with TableInfo<$WigProgressTable, WigProgressData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WigProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wigIdMeta = const VerificationMeta('wigId');
+  @override
+  late final GeneratedColumn<String> wigId = GeneratedColumn<String>(
+    'wig_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES wigs (id)',
+    ),
+  );
+  static const VerificationMeta _recordedDateMeta = const VerificationMeta(
+    'recordedDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedDate = GeneratedColumn<DateTime>(
+    'recorded_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<double> value = GeneratedColumn<double>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressPercentageMeta =
+      const VerificationMeta('progressPercentage');
+  @override
+  late final GeneratedColumn<double> progressPercentage =
+      GeneratedColumn<double>(
+        'progress_percentage',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordedByMeta = const VerificationMeta(
+    'recordedBy',
+  );
+  @override
+  late final GeneratedColumn<String> recordedBy = GeneratedColumn<String>(
+    'recorded_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    wigId,
+    recordedDate,
+    value,
+    progressPercentage,
+    status,
+    notes,
+    recordedBy,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'wig_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WigProgressData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('wig_id')) {
+      context.handle(
+        _wigIdMeta,
+        wigId.isAcceptableOrUnknown(data['wig_id']!, _wigIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wigIdMeta);
+    }
+    if (data.containsKey('recorded_date')) {
+      context.handle(
+        _recordedDateMeta,
+        recordedDate.isAcceptableOrUnknown(
+          data['recorded_date']!,
+          _recordedDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedDateMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('progress_percentage')) {
+      context.handle(
+        _progressPercentageMeta,
+        progressPercentage.isAcceptableOrUnknown(
+          data['progress_percentage']!,
+          _progressPercentageMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_progressPercentageMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('recorded_by')) {
+      context.handle(
+        _recordedByMeta,
+        recordedBy.isAcceptableOrUnknown(data['recorded_by']!, _recordedByMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WigProgressData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WigProgressData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      wigId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}wig_id'],
+      )!,
+      recordedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_date'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value'],
+      )!,
+      progressPercentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}progress_percentage'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      recordedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recorded_by'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WigProgressTable createAlias(String alias) {
+    return $WigProgressTable(attachedDatabase, alias);
+  }
+}
+
+class WigProgressData extends DataClass implements Insertable<WigProgressData> {
+  final String id;
+  final String wigId;
+  final DateTime recordedDate;
+  final double value;
+  final double progressPercentage;
+  final String? status;
+  final String? notes;
+  final String? recordedBy;
+  final DateTime createdAt;
+  const WigProgressData({
+    required this.id,
+    required this.wigId,
+    required this.recordedDate,
+    required this.value,
+    required this.progressPercentage,
+    this.status,
+    this.notes,
+    this.recordedBy,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['wig_id'] = Variable<String>(wigId);
+    map['recorded_date'] = Variable<DateTime>(recordedDate);
+    map['value'] = Variable<double>(value);
+    map['progress_percentage'] = Variable<double>(progressPercentage);
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || recordedBy != null) {
+      map['recorded_by'] = Variable<String>(recordedBy);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  WigProgressCompanion toCompanion(bool nullToAbsent) {
+    return WigProgressCompanion(
+      id: Value(id),
+      wigId: Value(wigId),
+      recordedDate: Value(recordedDate),
+      value: Value(value),
+      progressPercentage: Value(progressPercentage),
+      status: status == null && nullToAbsent
+          ? const Value.absent()
+          : Value(status),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      recordedBy: recordedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordedBy),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory WigProgressData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WigProgressData(
+      id: serializer.fromJson<String>(json['id']),
+      wigId: serializer.fromJson<String>(json['wigId']),
+      recordedDate: serializer.fromJson<DateTime>(json['recordedDate']),
+      value: serializer.fromJson<double>(json['value']),
+      progressPercentage: serializer.fromJson<double>(
+        json['progressPercentage'],
+      ),
+      status: serializer.fromJson<String?>(json['status']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      recordedBy: serializer.fromJson<String?>(json['recordedBy']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'wigId': serializer.toJson<String>(wigId),
+      'recordedDate': serializer.toJson<DateTime>(recordedDate),
+      'value': serializer.toJson<double>(value),
+      'progressPercentage': serializer.toJson<double>(progressPercentage),
+      'status': serializer.toJson<String?>(status),
+      'notes': serializer.toJson<String?>(notes),
+      'recordedBy': serializer.toJson<String?>(recordedBy),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  WigProgressData copyWith({
+    String? id,
+    String? wigId,
+    DateTime? recordedDate,
+    double? value,
+    double? progressPercentage,
+    Value<String?> status = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    Value<String?> recordedBy = const Value.absent(),
+    DateTime? createdAt,
+  }) => WigProgressData(
+    id: id ?? this.id,
+    wigId: wigId ?? this.wigId,
+    recordedDate: recordedDate ?? this.recordedDate,
+    value: value ?? this.value,
+    progressPercentage: progressPercentage ?? this.progressPercentage,
+    status: status.present ? status.value : this.status,
+    notes: notes.present ? notes.value : this.notes,
+    recordedBy: recordedBy.present ? recordedBy.value : this.recordedBy,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  WigProgressData copyWithCompanion(WigProgressCompanion data) {
+    return WigProgressData(
+      id: data.id.present ? data.id.value : this.id,
+      wigId: data.wigId.present ? data.wigId.value : this.wigId,
+      recordedDate: data.recordedDate.present
+          ? data.recordedDate.value
+          : this.recordedDate,
+      value: data.value.present ? data.value.value : this.value,
+      progressPercentage: data.progressPercentage.present
+          ? data.progressPercentage.value
+          : this.progressPercentage,
+      status: data.status.present ? data.status.value : this.status,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      recordedBy: data.recordedBy.present
+          ? data.recordedBy.value
+          : this.recordedBy,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WigProgressData(')
+          ..write('id: $id, ')
+          ..write('wigId: $wigId, ')
+          ..write('recordedDate: $recordedDate, ')
+          ..write('value: $value, ')
+          ..write('progressPercentage: $progressPercentage, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('recordedBy: $recordedBy, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    wigId,
+    recordedDate,
+    value,
+    progressPercentage,
+    status,
+    notes,
+    recordedBy,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WigProgressData &&
+          other.id == this.id &&
+          other.wigId == this.wigId &&
+          other.recordedDate == this.recordedDate &&
+          other.value == this.value &&
+          other.progressPercentage == this.progressPercentage &&
+          other.status == this.status &&
+          other.notes == this.notes &&
+          other.recordedBy == this.recordedBy &&
+          other.createdAt == this.createdAt);
+}
+
+class WigProgressCompanion extends UpdateCompanion<WigProgressData> {
+  final Value<String> id;
+  final Value<String> wigId;
+  final Value<DateTime> recordedDate;
+  final Value<double> value;
+  final Value<double> progressPercentage;
+  final Value<String?> status;
+  final Value<String?> notes;
+  final Value<String?> recordedBy;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const WigProgressCompanion({
+    this.id = const Value.absent(),
+    this.wigId = const Value.absent(),
+    this.recordedDate = const Value.absent(),
+    this.value = const Value.absent(),
+    this.progressPercentage = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.recordedBy = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WigProgressCompanion.insert({
+    required String id,
+    required String wigId,
+    required DateTime recordedDate,
+    required double value,
+    required double progressPercentage,
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.recordedBy = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       wigId = Value(wigId),
+       recordedDate = Value(recordedDate),
+       value = Value(value),
+       progressPercentage = Value(progressPercentage),
+       createdAt = Value(createdAt);
+  static Insertable<WigProgressData> custom({
+    Expression<String>? id,
+    Expression<String>? wigId,
+    Expression<DateTime>? recordedDate,
+    Expression<double>? value,
+    Expression<double>? progressPercentage,
+    Expression<String>? status,
+    Expression<String>? notes,
+    Expression<String>? recordedBy,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (wigId != null) 'wig_id': wigId,
+      if (recordedDate != null) 'recorded_date': recordedDate,
+      if (value != null) 'value': value,
+      if (progressPercentage != null) 'progress_percentage': progressPercentage,
+      if (status != null) 'status': status,
+      if (notes != null) 'notes': notes,
+      if (recordedBy != null) 'recorded_by': recordedBy,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WigProgressCompanion copyWith({
+    Value<String>? id,
+    Value<String>? wigId,
+    Value<DateTime>? recordedDate,
+    Value<double>? value,
+    Value<double>? progressPercentage,
+    Value<String?>? status,
+    Value<String?>? notes,
+    Value<String?>? recordedBy,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return WigProgressCompanion(
+      id: id ?? this.id,
+      wigId: wigId ?? this.wigId,
+      recordedDate: recordedDate ?? this.recordedDate,
+      value: value ?? this.value,
+      progressPercentage: progressPercentage ?? this.progressPercentage,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      recordedBy: recordedBy ?? this.recordedBy,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (wigId.present) {
+      map['wig_id'] = Variable<String>(wigId.value);
+    }
+    if (recordedDate.present) {
+      map['recorded_date'] = Variable<DateTime>(recordedDate.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<double>(value.value);
+    }
+    if (progressPercentage.present) {
+      map['progress_percentage'] = Variable<double>(progressPercentage.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (recordedBy.present) {
+      map['recorded_by'] = Variable<String>(recordedBy.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WigProgressCompanion(')
+          ..write('id: $id, ')
+          ..write('wigId: $wigId, ')
+          ..write('recordedDate: $recordedDate, ')
+          ..write('value: $value, ')
+          ..write('progressPercentage: $progressPercentage, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('recordedBy: $recordedBy, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -23430,6 +25790,18 @@ class $CadenceScheduleConfigTable extends CadenceScheduleConfig
     requiredDuringInsert: false,
     defaultValue: const Constant(60),
   );
+  static const VerificationMeta _preMeetingHoursMeta = const VerificationMeta(
+    'preMeetingHours',
+  );
+  @override
+  late final GeneratedColumn<int> preMeetingHours = GeneratedColumn<int>(
+    'pre_meeting_hours',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(24),
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -23479,6 +25851,7 @@ class $CadenceScheduleConfigTable extends CadenceScheduleConfig
     dayOfMonth,
     defaultTime,
     durationMinutes,
+    preMeetingHours,
     isActive,
     createdAt,
     updatedAt,
@@ -23577,6 +25950,15 @@ class $CadenceScheduleConfigTable extends CadenceScheduleConfig
         ),
       );
     }
+    if (data.containsKey('pre_meeting_hours')) {
+      context.handle(
+        _preMeetingHoursMeta,
+        preMeetingHours.isAcceptableOrUnknown(
+          data['pre_meeting_hours']!,
+          _preMeetingHoursMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -23651,6 +26033,10 @@ class $CadenceScheduleConfigTable extends CadenceScheduleConfig
         DriftSqlType.int,
         data['${effectivePrefix}duration_minutes'],
       )!,
+      preMeetingHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pre_meeting_hours'],
+      )!,
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -23684,6 +26070,7 @@ class CadenceScheduleConfigData extends DataClass
   final int? dayOfMonth;
   final String? defaultTime;
   final int durationMinutes;
+  final int preMeetingHours;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -23698,6 +26085,7 @@ class CadenceScheduleConfigData extends DataClass
     this.dayOfMonth,
     this.defaultTime,
     required this.durationMinutes,
+    required this.preMeetingHours,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -23723,6 +26111,7 @@ class CadenceScheduleConfigData extends DataClass
       map['default_time'] = Variable<String>(defaultTime);
     }
     map['duration_minutes'] = Variable<int>(durationMinutes);
+    map['pre_meeting_hours'] = Variable<int>(preMeetingHours);
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -23749,6 +26138,7 @@ class CadenceScheduleConfigData extends DataClass
           ? const Value.absent()
           : Value(defaultTime),
       durationMinutes: Value(durationMinutes),
+      preMeetingHours: Value(preMeetingHours),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -23771,6 +26161,7 @@ class CadenceScheduleConfigData extends DataClass
       dayOfMonth: serializer.fromJson<int?>(json['dayOfMonth']),
       defaultTime: serializer.fromJson<String?>(json['defaultTime']),
       durationMinutes: serializer.fromJson<int>(json['durationMinutes']),
+      preMeetingHours: serializer.fromJson<int>(json['preMeetingHours']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -23790,6 +26181,7 @@ class CadenceScheduleConfigData extends DataClass
       'dayOfMonth': serializer.toJson<int?>(dayOfMonth),
       'defaultTime': serializer.toJson<String?>(defaultTime),
       'durationMinutes': serializer.toJson<int>(durationMinutes),
+      'preMeetingHours': serializer.toJson<int>(preMeetingHours),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -23807,6 +26199,7 @@ class CadenceScheduleConfigData extends DataClass
     Value<int?> dayOfMonth = const Value.absent(),
     Value<String?> defaultTime = const Value.absent(),
     int? durationMinutes,
+    int? preMeetingHours,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -23821,6 +26214,7 @@ class CadenceScheduleConfigData extends DataClass
     dayOfMonth: dayOfMonth.present ? dayOfMonth.value : this.dayOfMonth,
     defaultTime: defaultTime.present ? defaultTime.value : this.defaultTime,
     durationMinutes: durationMinutes ?? this.durationMinutes,
+    preMeetingHours: preMeetingHours ?? this.preMeetingHours,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -23851,6 +26245,9 @@ class CadenceScheduleConfigData extends DataClass
       durationMinutes: data.durationMinutes.present
           ? data.durationMinutes.value
           : this.durationMinutes,
+      preMeetingHours: data.preMeetingHours.present
+          ? data.preMeetingHours.value
+          : this.preMeetingHours,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -23870,6 +26267,7 @@ class CadenceScheduleConfigData extends DataClass
           ..write('dayOfMonth: $dayOfMonth, ')
           ..write('defaultTime: $defaultTime, ')
           ..write('durationMinutes: $durationMinutes, ')
+          ..write('preMeetingHours: $preMeetingHours, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -23889,6 +26287,7 @@ class CadenceScheduleConfigData extends DataClass
     dayOfMonth,
     defaultTime,
     durationMinutes,
+    preMeetingHours,
     isActive,
     createdAt,
     updatedAt,
@@ -23907,6 +26306,7 @@ class CadenceScheduleConfigData extends DataClass
           other.dayOfMonth == this.dayOfMonth &&
           other.defaultTime == this.defaultTime &&
           other.durationMinutes == this.durationMinutes &&
+          other.preMeetingHours == this.preMeetingHours &&
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -23924,6 +26324,7 @@ class CadenceScheduleConfigCompanion
   final Value<int?> dayOfMonth;
   final Value<String?> defaultTime;
   final Value<int> durationMinutes;
+  final Value<int> preMeetingHours;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -23939,6 +26340,7 @@ class CadenceScheduleConfigCompanion
     this.dayOfMonth = const Value.absent(),
     this.defaultTime = const Value.absent(),
     this.durationMinutes = const Value.absent(),
+    this.preMeetingHours = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -23955,6 +26357,7 @@ class CadenceScheduleConfigCompanion
     this.dayOfMonth = const Value.absent(),
     this.defaultTime = const Value.absent(),
     this.durationMinutes = const Value.absent(),
+    this.preMeetingHours = const Value.absent(),
     this.isActive = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -23977,6 +26380,7 @@ class CadenceScheduleConfigCompanion
     Expression<int>? dayOfMonth,
     Expression<String>? defaultTime,
     Expression<int>? durationMinutes,
+    Expression<int>? preMeetingHours,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -23993,6 +26397,7 @@ class CadenceScheduleConfigCompanion
       if (dayOfMonth != null) 'day_of_month': dayOfMonth,
       if (defaultTime != null) 'default_time': defaultTime,
       if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (preMeetingHours != null) 'pre_meeting_hours': preMeetingHours,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -24011,6 +26416,7 @@ class CadenceScheduleConfigCompanion
     Value<int?>? dayOfMonth,
     Value<String?>? defaultTime,
     Value<int>? durationMinutes,
+    Value<int>? preMeetingHours,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -24027,6 +26433,7 @@ class CadenceScheduleConfigCompanion
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       defaultTime: defaultTime ?? this.defaultTime,
       durationMinutes: durationMinutes ?? this.durationMinutes,
+      preMeetingHours: preMeetingHours ?? this.preMeetingHours,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -24067,6 +26474,9 @@ class CadenceScheduleConfigCompanion
     if (durationMinutes.present) {
       map['duration_minutes'] = Variable<int>(durationMinutes.value);
     }
+    if (preMeetingHours.present) {
+      map['pre_meeting_hours'] = Variable<int>(preMeetingHours.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -24095,6 +26505,7 @@ class CadenceScheduleConfigCompanion
           ..write('dayOfMonth: $dayOfMonth, ')
           ..write('defaultTime: $defaultTime, ')
           ..write('durationMinutes: $durationMinutes, ')
+          ..write('preMeetingHours: $preMeetingHours, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -32126,8 +34537,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ScoringPeriodsTable scoringPeriods = $ScoringPeriodsTable(this);
   late final $UserTargetsTable userTargets = $UserTargetsTable(this);
   late final $UserScoresTable userScores = $UserScoresTable(this);
-  late final $PeriodSummaryScoresTable periodSummaryScores =
-      $PeriodSummaryScoresTable(this);
+  late final $UserScoreSnapshotsTable userScoreSnapshots =
+      $UserScoreSnapshotsTable(this);
+  late final $WigsTable wigs = $WigsTable(this);
+  late final $WigProgressTable wigProgress = $WigProgressTable(this);
   late final $CadenceScheduleConfigTable cadenceScheduleConfig =
       $CadenceScheduleConfigTable(this);
   late final $CadenceMeetingsTable cadenceMeetings = $CadenceMeetingsTable(
@@ -32183,7 +34596,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scoringPeriods,
     userTargets,
     userScores,
-    periodSummaryScores,
+    userScoreSnapshots,
+    wigs,
+    wigProgress,
     cadenceScheduleConfig,
     cadenceMeetings,
     cadenceParticipants,
@@ -33428,28 +35843,43 @@ final class $$UsersTableReferences
     );
   }
 
-  static MultiTypedResultKey<
-    $PeriodSummaryScoresTable,
-    List<PeriodSummaryScore>
-  >
-  _periodSummaryScoresRefsTable(_$AppDatabase db) =>
+  static MultiTypedResultKey<$UserScoreSnapshotsTable, List<UserScoreSnapshot>>
+  _userScoreSnapshotsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
-        db.periodSummaryScores,
+        db.userScoreSnapshots,
         aliasName: $_aliasNameGenerator(
           db.users.id,
-          db.periodSummaryScores.userId,
+          db.userScoreSnapshots.userId,
         ),
       );
 
-  $$PeriodSummaryScoresTableProcessedTableManager get periodSummaryScoresRefs {
-    final manager = $$PeriodSummaryScoresTableTableManager(
+  $$UserScoreSnapshotsTableProcessedTableManager get userScoreSnapshotsRefs {
+    final manager = $$UserScoreSnapshotsTableTableManager(
       $_db,
-      $_db.periodSummaryScores,
+      $_db.userScoreSnapshots,
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(
-      _periodSummaryScoresRefsTable($_db),
+      _userScoreSnapshotsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$WigProgressTable, List<WigProgressData>>
+  _wigProgressRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.wigProgress,
+    aliasName: $_aliasNameGenerator(db.users.id, db.wigProgress.recordedBy),
+  );
+
+  $$WigProgressTableProcessedTableManager get wigProgressRefs {
+    final manager = $$WigProgressTableTableManager(
+      $_db,
+      $_db.wigProgress,
+    ).filter((f) => f.recordedBy.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_wigProgressRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -33826,22 +36256,47 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     return f(composer);
   }
 
-  Expression<bool> periodSummaryScoresRefs(
-    Expression<bool> Function($$PeriodSummaryScoresTableFilterComposer f) f,
+  Expression<bool> userScoreSnapshotsRefs(
+    Expression<bool> Function($$UserScoreSnapshotsTableFilterComposer f) f,
   ) {
-    final $$PeriodSummaryScoresTableFilterComposer composer = $composerBuilder(
+    final $$UserScoreSnapshotsTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.periodSummaryScores,
+      referencedTable: $db.userScoreSnapshots,
       getReferencedColumn: (t) => t.userId,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$PeriodSummaryScoresTableFilterComposer(
+          }) => $$UserScoreSnapshotsTableFilterComposer(
             $db: $db,
-            $table: $db.periodSummaryScores,
+            $table: $db.userScoreSnapshots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> wigProgressRefs(
+    Expression<bool> Function($$WigProgressTableFilterComposer f) f,
+  ) {
+    final $$WigProgressTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigProgress,
+      getReferencedColumn: (t) => t.recordedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigProgressTableFilterComposer(
+            $db: $db,
+            $table: $db.wigProgress,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -34360,29 +36815,54 @@ class $$UsersTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> periodSummaryScoresRefs<T extends Object>(
-    Expression<T> Function($$PeriodSummaryScoresTableAnnotationComposer a) f,
+  Expression<T> userScoreSnapshotsRefs<T extends Object>(
+    Expression<T> Function($$UserScoreSnapshotsTableAnnotationComposer a) f,
   ) {
-    final $$PeriodSummaryScoresTableAnnotationComposer composer =
+    final $$UserScoreSnapshotsTableAnnotationComposer composer =
         $composerBuilder(
           composer: this,
           getCurrentColumn: (t) => t.id,
-          referencedTable: $db.periodSummaryScores,
+          referencedTable: $db.userScoreSnapshots,
           getReferencedColumn: (t) => t.userId,
           builder:
               (
                 joinBuilder, {
                 $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-              }) => $$PeriodSummaryScoresTableAnnotationComposer(
+              }) => $$UserScoreSnapshotsTableAnnotationComposer(
                 $db: $db,
-                $table: $db.periodSummaryScores,
+                $table: $db.userScoreSnapshots,
                 $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
                 joinBuilder: joinBuilder,
                 $removeJoinBuilderFromRootComposer:
                     $removeJoinBuilderFromRootComposer,
               ),
         );
+    return f(composer);
+  }
+
+  Expression<T> wigProgressRefs<T extends Object>(
+    Expression<T> Function($$WigProgressTableAnnotationComposer a) f,
+  ) {
+    final $$WigProgressTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigProgress,
+      getReferencedColumn: (t) => t.recordedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigProgressTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wigProgress,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 
@@ -34561,7 +37041,8 @@ class $$UsersTableTableManager
             bool activityAuditLogsRefs,
             bool customerHvcLinksRefs,
             bool userScoresRefs,
-            bool periodSummaryScoresRefs,
+            bool userScoreSnapshotsRefs,
+            bool wigProgressRefs,
             bool cadenceParticipantsRefs,
             bool notificationsRefs,
             bool notificationSettingsRefs,
@@ -34668,7 +37149,8 @@ class $$UsersTableTableManager
                 activityAuditLogsRefs = false,
                 customerHvcLinksRefs = false,
                 userScoresRefs = false,
-                periodSummaryScoresRefs = false,
+                userScoreSnapshotsRefs = false,
+                wigProgressRefs = false,
                 cadenceParticipantsRefs = false,
                 notificationsRefs = false,
                 notificationSettingsRefs = false,
@@ -34683,7 +37165,8 @@ class $$UsersTableTableManager
                     if (activityAuditLogsRefs) db.activityAuditLogs,
                     if (customerHvcLinksRefs) db.customerHvcLinks,
                     if (userScoresRefs) db.userScores,
-                    if (periodSummaryScoresRefs) db.periodSummaryScores,
+                    if (userScoreSnapshotsRefs) db.userScoreSnapshots,
+                    if (wigProgressRefs) db.wigProgress,
                     if (cadenceParticipantsRefs) db.cadenceParticipants,
                     if (notificationsRefs) db.notifications,
                     if (notificationSettingsRefs) db.notificationSettings,
@@ -34827,24 +37310,45 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (periodSummaryScoresRefs)
+                      if (userScoreSnapshotsRefs)
                         await $_getPrefetchedData<
                           User,
                           $UsersTable,
-                          PeriodSummaryScore
+                          UserScoreSnapshot
                         >(
                           currentTable: table,
                           referencedTable: $$UsersTableReferences
-                              ._periodSummaryScoresRefsTable(db),
+                              ._userScoreSnapshotsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $$UsersTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).periodSummaryScoresRefs,
+                              ).userScoreSnapshotsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (wigProgressRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          WigProgressData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._wigProgressRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).wigProgressRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.recordedBy == item.id,
                               ),
                           typedResults: items,
                         ),
@@ -34998,7 +37502,8 @@ typedef $$UsersTableProcessedTableManager =
         bool activityAuditLogsRefs,
         bool customerHvcLinksRefs,
         bool userScoresRefs,
-        bool periodSummaryScoresRefs,
+        bool userScoreSnapshotsRefs,
+        bool wigProgressRefs,
         bool cadenceParticipantsRefs,
         bool notificationsRefs,
         bool notificationSettingsRefs,
@@ -47594,11 +50099,15 @@ typedef $$MeasureDefinitionsTableCreateCompanionBuilder =
       required String name,
       Value<String?> description,
       required String measureType,
-      required String dataType,
-      Value<String?> unit,
+      Value<String> dataType,
+      required String unit,
+      Value<String?> calculationMethod,
       Value<String?> calculationFormula,
       Value<String?> sourceTable,
       Value<String?> sourceCondition,
+      Value<double> weight,
+      Value<double?> defaultTarget,
+      Value<String> periodType,
       Value<bool> isActive,
       Value<int> sortOrder,
       required DateTime createdAt,
@@ -47613,10 +50122,14 @@ typedef $$MeasureDefinitionsTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<String> measureType,
       Value<String> dataType,
-      Value<String?> unit,
+      Value<String> unit,
+      Value<String?> calculationMethod,
       Value<String?> calculationFormula,
       Value<String?> sourceTable,
       Value<String?> sourceCondition,
+      Value<double> weight,
+      Value<double?> defaultTarget,
+      Value<String> periodType,
       Value<bool> isActive,
       Value<int> sortOrder,
       Value<DateTime> createdAt,
@@ -47678,6 +50191,28 @@ final class $$MeasureDefinitionsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$WigsTable, List<Wig>> _wigsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.wigs,
+    aliasName: $_aliasNameGenerator(
+      db.measureDefinitions.id,
+      db.wigs.measureId,
+    ),
+  );
+
+  $$WigsTableProcessedTableManager get wigsRefs {
+    final manager = $$WigsTableTableManager(
+      $_db,
+      $_db.wigs,
+    ).filter((f) => f.measureId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_wigsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$MeasureDefinitionsTableFilterComposer
@@ -47724,6 +50259,11 @@ class $$MeasureDefinitionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get calculationMethod => $composableBuilder(
+    column: $table.calculationMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get calculationFormula => $composableBuilder(
     column: $table.calculationFormula,
     builder: (column) => ColumnFilters(column),
@@ -47736,6 +50276,21 @@ class $$MeasureDefinitionsTableFilterComposer
 
   ColumnFilters<String> get sourceCondition => $composableBuilder(
     column: $table.sourceCondition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get defaultTarget => $composableBuilder(
+    column: $table.defaultTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get periodType => $composableBuilder(
+    column: $table.periodType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -47808,6 +50363,31 @@ class $$MeasureDefinitionsTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> wigsRefs(
+    Expression<bool> Function($$WigsTableFilterComposer f) f,
+  ) {
+    final $$WigsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigs,
+      getReferencedColumn: (t) => t.measureId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigsTableFilterComposer(
+            $db: $db,
+            $table: $db.wigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MeasureDefinitionsTableOrderingComposer
@@ -47854,6 +50434,11 @@ class $$MeasureDefinitionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get calculationMethod => $composableBuilder(
+    column: $table.calculationMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get calculationFormula => $composableBuilder(
     column: $table.calculationFormula,
     builder: (column) => ColumnOrderings(column),
@@ -47866,6 +50451,21 @@ class $$MeasureDefinitionsTableOrderingComposer
 
   ColumnOrderings<String> get sourceCondition => $composableBuilder(
     column: $table.sourceCondition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get defaultTarget => $composableBuilder(
+    column: $table.defaultTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get periodType => $composableBuilder(
+    column: $table.periodType,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -47924,6 +50524,11 @@ class $$MeasureDefinitionsTableAnnotationComposer
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
 
+  GeneratedColumn<String> get calculationMethod => $composableBuilder(
+    column: $table.calculationMethod,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get calculationFormula => $composableBuilder(
     column: $table.calculationFormula,
     builder: (column) => column,
@@ -47936,6 +50541,19 @@ class $$MeasureDefinitionsTableAnnotationComposer
 
   GeneratedColumn<String> get sourceCondition => $composableBuilder(
     column: $table.sourceCondition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<double> get defaultTarget => $composableBuilder(
+    column: $table.defaultTarget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get periodType => $composableBuilder(
+    column: $table.periodType,
     builder: (column) => column,
   );
 
@@ -48000,6 +50618,31 @@ class $$MeasureDefinitionsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> wigsRefs<T extends Object>(
+    Expression<T> Function($$WigsTableAnnotationComposer a) f,
+  ) {
+    final $$WigsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigs,
+      getReferencedColumn: (t) => t.measureId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MeasureDefinitionsTableTableManager
@@ -48015,7 +50658,11 @@ class $$MeasureDefinitionsTableTableManager
           $$MeasureDefinitionsTableUpdateCompanionBuilder,
           (MeasureDefinition, $$MeasureDefinitionsTableReferences),
           MeasureDefinition,
-          PrefetchHooks Function({bool userTargetsRefs, bool userScoresRefs})
+          PrefetchHooks Function({
+            bool userTargetsRefs,
+            bool userScoresRefs,
+            bool wigsRefs,
+          })
         > {
   $$MeasureDefinitionsTableTableManager(
     _$AppDatabase db,
@@ -48041,10 +50688,14 @@ class $$MeasureDefinitionsTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<String> measureType = const Value.absent(),
                 Value<String> dataType = const Value.absent(),
-                Value<String?> unit = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<String?> calculationMethod = const Value.absent(),
                 Value<String?> calculationFormula = const Value.absent(),
                 Value<String?> sourceTable = const Value.absent(),
                 Value<String?> sourceCondition = const Value.absent(),
+                Value<double> weight = const Value.absent(),
+                Value<double?> defaultTarget = const Value.absent(),
+                Value<String> periodType = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -48058,9 +50709,13 @@ class $$MeasureDefinitionsTableTableManager
                 measureType: measureType,
                 dataType: dataType,
                 unit: unit,
+                calculationMethod: calculationMethod,
                 calculationFormula: calculationFormula,
                 sourceTable: sourceTable,
                 sourceCondition: sourceCondition,
+                weight: weight,
+                defaultTarget: defaultTarget,
+                periodType: periodType,
                 isActive: isActive,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
@@ -48074,11 +50729,15 @@ class $$MeasureDefinitionsTableTableManager
                 required String name,
                 Value<String?> description = const Value.absent(),
                 required String measureType,
-                required String dataType,
-                Value<String?> unit = const Value.absent(),
+                Value<String> dataType = const Value.absent(),
+                required String unit,
+                Value<String?> calculationMethod = const Value.absent(),
                 Value<String?> calculationFormula = const Value.absent(),
                 Value<String?> sourceTable = const Value.absent(),
                 Value<String?> sourceCondition = const Value.absent(),
+                Value<double> weight = const Value.absent(),
+                Value<double?> defaultTarget = const Value.absent(),
+                Value<String> periodType = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 required DateTime createdAt,
@@ -48092,9 +50751,13 @@ class $$MeasureDefinitionsTableTableManager
                 measureType: measureType,
                 dataType: dataType,
                 unit: unit,
+                calculationMethod: calculationMethod,
                 calculationFormula: calculationFormula,
                 sourceTable: sourceTable,
                 sourceCondition: sourceCondition,
+                weight: weight,
+                defaultTarget: defaultTarget,
+                periodType: periodType,
                 isActive: isActive,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
@@ -48110,12 +50773,17 @@ class $$MeasureDefinitionsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({userTargetsRefs = false, userScoresRefs = false}) {
+              ({
+                userTargetsRefs = false,
+                userScoresRefs = false,
+                wigsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (userTargetsRefs) db.userTargets,
                     if (userScoresRefs) db.userScores,
+                    if (wigsRefs) db.wigs,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -48162,6 +50830,27 @@ class $$MeasureDefinitionsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (wigsRefs)
+                        await $_getPrefetchedData<
+                          MeasureDefinition,
+                          $MeasureDefinitionsTable,
+                          Wig
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MeasureDefinitionsTableReferences
+                              ._wigsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MeasureDefinitionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).wigsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.measureId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -48182,7 +50871,11 @@ typedef $$MeasureDefinitionsTableProcessedTableManager =
       $$MeasureDefinitionsTableUpdateCompanionBuilder,
       (MeasureDefinition, $$MeasureDefinitionsTableReferences),
       MeasureDefinition,
-      PrefetchHooks Function({bool userTargetsRefs, bool userScoresRefs})
+      PrefetchHooks Function({
+        bool userTargetsRefs,
+        bool userScoresRefs,
+        bool wigsRefs,
+      })
     >;
 typedef $$ScoringPeriodsTableCreateCompanionBuilder =
     ScoringPeriodsCompanion Function({
@@ -48193,6 +50886,7 @@ typedef $$ScoringPeriodsTableCreateCompanionBuilder =
       required DateTime endDate,
       Value<bool> isActive,
       Value<bool> isCurrent,
+      Value<bool> isLocked,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -48206,6 +50900,7 @@ typedef $$ScoringPeriodsTableUpdateCompanionBuilder =
       Value<DateTime> endDate,
       Value<bool> isActive,
       Value<bool> isCurrent,
+      Value<bool> isLocked,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -48261,27 +50956,24 @@ final class $$ScoringPeriodsTableReferences
     );
   }
 
-  static MultiTypedResultKey<
-    $PeriodSummaryScoresTable,
-    List<PeriodSummaryScore>
-  >
-  _periodSummaryScoresRefsTable(_$AppDatabase db) =>
+  static MultiTypedResultKey<$UserScoreSnapshotsTable, List<UserScoreSnapshot>>
+  _userScoreSnapshotsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
-        db.periodSummaryScores,
+        db.userScoreSnapshots,
         aliasName: $_aliasNameGenerator(
           db.scoringPeriods.id,
-          db.periodSummaryScores.periodId,
+          db.userScoreSnapshots.periodId,
         ),
       );
 
-  $$PeriodSummaryScoresTableProcessedTableManager get periodSummaryScoresRefs {
-    final manager = $$PeriodSummaryScoresTableTableManager(
+  $$UserScoreSnapshotsTableProcessedTableManager get userScoreSnapshotsRefs {
+    final manager = $$UserScoreSnapshotsTableTableManager(
       $_db,
-      $_db.periodSummaryScores,
+      $_db.userScoreSnapshots,
     ).filter((f) => f.periodId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(
-      _periodSummaryScoresRefsTable($_db),
+      _userScoreSnapshotsRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -48330,6 +51022,11 @@ class $$ScoringPeriodsTableFilterComposer
 
   ColumnFilters<bool> get isCurrent => $composableBuilder(
     column: $table.isCurrent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isLocked => $composableBuilder(
+    column: $table.isLocked,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -48393,22 +51090,22 @@ class $$ScoringPeriodsTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> periodSummaryScoresRefs(
-    Expression<bool> Function($$PeriodSummaryScoresTableFilterComposer f) f,
+  Expression<bool> userScoreSnapshotsRefs(
+    Expression<bool> Function($$UserScoreSnapshotsTableFilterComposer f) f,
   ) {
-    final $$PeriodSummaryScoresTableFilterComposer composer = $composerBuilder(
+    final $$UserScoreSnapshotsTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.periodSummaryScores,
+      referencedTable: $db.userScoreSnapshots,
       getReferencedColumn: (t) => t.periodId,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$PeriodSummaryScoresTableFilterComposer(
+          }) => $$UserScoreSnapshotsTableFilterComposer(
             $db: $db,
-            $table: $db.periodSummaryScores,
+            $table: $db.userScoreSnapshots,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -48463,6 +51160,11 @@ class $$ScoringPeriodsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isLocked => $composableBuilder(
+    column: $table.isLocked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -48505,6 +51207,9 @@ class $$ScoringPeriodsTableAnnotationComposer
 
   GeneratedColumn<bool> get isCurrent =>
       $composableBuilder(column: $table.isCurrent, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLocked =>
+      $composableBuilder(column: $table.isLocked, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -48562,23 +51267,23 @@ class $$ScoringPeriodsTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> periodSummaryScoresRefs<T extends Object>(
-    Expression<T> Function($$PeriodSummaryScoresTableAnnotationComposer a) f,
+  Expression<T> userScoreSnapshotsRefs<T extends Object>(
+    Expression<T> Function($$UserScoreSnapshotsTableAnnotationComposer a) f,
   ) {
-    final $$PeriodSummaryScoresTableAnnotationComposer composer =
+    final $$UserScoreSnapshotsTableAnnotationComposer composer =
         $composerBuilder(
           composer: this,
           getCurrentColumn: (t) => t.id,
-          referencedTable: $db.periodSummaryScores,
+          referencedTable: $db.userScoreSnapshots,
           getReferencedColumn: (t) => t.periodId,
           builder:
               (
                 joinBuilder, {
                 $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-              }) => $$PeriodSummaryScoresTableAnnotationComposer(
+              }) => $$UserScoreSnapshotsTableAnnotationComposer(
                 $db: $db,
-                $table: $db.periodSummaryScores,
+                $table: $db.userScoreSnapshots,
                 $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
                 joinBuilder: joinBuilder,
                 $removeJoinBuilderFromRootComposer:
@@ -48605,7 +51310,7 @@ class $$ScoringPeriodsTableTableManager
           PrefetchHooks Function({
             bool userTargetsRefs,
             bool userScoresRefs,
-            bool periodSummaryScoresRefs,
+            bool userScoreSnapshotsRefs,
           })
         > {
   $$ScoringPeriodsTableTableManager(
@@ -48630,6 +51335,7 @@ class $$ScoringPeriodsTableTableManager
                 Value<DateTime> endDate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<bool> isCurrent = const Value.absent(),
+                Value<bool> isLocked = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -48641,6 +51347,7 @@ class $$ScoringPeriodsTableTableManager
                 endDate: endDate,
                 isActive: isActive,
                 isCurrent: isCurrent,
+                isLocked: isLocked,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -48654,6 +51361,7 @@ class $$ScoringPeriodsTableTableManager
                 required DateTime endDate,
                 Value<bool> isActive = const Value.absent(),
                 Value<bool> isCurrent = const Value.absent(),
+                Value<bool> isLocked = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -48665,6 +51373,7 @@ class $$ScoringPeriodsTableTableManager
                 endDate: endDate,
                 isActive: isActive,
                 isCurrent: isCurrent,
+                isLocked: isLocked,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -48681,14 +51390,14 @@ class $$ScoringPeriodsTableTableManager
               ({
                 userTargetsRefs = false,
                 userScoresRefs = false,
-                periodSummaryScoresRefs = false,
+                userScoreSnapshotsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (userTargetsRefs) db.userTargets,
                     if (userScoresRefs) db.userScores,
-                    if (periodSummaryScoresRefs) db.periodSummaryScores,
+                    if (userScoreSnapshotsRefs) db.userScoreSnapshots,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -48735,21 +51444,21 @@ class $$ScoringPeriodsTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (periodSummaryScoresRefs)
+                      if (userScoreSnapshotsRefs)
                         await $_getPrefetchedData<
                           ScoringPeriod,
                           $ScoringPeriodsTable,
-                          PeriodSummaryScore
+                          UserScoreSnapshot
                         >(
                           currentTable: table,
                           referencedTable: $$ScoringPeriodsTableReferences
-                              ._periodSummaryScoresRefsTable(db),
+                              ._userScoreSnapshotsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $$ScoringPeriodsTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).periodSummaryScoresRefs,
+                              ).userScoreSnapshotsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.periodId == item.id,
@@ -48779,7 +51488,7 @@ typedef $$ScoringPeriodsTableProcessedTableManager =
       PrefetchHooks Function({
         bool userTargetsRefs,
         bool userScoresRefs,
-        bool periodSummaryScoresRefs,
+        bool userScoreSnapshotsRefs,
       })
     >;
 typedef $$UserTargetsTableCreateCompanionBuilder =
@@ -48790,6 +51499,7 @@ typedef $$UserTargetsTableCreateCompanionBuilder =
       required String periodId,
       required double targetValue,
       required String assignedBy,
+      required DateTime assignedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -48802,6 +51512,7 @@ typedef $$UserTargetsTableUpdateCompanionBuilder =
       Value<String> periodId,
       Value<double> targetValue,
       Value<String> assignedBy,
+      Value<DateTime> assignedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -48905,6 +51616,11 @@ class $$UserTargetsTableFilterComposer
 
   ColumnFilters<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get assignedAt => $composableBuilder(
+    column: $table.assignedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -49030,6 +51746,11 @@ class $$UserTargetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get assignedAt => $composableBuilder(
+    column: $table.assignedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -49147,6 +51868,11 @@ class $$UserTargetsTableAnnotationComposer
 
   GeneratedColumn<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get assignedAt => $composableBuilder(
+    column: $table.assignedAt,
     builder: (column) => column,
   );
 
@@ -49289,6 +52015,7 @@ class $$UserTargetsTableTableManager
                 Value<String> periodId = const Value.absent(),
                 Value<double> targetValue = const Value.absent(),
                 Value<String> assignedBy = const Value.absent(),
+                Value<DateTime> assignedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -49299,6 +52026,7 @@ class $$UserTargetsTableTableManager
                 periodId: periodId,
                 targetValue: targetValue,
                 assignedBy: assignedBy,
+                assignedAt: assignedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -49311,6 +52039,7 @@ class $$UserTargetsTableTableManager
                 required String periodId,
                 required double targetValue,
                 required String assignedBy,
+                required DateTime assignedAt,
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -49321,6 +52050,7 @@ class $$UserTargetsTableTableManager
                 periodId: periodId,
                 targetValue: targetValue,
                 assignedBy: assignedBy,
+                assignedAt: assignedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -49456,9 +52186,11 @@ typedef $$UserScoresTableCreateCompanionBuilder =
       required String userId,
       required String measureId,
       required String periodId,
-      required double actualValue,
       required double targetValue,
-      Value<double?> percentage,
+      Value<double> actualValue,
+      Value<double> percentage,
+      Value<double> score,
+      Value<int?> rank,
       required DateTime calculatedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -49470,9 +52202,11 @@ typedef $$UserScoresTableUpdateCompanionBuilder =
       Value<String> userId,
       Value<String> measureId,
       Value<String> periodId,
-      Value<double> actualValue,
       Value<double> targetValue,
-      Value<double?> percentage,
+      Value<double> actualValue,
+      Value<double> percentage,
+      Value<double> score,
+      Value<int?> rank,
       Value<DateTime> calculatedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -49554,18 +52288,28 @@ class $$UserScoresTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get actualValue => $composableBuilder(
-    column: $table.actualValue,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get actualValue => $composableBuilder(
+    column: $table.actualValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get percentage => $composableBuilder(
     column: $table.percentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rank => $composableBuilder(
+    column: $table.rank,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -49668,18 +52412,28 @@ class $$UserScoresTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get actualValue => $composableBuilder(
-    column: $table.actualValue,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get actualValue => $composableBuilder(
+    column: $table.actualValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get percentage => $composableBuilder(
     column: $table.percentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rank => $composableBuilder(
+    column: $table.rank,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -49780,13 +52534,13 @@ class $$UserScoresTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<double> get actualValue => $composableBuilder(
-    column: $table.actualValue,
+  GeneratedColumn<double> get targetValue => $composableBuilder(
+    column: $table.targetValue,
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get targetValue => $composableBuilder(
-    column: $table.targetValue,
+  GeneratedColumn<double> get actualValue => $composableBuilder(
+    column: $table.actualValue,
     builder: (column) => column,
   );
 
@@ -49794,6 +52548,12 @@ class $$UserScoresTableAnnotationComposer
     column: $table.percentage,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<int> get rank =>
+      $composableBuilder(column: $table.rank, builder: (column) => column);
 
   GeneratedColumn<DateTime> get calculatedAt => $composableBuilder(
     column: $table.calculatedAt,
@@ -49909,9 +52669,11 @@ class $$UserScoresTableTableManager
                 Value<String> userId = const Value.absent(),
                 Value<String> measureId = const Value.absent(),
                 Value<String> periodId = const Value.absent(),
-                Value<double> actualValue = const Value.absent(),
                 Value<double> targetValue = const Value.absent(),
-                Value<double?> percentage = const Value.absent(),
+                Value<double> actualValue = const Value.absent(),
+                Value<double> percentage = const Value.absent(),
+                Value<double> score = const Value.absent(),
+                Value<int?> rank = const Value.absent(),
                 Value<DateTime> calculatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -49921,9 +52683,11 @@ class $$UserScoresTableTableManager
                 userId: userId,
                 measureId: measureId,
                 periodId: periodId,
-                actualValue: actualValue,
                 targetValue: targetValue,
+                actualValue: actualValue,
                 percentage: percentage,
+                score: score,
+                rank: rank,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -49935,9 +52699,11 @@ class $$UserScoresTableTableManager
                 required String userId,
                 required String measureId,
                 required String periodId,
-                required double actualValue,
                 required double targetValue,
-                Value<double?> percentage = const Value.absent(),
+                Value<double> actualValue = const Value.absent(),
+                Value<double> percentage = const Value.absent(),
+                Value<double> score = const Value.absent(),
+                Value<int?> rank = const Value.absent(),
                 required DateTime calculatedAt,
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -49947,9 +52713,11 @@ class $$UserScoresTableTableManager
                 userId: userId,
                 measureId: measureId,
                 periodId: periodId,
-                actualValue: actualValue,
                 targetValue: targetValue,
+                actualValue: actualValue,
                 percentage: percentage,
+                score: score,
+                rank: rank,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -50052,52 +52820,54 @@ typedef $$UserScoresTableProcessedTableManager =
       UserScore,
       PrefetchHooks Function({bool userId, bool measureId, bool periodId})
     >;
-typedef $$PeriodSummaryScoresTableCreateCompanionBuilder =
-    PeriodSummaryScoresCompanion Function({
+typedef $$UserScoreSnapshotsTableCreateCompanionBuilder =
+    UserScoreSnapshotsCompanion Function({
       required String id,
       required String userId,
       required String periodId,
-      Value<double> totalLeadScore,
-      Value<double> totalLagScore,
-      Value<double> compositeScore,
+      Value<double> leadScore,
+      Value<double> lagScore,
+      Value<double> bonusPoints,
+      Value<double> penaltyPoints,
+      Value<double> totalScore,
       Value<int?> rank,
       Value<int?> rankChange,
       required DateTime calculatedAt,
       required DateTime createdAt,
-      required DateTime updatedAt,
       Value<int> rowid,
     });
-typedef $$PeriodSummaryScoresTableUpdateCompanionBuilder =
-    PeriodSummaryScoresCompanion Function({
+typedef $$UserScoreSnapshotsTableUpdateCompanionBuilder =
+    UserScoreSnapshotsCompanion Function({
       Value<String> id,
       Value<String> userId,
       Value<String> periodId,
-      Value<double> totalLeadScore,
-      Value<double> totalLagScore,
-      Value<double> compositeScore,
+      Value<double> leadScore,
+      Value<double> lagScore,
+      Value<double> bonusPoints,
+      Value<double> penaltyPoints,
+      Value<double> totalScore,
       Value<int?> rank,
       Value<int?> rankChange,
       Value<DateTime> calculatedAt,
       Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
-final class $$PeriodSummaryScoresTableReferences
+final class $$UserScoreSnapshotsTableReferences
     extends
         BaseReferences<
           _$AppDatabase,
-          $PeriodSummaryScoresTable,
-          PeriodSummaryScore
+          $UserScoreSnapshotsTable,
+          UserScoreSnapshot
         > {
-  $$PeriodSummaryScoresTableReferences(
+  $$UserScoreSnapshotsTableReferences(
     super.$_db,
     super.$_table,
     super.$_typedResult,
   );
 
   static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.periodSummaryScores.userId, db.users.id),
+    $_aliasNameGenerator(db.userScoreSnapshots.userId, db.users.id),
   );
 
   $$UsersTableProcessedTableManager get userId {
@@ -50117,7 +52887,7 @@ final class $$PeriodSummaryScoresTableReferences
   static $ScoringPeriodsTable _periodIdTable(_$AppDatabase db) =>
       db.scoringPeriods.createAlias(
         $_aliasNameGenerator(
-          db.periodSummaryScores.periodId,
+          db.userScoreSnapshots.periodId,
           db.scoringPeriods.id,
         ),
       );
@@ -50137,9 +52907,9 @@ final class $$PeriodSummaryScoresTableReferences
   }
 }
 
-class $$PeriodSummaryScoresTableFilterComposer
-    extends Composer<_$AppDatabase, $PeriodSummaryScoresTable> {
-  $$PeriodSummaryScoresTableFilterComposer({
+class $$UserScoreSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $UserScoreSnapshotsTable> {
+  $$UserScoreSnapshotsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -50151,18 +52921,28 @@ class $$PeriodSummaryScoresTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get totalLeadScore => $composableBuilder(
-    column: $table.totalLeadScore,
+  ColumnFilters<double> get leadScore => $composableBuilder(
+    column: $table.leadScore,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get totalLagScore => $composableBuilder(
-    column: $table.totalLagScore,
+  ColumnFilters<double> get lagScore => $composableBuilder(
+    column: $table.lagScore,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get compositeScore => $composableBuilder(
-    column: $table.compositeScore,
+  ColumnFilters<double> get bonusPoints => $composableBuilder(
+    column: $table.bonusPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get penaltyPoints => $composableBuilder(
+    column: $table.penaltyPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalScore => $composableBuilder(
+    column: $table.totalScore,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -50183,11 +52963,6 @@ class $$PeriodSummaryScoresTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -50238,9 +53013,9 @@ class $$PeriodSummaryScoresTableFilterComposer
   }
 }
 
-class $$PeriodSummaryScoresTableOrderingComposer
-    extends Composer<_$AppDatabase, $PeriodSummaryScoresTable> {
-  $$PeriodSummaryScoresTableOrderingComposer({
+class $$UserScoreSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserScoreSnapshotsTable> {
+  $$UserScoreSnapshotsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -50252,18 +53027,28 @@ class $$PeriodSummaryScoresTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get totalLeadScore => $composableBuilder(
-    column: $table.totalLeadScore,
+  ColumnOrderings<double> get leadScore => $composableBuilder(
+    column: $table.leadScore,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get totalLagScore => $composableBuilder(
-    column: $table.totalLagScore,
+  ColumnOrderings<double> get lagScore => $composableBuilder(
+    column: $table.lagScore,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get compositeScore => $composableBuilder(
-    column: $table.compositeScore,
+  ColumnOrderings<double> get bonusPoints => $composableBuilder(
+    column: $table.bonusPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get penaltyPoints => $composableBuilder(
+    column: $table.penaltyPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalScore => $composableBuilder(
+    column: $table.totalScore,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -50284,11 +53069,6 @@ class $$PeriodSummaryScoresTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -50339,9 +53119,9 @@ class $$PeriodSummaryScoresTableOrderingComposer
   }
 }
 
-class $$PeriodSummaryScoresTableAnnotationComposer
-    extends Composer<_$AppDatabase, $PeriodSummaryScoresTable> {
-  $$PeriodSummaryScoresTableAnnotationComposer({
+class $$UserScoreSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserScoreSnapshotsTable> {
+  $$UserScoreSnapshotsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -50351,18 +53131,24 @@ class $$PeriodSummaryScoresTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<double> get totalLeadScore => $composableBuilder(
-    column: $table.totalLeadScore,
+  GeneratedColumn<double> get leadScore =>
+      $composableBuilder(column: $table.leadScore, builder: (column) => column);
+
+  GeneratedColumn<double> get lagScore =>
+      $composableBuilder(column: $table.lagScore, builder: (column) => column);
+
+  GeneratedColumn<double> get bonusPoints => $composableBuilder(
+    column: $table.bonusPoints,
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get totalLagScore => $composableBuilder(
-    column: $table.totalLagScore,
+  GeneratedColumn<double> get penaltyPoints => $composableBuilder(
+    column: $table.penaltyPoints,
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get compositeScore => $composableBuilder(
-    column: $table.compositeScore,
+  GeneratedColumn<double> get totalScore => $composableBuilder(
+    column: $table.totalScore,
     builder: (column) => column,
   );
 
@@ -50381,9 +53167,6 @@ class $$PeriodSummaryScoresTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $$UsersTableAnnotationComposer get userId {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
@@ -50432,37 +53215,34 @@ class $$PeriodSummaryScoresTableAnnotationComposer
   }
 }
 
-class $$PeriodSummaryScoresTableTableManager
+class $$UserScoreSnapshotsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $PeriodSummaryScoresTable,
-          PeriodSummaryScore,
-          $$PeriodSummaryScoresTableFilterComposer,
-          $$PeriodSummaryScoresTableOrderingComposer,
-          $$PeriodSummaryScoresTableAnnotationComposer,
-          $$PeriodSummaryScoresTableCreateCompanionBuilder,
-          $$PeriodSummaryScoresTableUpdateCompanionBuilder,
-          (PeriodSummaryScore, $$PeriodSummaryScoresTableReferences),
-          PeriodSummaryScore,
+          $UserScoreSnapshotsTable,
+          UserScoreSnapshot,
+          $$UserScoreSnapshotsTableFilterComposer,
+          $$UserScoreSnapshotsTableOrderingComposer,
+          $$UserScoreSnapshotsTableAnnotationComposer,
+          $$UserScoreSnapshotsTableCreateCompanionBuilder,
+          $$UserScoreSnapshotsTableUpdateCompanionBuilder,
+          (UserScoreSnapshot, $$UserScoreSnapshotsTableReferences),
+          UserScoreSnapshot,
           PrefetchHooks Function({bool userId, bool periodId})
         > {
-  $$PeriodSummaryScoresTableTableManager(
+  $$UserScoreSnapshotsTableTableManager(
     _$AppDatabase db,
-    $PeriodSummaryScoresTable table,
+    $UserScoreSnapshotsTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$PeriodSummaryScoresTableFilterComposer($db: db, $table: table),
+              $$UserScoreSnapshotsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$PeriodSummaryScoresTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$UserScoreSnapshotsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$PeriodSummaryScoresTableAnnotationComposer(
+              $$UserScoreSnapshotsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
@@ -50471,27 +53251,29 @@ class $$PeriodSummaryScoresTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<String> periodId = const Value.absent(),
-                Value<double> totalLeadScore = const Value.absent(),
-                Value<double> totalLagScore = const Value.absent(),
-                Value<double> compositeScore = const Value.absent(),
+                Value<double> leadScore = const Value.absent(),
+                Value<double> lagScore = const Value.absent(),
+                Value<double> bonusPoints = const Value.absent(),
+                Value<double> penaltyPoints = const Value.absent(),
+                Value<double> totalScore = const Value.absent(),
                 Value<int?> rank = const Value.absent(),
                 Value<int?> rankChange = const Value.absent(),
                 Value<DateTime> calculatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => PeriodSummaryScoresCompanion(
+              }) => UserScoreSnapshotsCompanion(
                 id: id,
                 userId: userId,
                 periodId: periodId,
-                totalLeadScore: totalLeadScore,
-                totalLagScore: totalLagScore,
-                compositeScore: compositeScore,
+                leadScore: leadScore,
+                lagScore: lagScore,
+                bonusPoints: bonusPoints,
+                penaltyPoints: penaltyPoints,
+                totalScore: totalScore,
                 rank: rank,
                 rankChange: rankChange,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -50499,34 +53281,36 @@ class $$PeriodSummaryScoresTableTableManager
                 required String id,
                 required String userId,
                 required String periodId,
-                Value<double> totalLeadScore = const Value.absent(),
-                Value<double> totalLagScore = const Value.absent(),
-                Value<double> compositeScore = const Value.absent(),
+                Value<double> leadScore = const Value.absent(),
+                Value<double> lagScore = const Value.absent(),
+                Value<double> bonusPoints = const Value.absent(),
+                Value<double> penaltyPoints = const Value.absent(),
+                Value<double> totalScore = const Value.absent(),
                 Value<int?> rank = const Value.absent(),
                 Value<int?> rankChange = const Value.absent(),
                 required DateTime calculatedAt,
                 required DateTime createdAt,
-                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
-              }) => PeriodSummaryScoresCompanion.insert(
+              }) => UserScoreSnapshotsCompanion.insert(
                 id: id,
                 userId: userId,
                 periodId: periodId,
-                totalLeadScore: totalLeadScore,
-                totalLagScore: totalLagScore,
-                compositeScore: compositeScore,
+                leadScore: leadScore,
+                lagScore: lagScore,
+                bonusPoints: bonusPoints,
+                penaltyPoints: penaltyPoints,
+                totalScore: totalScore,
                 rank: rank,
                 rankChange: rankChange,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
-                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable(table),
-                  $$PeriodSummaryScoresTableReferences(db, table, e),
+                  $$UserScoreSnapshotsTableReferences(db, table, e),
                 ),
               )
               .toList(),
@@ -50556,10 +53340,10 @@ class $$PeriodSummaryScoresTableTableManager
                                 currentTable: table,
                                 currentColumn: table.userId,
                                 referencedTable:
-                                    $$PeriodSummaryScoresTableReferences
+                                    $$UserScoreSnapshotsTableReferences
                                         ._userIdTable(db),
                                 referencedColumn:
-                                    $$PeriodSummaryScoresTableReferences
+                                    $$UserScoreSnapshotsTableReferences
                                         ._userIdTable(db)
                                         .id,
                               )
@@ -50571,10 +53355,10 @@ class $$PeriodSummaryScoresTableTableManager
                                 currentTable: table,
                                 currentColumn: table.periodId,
                                 referencedTable:
-                                    $$PeriodSummaryScoresTableReferences
+                                    $$UserScoreSnapshotsTableReferences
                                         ._periodIdTable(db),
                                 referencedColumn:
-                                    $$PeriodSummaryScoresTableReferences
+                                    $$UserScoreSnapshotsTableReferences
                                         ._periodIdTable(db)
                                         .id,
                               )
@@ -50592,19 +53376,1573 @@ class $$PeriodSummaryScoresTableTableManager
       );
 }
 
-typedef $$PeriodSummaryScoresTableProcessedTableManager =
+typedef $$UserScoreSnapshotsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $PeriodSummaryScoresTable,
-      PeriodSummaryScore,
-      $$PeriodSummaryScoresTableFilterComposer,
-      $$PeriodSummaryScoresTableOrderingComposer,
-      $$PeriodSummaryScoresTableAnnotationComposer,
-      $$PeriodSummaryScoresTableCreateCompanionBuilder,
-      $$PeriodSummaryScoresTableUpdateCompanionBuilder,
-      (PeriodSummaryScore, $$PeriodSummaryScoresTableReferences),
-      PeriodSummaryScore,
+      $UserScoreSnapshotsTable,
+      UserScoreSnapshot,
+      $$UserScoreSnapshotsTableFilterComposer,
+      $$UserScoreSnapshotsTableOrderingComposer,
+      $$UserScoreSnapshotsTableAnnotationComposer,
+      $$UserScoreSnapshotsTableCreateCompanionBuilder,
+      $$UserScoreSnapshotsTableUpdateCompanionBuilder,
+      (UserScoreSnapshot, $$UserScoreSnapshotsTableReferences),
+      UserScoreSnapshot,
       PrefetchHooks Function({bool userId, bool periodId})
+    >;
+typedef $$WigsTableCreateCompanionBuilder =
+    WigsCompanion Function({
+      required String id,
+      required String title,
+      Value<String?> description,
+      required String level,
+      required String ownerId,
+      Value<String?> parentWigId,
+      Value<String?> measureType,
+      Value<String?> measureId,
+      required double baselineValue,
+      required double targetValue,
+      Value<double> currentValue,
+      required DateTime startDate,
+      required DateTime endDate,
+      Value<String> status,
+      Value<DateTime?> submittedAt,
+      Value<String?> approvedBy,
+      Value<DateTime?> approvedAt,
+      Value<String?> rejectionReason,
+      Value<DateTime?> lastProgressUpdate,
+      Value<double> progressPercentage,
+      Value<String?> createdBy,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$WigsTableUpdateCompanionBuilder =
+    WigsCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String?> description,
+      Value<String> level,
+      Value<String> ownerId,
+      Value<String?> parentWigId,
+      Value<String?> measureType,
+      Value<String?> measureId,
+      Value<double> baselineValue,
+      Value<double> targetValue,
+      Value<double> currentValue,
+      Value<DateTime> startDate,
+      Value<DateTime> endDate,
+      Value<String> status,
+      Value<DateTime?> submittedAt,
+      Value<String?> approvedBy,
+      Value<DateTime?> approvedAt,
+      Value<String?> rejectionReason,
+      Value<DateTime?> lastProgressUpdate,
+      Value<double> progressPercentage,
+      Value<String?> createdBy,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+final class $$WigsTableReferences
+    extends BaseReferences<_$AppDatabase, $WigsTable, Wig> {
+  $$WigsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _ownerIdTable(_$AppDatabase db) =>
+      db.users.createAlias($_aliasNameGenerator(db.wigs.ownerId, db.users.id));
+
+  $$UsersTableProcessedTableManager get ownerId {
+    final $_column = $_itemColumn<String>('owner_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_ownerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $MeasureDefinitionsTable _measureIdTable(_$AppDatabase db) =>
+      db.measureDefinitions.createAlias(
+        $_aliasNameGenerator(db.wigs.measureId, db.measureDefinitions.id),
+      );
+
+  $$MeasureDefinitionsTableProcessedTableManager? get measureId {
+    final $_column = $_itemColumn<String>('measure_id');
+    if ($_column == null) return null;
+    final manager = $$MeasureDefinitionsTableTableManager(
+      $_db,
+      $_db.measureDefinitions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_measureIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _approvedByTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.wigs.approvedBy, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager? get approvedBy {
+    final $_column = $_itemColumn<String>('approved_by');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_approvedByTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _createdByTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.wigs.createdBy, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager? get createdBy {
+    final $_column = $_itemColumn<String>('created_by');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_createdByTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$WigProgressTable, List<WigProgressData>>
+  _wigProgressRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.wigProgress,
+    aliasName: $_aliasNameGenerator(db.wigs.id, db.wigProgress.wigId),
+  );
+
+  $$WigProgressTableProcessedTableManager get wigProgressRefs {
+    final manager = $$WigProgressTableTableManager(
+      $_db,
+      $_db.wigProgress,
+    ).filter((f) => f.wigId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_wigProgressRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$WigsTableFilterComposer extends Composer<_$AppDatabase, $WigsTable> {
+  $$WigsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentWigId => $composableBuilder(
+    column: $table.parentWigId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get measureType => $composableBuilder(
+    column: $table.measureType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get baselineValue => $composableBuilder(
+    column: $table.baselineValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get targetValue => $composableBuilder(
+    column: $table.targetValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get currentValue => $composableBuilder(
+    column: $table.currentValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get approvedAt => $composableBuilder(
+    column: $table.approvedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastProgressUpdate => $composableBuilder(
+    column: $table.lastProgressUpdate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get ownerId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ownerId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MeasureDefinitionsTableFilterComposer get measureId {
+    final $$MeasureDefinitionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.measureId,
+      referencedTable: $db.measureDefinitions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MeasureDefinitionsTableFilterComposer(
+            $db: $db,
+            $table: $db.measureDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get approvedBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.approvedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get createdBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> wigProgressRefs(
+    Expression<bool> Function($$WigProgressTableFilterComposer f) f,
+  ) {
+    final $$WigProgressTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigProgress,
+      getReferencedColumn: (t) => t.wigId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigProgressTableFilterComposer(
+            $db: $db,
+            $table: $db.wigProgress,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WigsTableOrderingComposer extends Composer<_$AppDatabase, $WigsTable> {
+  $$WigsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentWigId => $composableBuilder(
+    column: $table.parentWigId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get measureType => $composableBuilder(
+    column: $table.measureType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get baselineValue => $composableBuilder(
+    column: $table.baselineValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get targetValue => $composableBuilder(
+    column: $table.targetValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get currentValue => $composableBuilder(
+    column: $table.currentValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get approvedAt => $composableBuilder(
+    column: $table.approvedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastProgressUpdate => $composableBuilder(
+    column: $table.lastProgressUpdate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get ownerId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ownerId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MeasureDefinitionsTableOrderingComposer get measureId {
+    final $$MeasureDefinitionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.measureId,
+      referencedTable: $db.measureDefinitions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MeasureDefinitionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.measureDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get approvedBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.approvedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get createdBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WigsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WigsTable> {
+  $$WigsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<String> get parentWigId => $composableBuilder(
+    column: $table.parentWigId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get measureType => $composableBuilder(
+    column: $table.measureType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get baselineValue => $composableBuilder(
+    column: $table.baselineValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get targetValue => $composableBuilder(
+    column: $table.targetValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get currentValue => $composableBuilder(
+    column: $table.currentValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get approvedAt => $composableBuilder(
+    column: $table.approvedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rejectionReason => $composableBuilder(
+    column: $table.rejectionReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastProgressUpdate => $composableBuilder(
+    column: $table.lastProgressUpdate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get ownerId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ownerId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MeasureDefinitionsTableAnnotationComposer get measureId {
+    final $$MeasureDefinitionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.measureId,
+          referencedTable: $db.measureDefinitions,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MeasureDefinitionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.measureDefinitions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get approvedBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.approvedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get createdBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> wigProgressRefs<T extends Object>(
+    Expression<T> Function($$WigProgressTableAnnotationComposer a) f,
+  ) {
+    final $$WigProgressTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wigProgress,
+      getReferencedColumn: (t) => t.wigId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigProgressTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wigProgress,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WigsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WigsTable,
+          Wig,
+          $$WigsTableFilterComposer,
+          $$WigsTableOrderingComposer,
+          $$WigsTableAnnotationComposer,
+          $$WigsTableCreateCompanionBuilder,
+          $$WigsTableUpdateCompanionBuilder,
+          (Wig, $$WigsTableReferences),
+          Wig,
+          PrefetchHooks Function({
+            bool ownerId,
+            bool measureId,
+            bool approvedBy,
+            bool createdBy,
+            bool wigProgressRefs,
+          })
+        > {
+  $$WigsTableTableManager(_$AppDatabase db, $WigsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WigsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WigsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WigsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> level = const Value.absent(),
+                Value<String> ownerId = const Value.absent(),
+                Value<String?> parentWigId = const Value.absent(),
+                Value<String?> measureType = const Value.absent(),
+                Value<String?> measureId = const Value.absent(),
+                Value<double> baselineValue = const Value.absent(),
+                Value<double> targetValue = const Value.absent(),
+                Value<double> currentValue = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime> endDate = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> submittedAt = const Value.absent(),
+                Value<String?> approvedBy = const Value.absent(),
+                Value<DateTime?> approvedAt = const Value.absent(),
+                Value<String?> rejectionReason = const Value.absent(),
+                Value<DateTime?> lastProgressUpdate = const Value.absent(),
+                Value<double> progressPercentage = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WigsCompanion(
+                id: id,
+                title: title,
+                description: description,
+                level: level,
+                ownerId: ownerId,
+                parentWigId: parentWigId,
+                measureType: measureType,
+                measureId: measureId,
+                baselineValue: baselineValue,
+                targetValue: targetValue,
+                currentValue: currentValue,
+                startDate: startDate,
+                endDate: endDate,
+                status: status,
+                submittedAt: submittedAt,
+                approvedBy: approvedBy,
+                approvedAt: approvedAt,
+                rejectionReason: rejectionReason,
+                lastProgressUpdate: lastProgressUpdate,
+                progressPercentage: progressPercentage,
+                createdBy: createdBy,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                Value<String?> description = const Value.absent(),
+                required String level,
+                required String ownerId,
+                Value<String?> parentWigId = const Value.absent(),
+                Value<String?> measureType = const Value.absent(),
+                Value<String?> measureId = const Value.absent(),
+                required double baselineValue,
+                required double targetValue,
+                Value<double> currentValue = const Value.absent(),
+                required DateTime startDate,
+                required DateTime endDate,
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> submittedAt = const Value.absent(),
+                Value<String?> approvedBy = const Value.absent(),
+                Value<DateTime?> approvedAt = const Value.absent(),
+                Value<String?> rejectionReason = const Value.absent(),
+                Value<DateTime?> lastProgressUpdate = const Value.absent(),
+                Value<double> progressPercentage = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WigsCompanion.insert(
+                id: id,
+                title: title,
+                description: description,
+                level: level,
+                ownerId: ownerId,
+                parentWigId: parentWigId,
+                measureType: measureType,
+                measureId: measureId,
+                baselineValue: baselineValue,
+                targetValue: targetValue,
+                currentValue: currentValue,
+                startDate: startDate,
+                endDate: endDate,
+                status: status,
+                submittedAt: submittedAt,
+                approvedBy: approvedBy,
+                approvedAt: approvedAt,
+                rejectionReason: rejectionReason,
+                lastProgressUpdate: lastProgressUpdate,
+                progressPercentage: progressPercentage,
+                createdBy: createdBy,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$WigsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                ownerId = false,
+                measureId = false,
+                approvedBy = false,
+                createdBy = false,
+                wigProgressRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (wigProgressRefs) db.wigProgress,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (ownerId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.ownerId,
+                                    referencedTable: $$WigsTableReferences
+                                        ._ownerIdTable(db),
+                                    referencedColumn: $$WigsTableReferences
+                                        ._ownerIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (measureId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.measureId,
+                                    referencedTable: $$WigsTableReferences
+                                        ._measureIdTable(db),
+                                    referencedColumn: $$WigsTableReferences
+                                        ._measureIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (approvedBy) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.approvedBy,
+                                    referencedTable: $$WigsTableReferences
+                                        ._approvedByTable(db),
+                                    referencedColumn: $$WigsTableReferences
+                                        ._approvedByTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (createdBy) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.createdBy,
+                                    referencedTable: $$WigsTableReferences
+                                        ._createdByTable(db),
+                                    referencedColumn: $$WigsTableReferences
+                                        ._createdByTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (wigProgressRefs)
+                        await $_getPrefetchedData<
+                          Wig,
+                          $WigsTable,
+                          WigProgressData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WigsTableReferences
+                              ._wigProgressRefsTable(db),
+                          managerFromTypedResult: (p0) => $$WigsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).wigProgressRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.wigId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$WigsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WigsTable,
+      Wig,
+      $$WigsTableFilterComposer,
+      $$WigsTableOrderingComposer,
+      $$WigsTableAnnotationComposer,
+      $$WigsTableCreateCompanionBuilder,
+      $$WigsTableUpdateCompanionBuilder,
+      (Wig, $$WigsTableReferences),
+      Wig,
+      PrefetchHooks Function({
+        bool ownerId,
+        bool measureId,
+        bool approvedBy,
+        bool createdBy,
+        bool wigProgressRefs,
+      })
+    >;
+typedef $$WigProgressTableCreateCompanionBuilder =
+    WigProgressCompanion Function({
+      required String id,
+      required String wigId,
+      required DateTime recordedDate,
+      required double value,
+      required double progressPercentage,
+      Value<String?> status,
+      Value<String?> notes,
+      Value<String?> recordedBy,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$WigProgressTableUpdateCompanionBuilder =
+    WigProgressCompanion Function({
+      Value<String> id,
+      Value<String> wigId,
+      Value<DateTime> recordedDate,
+      Value<double> value,
+      Value<double> progressPercentage,
+      Value<String?> status,
+      Value<String?> notes,
+      Value<String?> recordedBy,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$WigProgressTableReferences
+    extends BaseReferences<_$AppDatabase, $WigProgressTable, WigProgressData> {
+  $$WigProgressTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $WigsTable _wigIdTable(_$AppDatabase db) => db.wigs.createAlias(
+    $_aliasNameGenerator(db.wigProgress.wigId, db.wigs.id),
+  );
+
+  $$WigsTableProcessedTableManager get wigId {
+    final $_column = $_itemColumn<String>('wig_id')!;
+
+    final manager = $$WigsTableTableManager(
+      $_db,
+      $_db.wigs,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_wigIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _recordedByTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.wigProgress.recordedBy, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager? get recordedBy {
+    final $_column = $_itemColumn<String>('recorded_by');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_recordedByTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$WigProgressTableFilterComposer
+    extends Composer<_$AppDatabase, $WigProgressTable> {
+  $$WigProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedDate => $composableBuilder(
+    column: $table.recordedDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WigsTableFilterComposer get wigId {
+    final $$WigsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wigId,
+      referencedTable: $db.wigs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigsTableFilterComposer(
+            $db: $db,
+            $table: $db.wigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get recordedBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recordedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WigProgressTableOrderingComposer
+    extends Composer<_$AppDatabase, $WigProgressTable> {
+  $$WigProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedDate => $composableBuilder(
+    column: $table.recordedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WigsTableOrderingComposer get wigId {
+    final $$WigsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wigId,
+      referencedTable: $db.wigs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigsTableOrderingComposer(
+            $db: $db,
+            $table: $db.wigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get recordedBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recordedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WigProgressTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WigProgressTable> {
+  $$WigProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get recordedDate => $composableBuilder(
+    column: $table.recordedDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<double> get progressPercentage => $composableBuilder(
+    column: $table.progressPercentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$WigsTableAnnotationComposer get wigId {
+    final $$WigsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wigId,
+      referencedTable: $db.wigs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WigsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get recordedBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recordedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WigProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WigProgressTable,
+          WigProgressData,
+          $$WigProgressTableFilterComposer,
+          $$WigProgressTableOrderingComposer,
+          $$WigProgressTableAnnotationComposer,
+          $$WigProgressTableCreateCompanionBuilder,
+          $$WigProgressTableUpdateCompanionBuilder,
+          (WigProgressData, $$WigProgressTableReferences),
+          WigProgressData,
+          PrefetchHooks Function({bool wigId, bool recordedBy})
+        > {
+  $$WigProgressTableTableManager(_$AppDatabase db, $WigProgressTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WigProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WigProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WigProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> wigId = const Value.absent(),
+                Value<DateTime> recordedDate = const Value.absent(),
+                Value<double> value = const Value.absent(),
+                Value<double> progressPercentage = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> recordedBy = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WigProgressCompanion(
+                id: id,
+                wigId: wigId,
+                recordedDate: recordedDate,
+                value: value,
+                progressPercentage: progressPercentage,
+                status: status,
+                notes: notes,
+                recordedBy: recordedBy,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String wigId,
+                required DateTime recordedDate,
+                required double value,
+                required double progressPercentage,
+                Value<String?> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> recordedBy = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => WigProgressCompanion.insert(
+                id: id,
+                wigId: wigId,
+                recordedDate: recordedDate,
+                value: value,
+                progressPercentage: progressPercentage,
+                status: status,
+                notes: notes,
+                recordedBy: recordedBy,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WigProgressTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({wigId = false, recordedBy = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (wigId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.wigId,
+                                referencedTable: $$WigProgressTableReferences
+                                    ._wigIdTable(db),
+                                referencedColumn: $$WigProgressTableReferences
+                                    ._wigIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (recordedBy) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.recordedBy,
+                                referencedTable: $$WigProgressTableReferences
+                                    ._recordedByTable(db),
+                                referencedColumn: $$WigProgressTableReferences
+                                    ._recordedByTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WigProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WigProgressTable,
+      WigProgressData,
+      $$WigProgressTableFilterComposer,
+      $$WigProgressTableOrderingComposer,
+      $$WigProgressTableAnnotationComposer,
+      $$WigProgressTableCreateCompanionBuilder,
+      $$WigProgressTableUpdateCompanionBuilder,
+      (WigProgressData, $$WigProgressTableReferences),
+      WigProgressData,
+      PrefetchHooks Function({bool wigId, bool recordedBy})
     >;
 typedef $$CadenceScheduleConfigTableCreateCompanionBuilder =
     CadenceScheduleConfigCompanion Function({
@@ -50618,6 +54956,7 @@ typedef $$CadenceScheduleConfigTableCreateCompanionBuilder =
       Value<int?> dayOfMonth,
       Value<String?> defaultTime,
       Value<int> durationMinutes,
+      Value<int> preMeetingHours,
       Value<bool> isActive,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -50635,6 +54974,7 @@ typedef $$CadenceScheduleConfigTableUpdateCompanionBuilder =
       Value<int?> dayOfMonth,
       Value<String?> defaultTime,
       Value<int> durationMinutes,
+      Value<int> preMeetingHours,
       Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -50734,6 +55074,11 @@ class $$CadenceScheduleConfigTableFilterComposer
 
   ColumnFilters<int> get durationMinutes => $composableBuilder(
     column: $table.durationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get preMeetingHours => $composableBuilder(
+    column: $table.preMeetingHours,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -50837,6 +55182,11 @@ class $$CadenceScheduleConfigTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get preMeetingHours => $composableBuilder(
+    column: $table.preMeetingHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -50901,6 +55251,11 @@ class $$CadenceScheduleConfigTableAnnotationComposer
 
   GeneratedColumn<int> get durationMinutes => $composableBuilder(
     column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get preMeetingHours => $composableBuilder(
+    column: $table.preMeetingHours,
     builder: (column) => column,
   );
 
@@ -50988,6 +55343,7 @@ class $$CadenceScheduleConfigTableTableManager
                 Value<int?> dayOfMonth = const Value.absent(),
                 Value<String?> defaultTime = const Value.absent(),
                 Value<int> durationMinutes = const Value.absent(),
+                Value<int> preMeetingHours = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -51003,6 +55359,7 @@ class $$CadenceScheduleConfigTableTableManager
                 dayOfMonth: dayOfMonth,
                 defaultTime: defaultTime,
                 durationMinutes: durationMinutes,
+                preMeetingHours: preMeetingHours,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -51020,6 +55377,7 @@ class $$CadenceScheduleConfigTableTableManager
                 Value<int?> dayOfMonth = const Value.absent(),
                 Value<String?> defaultTime = const Value.absent(),
                 Value<int> durationMinutes = const Value.absent(),
+                Value<int> preMeetingHours = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -51035,6 +55393,7 @@ class $$CadenceScheduleConfigTableTableManager
                 dayOfMonth: dayOfMonth,
                 defaultTime: defaultTime,
                 durationMinutes: durationMinutes,
+                preMeetingHours: preMeetingHours,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -56384,8 +60743,11 @@ class $AppDatabaseManager {
       $$UserTargetsTableTableManager(_db, _db.userTargets);
   $$UserScoresTableTableManager get userScores =>
       $$UserScoresTableTableManager(_db, _db.userScores);
-  $$PeriodSummaryScoresTableTableManager get periodSummaryScores =>
-      $$PeriodSummaryScoresTableTableManager(_db, _db.periodSummaryScores);
+  $$UserScoreSnapshotsTableTableManager get userScoreSnapshots =>
+      $$UserScoreSnapshotsTableTableManager(_db, _db.userScoreSnapshots);
+  $$WigsTableTableManager get wigs => $$WigsTableTableManager(_db, _db.wigs);
+  $$WigProgressTableTableManager get wigProgress =>
+      $$WigProgressTableTableManager(_db, _db.wigProgress);
   $$CadenceScheduleConfigTableTableManager get cadenceScheduleConfig =>
       $$CadenceScheduleConfigTableTableManager(_db, _db.cadenceScheduleConfig);
   $$CadenceMeetingsTableTableManager get cadenceMeetings =>

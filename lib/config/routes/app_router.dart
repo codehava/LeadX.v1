@@ -10,6 +10,8 @@ import '../../presentation/screens/admin/admin_home_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_form_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_list_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_menu_screen.dart';
+import '../../presentation/screens/admin/cadence/cadence_config_form_screen.dart';
+import '../../presentation/screens/admin/cadence/cadence_config_list_screen.dart';
 import '../../presentation/screens/admin/unauthorized_screen.dart';
 import '../../presentation/screens/admin/users/user_detail_screen.dart';
 import '../../presentation/screens/admin/users/user_form_screen.dart';
@@ -41,7 +43,12 @@ import '../../presentation/screens/referral/referral_detail_screen.dart';
 import '../../presentation/screens/referral/referral_list_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
+import '../../presentation/screens/cadence/cadence_list_screen.dart';
+import '../../presentation/screens/cadence/cadence_detail_screen.dart';
+import '../../presentation/screens/cadence/cadence_form_screen.dart';
+import '../../presentation/screens/cadence/host_dashboard_screen.dart';
 import '../../presentation/widgets/shell/responsive_shell.dart';
+import '../../domain/entities/cadence.dart';
 import 'route_names.dart';
 
 /// Root navigator key for routes that should NOT be wrapped by the shell.
@@ -485,11 +492,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('Cadence')),
-                ),
+                child: const CadenceListScreen(),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'host',
+                name: RouteNames.cadenceHost,
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const HostDashboardScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: RouteNames.cadenceDetail,
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return CadenceDetailScreen(meetingId: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'form',
+                    name: RouteNames.cadenceForm,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      final participation = state.extra as CadenceParticipant?;
+                      return CadenceFormScreen(
+                        meetingId: id,
+                        participation: participation,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Targets
@@ -689,18 +726,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Cadence Management (placeholder - deferred to future)
+          // Cadence Management
           GoRoute(
             path: 'cadence',
             name: RouteNames.adminCadence,
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('Cadence Management')),
-                ),
+                child: const CadenceConfigListScreen(),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'form',
+                name: RouteNames.adminCadenceCreate,
+                pageBuilder: (context, state) {
+                  final configId = state.uri.queryParameters['id'];
+                  return NoTransitionPage(
+                    child: ResponsiveShell(
+                      currentRoute: state.matchedLocation,
+                      child: CadenceConfigFormScreen(configId: configId),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
 
           // Bulk Upload (placeholders for Phase 5)

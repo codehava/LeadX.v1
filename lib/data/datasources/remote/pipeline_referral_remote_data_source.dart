@@ -126,112 +126,31 @@ class PipelineReferralRemoteDataSource {
   // Approver Determination
   // ==========================================
 
-  /// Find the approver for a given user based on hierarchy.
+  /// Find the approver for a given user based on direct atasan (parent_id).
   /// Returns the approver user record and type (BM or ROH).
   ///
-  /// Logic:
-  /// 1. Get receiver user to check branch_id
-  /// 2. If receiver has branch_id, find BM in hierarchy
-  /// 3. If no BM found (or no branch), find ROH in hierarchy
-  /// 4. If ROH not in hierarchy, find ROH by regional_office_id
+  /// Uses PostgreSQL function `get_user_atasan` which bypasses RLS
+  /// to allow looking up the parent user in the hierarchy.
   Future<Map<String, dynamic>?> findApproverForUser(String userId) async {
-    // First, get the user to check their branch and regional office
-    final user = await _client
-        .from('users')
-        .select('id, branch_id, regional_office_id')
-        .eq('id', userId)
-        .maybeSingle();
+    try {
+      // Call the SECURITY DEFINER function that bypasses RLS
+      final result = await _client.rpc(
+        'get_user_atasan',
+        params: {'p_user_id': userId},
+      );
 
-    if (user == null) return null;
+      if (result == null) return null;
 
-    final branchId = user['branch_id'] as String?;
-    final regionalOfficeId = user['regional_office_id'] as String?;
-
-    // Get all ancestors from user_hierarchy
-    final hierarchyResult = await _client
-        .from('user_hierarchy')
-        .select('ancestor_id')
-        .eq('descendant_id', userId)
-        .gt('depth', 0)
-        .order('depth', ascending: true);
-
-    final ancestorIds = (hierarchyResult as List)
-        .map((e) => e['ancestor_id'] as String)
-        .toList();
-
-    if (ancestorIds.isEmpty) {
-      // No hierarchy found, try regional office fallback
-      return _findRohByRegionalOffice(regionalOfficeId);
-    }
-
-    // Step 1: If user has a branch, try to find BM in hierarchy
-    if (branchId != null && branchId.isNotEmpty) {
-      final bmResult = await _client
-          .from('users')
-          .select('id, name, role')
-          .eq('role', 'BM')
-          .eq('is_active', true)
-          .inFilter('id', ancestorIds)
-          .limit(1)
-          .maybeSingle();
-
-      if (bmResult != null) {
-        return {
-          'approver_id': bmResult['id'],
-          'approver_name': bmResult['name'],
-          'approver_type': 'BM',
-        };
-      }
-    }
-
-    // Step 2: Try to find ROH in hierarchy
-    final rohResult = await _client
-        .from('users')
-        .select('id, name, role')
-        .eq('role', 'ROH')
-        .eq('is_active', true)
-        .inFilter('id', ancestorIds)
-        .limit(1)
-        .maybeSingle();
-
-    if (rohResult != null) {
+      // Result is already a map with approver_id, approver_name, approver_type
       return {
-        'approver_id': rohResult['id'],
-        'approver_name': rohResult['name'],
-        'approver_type': 'ROH',
+        'approver_id': result['approver_id'] as String,
+        'approver_name': result['approver_name'] as String?,
+        'approver_type': result['approver_type'] as String,
       };
-    }
-
-    // Step 3: Fallback - find ROH by regional_office_id
-    return _findRohByRegionalOffice(regionalOfficeId);
-  }
-
-  /// Helper to find ROH by regional office ID.
-  Future<Map<String, dynamic>?> _findRohByRegionalOffice(
-    String? regionalOfficeId,
-  ) async {
-    if (regionalOfficeId == null || regionalOfficeId.isEmpty) {
+    } catch (e) {
+      print('[ReferralRemote] Error finding approver: $e');
       return null;
     }
-
-    final rohByRegion = await _client
-        .from('users')
-        .select('id, name, role')
-        .eq('role', 'ROH')
-        .eq('is_active', true)
-        .eq('regional_office_id', regionalOfficeId)
-        .limit(1)
-        .maybeSingle();
-
-    if (rohByRegion != null) {
-      return {
-        'approver_id': rohByRegion['id'],
-        'approver_name': rohByRegion['name'],
-        'approver_type': 'ROH',
-      };
-    }
-
-    return null;
   }
 
   // ==========================================
@@ -251,7 +170,7 @@ class PipelineReferralRemoteDataSource {
   Future<Map<String, dynamic>?> getCustomerById(String customerId) async {
     return _client
         .from('customers')
-        .select('id, name, code')
+        .select('id, name, code, assigned_rm_id')
         .eq('id', customerId)
         .maybeSingle();
   }

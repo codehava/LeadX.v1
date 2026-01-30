@@ -9,7 +9,7 @@ import '../../widgets/common/error_state.dart';
 import '../../widgets/referral/referral_card.dart';
 
 /// Screen displaying list of pipeline referrals.
-/// Has tabs for incoming (received) and outgoing (sent) referrals.
+/// Has tabs for incoming (received), outgoing (sent), and pending approvals (managers).
 class ReferralListScreen extends ConsumerStatefulWidget {
   const ReferralListScreen({super.key});
 
@@ -19,17 +19,36 @@ class ReferralListScreen extends ConsumerStatefulWidget {
 
 class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
+  bool _isManager = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    // Tab controller will be initialized in didChangeDependencies after we know if user is manager
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Check if user is a manager to determine tab count
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    final isManager = currentUser?.canManageSubordinates ?? false;
+
+    // Only rebuild tab controller if manager status changed or not initialized
+    if (_tabController == null || _isManager != isManager) {
+      _tabController?.dispose();
+      _isManager = isManager;
+      _tabController = TabController(
+        length: isManager ? 3 : 2,
+        vsync: this,
+      );
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -37,12 +56,22 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final pendingInboundCount = ref.watch(pendingInboundCountProvider);
+    final pendingApprovalCount = ref.watch(pendingApprovalCountProvider);
+    final isManager = currentUser?.canManageSubordinates ?? false;
+
+    // Ensure tab controller is initialized
+    if (_tabController == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Referral'),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: isManager, // Allow scrolling if 3 tabs
           tabs: [
             Tab(
               child: Row(
@@ -68,6 +97,22 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
                 ],
               ),
             ),
+            // Approval tab for managers only
+            if (isManager)
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.approval, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Approval'),
+                    if (pendingApprovalCount > 0) ...[
+                      const SizedBox(width: 8),
+                      _buildBadge(pendingApprovalCount),
+                    ],
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -76,6 +121,8 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
         children: [
           _buildInboundTab(currentUser?.id),
           _buildOutboundTab(currentUser?.id),
+          // Approval tab content for managers
+          if (isManager) _buildApprovalTab(currentUser?.id),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -177,6 +224,44 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
         error: (error, _) => AppErrorState(
           title: 'Gagal memuat referral',
           onRetry: () => ref.invalidate(outboundReferralsProvider),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApprovalTab(String? userId) {
+    final approvalsAsync = ref.watch(pendingApprovalsProvider);
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(pendingApprovalsProvider);
+      },
+      child: approvalsAsync.when(
+        data: (referrals) {
+          if (referrals.isEmpty) {
+            return const AppEmptyState(
+              icon: Icons.check_circle_outline,
+              title: 'Tidak Ada Approval Pending',
+              subtitle: 'Tidak ada referral yang membutuhkan approval Anda.',
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 8, bottom: 88),
+            itemCount: referrals.length,
+            itemBuilder: (context, index) {
+              final referral = referrals[index];
+              return ReferralApprovalCard(
+                referral: referral,
+                onTap: () => context.push('/home/referrals/${referral.id}'),
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => AppErrorState(
+          title: 'Gagal memuat approval',
+          onRetry: () => ref.invalidate(pendingApprovalsProvider),
         ),
       ),
     );

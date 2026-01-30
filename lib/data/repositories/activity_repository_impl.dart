@@ -685,27 +685,28 @@ class ActivityRepositoryImpl implements ActivityRepository {
       print('[ActivityRepo] Syncing ${remoteData.length} activities from remote');
 
       final companions = remoteData.map((data) {
+        // Handle potentially null fields with defaults
         return db.ActivitiesCompanion(
           id: Value(data['id'] as String),
-          userId: Value(data['user_id'] as String),
-          createdBy: Value(data['created_by'] as String),
-          objectType: Value(data['object_type'] as String),
-          activityTypeId: Value(data['activity_type_id'] as String),
+          userId: Value(data['user_id'] as String? ?? ''),
+          createdBy: Value(data['created_by'] as String? ?? ''),
+          objectType: Value(data['object_type'] as String? ?? 'CUSTOMER'),
+          activityTypeId: Value(data['activity_type_id'] as String? ?? ''),
           scheduledDatetime: Value(DateTime.parse(data['scheduled_datetime'] as String)),
           customerId: Value(data['customer_id'] as String?),
           hvcId: Value(data['hvc_id'] as String?),
           brokerId: Value(data['broker_id'] as String?),
           summary: Value(data['summary'] as String?),
           notes: Value(data['notes'] as String?),
-          status: Value(data['status'] as String),
+          status: Value(data['status'] as String? ?? 'PLANNED'),
           isImmediate: Value(data['is_immediate'] as bool? ?? false),
           executedAt: data['executed_at'] != null
               ? Value(DateTime.parse(data['executed_at'] as String))
               : const Value(null),
-          latitude: Value(data['latitude'] as double?),
-          longitude: Value(data['longitude'] as double?),
-          locationAccuracy: Value(data['location_accuracy'] as double?),
-          distanceFromTarget: Value(data['distance_from_target'] as double?),
+          latitude: Value((data['latitude'] as num?)?.toDouble()),
+          longitude: Value((data['longitude'] as num?)?.toDouble()),
+          locationAccuracy: Value((data['location_accuracy'] as num?)?.toDouble()),
+          distanceFromTarget: Value((data['distance_from_target'] as num?)?.toDouble()),
           isLocationOverride: Value(data['is_location_override'] as bool? ?? false),
           overrideReason: Value(data['override_reason'] as String?),
           rescheduledFromId: Value(data['rescheduled_from_id'] as String?),

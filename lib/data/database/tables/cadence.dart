@@ -18,6 +18,7 @@ class CadenceScheduleConfig extends Table {
   IntColumn get dayOfMonth => integer().nullable()(); // 1-31 for monthly
   TextColumn get defaultTime => text().nullable()(); // HH:mm format
   IntColumn get durationMinutes => integer().withDefault(const Constant(60))();
+  IntColumn get preMeetingHours => integer().withDefault(const Constant(24))(); // Hours before meeting for form deadline
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();

@@ -34,7 +34,7 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 │  │  RM Ahmad has a customer outside his territory.                         ││
 │  │  He creates a referral to RM Budi who covers that area.                ││
 │  │                                                                          ││
-│  │  Required info: Customer, COB, LOB, Est. Premium, Target RM, Reason    ││
+│  │  Required info: Customer, Target RM, Reason, Notes (optional)          ││
 │  │                                                                          ││
 │  │  Status: PENDING_RECEIVER                                                ││
 │  └──────────────────────────────────────┬──────────────────────────────────┘│
@@ -82,20 +82,19 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 │                                         │                                    │
 │                                         ▼                                    │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │ STEP 4: PIPELINE CREATED                                                 ││
+│  │ STEP 4: CUSTOMER TRANSFERRED                                             ││
 │  │                                                                          ││
-│  │  System automatically creates pipeline:                                  ││
-│  │  • Customer: From referral                                               ││
-│  │  • Assigned RM: Receiver                                                 ││
-│  │  • Lead Source: REFERRAL                                                 ││
-│  │  • Referred By: Referrer RM                                              ││
-│  │  • Initial Stage: NEW                                                    ││
+│  │  System automatically transfers ownership:                               ││
+│  │  • Customer: Reassigned to Receiver RM                                   ││
+│  │  • All OPEN pipelines: Reassigned to Receiver with referrer credit      ││
+│  │  • All CLOSED pipelines: Reassigned to Receiver for history             ││
+│  │  • referred_by_user_id: Set to Referrer RM (for 4DX bonus tracking)     ││
 │  │                                                                          ││
-│  │  Status: PIPELINE_CREATED                                                ││
+│  │  Status: COMPLETED                                                       ││
 │  │                                                                          ││
 │  │  🎁 REFERRER BONUS:                                                     ││
-│  │  When pipeline reaches ACCEPTED (won), referrer gets bonus points       ││
-│  │  based on final_premium × referral_bonus_percentage                     ││
+│  │  When any transferred pipeline reaches ACCEPTED (won), referrer gets    ││
+│  │  bonus points based on final_premium × referral_bonus_percentage        ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -138,8 +137,8 @@ The system automatically determines who should approve the referral based on the
 | `RECEIVER_REJECTED` | Receiver declined the referral | **END STATE** |
 | `PENDING_BM_APPROVAL` | Same as RECEIVER_ACCEPTED (alias) | BM/ROH: Approve/Reject |
 | `BM_REJECTED` | Manager (BM or ROH) declined the referral | **END STATE** |
-| `APPROVED` | All parties agreed | System: Create Pipeline |
-| `PIPELINE_CREATED` | Pipeline has been created | **END STATE** |
+| `APPROVED` | All parties agreed | System: Transfer Customer |
+| `COMPLETED` | Customer and pipelines transferred | **END STATE** |
 | `CANCELLED` | Referrer cancelled before completion | **END STATE** |
 | `EXPIRED` | No response within timeout period | **END STATE** |
 
@@ -193,11 +192,8 @@ CREATE TABLE pipeline_referrals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code VARCHAR(20) UNIQUE NOT NULL, -- REF-YYYYMMDD-XXX
 
-  -- Customer & Business Info
+  -- Customer Info
   customer_id UUID NOT NULL REFERENCES customers(id),
-  cob_id UUID NOT NULL REFERENCES cob(id),
-  lob_id UUID NOT NULL REFERENCES lob(id),
-  potential_premium DECIMAL(18,2) NOT NULL,
 
   -- Parties Involved
   referrer_rm_id UUID NOT NULL REFERENCES users(id),
@@ -288,7 +284,6 @@ FOR SELECT USING (
 │  │  REF-20250120-001                                         │  │
 │  │  Customer: PT ABC Indonesia                               │  │
 │  │  To: Budi Santoso (JKT-02)                               │  │
-│  │  Premium: Rp 500.000.000                                  │  │
 │  │  Status: ⏳ Waiting Manager Approval                       │  │
 │  │  [View Details]                                           │  │
 │  └───────────────────────────────────────────────────────────┘  │
@@ -298,7 +293,6 @@ FOR SELECT USING (
 │  │  REF-20250119-003                                         │  │
 │  │  Customer: PT XYZ Corp                                    │  │
 │  │  From: Ahmad (JKT-01)                                     │  │
-│  │  Premium: Rp 200.000.000                                  │  │
 │  │  Status: 📩 Action Required                               │  │
 │  │  [Accept] [Reject]                                        │  │
 │  └───────────────────────────────────────────────────────────┘  │
@@ -318,8 +312,6 @@ FOR SELECT USING (
 │  │                                                           │  │
 │  │  From: Ahmad (JKT-01) → To: Budi (JKT-02)                │  │
 │  │  Customer: PT ABC Indonesia                               │  │
-│  │  COB: Surety Bond | LOB: Bid Bond                        │  │
-│  │  Premium: Rp 500.000.000                                  │  │
 │  │                                                           │  │
 │  │  Reason: "Customer location outside my territory..."      │  │
 │  │                                                           │  │

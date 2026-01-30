@@ -77,6 +77,8 @@ abstract class RouteNames {
   static const String targets = 'targets';
   static const String cadence = 'cadence';
   static const String cadenceDetail = 'cadence-detail';
+  static const String cadenceHost = 'cadence-host';
+  static const String cadenceForm = 'cadence-form';
 
   // ============================================
   // PROFILE & SETTINGS
@@ -121,6 +123,7 @@ abstract class RouteNames {
 
   // Cadence Configuration
   static const String adminCadence = 'admin-cadence';
+  static const String adminCadenceCreate = 'admin-cadence-create';
 }
 
 /// Route paths for LeadX CRM navigation.
@@ -213,4 +216,5 @@ abstract class RoutePaths {
 
   // Cadence Configuration
   static const String adminCadence = '/admin/cadence';
+  static const String adminCadenceCreate = '/admin/cadence/form';
 }

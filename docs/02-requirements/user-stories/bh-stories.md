@@ -1,4 +1,4 @@
-# 👥 BH (Branch Head) User Stories
+# 👥 BH (Business Head) User Stories
 
 ## User Stories untuk Role BH
 

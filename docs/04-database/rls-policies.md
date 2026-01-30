@@ -20,7 +20,7 @@ Dokumen ini mendefinisikan semua Row Level Security (RLS) policies dan **Role & 
 | Admin | ADMIN | 1 | Full operational access, manage all data |
 | Regional Head | ROH | 2 | Regional scope, read all regional data |
 | Branch Manager | BM | 3 | Branch scope, manage branch operations |
-| Branch Head | BH | 4 | Team scope, manage team |
+| Business Head | BH | 4 | Team scope, manage team |
 | Relationship Manager | RM | 5 | Own data only |
 
 ### Permission Categories

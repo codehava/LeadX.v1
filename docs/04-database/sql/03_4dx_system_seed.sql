@@ -10,11 +10,12 @@
 CREATE TABLE scoring_periods (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(100) NOT NULL,
-  period_type VARCHAR(20) NOT NULL CHECK (period_type IN ('MONTHLY', 'QUARTERLY', 'YEARLY')),
+  period_type VARCHAR(20) NOT NULL CHECK (period_type IN ('WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY')),
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
   is_current BOOLEAN DEFAULT false,
   is_locked BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -25,9 +26,15 @@ CREATE TABLE measure_definitions (
   name VARCHAR(100) NOT NULL,
   description TEXT,
   measure_type VARCHAR(20) NOT NULL CHECK (measure_type IN ('LEAD', 'LAG')),
+  data_type VARCHAR(20) NOT NULL DEFAULT 'COUNT' CHECK (data_type IN ('COUNT', 'SUM', 'PERCENTAGE')),
   unit VARCHAR(50) NOT NULL,
   calculation_method VARCHAR(50),
+  calculation_formula TEXT,           -- For computed measures
+  source_table VARCHAR(50),           -- Auto-pull from table (activities, pipelines, customers)
+  source_condition TEXT,              -- WHERE clause for source
   weight DECIMAL(5, 2) DEFAULT 1.0,
+  default_target DECIMAL(18, 2),      -- Default target value
+  period_type VARCHAR(20) DEFAULT 'WEEKLY' CHECK (period_type IN ('WEEKLY', 'MONTHLY', 'QUARTERLY')),
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -42,72 +49,222 @@ CREATE TABLE user_targets (
   target_value DECIMAL(18, 2) NOT NULL,
   assigned_by UUID REFERENCES users(id),
   assigned_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, period_id, measure_id)
 );
+
+CREATE INDEX idx_user_targets_user ON user_targets(user_id);
+CREATE INDEX idx_user_targets_period ON user_targets(period_id);
 
 CREATE TABLE user_scores (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id),
   period_id UUID REFERENCES scoring_periods(id),
   measure_id UUID REFERENCES measure_definitions(id),
+  target_value DECIMAL(18, 2) NOT NULL,    -- Denormalized for efficiency
   actual_value DECIMAL(18, 2) DEFAULT 0,
-  percentage DECIMAL(5, 2) DEFAULT 0,
-  score DECIMAL(10, 2) DEFAULT 0,
+  percentage DECIMAL(5, 2) DEFAULT 0,      -- (actual/target)*100, capped at 150
+  score DECIMAL(10, 2) DEFAULT 0,          -- Weighted score
   rank INTEGER,
+  calculated_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, period_id, measure_id)
 );
+
+CREATE INDEX idx_user_scores_user ON user_scores(user_id);
+CREATE INDEX idx_user_scores_period ON user_scores(period_id);
+CREATE INDEX idx_user_scores_measure ON user_scores(measure_id);
 
 CREATE TABLE user_score_snapshots (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id),
   period_id UUID REFERENCES scoring_periods(id),
-  total_score DECIMAL(10, 2),
-  lead_score DECIMAL(10, 2),
-  lag_score DECIMAL(10, 2),
+  lead_score DECIMAL(10, 2) DEFAULT 0,     -- Average of lead measure achievements (60%)
+  lag_score DECIMAL(10, 2) DEFAULT 0,      -- Average of lag measure achievements (40%)
+  bonus_points DECIMAL(10, 2) DEFAULT 0,   -- Cadence, immediate logging, etc.
+  penalty_points DECIMAL(10, 2) DEFAULT 0, -- Absences, late submissions, etc.
+  total_score DECIMAL(10, 2) DEFAULT 0,    -- (lead*0.6 + lag*0.4) + bonus - penalty
   rank INTEGER,
-  snapshot_at TIMESTAMPTZ DEFAULT NOW()
+  rank_change INTEGER,                      -- +/- from previous period
+  calculated_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, period_id)
 );
+
+CREATE INDEX idx_user_score_snapshots_user ON user_score_snapshots(user_id);
+CREATE INDEX idx_user_score_snapshots_period ON user_score_snapshots(period_id);
+
+-- ============================================
+-- WIG (WILDLY IMPORTANT GOALS) TABLES
+-- ============================================
+
+-- WIGs - Discipline 1: Focus on the Wildly Important
+CREATE TABLE wigs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+  -- Basic info
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+
+  -- Hierarchy
+  level VARCHAR(20) NOT NULL CHECK (level IN ('COMPANY', 'REGIONAL', 'BRANCH', 'TEAM')),
+  owner_id UUID NOT NULL REFERENCES users(id),
+  parent_wig_id UUID REFERENCES wigs(id),  -- For cascade from parent level
+
+  -- Measure link (optional - WIG can be linked to a specific measure)
+  measure_type VARCHAR(20) CHECK (measure_type IN ('LAG', 'LEAD')),
+  measure_id UUID REFERENCES measure_definitions(id),
+
+  -- WIG Statement: "From X to Y by When"
+  baseline_value NUMERIC NOT NULL,         -- From X
+  target_value NUMERIC NOT NULL,           -- To Y
+  current_value NUMERIC DEFAULT 0,         -- Current progress
+
+  -- Timeline
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,                  -- By When
+
+  -- Workflow
+  status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'ACTIVE', 'COMPLETED', 'CANCELLED')),
+  submitted_at TIMESTAMPTZ,
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMPTZ,
+  rejection_reason TEXT,
+
+  -- Progress tracking
+  last_progress_update TIMESTAMPTZ,
+  progress_percentage NUMERIC DEFAULT 0,
+
+  -- Timestamps
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_wigs_owner ON wigs(owner_id);
+CREATE INDEX idx_wigs_level ON wigs(level);
+CREATE INDEX idx_wigs_status ON wigs(status);
+CREATE INDEX idx_wigs_parent ON wigs(parent_wig_id);
+
+-- WIG Progress History
+CREATE TABLE wig_progress (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wig_id UUID NOT NULL REFERENCES wigs(id) ON DELETE CASCADE,
+  recorded_date DATE NOT NULL,
+  value NUMERIC NOT NULL,                  -- Value at this point
+  progress_percentage NUMERIC NOT NULL,    -- Calculated percentage
+  status VARCHAR(20) CHECK (status IN ('ON_TRACK', 'AT_RISK', 'OFF_TRACK')),
+  notes TEXT,
+  recorded_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(wig_id, recorded_date)
+);
+
+CREATE INDEX idx_wig_progress_wig ON wig_progress(wig_id);
+CREATE INDEX idx_wig_progress_date ON wig_progress(recorded_date);
 
 -- ============================================
 -- CADENCE TABLES
 -- ============================================
 
+-- Cadence schedule configuration per level (Team/Branch/Regional/Company)
 CREATE TABLE cadence_schedule_config (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
-  time_of_day TIME NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  target_role VARCHAR(20) NOT NULL,      -- Role that attends: RM, BH, BM, ROH
+  facilitator_role VARCHAR(20) NOT NULL, -- Role that hosts: BH, BM, ROH, DIRECTOR
+  frequency VARCHAR(20) NOT NULL,        -- DAILY, WEEKLY, MONTHLY, QUARTERLY
+  day_of_week INTEGER CHECK (day_of_week >= 0 AND day_of_week <= 6), -- 0=Sunday for weekly
+  day_of_month INTEGER CHECK (day_of_month >= 1 AND day_of_month <= 31), -- For monthly
+  default_time TEXT,                     -- HH:mm format
   duration_minutes INTEGER DEFAULT 60,
-  pre_meeting_hours INTEGER DEFAULT 24,
+  pre_meeting_hours INTEGER DEFAULT 24,  -- Hours before meeting for form deadline
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  CONSTRAINT cadence_config_frequency_check
+    CHECK (frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY')),
+  CONSTRAINT cadence_config_target_role_check
+    CHECK (target_role IN ('RM', 'BH', 'BM', 'ROH')),
+  CONSTRAINT cadence_config_facilitator_role_check
+    CHECK (facilitator_role IN ('BH', 'BM', 'ROH', 'DIRECTOR', 'ADMIN'))
 );
 
+-- Cadence meeting instances
 CREATE TABLE cadence_meetings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  config_id UUID REFERENCES cadence_schedule_config(id),
+  title TEXT NOT NULL,
   scheduled_at TIMESTAMPTZ NOT NULL,
-  host_id UUID REFERENCES users(id),
-  meeting_type VARCHAR(50) DEFAULT 'WEEKLY',
+  duration_minutes INTEGER NOT NULL,
+  facilitator_id UUID REFERENCES users(id) NOT NULL,
   status VARCHAR(20) DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+  location TEXT,
+  meeting_link TEXT,
+  agenda TEXT,
   notes TEXT,
   started_at TIMESTAMPTZ,
-  ended_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_by UUID REFERENCES users(id) NOT NULL,
+  is_pending_sync BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX idx_cadence_meetings_config ON cadence_meetings(config_id);
+CREATE INDEX idx_cadence_meetings_facilitator ON cadence_meetings(facilitator_id);
+CREATE INDEX idx_cadence_meetings_scheduled ON cadence_meetings(scheduled_at);
+CREATE INDEX idx_cadence_meetings_status ON cadence_meetings(status);
+
+-- Cadence participants - combined table for attendance, form, and feedback
 CREATE TABLE cadence_participants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  meeting_id UUID REFERENCES cadence_meetings(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id),
-  pre_meeting_submitted BOOLEAN DEFAULT false,
-  pre_meeting_data JSONB,
-  pre_meeting_submitted_at TIMESTAMPTZ,
-  attendance_status VARCHAR(20) DEFAULT 'PENDING' CHECK (attendance_status IN ('PENDING', 'PRESENT', 'ABSENT', 'EXCUSED')),
+  meeting_id UUID REFERENCES cadence_meetings(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES users(id) NOT NULL,
+
+  -- Attendance (marked by host during meeting)
+  attendance_status VARCHAR(20) DEFAULT 'PENDING' CHECK (attendance_status IN ('PENDING', 'PRESENT', 'LATE', 'EXCUSED', 'ABSENT')),
+  arrived_at TIMESTAMPTZ,
+  excused_reason TEXT,
+  attendance_score_impact INTEGER,       -- +3 present, +1 late, 0 excused, -5 absent
+  marked_by UUID REFERENCES users(id),
   marked_at TIMESTAMPTZ,
+
+  -- Pre-meeting form (Q1-Q4)
+  pre_meeting_submitted BOOLEAN DEFAULT false,
+  q1_previous_commitment TEXT,           -- Auto-filled from last meeting's Q4
+  q1_completion_status VARCHAR(20) CHECK (q1_completion_status IN ('COMPLETED', 'PARTIAL', 'NOT_DONE')),
+  q2_what_achieved TEXT,                 -- Required
+  q3_obstacles TEXT,                     -- Optional
+  q4_next_commitment TEXT,               -- Required
+  form_submitted_at TIMESTAMPTZ,
+  form_submission_status VARCHAR(20) CHECK (form_submission_status IN ('ON_TIME', 'LATE', 'VERY_LATE', 'NOT_SUBMITTED')),
+  form_score_impact INTEGER,             -- +2 on-time, 0 late, -1 very late, -3 not submitted
+
+  -- Host notes & feedback
+  host_notes TEXT,                       -- Internal notes (not visible to participant)
+  feedback_text TEXT,                    -- Formal feedback visible to participant
+  feedback_given_at TIMESTAMPTZ,
+  feedback_updated_at TIMESTAMPTZ,
+
+  -- Sync
+  is_pending_sync BOOLEAN DEFAULT false,
+  last_sync_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
   UNIQUE(meeting_id, user_id)
 );
+
+CREATE INDEX idx_cadence_participants_meeting ON cadence_participants(meeting_id);
+CREATE INDEX idx_cadence_participants_user ON cadence_participants(user_id);
+CREATE INDEX idx_cadence_participants_attendance ON cadence_participants(attendance_status);
+CREATE INDEX idx_cadence_participants_form_status ON cadence_participants(form_submission_status);
 
 -- ============================================
 -- NOTIFICATIONS & ANNOUNCEMENTS
@@ -257,12 +414,21 @@ INSERT INTO cobs (id, code, name, sort_order) VALUES
   (uuid_generate_v4(), 'KI', 'Kredit Investasi', 2),
   (uuid_generate_v4(), 'GI', 'General Insurance', 3);
 
--- Measure Definitions (4DX)
-INSERT INTO measure_definitions (id, code, name, measure_type, unit, weight, sort_order) VALUES
-  (uuid_generate_v4(), 'VISIT', 'Kunjungan per Minggu', 'LEAD', 'COUNT', 1.0, 1),
-  (uuid_generate_v4(), 'P3_NEW', 'P3 Baru per Bulan', 'LEAD', 'COUNT', 1.0, 2),
-  (uuid_generate_v4(), 'PREMIUM', 'Premium Closed', 'LAG', 'IDR', 2.0, 3),
-  (uuid_generate_v4(), 'CONVERSION', 'Conversion Rate', 'LAG', 'PERCENT', 1.5, 4);
+-- Measure Definitions (4DX) - 9 measures as per documentation
+-- Lead Measures (60% of total score) - Activities that drive results
+INSERT INTO measure_definitions (id, code, name, description, measure_type, data_type, unit, source_table, source_condition, weight, default_target, period_type, sort_order) VALUES
+  (uuid_generate_v4(), 'VISIT_COUNT', 'Kunjungan Pelanggan', 'Physical customer visits completed', 'LEAD', 'COUNT', 'visits', 'activities', 'type=VISIT AND status=COMPLETED', 1.0, 10, 'WEEKLY', 1),
+  (uuid_generate_v4(), 'CALL_COUNT', 'Telepon', 'Phone calls made to customers', 'LEAD', 'COUNT', 'calls', 'activities', 'type=CALL AND status=COMPLETED', 1.0, 20, 'WEEKLY', 2),
+  (uuid_generate_v4(), 'MEETING_COUNT', 'Meeting', 'Meetings conducted with customers', 'LEAD', 'COUNT', 'meetings', 'activities', 'type=MEETING AND status=COMPLETED', 1.0, 5, 'WEEKLY', 3),
+  (uuid_generate_v4(), 'NEW_CUSTOMER', 'Pelanggan Baru', 'New customers registered', 'LEAD', 'COUNT', 'customers', 'customers', 'created_by=user_id', 1.0, 4, 'MONTHLY', 4),
+  (uuid_generate_v4(), 'NEW_PIPELINE', 'Pipeline Baru', 'New pipelines created', 'LEAD', 'COUNT', 'pipelines', 'pipelines', 'assigned_rm_id=user_id', 1.0, 5, 'MONTHLY', 5),
+  (uuid_generate_v4(), 'PROPOSAL_SENT', 'Proposal Terkirim', 'Proposals sent to customers', 'LEAD', 'COUNT', 'proposals', 'activities', 'type=PROPOSAL AND status=COMPLETED', 1.0, 3, 'WEEKLY', 6);
+
+-- Lag Measures (40% of total score) - Results/outcomes
+INSERT INTO measure_definitions (id, code, name, description, measure_type, data_type, unit, source_table, source_condition, weight, default_target, period_type, sort_order) VALUES
+  (uuid_generate_v4(), 'PIPELINE_WON', 'Pipeline Closing', 'Pipelines closed as won', 'LAG', 'COUNT', 'deals', 'pipelines', 'stage=ACCEPTED', 1.5, 3, 'MONTHLY', 7),
+  (uuid_generate_v4(), 'PREMIUM_WON', 'Premium Closing', 'Total premium from won pipelines', 'LAG', 'SUM', 'IDR', 'pipelines', 'stage=ACCEPTED', 2.0, 500000000, 'MONTHLY', 8),
+  (uuid_generate_v4(), 'CONVERSION_RATE', 'Conversion Rate', 'Pipeline win rate percentage', 'LAG', 'PERCENTAGE', '%', 'pipelines', 'is_final=true', 1.5, 40, 'MONTHLY', 9);
 
 -- App Settings
 INSERT INTO app_settings (key, value, value_type, description) VALUES

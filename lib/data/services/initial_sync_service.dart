@@ -100,6 +100,8 @@ class InitialSyncService {
     // 4DX Scoring
     'measure_definitions',
     'scoring_periods',
+    // Cadence
+    'cadence_schedule_config',
   ];
 
   /// Transactional tables that use delta sync (fetch only changes since last sync).
@@ -286,6 +288,10 @@ class InitialSyncService {
         break;
       case 'user_hierarchy':
         await _syncUserHierarchy();
+        break;
+      // Cadence
+      case 'cadence_schedule_config':
+        await _syncCadenceScheduleConfig();
         break;
     }
   }
@@ -712,7 +718,7 @@ class InitialSyncService {
 
   Future<void> _syncMeasureDefinitions() async {
     final data = await _supabase.from('measure_definitions').select().eq('is_active', true);
-    
+
     await _db.batch((batch) {
       for (final row in data as List) {
         batch.insert(
@@ -723,8 +729,8 @@ class InitialSyncService {
             name: row['name'] as String,
             description: Value(row['description'] as String?),
             measureType: row['measure_type'] as String,
-            dataType: row['unit'] as String? ?? 'COUNT',
-            unit: Value(row['unit'] as String?),
+            dataType: Value(row['data_type'] as String? ?? 'COUNT'),
+            unit: row['unit'] as String? ?? '',
             sortOrder: Value(row['sort_order'] as int? ?? 0),
             createdAt: DateTime.parse(row['created_at'] as String),
             updatedAt: DateTime.parse(row['updated_at'] as String),
@@ -750,6 +756,39 @@ class InitialSyncService {
             endDate: DateTime.parse(row['end_date'] as String),
             isCurrent: Value(row['is_current'] as bool? ?? false),
             isActive: Value(row['is_locked'] != true), // invert is_locked
+            createdAt: DateTime.parse(row['created_at'] as String),
+            updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  // ============================================
+  // CADENCE SYNC METHODS
+  // ============================================
+
+  Future<void> _syncCadenceScheduleConfig() async {
+    final data = await _supabase.from('cadence_schedule_config').select().eq('is_active', true);
+
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.cadenceScheduleConfig,
+          CadenceScheduleConfigCompanion.insert(
+            id: row['id'] as String,
+            name: row['name'] as String,
+            description: Value(row['description'] as String?),
+            targetRole: row['target_role'] as String,
+            facilitatorRole: row['facilitator_role'] as String,
+            frequency: row['frequency'] as String,
+            dayOfWeek: Value(row['day_of_week'] as int?),
+            dayOfMonth: Value(row['day_of_month'] as int?),
+            defaultTime: Value(row['default_time'] as String?),
+            durationMinutes: Value(row['duration_minutes'] as int? ?? 60),
+            preMeetingHours: Value(row['pre_meeting_hours'] as int? ?? 24),
+            isActive: Value(row['is_active'] as bool? ?? true),
             createdAt: DateTime.parse(row['created_at'] as String),
             updatedAt: DateTime.parse(row['updated_at'] as String),
           ),
@@ -806,7 +845,9 @@ class InitialSyncService {
 
   Future<void> _syncUsers() async {
     final data = await _supabase.from('users').select().eq('is_active', true);
-    
+
+    // First pass: Insert all users WITHOUT parent_id to avoid FK constraint issues
+    // (parent_id references users table, so parent must exist first)
     await _db.batch((batch) {
       for (final row in data as List) {
         batch.insert(
@@ -816,6 +857,13 @@ class InitialSyncService {
             email: row['email'] as String,
             name: row['name'] as String,
             role: row['role'] as String,
+            // Skip parentId in first pass to avoid self-referential FK issues
+            branchId: Value(row['branch_id'] as String?),
+            regionalOfficeId: Value(row['regional_office_id'] as String?),
+            nip: Value(row['nip'] as String?),
+            phone: Value(row['phone'] as String?),
+            photoUrl: Value(row['photo_url'] as String?),
+            isActive: Value(row['is_active'] as bool? ?? true),
             createdAt: DateTime.parse(row['created_at'] as String),
             updatedAt: DateTime.parse(row['updated_at'] as String),
           ),
@@ -823,6 +871,20 @@ class InitialSyncService {
         );
       }
     });
+
+    // Build set of synced user IDs for FK validation
+    final syncedUserIds = (data as List).map((row) => row['id'] as String).toSet();
+
+    // Second pass: Update parent_id only if parent exists locally
+    for (final row in data) {
+      final parentId = row['parent_id'] as String?;
+      // Only set parent_id if the parent was also synced (exists locally)
+      if (parentId != null && syncedUserIds.contains(parentId)) {
+        await (_db.update(_db.users)
+              ..where((u) => u.id.equals(row['id'] as String)))
+            .write(UsersCompanion(parentId: Value(parentId)));
+      }
+    }
   }
 
   Future<void> _syncUserHierarchy() async {

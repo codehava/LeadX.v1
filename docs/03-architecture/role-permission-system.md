@@ -31,7 +31,7 @@ LeadX CRM menggunakan sistem **Role-Based Access Control (RBAC)** dengan permiss
 | **Admin** | ADMIN | 1 | Company | User management, master data, configuration |
 | **Regional Head** | ROH | 2 | Regional | Regional performance, strategic oversight |
 | **Branch Manager** | BM | 3 | Branch | Branch operations, approvals, team management |
-| **Branch Head** | BH | 4 | Team | Team coordination, cadence hosting |
+| **Business Head** | BH | 4 | Team | Team coordination, cadence hosting |
 | **Relationship Manager** | RM | 5 | Personal | Customer management, sales activities |
 
 ### Role Hierarchy Diagram

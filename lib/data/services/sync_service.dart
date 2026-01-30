@@ -319,6 +319,24 @@ class SyncService {
               isPendingSync: const Value(false),
               lastSyncAt: Value(syncedAt),
             ));
+      case 'cadenceMeeting':
+        await (_database.update(_database.cadenceMeetings)
+              ..where((m) => m.id.equals(entityId)))
+            .write(db.CadenceMeetingsCompanion(
+              isPendingSync: const Value(false),
+              updatedAt: Value(syncedAt),
+            ));
+      case 'cadenceParticipant':
+        await (_database.update(_database.cadenceParticipants)
+              ..where((p) => p.id.equals(entityId)))
+            .write(db.CadenceParticipantsCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+      case 'cadenceConfig':
+        // CadenceScheduleConfig doesn't have isPendingSync column
+        // Just log success - the sync queue completion handles the tracking
+        print('[SyncService] Synced cadenceConfig: $entityId');
       default:
         print('[SyncService] Unknown entity type for marking synced: $entityType');
     }
@@ -359,6 +377,12 @@ class SyncService {
         return 'pipeline_stage_history';
       case 'pipelineReferral':
         return 'pipeline_referrals';
+      case 'cadenceMeeting':
+        return 'cadence_meetings';
+      case 'cadenceParticipant':
+        return 'cadence_participants';
+      case 'cadenceConfig':
+        return 'cadence_schedule_config';
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }

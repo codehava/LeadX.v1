@@ -34,6 +34,52 @@ RETURNS BOOLEAN AS $$
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
+-- Get direct atasan (parent) for a user - used by referral approver lookup
+-- Returns atasan info as JSON, bypasses RLS for upward hierarchy lookup
+CREATE OR REPLACE FUNCTION get_user_atasan(p_user_id UUID)
+RETURNS JSON AS $$
+DECLARE
+  v_parent_id UUID;
+  v_regional_office_id UUID;
+  v_result JSON;
+BEGIN
+  -- Get user's parent_id and regional_office_id
+  SELECT parent_id, regional_office_id INTO v_parent_id, v_regional_office_id
+  FROM users WHERE id = p_user_id;
+
+  -- If user has a direct atasan, return them with their actual role
+  IF v_parent_id IS NOT NULL THEN
+    SELECT json_build_object(
+      'approver_id', id,
+      'approver_name', name,
+      'approver_type', role  -- Return actual role (BH, BM, ROH)
+    ) INTO v_result
+    FROM users
+    WHERE id = v_parent_id AND is_active = true;
+
+    IF v_result IS NOT NULL THEN
+      RETURN v_result;
+    END IF;
+  END IF;
+
+  -- Fallback: find ROH by regional_office_id
+  IF v_regional_office_id IS NOT NULL THEN
+    SELECT json_build_object(
+      'approver_id', id,
+      'approver_name', name,
+      'approver_type', 'ROH'
+    ) INTO v_result
+    FROM users
+    WHERE role = 'ROH' AND is_active = true AND regional_office_id = v_regional_office_id
+    LIMIT 1;
+
+    RETURN v_result;
+  END IF;
+
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
 -- Check if user can access a specific customer (bypasses RLS to prevent recursion)
 CREATE OR REPLACE FUNCTION can_access_customer(p_customer_id UUID)
 RETURNS BOOLEAN AS $$
@@ -430,16 +476,44 @@ ALTER TABLE pipeline_referrals ENABLE ROW LEVEL SECURITY;
 -- Users can see referrals they're involved in
 CREATE POLICY "pipeline_referrals_involved" ON pipeline_referrals
 FOR SELECT USING (
+  -- Referrer can see their outbound referrals
   referrer_rm_id = (SELECT auth.uid())
+  -- Receiver can see their inbound referrals
   OR receiver_rm_id = (SELECT auth.uid())
+  -- Approver can see referrals they approved
   OR bm_approved_by = (SELECT auth.uid())
+  -- Supervisors (BH, BM, ROH) can see all referrals (for approval workflow)
+  OR EXISTS (
+    SELECT 1 FROM users
+    WHERE id = (SELECT auth.uid())
+    AND role IN ('BH', 'BM', 'ROH')
+  )
+  -- Admins have full access
   OR is_admin()
 );
 
--- Users can create referrals
+-- Users can create referrals for their own customers
+-- Supervisors can create referrals on behalf of subordinates
+-- Admins have full access
 CREATE POLICY "pipeline_referrals_insert" ON pipeline_referrals
 FOR INSERT WITH CHECK (
+  -- User is the referrer (owns the customer being referred)
   referrer_rm_id = (SELECT auth.uid())
+  -- OR user is a supervisor of the referrer (via hierarchy)
+  OR EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND descendant_id = referrer_rm_id
+    AND depth > 0
+  )
+  -- OR user has a supervisory role (BH, BM, ROH) - fallback if hierarchy not populated
+  OR EXISTS (
+    SELECT 1 FROM users
+    WHERE id = (SELECT auth.uid())
+    AND role IN ('BH', 'BM', 'ROH')
+  )
+  -- OR user is admin
+  OR is_admin()
 );
 
 -- Receiving user can update (accept/reject)
@@ -448,15 +522,19 @@ FOR UPDATE USING (
   receiver_rm_id = (SELECT auth.uid())
 );
 
--- BM+ can approve
+-- Any role besides RM can approve (BH, BM, ROH, ADMIN, SUPERADMIN)
 CREATE POLICY "pipeline_referrals_approve" ON pipeline_referrals
 FOR UPDATE USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE id = (SELECT auth.uid())
-    AND role IN ('BM', 'ROH', 'ADMIN', 'SUPERADMIN')
+    AND role IN ('BH', 'BM', 'ROH', 'ADMIN', 'SUPERADMIN')
   )
 );
+
+-- Admins have full access
+CREATE POLICY "pipeline_referrals_admin_all" ON pipeline_referrals
+FOR ALL USING (is_admin());
 
 -- ============================================
 -- 4DX TABLES
@@ -531,6 +609,119 @@ FOR SELECT USING (
 CREATE POLICY "user_scores_admin" ON user_scores
 FOR ALL USING (is_admin());
 
+-- User Score Snapshots (aggregated scores)
+ALTER TABLE user_score_snapshots ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "user_score_snapshots_select_own" ON user_score_snapshots
+FOR SELECT USING (user_id = (SELECT auth.uid()));
+
+CREATE POLICY "user_score_snapshots_select_subordinates" ON user_score_snapshots
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND descendant_id = user_score_snapshots.user_id
+  )
+);
+
+CREATE POLICY "user_score_snapshots_admin" ON user_score_snapshots
+FOR ALL USING (is_admin());
+
+-- ============================================
+-- WIG (WILDLY IMPORTANT GOALS) TABLES
+-- ============================================
+
+ALTER TABLE wigs ENABLE ROW LEVEL SECURITY;
+
+-- Users can view WIGs they own
+CREATE POLICY "wigs_select_own" ON wigs
+FOR SELECT USING (owner_id = (SELECT auth.uid()));
+
+-- Users can view WIGs from their organizational level and above
+CREATE POLICY "wigs_select_hierarchy" ON wigs
+FOR SELECT USING (
+  -- Company WIGs visible to all
+  level = 'COMPANY'
+  -- Regional WIGs visible to users in that region
+  OR (level = 'REGIONAL' AND EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.id = (SELECT auth.uid())
+    AND u.regional_office_id = (SELECT regional_office_id FROM users WHERE id = wigs.owner_id)
+  ))
+  -- Branch WIGs visible to users in that branch
+  OR (level = 'BRANCH' AND EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.id = (SELECT auth.uid())
+    AND u.branch_id = (SELECT branch_id FROM users WHERE id = wigs.owner_id)
+  ))
+  -- Team WIGs visible to subordinates
+  OR EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = wigs.owner_id
+    AND descendant_id = (SELECT auth.uid())
+  )
+);
+
+-- Users can create WIGs for their level
+CREATE POLICY "wigs_insert" ON wigs
+FOR INSERT WITH CHECK (
+  owner_id = (SELECT auth.uid())
+  OR is_admin()
+);
+
+-- Users can update their own WIGs
+CREATE POLICY "wigs_update_own" ON wigs
+FOR UPDATE USING (owner_id = (SELECT auth.uid()));
+
+-- Supervisors can approve/reject subordinate WIGs
+CREATE POLICY "wigs_approve" ON wigs
+FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND descendant_id = wigs.owner_id
+    AND depth > 0
+  )
+);
+
+CREATE POLICY "wigs_admin" ON wigs
+FOR ALL USING (is_admin());
+
+-- WIG Progress
+ALTER TABLE wig_progress ENABLE ROW LEVEL SECURITY;
+
+-- Users can view progress of WIGs they can see
+CREATE POLICY "wig_progress_select" ON wig_progress
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM wigs w
+    WHERE w.id = wig_progress.wig_id
+    AND (
+      w.owner_id = (SELECT auth.uid())
+      OR w.level = 'COMPANY'
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = w.owner_id
+        AND descendant_id = (SELECT auth.uid())
+      )
+    )
+  )
+);
+
+-- Users can insert progress for their own WIGs
+CREATE POLICY "wig_progress_insert" ON wig_progress
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM wigs w
+    WHERE w.id = wig_progress.wig_id
+    AND w.owner_id = (SELECT auth.uid())
+  )
+  OR is_admin()
+);
+
+CREATE POLICY "wig_progress_admin" ON wig_progress
+FOR ALL USING (is_admin());
+
 -- ============================================
 -- CADENCE TABLES
 -- ============================================
@@ -545,10 +736,10 @@ FOR ALL USING (is_admin());
 
 ALTER TABLE cadence_meetings ENABLE ROW LEVEL SECURITY;
 
--- Users can see meetings they're part of
+-- Users can see meetings they're part of (as facilitator or participant)
 CREATE POLICY "cadence_meetings_select" ON cadence_meetings
 FOR SELECT USING (
-  host_id = (SELECT auth.uid())
+  facilitator_id = (SELECT auth.uid())
   OR EXISTS (
     SELECT 1 FROM cadence_participants cp
     WHERE cp.meeting_id = cadence_meetings.id
@@ -573,13 +764,13 @@ ALTER TABLE cadence_participants ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "cadence_participants_own" ON cadence_participants
 FOR ALL USING (user_id = (SELECT auth.uid()));
 
--- Host can manage participants
+-- Facilitator (host) can manage participants in their meetings
 CREATE POLICY "cadence_participants_host" ON cadence_participants
 FOR ALL USING (
   EXISTS (
     SELECT 1 FROM cadence_meetings cm
     WHERE cm.id = cadence_participants.meeting_id
-    AND cm.host_id = (SELECT auth.uid())
+    AND cm.facilitator_id = (SELECT auth.uid())
   )
 );
 

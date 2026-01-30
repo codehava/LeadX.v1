@@ -108,7 +108,13 @@ Map<String, dynamic> _$$PipelineReferralImplToJson(
   'approverName': instance.approverName,
 };
 
-const _$ApproverTypeEnumMap = {ApproverType.bm: 'BM', ApproverType.roh: 'ROH'};
+const _$ApproverTypeEnumMap = {
+  ApproverType.bh: 'BH',
+  ApproverType.bm: 'BM',
+  ApproverType.roh: 'ROH',
+  ApproverType.admin: 'ADMIN',
+  ApproverType.superadmin: 'SUPERADMIN',
+};
 
 const _$ReferralStatusEnumMap = {
   ReferralStatus.pendingReceiver: 'PENDING_RECEIVER',

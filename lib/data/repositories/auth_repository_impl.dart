@@ -25,15 +25,21 @@ class AuthRepositoryImpl implements AuthRepository {
   final _authStateController = StreamController<AppAuthState>.broadcast();
   bool _initialized = false;
 
+  /// Tracks if we're in password recovery mode.
+  /// This prevents the signedIn event from overwriting the passwordRecovery state.
+  bool _inPasswordRecoveryMode = false;
+
   AuthRepositoryImpl(this._client, {db.AppDatabase? database})
       : _database = database {
-    // Initialize auth state from persisted session immediately
-    _initializeAuthState();
-
-    // Listen to Supabase auth state changes for future events
+    // IMPORTANT: Set up listener BEFORE initializing state
+    // This ensures we catch passwordRecovery events from URL parameters
     _client.auth.onAuthStateChange.listen((data) {
       _handleAuthStateChange(data);
     });
+
+    // Initialize auth state from persisted session
+    // Delay slightly to allow auth events (like passwordRecovery) to fire first
+    _initializeAuthState();
   }
 
   /// Initialize auth state from persisted session
@@ -45,13 +51,31 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint('[Auth] Found persisted session, attempting to restore...');
       // Emit loading state immediately so router doesn't hang
       _authStateController.add(const AppAuthState.loading());
-      // Session exists, fetch user profile asynchronously
-      _restoreSessionAsync(session);
+      // Session exists, but wait briefly for potential passwordRecovery event
+      // This handles the case where user clicks a reset link and the app loads
+      _restoreSessionWithRecoveryCheck(session);
     } else {
       debugPrint('[Auth] No persisted session found');
       _authStateController.add(const AppAuthState.unauthenticated());
       _initialized = true;
     }
+  }
+
+  /// Restore session with a check for password recovery mode.
+  /// Waits briefly to allow passwordRecovery events to fire first.
+  Future<void> _restoreSessionWithRecoveryCheck(supabase.Session session) async {
+    // Wait briefly for auth events to fire (passwordRecovery fires quickly)
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // If passwordRecovery event fired, don't restore as authenticated
+    if (_inPasswordRecoveryMode) {
+      debugPrint('[Auth] Password recovery mode detected, not restoring as authenticated');
+      _initialized = true;
+      return;
+    }
+
+    // Normal session restoration
+    await _restoreSessionAsync(session);
   }
 
   /// Restore session asynchronously
@@ -74,20 +98,31 @@ class AuthRepositoryImpl implements AuthRepository {
         _fetchUserAndNotify(data.session);
         break;
       case supabase.AuthChangeEvent.signedIn:
+        // If we're in password recovery mode, don't emit authenticated state.
+        // The signedIn event fires after passwordRecovery when clicking reset link,
+        // which would otherwise overwrite the passwordRecovery state.
+        if (_inPasswordRecoveryMode) {
+          debugPrint('[Auth] signedIn ignored - in password recovery mode');
+          return;
+        }
         _fetchUserAndNotify(data.session);
         break;
       case supabase.AuthChangeEvent.signedOut:
         _currentSession = null;
         _currentUser = null;
+        _inPasswordRecoveryMode = false;
         _authStateController.add(const AppAuthState.unauthenticated());
         break;
       case supabase.AuthChangeEvent.tokenRefreshed:
         _fetchUserAndNotify(data.session);
         break;
       case supabase.AuthChangeEvent.userUpdated:
+        // userUpdated fires after password reset - exit recovery mode
+        _inPasswordRecoveryMode = false;
         _fetchUserAndNotify(data.session);
         break;
       case supabase.AuthChangeEvent.passwordRecovery:
+        _inPasswordRecoveryMode = true;
         _authStateController.add(const AppAuthState.passwordRecovery());
         break;
       default:
@@ -294,6 +329,11 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint('[Auth] Initialization timeout, returning current state');
     }
 
+    // If in password recovery mode, return that state regardless of session
+    if (_inPasswordRecoveryMode) {
+      return const AppAuthState.passwordRecovery();
+    }
+
     final session = _client.auth.currentSession;
     if (session == null) {
       return const AppAuthState.unauthenticated();
@@ -476,6 +516,11 @@ class AuthRepositoryImpl implements AuthRepository {
       await _client.auth.updateUser(
         supabase.UserAttributes(password: newPassword),
       );
+
+      // Clear recovery mode and sign out so user must log in with new password
+      _inPasswordRecoveryMode = false;
+      await _client.auth.signOut();
+
       return const Right(null);
     } catch (e) {
       return Left(AuthFailure(message: 'Password update failed'));

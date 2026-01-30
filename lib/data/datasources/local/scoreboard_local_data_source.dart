@@ -48,8 +48,8 @@ class ScoreboardLocalDataSource {
             name: def.name,
             description: Value(def.description),
             measureType: def.measureType,
-            dataType: def.dataType,
-            unit: Value(def.unit),
+            dataType: Value(def.dataType),
+            unit: def.unit ?? '',
             calculationFormula: Value(def.calculationFormula),
             sourceTable: Value(def.sourceTable),
             sourceCondition: Value(def.sourceCondition),
@@ -158,6 +158,7 @@ class ScoreboardLocalDataSource {
             periodId: target.periodId,
             targetValue: target.targetValue,
             assignedBy: target.assignedBy ?? '',
+            assignedAt: target.createdAt ?? DateTime.now(),
             createdAt: target.createdAt ?? DateTime.now(),
             updatedAt: target.updatedAt ?? DateTime.now(),
           ),
@@ -227,9 +228,9 @@ class ScoreboardLocalDataSource {
             userId: score.userId,
             measureId: score.measureId,
             periodId: score.periodId,
-            actualValue: score.actualValue,
+            actualValue: Value(score.actualValue),
             targetValue: score.targetValue,
-            percentage: Value(score.percentage),
+            percentage: Value(score.percentage ?? 0),
             calculatedAt: score.calculatedAt ?? DateTime.now(),
             createdAt: score.createdAt ?? DateTime.now(),
             updatedAt: score.updatedAt ?? DateTime.now(),
@@ -241,13 +242,13 @@ class ScoreboardLocalDataSource {
   }
 
   // ============================================
-  // PERIOD SUMMARY SCORES
+  // USER SCORE SNAPSHOTS (PERIOD SUMMARIES)
   // ============================================
 
   /// Get user's period summary.
   Future<PeriodSummary?> getUserPeriodSummary(
       String userId, String periodId) async {
-    final query = _db.select(_db.periodSummaryScores)
+    final query = _db.select(_db.userScoreSnapshots)
       ..where((t) => t.userId.equals(userId) & t.periodId.equals(periodId));
 
     final result = await query.getSingleOrNull();
@@ -257,15 +258,15 @@ class ScoreboardLocalDataSource {
   /// Get leaderboard for a period.
   Future<List<PeriodSummary>> getLeaderboard(String periodId,
       {int? limit}) async {
-    var query = _db.select(_db.periodSummaryScores).join([
-      leftOuterJoin(_db.users, _db.users.id.equalsExp(_db.periodSummaryScores.userId)),
+    var query = _db.select(_db.userScoreSnapshots).join([
+      leftOuterJoin(_db.users, _db.users.id.equalsExp(_db.userScoreSnapshots.userId)),
       leftOuterJoin(_db.scoringPeriods,
-          _db.scoringPeriods.id.equalsExp(_db.periodSummaryScores.periodId)),
+          _db.scoringPeriods.id.equalsExp(_db.userScoreSnapshots.periodId)),
     ])
-      ..where(_db.periodSummaryScores.periodId.equals(periodId))
+      ..where(_db.userScoreSnapshots.periodId.equals(periodId))
       ..orderBy([
-        OrderingTerm.asc(_db.periodSummaryScores.rank),
-        OrderingTerm.desc(_db.periodSummaryScores.compositeScore),
+        OrderingTerm.asc(_db.userScoreSnapshots.rank),
+        OrderingTerm.desc(_db.userScoreSnapshots.totalScore),
       ]);
 
     if (limit != null) {
@@ -274,7 +275,7 @@ class ScoreboardLocalDataSource {
 
     final results = await query.get();
     return results.map((row) {
-      final summary = row.readTable(_db.periodSummaryScores);
+      final summary = row.readTable(_db.userScoreSnapshots);
       final user = row.readTableOrNull(_db.users);
       final period = row.readTableOrNull(_db.scoringPeriods);
       return _mapToPeriodSummary(summary, user, period);
@@ -289,12 +290,12 @@ class ScoreboardLocalDataSource {
 
   /// Get total team members count for a period.
   Future<int> getTeamMembersCount(String periodId) async {
-    final query = _db.selectOnly(_db.periodSummaryScores)
-      ..addColumns([_db.periodSummaryScores.id.count()])
-      ..where(_db.periodSummaryScores.periodId.equals(periodId));
+    final query = _db.selectOnly(_db.userScoreSnapshots)
+      ..addColumns([_db.userScoreSnapshots.id.count()])
+      ..where(_db.userScoreSnapshots.periodId.equals(periodId));
 
     final result = await query.getSingle();
-    return result.read(_db.periodSummaryScores.id.count()) ?? 0;
+    return result.read(_db.userScoreSnapshots.id.count()) ?? 0;
   }
 
   /// Insert or update period summaries.
@@ -302,19 +303,18 @@ class ScoreboardLocalDataSource {
     await _db.batch((batch) {
       for (final summary in summaries) {
         batch.insert(
-          _db.periodSummaryScores,
-          db.PeriodSummaryScoresCompanion.insert(
+          _db.userScoreSnapshots,
+          db.UserScoreSnapshotsCompanion.insert(
             id: summary.id,
             userId: summary.userId,
             periodId: summary.periodId,
-            totalLeadScore: Value(summary.totalLeadScore),
-            totalLagScore: Value(summary.totalLagScore),
-            compositeScore: Value(summary.compositeScore),
+            leadScore: Value(summary.totalLeadScore),
+            lagScore: Value(summary.totalLagScore),
+            totalScore: Value(summary.compositeScore),
             rank: Value(summary.rank),
             rankChange: Value(summary.rankChange),
             calculatedAt: summary.calculatedAt ?? DateTime.now(),
             createdAt: summary.createdAt ?? DateTime.now(),
-            updatedAt: summary.updatedAt ?? DateTime.now(),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -401,7 +401,7 @@ class ScoreboardLocalDataSource {
   }
 
   PeriodSummary _mapToPeriodSummary(
-    db.PeriodSummaryScore data,
+    db.UserScoreSnapshot data,
     db.User? user,
     db.ScoringPeriod? period,
   ) {
@@ -409,14 +409,13 @@ class ScoreboardLocalDataSource {
       id: data.id,
       userId: data.userId,
       periodId: data.periodId,
-      totalLeadScore: data.totalLeadScore,
-      totalLagScore: data.totalLagScore,
-      compositeScore: data.compositeScore,
+      totalLeadScore: data.leadScore,
+      totalLagScore: data.lagScore,
+      compositeScore: data.totalScore,
       rank: data.rank,
       rankChange: data.rankChange,
       calculatedAt: data.calculatedAt,
       createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
       userName: user?.name,
       periodName: period?.name,
     );

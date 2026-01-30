@@ -66,7 +66,7 @@ class ReferralStatusBadge extends StatelessWidget {
   }
 }
 
-/// Badge widget for displaying approver type (BM or ROH).
+/// Badge widget for displaying approver type.
 class ApproverTypeBadge extends StatelessWidget {
   const ApproverTypeBadge({
     super.key,
@@ -82,9 +82,7 @@ class ApproverTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = approverType == ApproverType.bm
-        ? Colors.indigo
-        : Colors.teal;
+    final (color, icon) = _getApproverStyle(approverType);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -99,9 +97,7 @@ class ApproverTypeBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            approverType == ApproverType.bm
-                ? Icons.business
-                : Icons.location_city,
+            icon,
             size: compact ? 12 : 14,
             color: color,
           ),
@@ -117,5 +113,15 @@ class ApproverTypeBadge extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  (Color, IconData) _getApproverStyle(ApproverType type) {
+    return switch (type) {
+      ApproverType.bm => (Colors.indigo, Icons.business),
+      ApproverType.bh => (Colors.deepPurple, Icons.supervisor_account),
+      ApproverType.roh => (Colors.teal, Icons.location_city),
+      ApproverType.admin => (Colors.orange, Icons.admin_panel_settings),
+      ApproverType.superadmin => (Colors.red, Icons.security),
+    };
   }
 }

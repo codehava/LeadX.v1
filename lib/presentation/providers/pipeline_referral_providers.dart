@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/local/pipeline_referral_local_data_source.dart';
@@ -194,6 +195,16 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> createReferral(PipelineReferralCreateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.createReferral(dto);
+
+    // Check if notifier is still mounted - if not, the operation still succeeded
+    // but we can't update state. Return based on result, not mounted status.
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -216,6 +227,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> acceptReferral(String id, {String? notes}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.acceptReferral(id, notes);
+    if (!mounted) return false;
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -238,6 +250,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> rejectReferral(String id, String reason) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.rejectReferral(id, reason);
+    if (!mounted) return false;
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -260,6 +273,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> approveReferral(String id, {String? notes}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.approveReferral(id, _currentUserId, notes);
+    if (!mounted) return false;
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -283,6 +297,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result =
         await _repository.rejectAsManager(id, _currentUserId, reason);
+    if (!mounted) return false;
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -305,6 +320,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> cancelReferral(String id, String reason) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.cancelReferral(id, reason);
+    if (!mounted) return false;
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -427,6 +443,7 @@ class CreateReferralFormNotifier extends StateNotifier<CreateReferralFormState> 
 
     // Fetch approver for the receiver
     final approver = await _repository.findApproverForUser(id);
+    if (!mounted) return;
     state = state.copyWith(
       approverInfo: approver,
       isLoadingApprover: false,

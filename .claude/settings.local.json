@@ -12,7 +12,10 @@
       "Bash(flutter run:*)",
       "WebFetch(domain:supabase.com)",
       "WebFetch(domain:github.com)",
-      "Bash(iconv:*)"
+      "Bash(iconv:*)",
+      "Bash(findstr:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\cartr\\\\git_stuff\\\\LeadX.v1\\\\docs\"\" 2>&1 || echo \"Docs folder may not exist yet \")",
+      "Bash(Select-String -Pattern \"cadence\" -SimpleMatch)"
     ]
   }
 }

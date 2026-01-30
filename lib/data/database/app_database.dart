@@ -11,6 +11,7 @@ import 'tables/pipelines.dart';
 import 'tables/scoring.dart';
 import 'tables/sync_queue.dart';
 import 'tables/users.dart';
+import 'tables/wigs.dart';
 
 part 'app_database.g.dart';
 
@@ -77,8 +78,14 @@ part 'app_database.g.dart';
     ScoringPeriods,
     UserTargets,
     UserScores,
-    PeriodSummaryScores,
-    
+    UserScoreSnapshots,
+
+    // ============================================
+    // WIG - WILDLY IMPORTANT GOALS (2 tables)
+    // ============================================
+    Wigs,
+    WigProgress,
+
     // ============================================
     // CADENCE (3 tables)
     // ============================================
@@ -110,7 +117,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -133,6 +140,25 @@ class AppDatabase extends _$AppDatabase {
                 pipelineStageHistoryItems, pipelineStageHistoryItems.isPendingSync);
             await m.addColumn(
                 pipelineStageHistoryItems, pipelineStageHistoryItems.createdLocally);
+          }
+          // Migration from v4 to v5: Add WIG tables and update scoring tables
+          if (from < 5) {
+            // Add new WIG tables
+            await m.createTable(wigs);
+            await m.createTable(wigProgress);
+            // Add new columns to measure_definitions
+            await m.addColumn(measureDefinitions, measureDefinitions.weight);
+            await m.addColumn(measureDefinitions, measureDefinitions.defaultTarget);
+            await m.addColumn(measureDefinitions, measureDefinitions.periodType);
+            await m.addColumn(measureDefinitions, measureDefinitions.calculationMethod);
+            // Add new columns to scoring_periods
+            await m.addColumn(scoringPeriods, scoringPeriods.isLocked);
+            // Add new columns to user_targets
+            await m.addColumn(userTargets, userTargets.assignedAt);
+            // Add new columns to user_scores
+            await m.addColumn(userScores, userScores.score);
+            await m.addColumn(userScores, userScores.rank);
+            // Rename PeriodSummaryScores to UserScoreSnapshots handled by recreation
           }
         },
         beforeOpen: (details) async {

@@ -43,9 +43,8 @@ class User with _$User {
         UserRole.roh,
       ].contains(role);
 
-  /// Whether user can manage subordinates
-  bool get canManageSubordinates =>
-      role != UserRole.rm && role != UserRole.admin;
+  /// Whether user can manage subordinates (approve referrals, view team data, etc.)
+  bool get canManageSubordinates => role != UserRole.rm;
 
   /// Display name for the user
   String get displayName => name.isNotEmpty ? name : email.split('@').first;
@@ -90,7 +89,7 @@ extension UserRoleExtension on UserRole {
       case UserRole.bm:
         return 'Branch Manager';
       case UserRole.bh:
-        return 'Branch Head';
+        return 'Business Head';
       case UserRole.rm:
         return 'Relationship Manager';
     }

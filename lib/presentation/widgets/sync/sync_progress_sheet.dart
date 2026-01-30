@@ -8,18 +8,33 @@ import '../../providers/sync_providers.dart';
 class SyncProgressSheet extends ConsumerStatefulWidget {
   const SyncProgressSheet({super.key});
 
+  /// Track if sync sheet is currently showing to prevent duplicates.
+  static bool _isShowing = false;
+
   /// Show the sync progress sheet.
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
-      context: context,
-      isDismissible: false,
-      enableDrag: false,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => const SyncProgressSheet(),
-    );
+  /// Returns immediately if already showing to prevent duplicate syncs.
+  static Future<void> show(BuildContext context) async {
+    // Prevent showing multiple times (race condition between LoginScreen and HomeScreen)
+    if (_isShowing) {
+      print('[SyncProgressSheet] Already showing, skipping duplicate call');
+      return;
+    }
+
+    _isShowing = true;
+    try {
+      await showModalBottomSheet(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => const SyncProgressSheet(),
+      );
+    } finally {
+      _isShowing = false;
+    }
   }
 
   @override
@@ -71,7 +86,31 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       return;
     }
 
-    // Phase 2: Pull user data (customers, pipelines, activities)
+    // Phase 2: Delta sync for transactional tables (hvcs, brokers, pipeline_referrals, etc.)
+    if (mounted) {
+      setState(() {
+        _progress = InitialSyncProgress(
+          currentTable: 'delta_sync',
+          currentTableIndex: 1,
+          totalTables: 1,
+          currentPage: 0,
+          totalRows: 0,
+          percentage: 90,
+          message: 'Mengunduh data transaksional...',
+        );
+      });
+    }
+
+    print('[SyncProgressSheet] Starting delta sync...');
+    try {
+      final deltaResult = await initialSyncService.performDeltaSync();
+      print('[SyncProgressSheet] Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
+    } catch (e) {
+      print('[SyncProgressSheet] Delta sync error: $e');
+      // Don't fail the whole sync for delta sync errors - they can retry later
+    }
+
+    // Phase 3: Pull user data (customers, pipelines, activities)
     if (mounted) {
       setState(() {
         _progress = InitialSyncProgress(
