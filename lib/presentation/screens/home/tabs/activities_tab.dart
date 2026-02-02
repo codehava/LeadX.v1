@@ -43,8 +43,9 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
               children: [
                 IconButton(
                   onPressed: () {
+                    // Navigate to previous week
                     ref.read(selectedDateProvider.notifier).state =
-                        DateTime(selectedDate.year, selectedDate.month - 1, 1);
+                        selectedDate.subtract(const Duration(days: 7));
                   },
                   icon: const Icon(Icons.chevron_left),
                 ),
@@ -59,8 +60,9 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
                 ),
                 IconButton(
                   onPressed: () {
+                    // Navigate to next week
                     ref.read(selectedDateProvider.notifier).state =
-                        DateTime(selectedDate.year, selectedDate.month + 1, 1);
+                        selectedDate.add(const Duration(days: 7));
                   },
                   icon: const Icon(Icons.chevron_right),
                 ),

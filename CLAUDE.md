@@ -171,3 +171,9 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
 3. **Soft deletes**: Use `deleted_at` timestamp, never hard delete business data
 4. **Sync status**: All syncable entities have `is_pending_sync` and `last_sync_at` columns
 5. **Functional error handling**: Use `Either<Failure, T>` from dartz for operations that can fail
+6. **Cache invalidation**: Required to prevent stale UI data. Follow these rules:
+   - **Repository caches**: If a repository has in-memory lookup caches (e.g., `_stageNameCache`, `_userNameCache`), it MUST have an `invalidateCaches()` method that clears them
+   - **After sync operations**: Call `repository.invalidateCaches()` after pulling data from remote in `SyncNotifier._pullFromRemote()`
+   - **After mutations in notifiers**: Call `ref.invalidate()` on affected stream providers after successful create/update/delete operations
+   - **Example repositories with caches**: `PipelineRepositoryImpl`, `ActivityRepositoryImpl`, `PipelineReferralRepositoryImpl`
+   - **Provider invalidation**: `SyncNotifier._invalidateDataProviders()` invalidates all list stream providers after sync completion

@@ -187,10 +187,26 @@ class ActivityFormState {
 
 /// Notifier for activity form operations.
 class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
-  ActivityFormNotifier(this._repository, this._remoteDataSource) : super(ActivityFormState());
+  ActivityFormNotifier(this._ref, this._repository, this._remoteDataSource) : super(ActivityFormState());
 
+  final Ref _ref;
   final ActivityRepositoryImpl _repository;
   final ActivityRemoteDataSource _remoteDataSource;
+
+  /// Invalidate activity-related providers after mutations.
+  void _invalidateActivityProviders(String activityId, String? customerId, String? hvcId, String? brokerId) {
+    _ref.invalidate(activityDetailProvider(activityId));
+    _ref.invalidate(activityWithDetailsProvider(activityId));
+    if (customerId != null) {
+      _ref.invalidate(customerActivitiesProvider(customerId));
+    }
+    if (hvcId != null) {
+      _ref.invalidate(hvcActivitiesProvider(hvcId));
+    }
+    if (brokerId != null) {
+      _ref.invalidate(brokerActivitiesProvider(brokerId));
+    }
+  }
 
   /// Create a new scheduled activity.
   Future<void> createActivity(ActivityCreateDto dto) async {
@@ -201,10 +217,13 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (activity) => state = state.copyWith(
-        isLoading: false,
-        savedActivity: activity,
-      ),
+      (activity) {
+        state = state.copyWith(
+          isLoading: false,
+          savedActivity: activity,
+        );
+        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+      },
     );
   }
 
@@ -217,10 +236,13 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (activity) => state = state.copyWith(
-        isLoading: false,
-        savedActivity: activity,
-      ),
+      (activity) {
+        state = state.copyWith(
+          isLoading: false,
+          savedActivity: activity,
+        );
+        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+      },
     );
   }
 
@@ -233,10 +255,13 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (activity) => state = state.copyWith(
-        isLoading: false,
-        savedActivity: activity,
-      ),
+      (activity) {
+        state = state.copyWith(
+          isLoading: false,
+          savedActivity: activity,
+        );
+        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+      },
     );
   }
 
@@ -249,15 +274,18 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (activity) => state = state.copyWith(
-        isLoading: false,
-        savedActivity: activity,
-      ),
+      (activity) {
+        state = state.copyWith(
+          isLoading: false,
+          savedActivity: activity,
+        );
+        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+      },
     );
   }
 
   /// Cancel an activity.
-  Future<bool> cancelActivity(String id, String reason) async {
+  Future<bool> cancelActivity(String id, String reason, {String? customerId, String? hvcId, String? brokerId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.cancelActivity(id, reason);
     return result.fold(
@@ -270,6 +298,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
+        _invalidateActivityProviders(id, customerId, hvcId, brokerId);
         return true;
       },
     );
@@ -383,7 +412,7 @@ final activityFormNotifierProvider =
         (ref) {
   final repository = ref.watch(activityRepositoryProvider);
   final remoteDataSource = ref.watch(activityRemoteDataSourceProvider);
-  return ActivityFormNotifier(repository, remoteDataSource);
+  return ActivityFormNotifier(ref, repository, remoteDataSource);
 });
 
 // ==========================================

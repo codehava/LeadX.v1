@@ -350,6 +350,7 @@ class _LinkedCustomersTab extends ConsumerWidget {
                   context,
                   ref,
                   link.id,
+                  link.customerId,
                   link.customerName ?? 'Pelanggan',
                 ),
                 child: Card(
@@ -370,6 +371,7 @@ class _LinkedCustomersTab extends ConsumerWidget {
                             context,
                             ref,
                             link.id,
+                            link.customerId,
                             link.customerName ?? 'Pelanggan',
                           ),
                         ),
@@ -401,6 +403,7 @@ class _LinkedCustomersTab extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String linkId,
+    String customerId,
     String customerName,
   ) async {
     final result = await showDialog<bool>(
@@ -424,12 +427,15 @@ class _LinkedCustomersTab extends ConsumerWidget {
 
     if (result ?? false) {
       final notifier = ref.read(customerHvcLinkNotifierProvider.notifier);
-      final success = await notifier.unlinkCustomerFromHvc(linkId);
+      final success = await notifier.unlinkCustomerFromHvc(
+        linkId,
+        hvcId: hvcId,
+        customerId: customerId,
+      );
       if (success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Link berhasil dihapus')),
         );
-        ref.invalidate(linkedCustomersProvider(hvcId));
       }
       return success;
     }

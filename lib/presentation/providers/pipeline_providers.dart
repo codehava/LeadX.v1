@@ -142,9 +142,21 @@ class PipelineFormState {
 
 /// Notifier for pipeline form operations.
 class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
-  PipelineFormNotifier(this._repository) : super(PipelineFormState());
+  PipelineFormNotifier(this._ref, this._repository) : super(PipelineFormState());
 
+  final Ref _ref;
   final PipelineRepositoryImpl _repository;
+
+  /// Invalidate pipeline-related providers after mutations.
+  void _invalidatePipelineProviders(String pipelineId, String? customerId, String? brokerId) {
+    _ref.invalidate(pipelineDetailProvider(pipelineId));
+    if (customerId != null) {
+      _ref.invalidate(customerPipelinesProvider(customerId));
+    }
+    if (brokerId != null) {
+      _ref.invalidate(brokerPipelinesProvider(brokerId));
+    }
+  }
 
   /// Create a new pipeline.
   Future<void> createPipeline(PipelineCreateDto dto) async {
@@ -155,10 +167,13 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (pipeline) => state = state.copyWith(
-        isLoading: false,
-        savedPipeline: pipeline,
-      ),
+      (pipeline) {
+        state = state.copyWith(
+          isLoading: false,
+          savedPipeline: pipeline,
+        );
+        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+      },
     );
   }
 
@@ -171,10 +186,13 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (pipeline) => state = state.copyWith(
-        isLoading: false,
-        savedPipeline: pipeline,
-      ),
+      (pipeline) {
+        state = state.copyWith(
+          isLoading: false,
+          savedPipeline: pipeline,
+        );
+        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+      },
     );
   }
 
@@ -187,10 +205,13 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (pipeline) => state = state.copyWith(
-        isLoading: false,
-        savedPipeline: pipeline,
-      ),
+      (pipeline) {
+        state = state.copyWith(
+          isLoading: false,
+          savedPipeline: pipeline,
+        );
+        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+      },
     );
   }
 
@@ -203,15 +224,18 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (pipeline) => state = state.copyWith(
-        isLoading: false,
-        savedPipeline: pipeline,
-      ),
+      (pipeline) {
+        state = state.copyWith(
+          isLoading: false,
+          savedPipeline: pipeline,
+        );
+        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+      },
     );
   }
 
   /// Delete a pipeline.
-  Future<bool> deletePipeline(String id) async {
+  Future<bool> deletePipeline(String id, {String? customerId, String? brokerId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.deletePipeline(id);
     return result.fold(
@@ -224,6 +248,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
+        _invalidatePipelineProviders(id, customerId, brokerId);
         return true;
       },
     );
@@ -240,5 +265,5 @@ final pipelineFormNotifierProvider =
     StateNotifierProvider.autoDispose<PipelineFormNotifier, PipelineFormState>(
         (ref) {
   final repository = ref.watch(pipelineRepositoryProvider);
-  return PipelineFormNotifier(repository);
+  return PipelineFormNotifier(ref, repository);
 });

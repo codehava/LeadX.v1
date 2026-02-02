@@ -166,12 +166,29 @@ class AdminUserNotifier extends _$AdminUserNotifier {
   /// Update user hierarchy (supervisor assignment).
   /// Throws exception on failure.
   Future<void> updateUserHierarchy(String userId, String? newParentId) async {
+    // Get old parent before update to invalidate their subordinates list
+    final oldUser = await ref.read(userByIdProvider(userId).future);
+    final oldParentId = oldUser?.parentId;
+
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.updateUserHierarchy(userId, newParentId);
 
     result.fold(
       (failure) => throw Exception(failure.message),
-      (_) => ref.invalidate(userSubordinatesProvider),
+      (_) {
+        // Invalidate all users to refresh hierarchy data
+        ref.invalidate(allUsersProvider);
+        // Invalidate the specific user being updated
+        ref.invalidate(userByIdProvider(userId));
+        // Invalidate old supervisor's subordinates list
+        if (oldParentId != null) {
+          ref.invalidate(userSubordinatesProvider(oldParentId));
+        }
+        // Invalidate new supervisor's subordinates list
+        if (newParentId != null) {
+          ref.invalidate(userSubordinatesProvider(newParentId));
+        }
+      },
     );
   }
 }

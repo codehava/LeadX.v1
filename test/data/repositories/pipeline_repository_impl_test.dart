@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leadx_crm/core/errors/failures.dart';
 import 'package:leadx_crm/data/database/app_database.dart' as db;
+import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart';
+import 'package:leadx_crm/data/datasources/local/history_log_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/master_data_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/pipeline_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/remote/pipeline_remote_data_source.dart';
@@ -19,8 +21,14 @@ import 'package:mockito/mockito.dart';
 @GenerateMocks([
   PipelineLocalDataSource,
   MasterDataLocalDataSource,
+  CustomerLocalDataSource,
+  HistoryLogLocalDataSource,
   PipelineRemoteDataSource,
   SyncService,
+])
+@GenerateNiceMocks([
+  MockSpec<db.AppDatabase>(),
+  MockSpec<SimpleSelectStatement<db.$UsersTable, db.User>>(),
 ])
 import 'pipeline_repository_impl_test.mocks.dart';
 
@@ -28,8 +36,12 @@ void main() {
   late PipelineRepositoryImpl repository;
   late MockPipelineLocalDataSource mockLocalDataSource;
   late MockMasterDataLocalDataSource mockMasterDataSource;
+  late MockCustomerLocalDataSource mockCustomerDataSource;
+  late MockHistoryLogLocalDataSource mockHistoryLogDataSource;
   late MockPipelineRemoteDataSource mockRemoteDataSource;
   late MockSyncService mockSyncService;
+  late MockAppDatabase mockDatabase;
+  late MockSimpleSelectStatement mockUsersSelect;
 
   const testUserId = 'test-user-id';
   final testNow = DateTime(2026, 1, 21);
@@ -146,8 +158,16 @@ void main() {
   setUp(() {
     mockLocalDataSource = MockPipelineLocalDataSource();
     mockMasterDataSource = MockMasterDataLocalDataSource();
+    mockCustomerDataSource = MockCustomerLocalDataSource();
+    mockHistoryLogDataSource = MockHistoryLogLocalDataSource();
     mockRemoteDataSource = MockPipelineRemoteDataSource();
     mockSyncService = MockSyncService();
+    mockDatabase = MockAppDatabase();
+    mockUsersSelect = MockSimpleSelectStatement();
+
+    // Mock database.select(database.users).get() to return empty list
+    when(mockDatabase.select<db.$UsersTable, db.User>(any)).thenReturn(mockUsersSelect);
+    when(mockUsersSelect.get()).thenAnswer((_) async => <db.User>[]);
 
     // Default mock for master data caches
     when(mockLocalDataSource.getPipelineStages())
@@ -158,15 +178,20 @@ void main() {
         .thenAnswer((_) async => [createTestDbStatus()]);
     when(mockMasterDataSource.getCobs()).thenAnswer((_) async => []);
     when(mockMasterDataSource.getLobsByCob(any)).thenAnswer((_) async => []);
+    when(mockMasterDataSource.getAllLobs()).thenAnswer((_) async => []);
     when(mockMasterDataSource.getLeadSources()).thenAnswer((_) async => []);
     when(mockMasterDataSource.getBrokers()).thenAnswer((_) async => []);
+    when(mockCustomerDataSource.getAllCustomers()).thenAnswer((_) async => []);
 
     repository = PipelineRepositoryImpl(
       localDataSource: mockLocalDataSource,
       masterDataSource: mockMasterDataSource,
+      customerDataSource: mockCustomerDataSource,
       remoteDataSource: mockRemoteDataSource,
+      historyLogDataSource: mockHistoryLogDataSource,
       syncService: mockSyncService,
       currentUserId: testUserId,
+      database: mockDatabase,
     );
   });
 
@@ -224,7 +249,7 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
         when(mockSyncService.triggerSync())
             .thenAnswer((_) async => createDefaultSyncResult());
         when(mockLocalDataSource.getPipelineById(any))
@@ -303,8 +328,9 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
-        when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
+        when(mockSyncService.triggerSync())
+            .thenAnswer((_) async => createDefaultSyncResult());
 
         // Set up for second call to getPipelineById (after update)
         when(mockLocalDataSource.getPipelineById(id))
@@ -388,8 +414,9 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
-        when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
+        when(mockSyncService.triggerSync())
+            .thenAnswer((_) async => createDefaultSyncResult());
 
         // Second call returns updated pipeline
         when(mockLocalDataSource.getPipelineById(id))
@@ -473,8 +500,9 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
-        when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
+        when(mockSyncService.triggerSync())
+            .thenAnswer((_) async => createDefaultSyncResult());
         when(mockLocalDataSource.getPipelineById(id))
             .thenAnswer((_) async => closedPipeline);
 
@@ -511,8 +539,9 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
-        when(mockSyncService.triggerSync()).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
+        when(mockSyncService.triggerSync())
+            .thenAnswer((_) async => createDefaultSyncResult());
 
         // Second call returns updated pipeline
         when(mockLocalDataSource.getPipelineById(id))
@@ -568,7 +597,7 @@ void main() {
           entityId: anyNamed('entityId'),
           operation: anyNamed('operation'),
           payload: anyNamed('payload'),
-        )).thenAnswer((_) async {});
+        )).thenAnswer((_) async => 1);
 
         // Act
         final result = await repository.deletePipeline(id);

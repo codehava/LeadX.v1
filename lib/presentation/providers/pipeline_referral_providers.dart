@@ -200,11 +200,21 @@ class ReferralActionState {
 
 /// Notifier for referral action operations.
 class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
-  ReferralActionNotifier(this._repository, this._currentUserId)
+  ReferralActionNotifier(this._ref, this._repository, this._currentUserId)
       : super(ReferralActionState());
 
+  final Ref _ref;
   final PipelineReferralRepository _repository;
   final String _currentUserId;
+
+  /// Invalidate all referral-related providers after mutations.
+  void _invalidateReferralProviders() {
+    _ref.invalidate(inboundReferralsProvider);
+    _ref.invalidate(outboundReferralsProvider);
+    _ref.invalidate(pendingApprovalsProvider);
+    _ref.invalidate(allReferralsProvider);
+    debugPrint('[ReferralNotifier] Referral providers invalidated');
+  }
 
   /// Create a new referral.
   Future<bool> createReferral(PipelineReferralCreateDto dto) async {
@@ -233,6 +243,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -265,6 +276,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -295,6 +307,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -325,6 +338,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -356,6 +370,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -386,6 +401,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
+        _invalidateReferralProviders();
         return true;
       },
     );
@@ -403,7 +419,7 @@ final referralActionNotifierProvider =
         (ref) {
   final repository = ref.watch(pipelineReferralRepositoryProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
-  return ReferralActionNotifier(repository, currentUser?.id ?? '');
+  return ReferralActionNotifier(ref, repository, currentUser?.id ?? '');
 });
 
 // ==========================================

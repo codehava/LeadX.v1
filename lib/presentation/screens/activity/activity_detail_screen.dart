@@ -757,10 +757,15 @@ class ActivityDetailScreen extends ConsumerWidget {
               // Call cancel method
               await ref
                   .read(activityFormNotifierProvider.notifier)
-                  .cancelActivity(activity.id, reasonController.text);
-              
+                  .cancelActivity(
+                    activity.id,
+                    reasonController.text,
+                    customerId: activity.customerId,
+                    hvcId: activity.hvcId,
+                    brokerId: activity.brokerId,
+                  );
+
               if (context.mounted) {
-                ref.invalidate(activityWithDetailsProvider(activityId));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Aktivitas berhasil dibatalkan'),

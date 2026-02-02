@@ -454,10 +454,20 @@ class AdminCadenceConfigState {
 /// Notifier for admin cadence config operations.
 class AdminCadenceConfigNotifier
     extends StateNotifier<AdminCadenceConfigState> {
-  AdminCadenceConfigNotifier(this._repository)
+  AdminCadenceConfigNotifier(this._ref, this._repository)
       : super(AdminCadenceConfigState());
 
+  final Ref _ref;
   final CadenceRepository _repository;
+
+  /// Invalidate config-related providers after mutations.
+  void _invalidateConfigProviders({String? configId}) {
+    _ref.invalidate(cadenceConfigsProvider);
+    _ref.invalidate(myFacilitatorConfigProvider);
+    if (configId != null) {
+      _ref.invalidate(cadenceConfigByIdProvider(configId));
+    }
+  }
 
   /// Create a new config.
   Future<bool> createConfig({
@@ -498,6 +508,7 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
+        _invalidateConfigProviders(configId: config.id);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dibuat',
@@ -548,6 +559,7 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
+        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil diperbarui',
@@ -572,6 +584,7 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
+        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: isActive ? 'Konfigurasi diaktifkan' : 'Konfigurasi dinonaktifkan',
@@ -596,6 +609,7 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (_) {
+        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dihapus',
@@ -615,5 +629,5 @@ class AdminCadenceConfigNotifier
 final adminCadenceConfigNotifierProvider = StateNotifierProvider.autoDispose<
     AdminCadenceConfigNotifier, AdminCadenceConfigState>((ref) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return AdminCadenceConfigNotifier(repository);
+  return AdminCadenceConfigNotifier(ref, repository);
 });

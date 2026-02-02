@@ -333,7 +333,11 @@ class PipelineDetailScreen extends ConsumerWidget {
               Navigator.pop(context);
               await ref
                   .read(pipelineFormNotifierProvider.notifier)
-                  .deletePipeline(pipeline.id);
+                  .deletePipeline(
+                    pipeline.id,
+                    customerId: pipeline.customerId,
+                    brokerId: pipeline.brokerId,
+                  );
               if (context.mounted) {
                 context.pop();
               }

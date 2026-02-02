@@ -24,12 +24,18 @@ import '../../domain/repositories/cadence_repository.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../../domain/repositories/hvc_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
+import '../../data/repositories/pipeline_referral_repository_impl.dart';
+import '../../domain/repositories/pipeline_referral_repository.dart';
+import 'activity_providers.dart';
 import 'auth_providers.dart';
 import 'broker_providers.dart';
 import 'cadence_providers.dart';
+import 'customer_providers.dart';
 import 'database_provider.dart';
 import 'hvc_providers.dart';
 import 'master_data_providers.dart';
+import 'pipeline_providers.dart';
+import 'pipeline_referral_providers.dart';
 
 /// Provider for app settings service.
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
@@ -106,6 +112,7 @@ Future<void> initializeSyncServices(ProviderContainer container) async {
 /// Performs push (local → remote) then pull (remote → local).
 class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   SyncNotifier(
+    this._ref,
     this._syncService,
     this._customerRepository,
     this._pipelineRepository,
@@ -113,9 +120,11 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._hvcRepository,
     this._brokerRepository,
     this._cadenceRepository,
+    this._pipelineReferralRepository,
     this._connectivityService,
   ) : super(const AsyncValue.data(null));
 
+  final Ref _ref;
   final SyncService _syncService;
   final CustomerRepository _customerRepository;
   final PipelineRepository _pipelineRepository;
@@ -123,6 +132,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   final HvcRepository _hvcRepository;
   final BrokerRepository _brokerRepository;
   final CadenceRepository _cadenceRepository;
+  final PipelineReferralRepository _pipelineReferralRepository;
   final ConnectivityService _connectivityService;
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
@@ -209,6 +219,11 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
 
     // Pull pipelines
     try {
+      // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
+      final pipelineRepo = _pipelineRepository;
+      if (pipelineRepo is PipelineRepositoryImpl) {
+        pipelineRepo.invalidateCaches();
+      }
       await _pipelineRepository.syncFromRemote();
     } catch (e) {
       debugPrint('[SyncNotifier] Pipeline pull error: $e');
@@ -216,13 +231,12 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
 
     // Pull activities
     try {
+      // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
+      _activityRepository.invalidateCaches();
       await _activityRepository.syncFromRemote();
 
       // Sync activity photos from remote
       await _activityRepository.syncPhotosFromRemote();
-
-      // Invalidate activity type cache to refresh names
-      _activityRepository.invalidateCaches();
     } catch (e) {
       debugPrint('[SyncNotifier] Activity pull error: $e');
     }
@@ -267,6 +281,49 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     } catch (e) {
       debugPrint('[SyncNotifier] Cadence pull error: $e');
     }
+
+    // Pull Pipeline Referrals
+    try {
+      // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
+      _pipelineReferralRepository.invalidateCaches();
+      await _pipelineReferralRepository.syncFromRemote();
+      debugPrint('[SyncNotifier] Pulled pipeline referral data');
+    } catch (e) {
+      debugPrint('[SyncNotifier] Pipeline referral pull error: $e');
+    }
+
+    // Step 5: Invalidate all data providers to refresh UI
+    await _invalidateDataProviders();
+  }
+
+  /// Invalidate all data providers after sync completion.
+  /// This ensures UI reflects the latest synced data.
+  Future<void> _invalidateDataProviders() async {
+    debugPrint('[SyncNotifier] Invalidating data providers...');
+
+    // Invalidate list stream providers
+    _ref.invalidate(customerListStreamProvider);
+    _ref.invalidate(pipelineListStreamProvider);
+    _ref.invalidate(todayActivitiesProvider);
+    _ref.invalidate(hvcListStreamProvider);
+    _ref.invalidate(brokerListStreamProvider);
+
+    // Invalidate referral providers
+    _ref.invalidate(inboundReferralsProvider);
+    _ref.invalidate(outboundReferralsProvider);
+    _ref.invalidate(pendingApprovalsProvider);
+    _ref.invalidate(allReferralsProvider);
+
+    // Refresh current user to pick up any profile changes from sync
+    try {
+      final authRepo = _ref.read(authRepositoryProvider);
+      await authRepo.refreshCurrentUser();
+      _ref.invalidate(currentUserProvider);
+    } catch (e) {
+      debugPrint('[SyncNotifier] Error refreshing current user: $e');
+    }
+
+    debugPrint('[SyncNotifier] Data providers invalidated');
   }
 
   /// Check if sync is currently in progress.
@@ -314,8 +371,10 @@ final syncNotifierProvider =
   final hvcRepository = ref.watch(hvcRepositoryProvider);
   final brokerRepository = ref.watch(brokerRepositoryProvider);
   final cadenceRepository = ref.watch(cadenceRepositoryProvider);
+  final pipelineReferralRepository = ref.watch(_pipelineReferralRepositoryProvider);
 
   return SyncNotifier(
+    ref,
     syncService,
     customerRepository,
     pipelineRepository,
@@ -323,6 +382,7 @@ final syncNotifierProvider =
     hvcRepository,
     brokerRepository,
     cadenceRepository,
+    pipelineReferralRepository,
     connectivityService,
   );
 });
@@ -429,5 +489,23 @@ final _activityLocalDataSourceProvider = Provider((ref) {
 final _activityRemoteDataSourceProvider = Provider((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return ActivityRemoteDataSource(supabase);
+});
+
+/// Late-bound provider for pipeline referral repository to avoid circular imports.
+final _pipelineReferralRepositoryProvider = Provider<PipelineReferralRepository>((ref) {
+  final localDataSource = ref.watch(pipelineReferralLocalDataSourceProvider);
+  final remoteDataSource = ref.watch(pipelineReferralRemoteDataSourceProvider);
+  final syncService = ref.watch(syncServiceProvider);
+  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+  final database = ref.watch(databaseProvider);
+
+  return PipelineReferralRepositoryImpl(
+    localDataSource: localDataSource,
+    remoteDataSource: remoteDataSource,
+    syncService: syncService,
+    currentUserId: currentUser?.id ?? '',
+    currentUserRole: currentUser?.role.name.toUpperCase() ?? '',
+    database: database,
+  );
 });
 

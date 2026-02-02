@@ -721,6 +721,18 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       _localDataSource.markAsSynced(id, syncedAt);
 
   // ==========================================
+  // Cache Operations
+  // ==========================================
+
+  @override
+  void invalidateCaches() {
+    _userNameCache = null;
+    _customerNameCache = null;
+    _branchNameCache = null;
+    debugPrint('[ReferralRepo] Caches invalidated');
+  }
+
+  // ==========================================
   // Private Helpers
   // ==========================================
 

@@ -128,4 +128,12 @@ abstract class PipelineReferralRepository {
 
   /// Mark a referral as synced.
   Future<void> markAsSynced(String id, DateTime syncedAt);
+
+  // ==========================================
+  // Cache Operations
+  // ==========================================
+
+  /// Invalidate all lookup caches.
+  /// Call this after sync to refresh user/customer/branch names.
+  void invalidateCaches();
 }

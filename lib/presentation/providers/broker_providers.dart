@@ -119,9 +119,17 @@ class BrokerFormState {
 
 /// Notifier for Broker form operations.
 class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
-  BrokerFormNotifier(this._repository) : super(BrokerFormState());
+  BrokerFormNotifier(this._ref, this._repository) : super(BrokerFormState());
 
+  final Ref _ref;
   final BrokerRepository _repository;
+
+  /// Invalidate broker-related providers after mutations.
+  void _invalidateBrokerProviders(String brokerId) {
+    _ref.invalidate(brokerDetailProvider(brokerId));
+    _ref.invalidate(brokerKeyPersonsProvider(brokerId));
+    _ref.invalidate(brokerPipelineCountProvider(brokerId));
+  }
 
   /// Create a new broker.
   Future<void> createBroker(BrokerCreateDto dto) async {
@@ -133,10 +141,13 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (broker) => state = state.copyWith(
-        isLoading: false,
-        savedBroker: broker,
-      ),
+      (broker) {
+        state = state.copyWith(
+          isLoading: false,
+          savedBroker: broker,
+        );
+        _invalidateBrokerProviders(broker.id);
+      },
     );
   }
 
@@ -150,10 +161,13 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (broker) => state = state.copyWith(
-        isLoading: false,
-        savedBroker: broker,
-      ),
+      (broker) {
+        state = state.copyWith(
+          isLoading: false,
+          savedBroker: broker,
+        );
+        _invalidateBrokerProviders(broker.id);
+      },
     );
   }
 
@@ -167,7 +181,10 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
         isLoading: false,
         errorMessage: failure.message,
       ),
-      (_) => state = state.copyWith(isLoading: false),
+      (_) {
+        state = state.copyWith(isLoading: false);
+        _invalidateBrokerProviders(id);
+      },
     );
   }
 
@@ -182,5 +199,5 @@ final brokerFormNotifierProvider =
     StateNotifierProvider.autoDispose<BrokerFormNotifier, BrokerFormState>(
         (ref) {
   final repository = ref.watch(brokerRepositoryProvider);
-  return BrokerFormNotifier(repository);
+  return BrokerFormNotifier(ref, repository);
 });

@@ -23,6 +23,10 @@ abstract class AuthRepository {
   /// Get current user if authenticated.
   Future<User?> getCurrentUser();
 
+  /// Refresh current user from database (clears cache).
+  /// Use when user profile may have been updated externally.
+  Future<User?> refreshCurrentUser();
+
   /// Refresh the access token.
   Future<Either<Failure, AuthSession>> refreshSession();
 

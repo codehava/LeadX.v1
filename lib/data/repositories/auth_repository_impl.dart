@@ -452,6 +452,24 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<User?> refreshCurrentUser() async {
+    // Clear cache to force re-fetch
+    _currentUser = null;
+
+    final session = _client.auth.currentSession;
+    if (session == null) return null;
+
+    try {
+      _currentUser = await _fetchUserWithFallback(session);
+      debugPrint('[Auth] Current user refreshed: ${_currentUser?.name}');
+      return _currentUser;
+    } catch (e) {
+      debugPrint('[Auth] refreshCurrentUser error: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<Either<Failure, AuthSession>> refreshSession() async {
     try {
       final response = await _client.auth.refreshSession().timeout(

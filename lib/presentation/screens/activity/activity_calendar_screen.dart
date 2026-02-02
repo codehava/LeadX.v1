@@ -65,21 +65,36 @@ class ActivityCalendarScreen extends ConsumerWidget {
               children: [
                 IconButton(
                   onPressed: () {
+                    // Navigate to previous week
                     ref.read(selectedDateProvider.notifier).state =
-                        DateTime(selectedDate.year, selectedDate.month - 1, 1);
+                        selectedDate.subtract(const Duration(days: 7));
                   },
                   icon: const Icon(Icons.chevron_left),
                 ),
-                Text(
-                  _formatMonthYear(selectedDate),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      ref.read(selectedDateProvider.notifier).state = picked;
+                    }
+                  },
+                  child: Text(
+                    _formatMonthYear(selectedDate),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 IconButton(
                   onPressed: () {
+                    // Navigate to next week
                     ref.read(selectedDateProvider.notifier).state =
-                        DateTime(selectedDate.year, selectedDate.month + 1, 1);
+                        selectedDate.add(const Duration(days: 7));
                   },
                   icon: const Icon(Icons.chevron_right),
                 ),
