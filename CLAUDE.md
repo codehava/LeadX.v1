@@ -171,9 +171,24 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
 3. **Soft deletes**: Use `deleted_at` timestamp, never hard delete business data
 4. **Sync status**: All syncable entities have `is_pending_sync` and `last_sync_at` columns
 5. **Functional error handling**: Use `Either<Failure, T>` from dartz for operations that can fail
-6. **Cache invalidation**: Required to prevent stale UI data. Follow these rules:
-   - **Repository caches**: If a repository has in-memory lookup caches (e.g., `_stageNameCache`, `_userNameCache`), it MUST have an `invalidateCaches()` method that clears them
-   - **After sync operations**: Call `repository.invalidateCaches()` after pulling data from remote in `SyncNotifier._pullFromRemote()`
-   - **After mutations in notifiers**: Call `ref.invalidate()` on affected stream providers after successful create/update/delete operations
-   - **Example repositories with caches**: `PipelineRepositoryImpl`, `ActivityRepositoryImpl`, `PipelineReferralRepositoryImpl`
-   - **Provider invalidation**: `SyncNotifier._invalidateDataProviders()` invalidates all list stream providers after sync completion
+6. **Reactive UI with StreamProviders**: UI auto-updates via Drift streams - NO manual invalidation needed for Drift-backed data.
+
+   **How it works:**
+   - All list/detail providers use `StreamProvider` with repository `watch*()` methods
+   - Repository `watch*()` methods delegate to local data source `watch*()` methods
+   - Local data source uses Drift's `.watch()` / `.watchSingleOrNull()` which emit new values when DB changes
+   - When a notifier mutates data (create/update/delete), Drift automatically notifies all watching streams
+
+   **DO NOT use `ref.invalidate()` for Drift-backed providers** - it's unnecessary and was removed from all notifiers.
+
+   **What DOES need cache management:**
+   - **Repository lookup caches**: Some repositories have in-memory caches for name resolution (e.g., `_stageNameCache`, `_userNameCache`). These MUST have an `invalidateCaches()` method.
+   - **After sync operations**: Call `repository.invalidateCaches()` after pulling data from remote in `SyncNotifier._pullFromRemote()` to refresh lookup caches.
+   - **Auth/currentUser**: The `currentUserProvider` uses auth cache (not Drift), so it still needs `ref.invalidate(currentUserProvider)` after profile sync.
+
+   **Example repositories with lookup caches**: `PipelineRepositoryImpl`, `ActivityRepositoryImpl`, `PipelineReferralRepositoryImpl`
+
+   **Adding new providers:**
+   - For list providers: Use `StreamProvider` + `repository.watchAll*()`
+   - For detail providers: Use `StreamProvider.family` + `repository.watch*ById(id)`
+   - Ensure the full chain exists: Provider → Repository (interface + impl) → LocalDataSource → Drift `.watch()`

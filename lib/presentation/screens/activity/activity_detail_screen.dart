@@ -10,6 +10,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
+import '../../providers/broker_providers.dart';
+import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
 import 'activity_execution_sheet.dart';
 import 'activity_reschedule_sheet.dart';
 
@@ -352,10 +355,39 @@ class ActivityDetailScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(top: 24),
                   child: FilledButton.icon(
                     onPressed: () async {
+                      // Fetch target location based on object type
+                      double? targetLat;
+                      double? targetLon;
+
+                      switch (activity.objectType) {
+                        case ActivityObjectType.customer:
+                          if (activity.customerId != null) {
+                            final customer = ref.read(customerDetailProvider(activity.customerId!)).value;
+                            targetLat = customer?.latitude;
+                            targetLon = customer?.longitude;
+                          }
+                          break;
+                        case ActivityObjectType.broker:
+                          if (activity.brokerId != null) {
+                            final broker = ref.read(brokerDetailProvider(activity.brokerId!)).value;
+                            targetLat = broker?.latitude;
+                            targetLon = broker?.longitude;
+                          }
+                          break;
+                        case ActivityObjectType.hvc:
+                          if (activity.hvcId != null) {
+                            final hvc = ref.read(hvcDetailProvider(activity.hvcId!)).value;
+                            targetLat = hvc?.latitude;
+                            targetLon = hvc?.longitude;
+                          }
+                          break;
+                      }
+
                       final result = await ActivityExecutionSheet.show(
                         context,
                         activity: activity,
-                        // Pass customer location if available
+                        targetLat: targetLat,
+                        targetLon: targetLon,
                       );
                       if (result == true && context.mounted) {
                         // Refresh the activity details

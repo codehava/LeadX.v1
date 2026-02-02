@@ -107,7 +107,12 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
           _InfoTab(customer: customer),
           _KeyPersonsTab(customerId: customer.id),
           _PipelinesTab(customerId: customer.id),
-          _ActivitiesTab(customerId: customer.id, customerName: customer.name),
+          _ActivitiesTab(
+            customerId: customer.id,
+            customerName: customer.name,
+            customerLat: customer.latitude,
+            customerLon: customer.longitude,
+          ),
         ],
       ),
       // Quick action buttons
@@ -633,10 +638,17 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
 
 /// Activities tab showing customer activities.
 class _ActivitiesTab extends ConsumerWidget {
-  const _ActivitiesTab({required this.customerId, required this.customerName});
+  const _ActivitiesTab({
+    required this.customerId,
+    required this.customerName,
+    this.customerLat,
+    this.customerLon,
+  });
 
   final String customerId;
   final String customerName;
+  final double? customerLat;
+  final double? customerLon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -777,7 +789,8 @@ class _ActivitiesTab extends ConsumerWidget {
     ActivityExecutionSheet.show(
       context,
       activity: activity,
-      // targetLat/targetLon would come from customer location if available
+      targetLat: customerLat,
+      targetLon: customerLon,
     );
   }
 }

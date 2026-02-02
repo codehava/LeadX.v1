@@ -68,8 +68,11 @@ class SyncService {
 
   /// Process all pending items in the sync queue.
   Future<SyncResult> processQueue() async {
+    // Ensure connectivity service is initialized (important for mobile)
+    await _connectivityService.ensureInitialized();
+
     debugPrint('[SyncService] processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
-    
+
     if (_isSyncing) {
       debugPrint('[SyncService] Sync already in progress, returning');
       return SyncResult(
@@ -397,9 +400,11 @@ class SyncService {
     Duration interval = const Duration(minutes: 5),
   }) {
     stopBackgroundSync();
-    _backgroundSyncTimer = Timer.periodic(interval, (_) {
+    _backgroundSyncTimer = Timer.periodic(interval, (_) async {
+      // Ensure connectivity is initialized before checking status
+      await _connectivityService.ensureInitialized();
       if (_connectivityService.isConnected && !_isSyncing) {
-        processQueue();
+        unawaited(processQueue());
       }
     });
   }

@@ -60,6 +60,13 @@ class PipelineReferralLocalDataSource {
     return query.getSingleOrNull();
   }
 
+  /// Watch a specific referral by ID as a reactive stream.
+  Stream<PipelineReferral?> watchReferralById(String id) {
+    final query = _db.select(_db.pipelineReferrals)
+      ..where((r) => r.id.equals(id));
+    return query.watchSingleOrNull();
+  }
+
   /// Get a referral by code.
   Future<PipelineReferral?> getReferralByCode(String code) async {
     final query = _db.select(_db.pipelineReferrals)

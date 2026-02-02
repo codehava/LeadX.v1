@@ -53,6 +53,14 @@ class HvcRepositoryImpl implements HvcRepository {
           );
 
   @override
+  Stream<domain.Hvc?> watchHvcById(String id) =>
+      _localDataSource.watchHvcById(id).asyncMap((data) async {
+        if (data == null) return null;
+        final hvcType = await _localDataSource.getHvcTypeById(data.typeId);
+        return _mapToHvc(data, typeName: hvcType?.name);
+      });
+
+  @override
   Future<List<domain.Hvc>> getAllHvcs() async {
     final hvcs = await _localDataSource.getAllHvcs();
     return hvcs.map(_mapToHvc).toList();
@@ -239,6 +247,12 @@ class HvcRepositoryImpl implements HvcRepository {
     final results = await _keyPersonLocalDataSource.getKeyPersonsByHvc(hvcId);
     return results.map(_mapToKeyPerson).toList();
   }
+
+  @override
+  Stream<List<domain.KeyPerson>> watchHvcKeyPersons(String hvcId) =>
+      _keyPersonLocalDataSource.watchKeyPersonsByHvc(hvcId).map(
+            (keyPersons) => keyPersons.map(_mapToKeyPerson).toList(),
+          );
 
   // ==========================================
   // Customer-HVC Link Operations

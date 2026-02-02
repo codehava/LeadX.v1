@@ -41,6 +41,13 @@ class BrokerRepositoryImpl implements BrokerRepository {
   }
 
   @override
+  Stream<domain.Broker?> watchBrokerById(String id) {
+    return localDataSource.watchBrokerById(id).map(
+          (data) => data != null ? _mapToBroker(data) : null,
+        );
+  }
+
+  @override
   Future<List<domain.Broker>> getAllBrokers() async {
     final list = await localDataSource.getAllBrokers();
     return list.map((data) => _mapToBroker(data)).toList();
@@ -201,6 +208,11 @@ class BrokerRepositoryImpl implements BrokerRepository {
   @override
   Future<int> getBrokerPipelineCount(String brokerId) async {
     return localDataSource.getBrokerPipelineCount(brokerId);
+  }
+
+  @override
+  Stream<int> watchBrokerPipelineCount(String brokerId) {
+    return localDataSource.watchBrokerPipelineCount(brokerId);
   }
 
   // ==========================================

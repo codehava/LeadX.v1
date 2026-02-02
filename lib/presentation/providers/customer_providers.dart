@@ -89,25 +89,25 @@ final customerSearchProvider = FutureProvider.family
 // Customer Detail Providers
 // ==========================================
 
-/// Provider for fetching a single customer by ID.
+/// Provider for watching a single customer by ID (reactive stream).
 final customerDetailProvider =
-    FutureProvider.family<domain.Customer?, String>((ref, id) async {
+    StreamProvider.family<domain.Customer?, String>((ref, id) {
   final repository = ref.watch(customerRepositoryProvider);
-  return repository.getCustomerById(id);
+  return repository.watchCustomerById(id);
 });
 
-/// Provider for fetching key persons of a customer.
+/// Provider for watching key persons of a customer (reactive stream).
 final customerKeyPersonsProvider =
-    FutureProvider.family<List<domain.KeyPerson>, String>((ref, customerId) async {
+    StreamProvider.family<List<domain.KeyPerson>, String>((ref, customerId) {
   final repository = ref.watch(customerRepositoryProvider);
-  return repository.getCustomerKeyPersons(customerId);
+  return repository.watchCustomerKeyPersons(customerId);
 });
 
-/// Provider for the primary key person of a customer.
+/// Provider for watching the primary key person of a customer (reactive stream).
 final primaryKeyPersonProvider =
-    FutureProvider.family<domain.KeyPerson?, String>((ref, customerId) async {
+    StreamProvider.family<domain.KeyPerson?, String>((ref, customerId) {
   final repository = ref.watch(customerRepositoryProvider);
-  return repository.getPrimaryKeyPerson(customerId);
+  return repository.watchPrimaryKeyPerson(customerId);
 });
 
 // ==========================================
@@ -140,17 +140,9 @@ class CustomerFormState {
 
 /// Notifier for customer form operations.
 class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
-  CustomerFormNotifier(this._ref, this._repository) : super(CustomerFormState());
+  CustomerFormNotifier(this._repository) : super(CustomerFormState());
 
-  final Ref _ref;
   final CustomerRepository _repository;
-
-  /// Invalidate customer-related providers after mutations.
-  void _invalidateCustomerProviders(String customerId) {
-    _ref.invalidate(customerDetailProvider(customerId));
-    _ref.invalidate(customerKeyPersonsProvider(customerId));
-    _ref.invalidate(primaryKeyPersonProvider(customerId));
-  }
 
   /// Create a new customer.
   Future<void> createCustomer(CustomerCreateDto dto) async {
@@ -169,7 +161,7 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
           isLoading: false,
           savedCustomer: customer,
         );
-        _invalidateCustomerProviders(customer.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -191,7 +183,7 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
           isLoading: false,
           savedCustomer: customer,
         );
-        _invalidateCustomerProviders(customer.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -207,7 +199,7 @@ final customerFormNotifierProvider =
     StateNotifierProvider.autoDispose<CustomerFormNotifier, CustomerFormState>(
         (ref) {
   final repository = ref.watch(customerRepositoryProvider);
-  return CustomerFormNotifier(ref, repository);
+  return CustomerFormNotifier(repository);
 });
 
 // ==========================================
@@ -240,17 +232,9 @@ class KeyPersonFormState {
 
 /// Notifier for key person form operations.
 class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
-  KeyPersonFormNotifier(this._ref, this._repository) : super(KeyPersonFormState());
+  KeyPersonFormNotifier(this._repository) : super(KeyPersonFormState());
 
-  final Ref _ref;
   final CustomerRepository _repository;
-
-  /// Invalidate key person-related providers after mutations.
-  void _invalidateKeyPersonProviders(String customerId) {
-    _ref.invalidate(customerKeyPersonsProvider(customerId));
-    _ref.invalidate(primaryKeyPersonProvider(customerId));
-    _ref.invalidate(customerDetailProvider(customerId));
-  }
 
   /// Add a new key person.
   Future<void> addKeyPerson(KeyPersonDto dto) async {
@@ -268,9 +252,7 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
           isLoading: false,
           savedKeyPerson: keyPerson,
         );
-        if (keyPerson.customerId != null) {
-          _invalidateKeyPersonProviders(keyPerson.customerId!);
-        }
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -291,9 +273,7 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
           isLoading: false,
           savedKeyPerson: keyPerson,
         );
-        if (keyPerson.customerId != null) {
-          _invalidateKeyPersonProviders(keyPerson.customerId!);
-        }
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -311,9 +291,7 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
       ),
       (_) {
         state = state.copyWith(isLoading: false);
-        if (customerId != null) {
-          _invalidateKeyPersonProviders(customerId);
-        }
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -328,5 +306,5 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
 final keyPersonFormNotifierProvider = StateNotifierProvider.autoDispose<
     KeyPersonFormNotifier, KeyPersonFormState>((ref) {
   final repository = ref.watch(customerRepositoryProvider);
-  return KeyPersonFormNotifier(ref, repository);
+  return KeyPersonFormNotifier(repository);
 });

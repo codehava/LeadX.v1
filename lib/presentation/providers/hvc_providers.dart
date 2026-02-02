@@ -72,11 +72,11 @@ final hvcSearchProvider = FutureProvider.family
 // HVC Detail Providers
 // ==========================================
 
-/// Provider for fetching a single HVC by ID.
+/// Provider for watching a single HVC by ID (reactive stream).
 final hvcDetailProvider =
-    FutureProvider.family<domain.Hvc?, String>((ref, id) async {
+    StreamProvider.family<domain.Hvc?, String>((ref, id) {
   final repository = ref.watch(hvcRepositoryProvider);
-  return repository.getHvcById(id);
+  return repository.watchHvcById(id);
 });
 
 /// @deprecated Use [hvcTypesStreamProvider] from master_data_providers instead.
@@ -86,11 +86,11 @@ final hvcTypesProvider = FutureProvider<List<domain.HvcType>>((ref) async {
   return repository.getHvcTypes();
 });
 
-/// Provider for fetching key persons of an HVC.
+/// Provider for watching key persons of an HVC (reactive stream).
 final hvcKeyPersonsProvider =
-    FutureProvider.family<List<domain.KeyPerson>, String>((ref, hvcId) async {
+    StreamProvider.family<List<domain.KeyPerson>, String>((ref, hvcId) {
   final repository = ref.watch(hvcRepositoryProvider);
-  return repository.getHvcKeyPersons(hvcId);
+  return repository.watchHvcKeyPersons(hvcId);
 });
 
 // ==========================================
@@ -111,12 +111,11 @@ final customerHvcsProvider = StreamProvider.family<
   return repository.watchCustomerHvcs(customerId);
 });
 
-/// Provider for linked customer count of an HVC.
+/// Provider for linked customer count of an HVC (derived from existing stream).
 final linkedCustomerCountProvider =
-    FutureProvider.family<int, String>((ref, hvcId) async {
+    StreamProvider.family<int, String>((ref, hvcId) {
   final repository = ref.watch(hvcRepositoryProvider);
-  final links = await repository.getLinkedCustomers(hvcId);
-  return links.length;
+  return repository.watchLinkedCustomers(hvcId).map((links) => links.length);
 });
 
 // ==========================================
@@ -149,18 +148,9 @@ class HvcFormState {
 
 /// Notifier for HVC form operations.
 class HvcFormNotifier extends StateNotifier<HvcFormState> {
-  HvcFormNotifier(this._ref, this._repository) : super(HvcFormState());
+  HvcFormNotifier(this._repository) : super(HvcFormState());
 
-  final Ref _ref;
   final HvcRepository _repository;
-
-  /// Invalidate HVC-related providers after mutations.
-  void _invalidateHvcProviders(String hvcId) {
-    _ref.invalidate(hvcDetailProvider(hvcId));
-    _ref.invalidate(linkedCustomersProvider(hvcId));
-    _ref.invalidate(hvcKeyPersonsProvider(hvcId));
-    _ref.invalidate(linkedCustomerCountProvider(hvcId));
-  }
 
   /// Create a new HVC.
   Future<void> createHvc(HvcCreateDto dto) async {
@@ -178,7 +168,7 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
           isLoading: false,
           savedHvc: hvc,
         );
-        _invalidateHvcProviders(hvc.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -199,7 +189,7 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
           isLoading: false,
           savedHvc: hvc,
         );
-        _invalidateHvcProviders(hvc.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -220,7 +210,7 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
-        _invalidateHvcProviders(id);
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -236,7 +226,7 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
 final hvcFormNotifierProvider =
     StateNotifierProvider.autoDispose<HvcFormNotifier, HvcFormState>((ref) {
   final repository = ref.watch(hvcRepositoryProvider);
-  return HvcFormNotifier(ref, repository);
+  return HvcFormNotifier(repository);
 });
 
 // ==========================================
@@ -269,17 +259,9 @@ class CustomerHvcLinkState {
 
 /// Notifier for customer-HVC link operations.
 class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
-  CustomerHvcLinkNotifier(this._ref, this._repository) : super(CustomerHvcLinkState());
+  CustomerHvcLinkNotifier(this._repository) : super(CustomerHvcLinkState());
 
-  final Ref _ref;
   final HvcRepository _repository;
-
-  /// Invalidate link-related providers after mutations.
-  void _invalidateLinkProviders(String hvcId, String customerId) {
-    _ref.invalidate(linkedCustomersProvider(hvcId));
-    _ref.invalidate(customerHvcsProvider(customerId));
-    _ref.invalidate(linkedCustomerCountProvider(hvcId));
-  }
 
   /// Link customer to HVC.
   Future<void> linkCustomerToHvc(CustomerHvcLinkDto dto) async {
@@ -297,7 +279,7 @@ class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
           isLoading: false,
           savedLink: link,
         );
-        _invalidateLinkProviders(link.hvcId, link.customerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -318,7 +300,7 @@ class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
-        _invalidateLinkProviders(hvcId, customerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -334,5 +316,5 @@ class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
 final customerHvcLinkNotifierProvider = StateNotifierProvider.autoDispose<
     CustomerHvcLinkNotifier, CustomerHvcLinkState>((ref) {
   final repository = ref.watch(hvcRepositoryProvider);
-  return CustomerHvcLinkNotifier(ref, repository);
+  return CustomerHvcLinkNotifier(repository);
 });

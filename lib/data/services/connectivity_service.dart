@@ -22,7 +22,9 @@ class ConnectivityService {
   StreamSubscription<List<ConnectivityResult>>? _subscription;
   Timer? _pollTimer;
   bool _isConnected;
-  
+  bool _isInitialized = false;
+  Completer<void>? _initCompleter;
+
   /// Polling interval for connectivity checks (30 seconds).
   static const Duration _pollInterval = Duration(seconds: 30);
 
@@ -30,14 +32,32 @@ class ConnectivityService {
   Stream<bool> get connectivityStream =>
       _controller?.stream ?? const Stream.empty();
 
+  /// Whether the service has been initialized.
+  bool get isInitialized => _isInitialized;
+
   /// Current connectivity status.
   bool get isConnected => _isConnected;
 
   /// Check if device is currently offline.
   bool get isOffline => !_isConnected;
 
+  /// Ensure the service is initialized. Safe to call multiple times.
+  Future<void> ensureInitialized() async {
+    if (_isInitialized) return;
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+    return initialize();
+  }
+
   /// Initialize the connectivity service.
   Future<void> initialize() async {
+    if (_isInitialized) return;
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+
+    _initCompleter = Completer<void>();
     _controller = StreamController<bool>.broadcast();
 
     // Get initial connectivity status from platform
@@ -91,6 +111,9 @@ class ConnectivityService {
     if (!kIsWeb) {
       _startPeriodicPolling();
     }
+
+    _isInitialized = true;
+    _initCompleter?.complete();
   }
 
   /// Start periodic connectivity polling.

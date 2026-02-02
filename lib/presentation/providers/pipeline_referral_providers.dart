@@ -127,11 +127,11 @@ final userOutboundReferralsProvider = StreamProvider.autoDispose
 // Detail Provider
 // ==========================================
 
-/// Provider for fetching a specific referral by ID.
-final referralDetailProvider = FutureProvider.autoDispose
-    .family<PipelineReferral?, String>((ref, id) async {
+/// Provider for watching a specific referral by ID (reactive stream).
+final referralDetailProvider = StreamProvider.autoDispose
+    .family<PipelineReferral?, String>((ref, id) {
   final repository = ref.watch(pipelineReferralRepositoryProvider);
-  return repository.getReferralById(id);
+  return repository.watchReferralById(id);
 });
 
 // ==========================================
@@ -200,21 +200,11 @@ class ReferralActionState {
 
 /// Notifier for referral action operations.
 class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
-  ReferralActionNotifier(this._ref, this._repository, this._currentUserId)
+  ReferralActionNotifier(this._repository, this._currentUserId)
       : super(ReferralActionState());
 
-  final Ref _ref;
   final PipelineReferralRepository _repository;
   final String _currentUserId;
-
-  /// Invalidate all referral-related providers after mutations.
-  void _invalidateReferralProviders() {
-    _ref.invalidate(inboundReferralsProvider);
-    _ref.invalidate(outboundReferralsProvider);
-    _ref.invalidate(pendingApprovalsProvider);
-    _ref.invalidate(allReferralsProvider);
-    debugPrint('[ReferralNotifier] Referral providers invalidated');
-  }
 
   /// Create a new referral.
   Future<bool> createReferral(PipelineReferralCreateDto dto) async {
@@ -243,7 +233,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -276,7 +266,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -307,7 +297,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -338,7 +328,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -370,7 +360,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -401,7 +391,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
           isLoading: false,
           result: referral,
         );
-        _invalidateReferralProviders();
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -419,7 +409,7 @@ final referralActionNotifierProvider =
         (ref) {
   final repository = ref.watch(pipelineReferralRepositoryProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
-  return ReferralActionNotifier(ref, repository, currentUser?.id ?? '');
+  return ReferralActionNotifier(repository, currentUser?.id ?? '');
 });
 
 // ==========================================

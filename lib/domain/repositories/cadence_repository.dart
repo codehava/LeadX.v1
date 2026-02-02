@@ -25,8 +25,17 @@ abstract class CadenceRepository {
   /// Watch all schedule configs (active and inactive).
   Stream<List<CadenceScheduleConfig>> watchAllConfigs();
 
+  /// Watch active configs as a reactive stream.
+  Stream<List<CadenceScheduleConfig>> watchActiveConfigs();
+
+  /// Watch config for current user as facilitator (reactive stream).
+  Stream<CadenceScheduleConfig?> watchMyFacilitatorConfig();
+
   /// Get a specific config by ID.
   Future<CadenceScheduleConfig?> getConfigById(String configId);
+
+  /// Watch a specific config by ID (reactive stream).
+  Stream<CadenceScheduleConfig?> watchConfigById(String configId);
 
   /// Create a new schedule config.
   Future<Either<Failure, CadenceScheduleConfig>> createConfig({
@@ -180,6 +189,11 @@ abstract class CadenceRepository {
 
   /// Get meeting with all participants (for detail/summary view).
   Future<CadenceMeetingWithParticipants?> getMeetingWithParticipants(
+    String meetingId,
+  );
+
+  /// Watch meeting with all participants (reactive stream).
+  Stream<CadenceMeetingWithParticipants?> watchMeetingWithParticipants(
     String meetingId,
   );
 

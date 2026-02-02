@@ -83,6 +83,25 @@ class PipelineRepositoryImpl implements PipelineRepository {
     });
   }
 
+  /// Watch a specific pipeline by ID.
+  @override
+  Stream<domain.Pipeline?> watchPipelineById(String id) {
+    return _localDataSource.watchPipelineById(id).asyncMap((data) async {
+      if (data == null) return null;
+      await _ensureCachesLoaded();
+      return _mapToPipeline(data);
+    });
+  }
+
+  /// Watch pipelines where the broker is the source.
+  @override
+  Stream<List<domain.Pipeline>> watchBrokerPipelines(String brokerId) {
+    return _localDataSource.watchBrokerPipelines(brokerId).asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToPipeline).toList();
+    });
+  }
+
   // ==========================================
   // Read Operations
   // ==========================================

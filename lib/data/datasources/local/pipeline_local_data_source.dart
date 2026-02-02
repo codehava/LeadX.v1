@@ -51,6 +51,20 @@ class PipelineLocalDataSource {
     return query.getSingleOrNull();
   }
 
+  /// Watch a specific pipeline by ID as a reactive stream.
+  Stream<Pipeline?> watchPipelineById(String id) {
+    final query = _db.select(_db.pipelines)..where((p) => p.id.equals(id));
+    return query.watchSingleOrNull();
+  }
+
+  /// Watch pipelines where the broker is the source.
+  Stream<List<Pipeline>> watchBrokerPipelines(String brokerId) {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.brokerId.equals(brokerId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
   /// Get a pipeline by code.
   Future<Pipeline?> getPipelineByCode(String code) async {
     final query = _db.select(_db.pipelines)..where((p) => p.code.equals(code));

@@ -62,6 +62,32 @@ class CadenceLocalDataSource {
         .getSingleOrNull();
   }
 
+  /// Watch config by ID as a reactive stream.
+  Stream<CadenceScheduleConfigData?> watchConfigById(String configId) {
+    return (_db.select(_db.cadenceScheduleConfig)
+          ..where((t) => t.id.equals(configId)))
+        .watchSingleOrNull();
+  }
+
+  /// Watch active configs as a reactive stream.
+  Stream<List<CadenceScheduleConfigData>> watchActiveConfigs() {
+    return (_db.select(_db.cadenceScheduleConfig)
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch();
+  }
+
+  /// Watch config by facilitator role as a reactive stream.
+  Stream<CadenceScheduleConfigData?> watchConfigByFacilitatorRole(
+    String role,
+  ) {
+    return (_db.select(_db.cadenceScheduleConfig)
+          ..where((t) => t.facilitatorRole.equals(role))
+          ..where((t) => t.isActive.equals(true))
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
   /// Insert or update config.
   Future<int> upsertConfig(CadenceScheduleConfigCompanion data) {
     return _db

@@ -38,6 +38,20 @@ class BrokerLocalDataSource {
         .getSingleOrNull();
   }
 
+  /// Watch a single broker by ID as a reactive stream.
+  Stream<Broker?> watchBrokerById(String id) {
+    return (_db.select(_db.brokers)..where((t) => t.id.equals(id)))
+        .watchSingleOrNull();
+  }
+
+  /// Watch pipeline count for a broker.
+  Stream<int> watchBrokerPipelineCount(String brokerId) {
+    return (_db.select(_db.pipelines)
+          ..where((t) => t.brokerId.equals(brokerId) & t.deletedAt.isNull()))
+        .watch()
+        .map((list) => list.length);
+  }
+
   /// Insert a new broker.
   Future<void> insertBroker(BrokersCompanion broker) async {
     await _db.into(_db.brokers).insert(broker);

@@ -74,22 +74,22 @@ final customerPipelinesProvider =
   return repository.watchCustomerPipelines(customerId);
 });
 
-/// Provider for fetching pipelines where a broker is the source.
+/// Provider for watching pipelines where a broker is the source (reactive stream).
 final brokerPipelinesProvider =
-    FutureProvider.family<List<domain.Pipeline>, String>((ref, brokerId) async {
+    StreamProvider.family<List<domain.Pipeline>, String>((ref, brokerId) {
   final repository = ref.watch(pipelineRepositoryProvider);
-  return repository.getBrokerPipelines(brokerId);
+  return repository.watchBrokerPipelines(brokerId);
 });
 
 // ==========================================
 // Detail Providers
 // ==========================================
 
-/// Provider for fetching a specific pipeline by ID.
+/// Provider for watching a specific pipeline by ID (reactive stream).
 final pipelineDetailProvider =
-    FutureProvider.family<domain.Pipeline?, String>((ref, id) async {
+    StreamProvider.family<domain.Pipeline?, String>((ref, id) {
   final repository = ref.watch(pipelineRepositoryProvider);
-  return repository.getPipelineById(id);
+  return repository.watchPipelineById(id);
 });
 
 // ==========================================
@@ -142,21 +142,9 @@ class PipelineFormState {
 
 /// Notifier for pipeline form operations.
 class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
-  PipelineFormNotifier(this._ref, this._repository) : super(PipelineFormState());
+  PipelineFormNotifier(this._repository) : super(PipelineFormState());
 
-  final Ref _ref;
   final PipelineRepositoryImpl _repository;
-
-  /// Invalidate pipeline-related providers after mutations.
-  void _invalidatePipelineProviders(String pipelineId, String? customerId, String? brokerId) {
-    _ref.invalidate(pipelineDetailProvider(pipelineId));
-    if (customerId != null) {
-      _ref.invalidate(customerPipelinesProvider(customerId));
-    }
-    if (brokerId != null) {
-      _ref.invalidate(brokerPipelinesProvider(brokerId));
-    }
-  }
 
   /// Create a new pipeline.
   Future<void> createPipeline(PipelineCreateDto dto) async {
@@ -172,7 +160,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
           isLoading: false,
           savedPipeline: pipeline,
         );
-        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -191,7 +179,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
           isLoading: false,
           savedPipeline: pipeline,
         );
-        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -210,7 +198,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
           isLoading: false,
           savedPipeline: pipeline,
         );
-        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -229,7 +217,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
           isLoading: false,
           savedPipeline: pipeline,
         );
-        _invalidatePipelineProviders(pipeline.id, pipeline.customerId, pipeline.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -248,7 +236,7 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
-        _invalidatePipelineProviders(id, customerId, brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -265,5 +253,5 @@ final pipelineFormNotifierProvider =
     StateNotifierProvider.autoDispose<PipelineFormNotifier, PipelineFormState>(
         (ref) {
   final repository = ref.watch(pipelineRepositoryProvider);
-  return PipelineFormNotifier(ref, repository);
+  return PipelineFormNotifier(repository);
 });

@@ -101,30 +101,30 @@ final myParticipationProvider =
 // Meeting With Participants Provider
 // ==========================================
 
-/// Get meeting with all participants for detail view.
+/// Watch meeting with all participants for detail view (reactive stream).
 final meetingWithParticipantsProvider =
-    FutureProvider.family<CadenceMeetingWithParticipants?, String>(
+    StreamProvider.family<CadenceMeetingWithParticipants?, String>(
         (ref, meetingId) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return repository.getMeetingWithParticipants(meetingId);
+  return repository.watchMeetingWithParticipants(meetingId);
 });
 
 // ==========================================
 // Config Providers
 // ==========================================
 
-/// Get all active schedule configs.
+/// Watch all active schedule configs (reactive stream).
 final cadenceConfigsProvider =
-    FutureProvider<List<CadenceScheduleConfig>>((ref) {
+    StreamProvider<List<CadenceScheduleConfig>>((ref) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return repository.getActiveConfigs();
+  return repository.watchActiveConfigs();
 });
 
-/// Get config for current user as facilitator.
+/// Watch config for current user as facilitator (reactive stream).
 final myFacilitatorConfigProvider =
-    FutureProvider<CadenceScheduleConfig?>((ref) {
+    StreamProvider<CadenceScheduleConfig?>((ref) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return repository.getMyFacilitatorConfig();
+  return repository.watchMyFacilitatorConfig();
 });
 
 // ==========================================
@@ -419,11 +419,11 @@ final allCadenceConfigsProvider =
   return repository.watchAllConfigs();
 });
 
-/// Get a specific config by ID for edit screen.
+/// Watch a specific config by ID for edit screen (reactive stream).
 final cadenceConfigByIdProvider =
-    FutureProvider.family<CadenceScheduleConfig?, String>((ref, configId) {
+    StreamProvider.family<CadenceScheduleConfig?, String>((ref, configId) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return repository.getConfigById(configId);
+  return repository.watchConfigById(configId);
 });
 
 /// State for admin config operations.
@@ -454,20 +454,10 @@ class AdminCadenceConfigState {
 /// Notifier for admin cadence config operations.
 class AdminCadenceConfigNotifier
     extends StateNotifier<AdminCadenceConfigState> {
-  AdminCadenceConfigNotifier(this._ref, this._repository)
+  AdminCadenceConfigNotifier(this._repository)
       : super(AdminCadenceConfigState());
 
-  final Ref _ref;
   final CadenceRepository _repository;
-
-  /// Invalidate config-related providers after mutations.
-  void _invalidateConfigProviders({String? configId}) {
-    _ref.invalidate(cadenceConfigsProvider);
-    _ref.invalidate(myFacilitatorConfigProvider);
-    if (configId != null) {
-      _ref.invalidate(cadenceConfigByIdProvider(configId));
-    }
-  }
 
   /// Create a new config.
   Future<bool> createConfig({
@@ -508,11 +498,11 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
-        _invalidateConfigProviders(configId: config.id);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dibuat',
         );
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -559,11 +549,11 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
-        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil diperbarui',
         );
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -584,11 +574,11 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (config) {
-        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: isActive ? 'Konfigurasi diaktifkan' : 'Konfigurasi dinonaktifkan',
         );
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -609,11 +599,11 @@ class AdminCadenceConfigNotifier
         return false;
       },
       (_) {
-        _invalidateConfigProviders(configId: configId);
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dihapus',
         );
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -629,5 +619,5 @@ class AdminCadenceConfigNotifier
 final adminCadenceConfigNotifierProvider = StateNotifierProvider.autoDispose<
     AdminCadenceConfigNotifier, AdminCadenceConfigState>((ref) {
   final repository = ref.watch(cadenceRepositoryProvider);
-  return AdminCadenceConfigNotifier(ref, repository);
+  return AdminCadenceConfigNotifier(repository);
 });

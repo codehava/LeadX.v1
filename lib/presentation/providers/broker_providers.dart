@@ -67,25 +67,25 @@ final brokerSearchProvider = FutureProvider.autoDispose
 // Detail Providers
 // ==========================================
 
-/// Provider for fetching a single broker by ID.
+/// Provider for watching a single broker by ID (reactive stream).
 final brokerDetailProvider =
-    FutureProvider.family<domain.Broker?, String>((ref, id) async {
+    StreamProvider.family<domain.Broker?, String>((ref, id) {
   final repository = ref.watch(brokerRepositoryProvider);
-  return repository.getBrokerById(id);
+  return repository.watchBrokerById(id);
 });
 
-/// Provider for broker key persons (PICs).
+/// Provider for watching broker key persons (PICs) (reactive stream).
 final brokerKeyPersonsProvider =
-    FutureProvider.family<List<domain.KeyPerson>, String>((ref, brokerId) async {
+    StreamProvider.family<List<domain.KeyPerson>, String>((ref, brokerId) {
   final repository = ref.watch(brokerRepositoryProvider);
-  return repository.getBrokerKeyPersons(brokerId);
+  return repository.watchBrokerKeyPersons(brokerId);
 });
 
-/// Provider for broker pipeline count.
+/// Provider for watching broker pipeline count (reactive stream).
 final brokerPipelineCountProvider =
-    FutureProvider.family<int, String>((ref, brokerId) async {
+    StreamProvider.family<int, String>((ref, brokerId) {
   final repository = ref.watch(brokerRepositoryProvider);
-  return repository.getBrokerPipelineCount(brokerId);
+  return repository.watchBrokerPipelineCount(brokerId);
 });
 
 // ==========================================
@@ -119,17 +119,9 @@ class BrokerFormState {
 
 /// Notifier for Broker form operations.
 class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
-  BrokerFormNotifier(this._ref, this._repository) : super(BrokerFormState());
+  BrokerFormNotifier(this._repository) : super(BrokerFormState());
 
-  final Ref _ref;
   final BrokerRepository _repository;
-
-  /// Invalidate broker-related providers after mutations.
-  void _invalidateBrokerProviders(String brokerId) {
-    _ref.invalidate(brokerDetailProvider(brokerId));
-    _ref.invalidate(brokerKeyPersonsProvider(brokerId));
-    _ref.invalidate(brokerPipelineCountProvider(brokerId));
-  }
 
   /// Create a new broker.
   Future<void> createBroker(BrokerCreateDto dto) async {
@@ -146,7 +138,7 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
           isLoading: false,
           savedBroker: broker,
         );
-        _invalidateBrokerProviders(broker.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -166,7 +158,7 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
           isLoading: false,
           savedBroker: broker,
         );
-        _invalidateBrokerProviders(broker.id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -183,7 +175,7 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
       ),
       (_) {
         state = state.copyWith(isLoading: false);
-        _invalidateBrokerProviders(id);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -199,5 +191,5 @@ final brokerFormNotifierProvider =
     StateNotifierProvider.autoDispose<BrokerFormNotifier, BrokerFormState>(
         (ref) {
   final repository = ref.watch(brokerRepositoryProvider);
-  return BrokerFormNotifier(ref, repository);
+  return BrokerFormNotifier(repository);
 });

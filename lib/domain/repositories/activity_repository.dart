@@ -30,6 +30,16 @@ abstract class ActivityRepository {
   Stream<List<Activity>> watchTodayActivities(String userId);
 
   // ==========================================
+  // Watch Operations (Single Entity)
+  // ==========================================
+
+  /// Watch a specific activity by ID (reactive stream).
+  Stream<Activity?> watchActivityById(String id);
+
+  /// Watch activity with full details (type, photos, audit logs) (reactive stream).
+  Stream<ActivityWithDetails?> watchActivityWithDetails(String id);
+
+  // ==========================================
   // Get Operations
   // ==========================================
 

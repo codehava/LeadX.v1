@@ -96,6 +96,28 @@ class ActivityLocalDataSource {
     return query.getSingleOrNull();
   }
 
+  /// Watch a specific activity by ID as a reactive stream.
+  Stream<Activity?> watchActivityById(String id) {
+    final query = _db.select(_db.activities)..where((a) => a.id.equals(id));
+    return query.watchSingleOrNull();
+  }
+
+  /// Watch photos for an activity as a reactive stream.
+  Stream<List<ActivityPhoto>> watchActivityPhotos(String activityId) {
+    final query = _db.select(_db.activityPhotos)
+      ..where((p) => p.activityId.equals(activityId))
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
+  /// Watch audit logs for an activity as a reactive stream.
+  Stream<List<ActivityAuditLog>> watchAuditLogs(String activityId) {
+    final query = _db.select(_db.activityAuditLogs)
+      ..where((l) => l.activityId.equals(activityId))
+      ..orderBy([(l) => OrderingTerm.desc(l.performedAt)]);
+    return query.watch();
+  }
+
   /// Get activities for a specific user within a date range.
   Future<List<Activity>> getUserActivities(
     String userId,

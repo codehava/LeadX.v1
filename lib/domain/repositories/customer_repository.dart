@@ -15,6 +15,9 @@ abstract class CustomerRepository {
   /// Returns customers assigned to current user based on hierarchy.
   Stream<List<Customer>> watchAllCustomers();
 
+  /// Watch a specific customer by ID (reactive stream).
+  Stream<Customer?> watchCustomerById(String id);
+
   /// Get a specific customer by ID.
   Future<Customer?> getCustomerById(String id);
 
@@ -52,6 +55,12 @@ abstract class CustomerRepository {
 
   /// Get all key persons for a customer.
   Future<List<KeyPerson>> getCustomerKeyPersons(String customerId);
+
+  /// Watch all key persons for a customer (reactive stream).
+  Stream<List<KeyPerson>> watchCustomerKeyPersons(String customerId);
+
+  /// Watch the primary key person for a customer (reactive stream).
+  Stream<KeyPerson?> watchPrimaryKeyPerson(String customerId);
 
   /// Add a key person to a customer.
   Future<Either<Failure, KeyPerson>> addKeyPerson(KeyPersonDto dto);

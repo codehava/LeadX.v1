@@ -20,6 +20,9 @@ abstract class PipelineReferralRepository {
   /// Get a specific referral by ID.
   Future<PipelineReferral?> getReferralById(String id);
 
+  /// Watch a specific referral by ID (reactive stream).
+  Stream<PipelineReferral?> watchReferralById(String id);
+
   // ==========================================
   // Receiver Actions
   // ==========================================

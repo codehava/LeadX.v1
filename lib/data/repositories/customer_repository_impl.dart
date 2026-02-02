@@ -54,6 +54,12 @@ class CustomerRepositoryImpl implements CustomerRepository {
           );
 
   @override
+  Stream<domain.Customer?> watchCustomerById(String id) =>
+      _localDataSource.watchCustomerById(id).map(
+            (data) => data != null ? _mapToCustomer(data) : null,
+          );
+
+  @override
   Future<domain.Customer?> getCustomerById(String id) async {
     final data = await _localDataSource.getCustomerById(id);
     return data != null ? _mapToCustomer(data) : null;
@@ -260,6 +266,18 @@ class CustomerRepositoryImpl implements CustomerRepository {
         await _keyPersonLocalDataSource.getKeyPersonsByCustomer(customerId);
     return results.map(_mapToKeyPerson).toList();
   }
+
+  @override
+  Stream<List<domain.KeyPerson>> watchCustomerKeyPersons(String customerId) =>
+      _keyPersonLocalDataSource.watchKeyPersonsByCustomer(customerId).map(
+            (keyPersons) => keyPersons.map(_mapToKeyPerson).toList(),
+          );
+
+  @override
+  Stream<domain.KeyPerson?> watchPrimaryKeyPerson(String customerId) =>
+      _keyPersonLocalDataSource.watchPrimaryKeyPerson(customerId).map(
+            (data) => data != null ? _mapToKeyPerson(data) : null,
+          );
 
   @override
   Future<Either<Failure, domain.KeyPerson>> addKeyPerson(

@@ -27,6 +27,20 @@ class KeyPersonLocalDataSource {
     return query.get();
   }
 
+  /// Watch all key persons for a customer as a reactive stream.
+  Stream<List<KeyPerson>> watchKeyPersonsByCustomer(String customerId) {
+    final query = _db.select(_db.keyPersons)
+      ..where((kp) =>
+          kp.customerId.equals(customerId) &
+          kp.ownerType.equals('CUSTOMER') &
+          kp.deletedAt.isNull())
+      ..orderBy([
+        (kp) => OrderingTerm.desc(kp.isPrimary),
+        (kp) => OrderingTerm.asc(kp.name),
+      ]);
+    return query.watch();
+  }
+
   /// Get all key persons for an HVC.
   Future<List<KeyPerson>> getKeyPersonsByHvc(String hvcId) async {
     final query = _db.select(_db.keyPersons)
@@ -39,6 +53,20 @@ class KeyPersonLocalDataSource {
         (kp) => OrderingTerm.asc(kp.name),
       ]);
     return query.get();
+  }
+
+  /// Watch all key persons for an HVC as a reactive stream.
+  Stream<List<KeyPerson>> watchKeyPersonsByHvc(String hvcId) {
+    final query = _db.select(_db.keyPersons)
+      ..where((kp) =>
+          kp.hvcId.equals(hvcId) &
+          kp.ownerType.equals('HVC') &
+          kp.deletedAt.isNull())
+      ..orderBy([
+        (kp) => OrderingTerm.desc(kp.isPrimary),
+        (kp) => OrderingTerm.asc(kp.name),
+      ]);
+    return query.watch();
   }
 
   /// Get all key persons for a broker.
@@ -71,6 +99,17 @@ class KeyPersonLocalDataSource {
           kp.isPrimary.equals(true) &
           kp.deletedAt.isNull());
     return query.getSingleOrNull();
+  }
+
+  /// Watch the primary key person for a customer as a reactive stream.
+  Stream<KeyPerson?> watchPrimaryKeyPerson(String customerId) {
+    final query = _db.select(_db.keyPersons)
+      ..where((kp) =>
+          kp.customerId.equals(customerId) &
+          kp.ownerType.equals('CUSTOMER') &
+          kp.isPrimary.equals(true) &
+          kp.deletedAt.isNull());
+    return query.watchSingleOrNull();
   }
 
   // ==========================================

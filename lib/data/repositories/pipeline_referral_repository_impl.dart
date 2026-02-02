@@ -98,6 +98,15 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   }
 
   @override
+  Stream<domain.PipelineReferral?> watchReferralById(String id) {
+    return _localDataSource.watchReferralById(id).asyncMap((data) async {
+      if (data == null) return null;
+      await _ensureCachesLoaded();
+      return _mapToReferral(data);
+    });
+  }
+
+  @override
   Future<List<domain.PipelineReferral>> getOutboundReferrals(String userId) async {
     await _ensureCachesLoaded();
     final data = await _localDataSource.getByReferrer(userId);

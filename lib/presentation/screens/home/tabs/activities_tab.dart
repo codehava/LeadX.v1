@@ -6,6 +6,9 @@ import '../../../../config/routes/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../domain/entities/activity.dart';
 import '../../../providers/activity_providers.dart';
+import '../../../providers/broker_providers.dart';
+import '../../../providers/customer_providers.dart';
+import '../../../providers/hvc_providers.dart';
 import '../../activity/activity_execution_sheet.dart';
 import '../../activity/immediate_activity_sheet.dart';
 
@@ -284,9 +287,39 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
   }
 
   void _executeActivity(Activity activity) {
+    // Fetch target location based on object type
+    double? targetLat;
+    double? targetLon;
+
+    switch (activity.objectType) {
+      case ActivityObjectType.customer:
+        if (activity.customerId != null) {
+          final customer = ref.read(customerDetailProvider(activity.customerId!)).value;
+          targetLat = customer?.latitude;
+          targetLon = customer?.longitude;
+        }
+        break;
+      case ActivityObjectType.broker:
+        if (activity.brokerId != null) {
+          final broker = ref.read(brokerDetailProvider(activity.brokerId!)).value;
+          targetLat = broker?.latitude;
+          targetLon = broker?.longitude;
+        }
+        break;
+      case ActivityObjectType.hvc:
+        if (activity.hvcId != null) {
+          final hvc = ref.read(hvcDetailProvider(activity.hvcId!)).value;
+          targetLat = hvc?.latitude;
+          targetLon = hvc?.longitude;
+        }
+        break;
+    }
+
     ActivityExecutionSheet.show(
       context,
       activity: activity,
+      targetLat: targetLat,
+      targetLon: targetLon,
     );
   }
 

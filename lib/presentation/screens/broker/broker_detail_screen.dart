@@ -113,7 +113,12 @@ class _BrokerDetailScreenState extends ConsumerState<BrokerDetailScreen>
               _InfoTab(broker: broker),
               _KeyPersonsTab(brokerId: broker.id),
               _PipelinesTab(brokerId: broker.id),
-              _ActivitiesTab(brokerId: broker.id, brokerName: broker.name),
+              _ActivitiesTab(
+                brokerId: broker.id,
+                brokerName: broker.name,
+                brokerLat: broker.latitude,
+                brokerLon: broker.longitude,
+              ),
             ],
           ),
         );
@@ -689,10 +694,14 @@ class _ActivitiesTab extends ConsumerWidget {
   const _ActivitiesTab({
     required this.brokerId,
     required this.brokerName,
+    this.brokerLat,
+    this.brokerLon,
   });
 
   final String brokerId;
   final String brokerName;
+  final double? brokerLat;
+  final double? brokerLon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -833,6 +842,8 @@ class _ActivitiesTab extends ConsumerWidget {
     ActivityExecutionSheet.show(
       context,
       activity: activity,
+      targetLat: brokerLat,
+      targetLon: brokerLon,
     );
   }
 }

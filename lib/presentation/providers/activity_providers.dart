@@ -113,18 +113,18 @@ final brokerActivitiesProvider =
 // Detail Providers
 // ==========================================
 
-/// Provider for fetching a specific activity by ID.
+/// Provider for watching a specific activity by ID (reactive stream).
 final activityDetailProvider =
-    FutureProvider.family<domain.Activity?, String>((ref, id) async {
+    StreamProvider.family<domain.Activity?, String>((ref, id) {
   final repository = ref.watch(activityRepositoryProvider);
-  return repository.getActivityById(id);
+  return repository.watchActivityById(id);
 });
 
-/// Provider for fetching activity with full details (type, photos, logs).
+/// Provider for watching activity with full details (type, photos, logs) (reactive stream).
 final activityWithDetailsProvider =
-    FutureProvider.family<domain.ActivityWithDetails?, String>((ref, id) async {
+    StreamProvider.family<domain.ActivityWithDetails?, String>((ref, id) {
   final repository = ref.watch(activityRepositoryProvider);
-  return repository.getActivityWithDetails(id);
+  return repository.watchActivityWithDetails(id);
 });
 
 // ==========================================
@@ -187,26 +187,10 @@ class ActivityFormState {
 
 /// Notifier for activity form operations.
 class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
-  ActivityFormNotifier(this._ref, this._repository, this._remoteDataSource) : super(ActivityFormState());
+  ActivityFormNotifier(this._repository, this._remoteDataSource) : super(ActivityFormState());
 
-  final Ref _ref;
   final ActivityRepositoryImpl _repository;
   final ActivityRemoteDataSource _remoteDataSource;
-
-  /// Invalidate activity-related providers after mutations.
-  void _invalidateActivityProviders(String activityId, String? customerId, String? hvcId, String? brokerId) {
-    _ref.invalidate(activityDetailProvider(activityId));
-    _ref.invalidate(activityWithDetailsProvider(activityId));
-    if (customerId != null) {
-      _ref.invalidate(customerActivitiesProvider(customerId));
-    }
-    if (hvcId != null) {
-      _ref.invalidate(hvcActivitiesProvider(hvcId));
-    }
-    if (brokerId != null) {
-      _ref.invalidate(brokerActivitiesProvider(brokerId));
-    }
-  }
 
   /// Create a new scheduled activity.
   Future<void> createActivity(ActivityCreateDto dto) async {
@@ -222,7 +206,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
           isLoading: false,
           savedActivity: activity,
         );
-        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -241,7 +225,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
           isLoading: false,
           savedActivity: activity,
         );
-        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -260,7 +244,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
           isLoading: false,
           savedActivity: activity,
         );
-        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -279,7 +263,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
           isLoading: false,
           savedActivity: activity,
         );
-        _invalidateActivityProviders(activity.id, activity.customerId, activity.hvcId, activity.brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
       },
     );
   }
@@ -298,7 +282,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
       },
       (_) {
         state = state.copyWith(isLoading: false);
-        _invalidateActivityProviders(id, customerId, hvcId, brokerId);
+        // No invalidation needed - StreamProviders auto-update from Drift
         return true;
       },
     );
@@ -412,7 +396,7 @@ final activityFormNotifierProvider =
         (ref) {
   final repository = ref.watch(activityRepositoryProvider);
   final remoteDataSource = ref.watch(activityRemoteDataSourceProvider);
-  return ActivityFormNotifier(ref, repository, remoteDataSource);
+  return ActivityFormNotifier(repository, remoteDataSource);
 });
 
 // ==========================================

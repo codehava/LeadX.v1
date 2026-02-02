@@ -26,15 +26,12 @@ import '../../domain/repositories/hvc_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import '../../data/repositories/pipeline_referral_repository_impl.dart';
 import '../../domain/repositories/pipeline_referral_repository.dart';
-import 'activity_providers.dart';
 import 'auth_providers.dart';
 import 'broker_providers.dart';
 import 'cadence_providers.dart';
-import 'customer_providers.dart';
 import 'database_provider.dart';
 import 'hvc_providers.dart';
 import 'master_data_providers.dart';
-import 'pipeline_providers.dart';
 import 'pipeline_referral_providers.dart';
 
 /// Provider for app settings service.
@@ -137,6 +134,9 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
   Future<void> triggerSync() async {
+    // Ensure connectivity service is initialized (important for mobile)
+    await _connectivityService.ensureInitialized();
+
     if (!_connectivityService.isConnected) {
       state = AsyncValue.error('Device is offline', StackTrace.current);
       return;
@@ -296,25 +296,14 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     await _invalidateDataProviders();
   }
 
-  /// Invalidate all data providers after sync completion.
-  /// This ensures UI reflects the latest synced data.
+  /// Refresh auth data after sync completion.
+  /// Note: List/detail providers no longer need invalidation - Drift streams auto-update.
   Future<void> _invalidateDataProviders() async {
-    debugPrint('[SyncNotifier] Invalidating data providers...');
-
-    // Invalidate list stream providers
-    _ref.invalidate(customerListStreamProvider);
-    _ref.invalidate(pipelineListStreamProvider);
-    _ref.invalidate(todayActivitiesProvider);
-    _ref.invalidate(hvcListStreamProvider);
-    _ref.invalidate(brokerListStreamProvider);
-
-    // Invalidate referral providers
-    _ref.invalidate(inboundReferralsProvider);
-    _ref.invalidate(outboundReferralsProvider);
-    _ref.invalidate(pendingApprovalsProvider);
-    _ref.invalidate(allReferralsProvider);
+    debugPrint('[SyncNotifier] Refreshing auth data after sync...');
 
     // Refresh current user to pick up any profile changes from sync
+    // This is the only invalidation needed - all other providers are StreamProviders
+    // that automatically update when their underlying Drift tables change.
     try {
       final authRepo = _ref.read(authRepositoryProvider);
       await authRepo.refreshCurrentUser();
@@ -323,7 +312,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       debugPrint('[SyncNotifier] Error refreshing current user: $e');
     }
 
-    debugPrint('[SyncNotifier] Data providers invalidated');
+    debugPrint('[SyncNotifier] Auth data refreshed');
   }
 
   /// Check if sync is currently in progress.

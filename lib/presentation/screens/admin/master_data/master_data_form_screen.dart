@@ -41,10 +41,28 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
+  final TextEditingController _iconController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
 
   bool _isActive = true;
   bool _isLoading = false;
   bool _isSaving = false;
+
+  // Activity Type specific fields
+  bool _requireLocation = false;
+  bool _requirePhoto = false;
+  bool _requireNotes = false;
+
+  // Pipeline Stage specific fields
+  bool _isFinal = false;
+  bool _isWon = false;
+
+  // Lead Source specific fields
+  bool _requiresReferrer = false;
+  bool _requiresBroker = false;
+
+  // Pipeline Status specific field
+  bool _isDefault = false;
 
   // FK selection fields
   String? _selectedProvinceId;
@@ -87,7 +105,19 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
         _phoneController.text = item['phone']?.toString() ?? '';
         _latitudeController.text = item['latitude']?.toString() ?? '';
         _longitudeController.text = item['longitude']?.toString() ?? '';
+        _iconController.text = item['icon']?.toString() ?? '';
+        _colorController.text = item['color']?.toString() ?? '';
         _isActive = item['is_active'] == true;
+
+        // Load boolean flags for specific entities
+        _requireLocation = item['require_location'] == true;
+        _requirePhoto = item['require_photo'] == true;
+        _requireNotes = item['require_notes'] == true;
+        _isFinal = item['is_final'] == true;
+        _isWon = item['is_won'] == true;
+        _requiresReferrer = item['requires_referrer'] == true;
+        _requiresBroker = item['requires_broker'] == true;
+        _isDefault = item['is_default'] == true;
 
         // Load FK values
         if (item['province_id'] != null) {
@@ -142,6 +172,23 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
         }
       }
 
+      if (_type == MasterDataEntityType.leadSource) {
+        data['requires_referrer'] = _requiresReferrer;
+        data['requires_broker'] = _requiresBroker;
+      }
+
+      if (_type == MasterDataEntityType.activityType) {
+        if (_iconController.text.isNotEmpty) {
+          data['icon'] = _iconController.text.trim();
+        }
+        if (_colorController.text.isNotEmpty) {
+          data['color'] = _colorController.text.trim();
+        }
+        data['require_location'] = _requireLocation;
+        data['require_photo'] = _requirePhoto;
+        data['require_notes'] = _requireNotes;
+      }
+
       if (_type == MasterDataEntityType.pipelineStage) {
         if (_probabilityController.text.isNotEmpty) {
           data['probability'] = int.tryParse(_probabilityController.text) ?? 0;
@@ -149,6 +196,11 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
         if (_sequenceController.text.isNotEmpty) {
           data['sequence'] = int.tryParse(_sequenceController.text) ?? 0;
         }
+        if (_colorController.text.isNotEmpty) {
+          data['color'] = _colorController.text.trim();
+        }
+        data['is_final'] = _isFinal;
+        data['is_won'] = _isWon;
       }
 
       if (_type == MasterDataEntityType.pipelineStatus) {
@@ -161,6 +213,7 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
         if (_selectedStageId != null) {
           data['stage_id'] = _selectedStageId!;
         }
+        data['is_default'] = _isDefault;
       }
 
       // FK fields for entities that depend on other master data
@@ -180,6 +233,18 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
       }
 
       if (_type == MasterDataEntityType.cob) {
+        if (_descriptionController.text.isNotEmpty) {
+          data['description'] = _descriptionController.text.trim();
+        }
+      }
+
+      if (_type == MasterDataEntityType.declineReason) {
+        if (_descriptionController.text.isNotEmpty) {
+          data['description'] = _descriptionController.text.trim();
+        }
+      }
+
+      if (_type == MasterDataEntityType.hvcType) {
         if (_descriptionController.text.isNotEmpty) {
           data['description'] = _descriptionController.text.trim();
         }
@@ -294,6 +359,8 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
     _phoneController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _iconController.dispose();
+    _colorController.dispose();
     super.dispose();
   }
 
@@ -373,6 +440,110 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
                         ],
                       ),
 
+                    // Lead Source specific fields
+                    if (_type == MasterDataEntityType.leadSource)
+                      Column(
+                        children: [
+                          SwitchListTile(
+                            title: const Text('Memerlukan Referrer'),
+                            subtitle: Text(
+                              _requiresReferrer
+                                  ? 'Informasi referrer wajib diisi'
+                                  : 'Referrer tidak wajib',
+                            ),
+                            value: _requiresReferrer,
+                            onChanged: (value) {
+                              setState(() => _requiresReferrer = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 8),
+                          SwitchListTile(
+                            title: const Text('Memerlukan Broker'),
+                            subtitle: Text(
+                              _requiresBroker
+                                  ? 'Informasi broker wajib diisi'
+                                  : 'Broker tidak wajib',
+                            ),
+                            value: _requiresBroker,
+                            onChanged: (value) {
+                              setState(() => _requiresBroker = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
+                    // Activity Type specific fields
+                    if (_type == MasterDataEntityType.activityType)
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: _iconController,
+                            decoration: InputDecoration(
+                              labelText: 'Icon (Opsional)',
+                              hintText: 'Nama icon, contoh: phone, email',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _colorController,
+                            decoration: InputDecoration(
+                              labelText: 'Warna (Opsional)',
+                              hintText: 'Kode hex, contoh: #FF5722',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Wajib Lokasi'),
+                            subtitle: Text(
+                              _requireLocation
+                                  ? 'Lokasi wajib diisi'
+                                  : 'Lokasi opsional',
+                            ),
+                            value: _requireLocation,
+                            onChanged: (value) {
+                              setState(() => _requireLocation = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 8),
+                          SwitchListTile(
+                            title: const Text('Wajib Foto'),
+                            subtitle: Text(
+                              _requirePhoto ? 'Foto wajib diisi' : 'Foto opsional',
+                            ),
+                            value: _requirePhoto,
+                            onChanged: (value) {
+                              setState(() => _requirePhoto = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 8),
+                          SwitchListTile(
+                            title: const Text('Wajib Catatan'),
+                            subtitle: Text(
+                              _requireNotes
+                                  ? 'Catatan wajib diisi'
+                                  : 'Catatan opsional',
+                            ),
+                            value: _requireNotes,
+                            onChanged: (value) {
+                              setState(() => _requireNotes = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
                     // Probability field (pipeline stages only)
                     if (_type == MasterDataEntityType.pipelineStage)
                       Column(
@@ -408,6 +579,45 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
                               ),
                             ),
                             keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _colorController,
+                            decoration: InputDecoration(
+                              labelText: 'Warna (Opsional)',
+                              hintText: 'Kode hex, contoh: #4CAF50',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Tahap Final'),
+                            subtitle: Text(
+                              _isFinal
+                                  ? 'Ini adalah tahap akhir (menang/kalah)'
+                                  : 'Bukan tahap akhir',
+                            ),
+                            value: _isFinal,
+                            onChanged: (value) {
+                              setState(() => _isFinal = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 8),
+                          SwitchListTile(
+                            title: const Text('Tahap Menang'),
+                            subtitle: Text(
+                              _isWon
+                                  ? 'Tahap ini menandakan kemenangan'
+                                  : 'Bukan tahap kemenangan',
+                            ),
+                            value: _isWon,
+                            onChanged: (value) {
+                              setState(() => _isWon = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
                           ),
                           const SizedBox(height: 16),
                         ],
@@ -605,6 +815,20 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
                             maxLines: 3,
                           ),
                           const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Status Default'),
+                            subtitle: Text(
+                              _isDefault
+                                  ? 'Ini adalah status default untuk tahap ini'
+                                  : 'Bukan status default',
+                            ),
+                            value: _isDefault,
+                            onChanged: (value) {
+                              setState(() => _isDefault = value);
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(height: 16),
                         ],
                       ),
 
@@ -617,6 +841,44 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
                             decoration: InputDecoration(
                               labelText: 'Deskripsi',
                               hintText: 'Deskripsi COB',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
+                    // Description field (for Decline Reason)
+                    if (_type == MasterDataEntityType.declineReason)
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: InputDecoration(
+                              labelText: 'Deskripsi (Opsional)',
+                              hintText: 'Deskripsi alasan penolakan',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+
+                    // Description field (for HVC Type)
+                    if (_type == MasterDataEntityType.hvcType)
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: InputDecoration(
+                              labelText: 'Deskripsi (Opsional)',
+                              hintText: 'Deskripsi tipe HVC',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),

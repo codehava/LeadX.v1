@@ -523,6 +523,22 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i5.Future<_i3.Pipeline?>);
 
   @override
+  _i5.Stream<_i3.Pipeline?> watchPipelineById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchPipelineById, [id]),
+            returnValue: _i5.Stream<_i3.Pipeline?>.empty(),
+          )
+          as _i5.Stream<_i3.Pipeline?>);
+
+  @override
+  _i5.Stream<List<_i3.Pipeline>> watchBrokerPipelines(String? brokerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBrokerPipelines, [brokerId]),
+            returnValue: _i5.Stream<List<_i3.Pipeline>>.empty(),
+          )
+          as _i5.Stream<List<_i3.Pipeline>>);
+
+  @override
   _i5.Future<_i3.Pipeline?> getPipelineByCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getPipelineByCode, [code]),
@@ -1046,6 +1062,14 @@ class MockCustomerLocalDataSource extends _i1.Mock
             returnValue: _i5.Stream<List<_i3.Customer>>.empty(),
           )
           as _i5.Stream<List<_i3.Customer>>);
+
+  @override
+  _i5.Stream<_i3.Customer?> watchCustomerById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchCustomerById, [id]),
+            returnValue: _i5.Stream<_i3.Customer?>.empty(),
+          )
+          as _i5.Stream<_i3.Customer?>);
 
   @override
   _i5.Future<List<_i3.Customer>> getAllCustomers() =>

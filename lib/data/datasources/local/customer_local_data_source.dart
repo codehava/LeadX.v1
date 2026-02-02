@@ -29,6 +29,13 @@ class CustomerLocalDataSource {
     return query.watch();
   }
 
+  /// Watch a single customer by ID as a reactive stream.
+  Stream<Customer?> watchCustomerById(String id) {
+    final query = _db.select(_db.customers)
+      ..where((c) => c.id.equals(id));
+    return query.watchSingleOrNull();
+  }
+
   /// Get all non-deleted customers.
   Future<List<Customer>> getAllCustomers() async {
     final query = _db.select(_db.customers)

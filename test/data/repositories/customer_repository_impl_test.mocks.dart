@@ -62,6 +62,14 @@ class MockCustomerLocalDataSource extends _i1.Mock
           as _i4.Stream<List<_i5.Customer>>);
 
   @override
+  _i4.Stream<_i5.Customer?> watchCustomerById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchCustomerById, [id]),
+            returnValue: _i4.Stream<_i5.Customer?>.empty(),
+          )
+          as _i4.Stream<_i5.Customer?>);
+
+  @override
   _i4.Future<List<_i5.Customer>> getAllCustomers() =>
       (super.noSuchMethod(
             Invocation.method(#getAllCustomers, []),
@@ -226,6 +234,16 @@ class MockKeyPersonLocalDataSource extends _i1.Mock
           as _i4.Future<List<_i5.KeyPerson>>);
 
   @override
+  _i4.Stream<List<_i5.KeyPerson>> watchKeyPersonsByCustomer(
+    String? customerId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchKeyPersonsByCustomer, [customerId]),
+            returnValue: _i4.Stream<List<_i5.KeyPerson>>.empty(),
+          )
+          as _i4.Stream<List<_i5.KeyPerson>>);
+
+  @override
   _i4.Future<List<_i5.KeyPerson>> getKeyPersonsByHvc(String? hvcId) =>
       (super.noSuchMethod(
             Invocation.method(#getKeyPersonsByHvc, [hvcId]),
@@ -234,6 +252,14 @@ class MockKeyPersonLocalDataSource extends _i1.Mock
             ),
           )
           as _i4.Future<List<_i5.KeyPerson>>);
+
+  @override
+  _i4.Stream<List<_i5.KeyPerson>> watchKeyPersonsByHvc(String? hvcId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchKeyPersonsByHvc, [hvcId]),
+            returnValue: _i4.Stream<List<_i5.KeyPerson>>.empty(),
+          )
+          as _i4.Stream<List<_i5.KeyPerson>>);
 
   @override
   _i4.Future<List<_i5.KeyPerson>> getKeyPersonsByBroker(String? brokerId) =>
@@ -260,6 +286,14 @@ class MockKeyPersonLocalDataSource extends _i1.Mock
             returnValue: _i4.Future<_i5.KeyPerson?>.value(),
           )
           as _i4.Future<_i5.KeyPerson?>);
+
+  @override
+  _i4.Stream<_i5.KeyPerson?> watchPrimaryKeyPerson(String? customerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchPrimaryKeyPerson, [customerId]),
+            returnValue: _i4.Stream<_i5.KeyPerson?>.empty(),
+          )
+          as _i4.Stream<_i5.KeyPerson?>);
 
   @override
   _i4.Future<void> insertKeyPerson(_i5.KeyPersonsCompanion? keyPerson) =>

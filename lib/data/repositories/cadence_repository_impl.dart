@@ -84,9 +84,30 @@ class CadenceRepositoryImpl implements CadenceRepository {
   }
 
   @override
+  Stream<List<domain.CadenceScheduleConfig>> watchActiveConfigs() {
+    return _localDataSource.watchActiveConfigs().map((list) {
+      return list.map(_mapToScheduleConfig).toList();
+    });
+  }
+
+  @override
+  Stream<domain.CadenceScheduleConfig?> watchMyFacilitatorConfig() {
+    return _localDataSource
+        .watchConfigByFacilitatorRole(_currentUserRole)
+        .map((data) => data != null ? _mapToScheduleConfig(data) : null);
+  }
+
+  @override
   Future<domain.CadenceScheduleConfig?> getConfigById(String configId) async {
     final data = await _localDataSource.getConfigById(configId);
     return data != null ? _mapToScheduleConfig(data) : null;
+  }
+
+  @override
+  Stream<domain.CadenceScheduleConfig?> watchConfigById(String configId) {
+    return _localDataSource
+        .watchConfigById(configId)
+        .map((data) => data != null ? _mapToScheduleConfig(data) : null);
   }
 
   @override
@@ -809,6 +830,25 @@ class CadenceRepositoryImpl implements CadenceRepository {
       participants: await _mapParticipantsWithUserInfo(participants),
       config: config != null ? _mapToScheduleConfig(config) : null,
     );
+  }
+
+  @override
+  Stream<domain.CadenceMeetingWithParticipants?> watchMeetingWithParticipants(
+    String meetingId,
+  ) {
+    // Combine meeting stream with participants stream
+    return _localDataSource.watchMeeting(meetingId).asyncMap((meeting) async {
+      if (meeting == null) return null;
+
+      final participants = await _localDataSource.getMeetingParticipants(meetingId);
+      final config = await _localDataSource.getConfigById(meeting.configId);
+
+      return domain.CadenceMeetingWithParticipants(
+        meeting: await _mapToMeetingWithStats(meeting),
+        participants: await _mapParticipantsWithUserInfo(participants),
+        config: config != null ? _mapToScheduleConfig(config) : null,
+      );
+    });
   }
 
   // ==========================================

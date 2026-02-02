@@ -14,6 +14,9 @@ abstract class HvcRepository {
   /// Watch all HVCs as a stream.
   Stream<List<Hvc>> watchAllHvcs();
 
+  /// Watch a single HVC by ID (reactive stream).
+  Stream<Hvc?> watchHvcById(String id);
+
   /// Get all HVCs.
   Future<List<Hvc>> getAllHvcs();
 
@@ -45,6 +48,9 @@ abstract class HvcRepository {
 
   /// Get key persons for an HVC.
   Future<List<KeyPerson>> getHvcKeyPersons(String hvcId);
+
+  /// Watch key persons for an HVC (reactive stream).
+  Stream<List<KeyPerson>> watchHvcKeyPersons(String hvcId);
 
   // ==========================================
   // Customer-HVC Link Operations

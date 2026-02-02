@@ -38,6 +38,12 @@ class HvcLocalDataSource {
         .getSingleOrNull();
   }
 
+  /// Watch a single HVC by ID as a reactive stream.
+  Stream<Hvc?> watchHvcById(String id) {
+    return (_db.select(_db.hvcs)..where((t) => t.id.equals(id)))
+        .watchSingleOrNull();
+  }
+
   /// Insert a new HVC.
   Future<void> insertHvc(HvcsCompanion hvc) async {
     await _db.into(_db.hvcs).insert(hvc);

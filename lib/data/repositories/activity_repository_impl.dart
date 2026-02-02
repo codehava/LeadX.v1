@@ -86,6 +86,36 @@ class ActivityRepositoryImpl implements ActivityRepository {
     });
   }
 
+  @override
+  Stream<domain.Activity?> watchActivityById(String id) {
+    return _localDataSource.watchActivityById(id).asyncMap((data) async {
+      if (data == null) return null;
+      await _ensureCachesLoaded();
+      return _mapToActivity(data);
+    });
+  }
+
+  @override
+  Stream<domain.ActivityWithDetails?> watchActivityWithDetails(String id) {
+    // Combine activity, photos, and audit logs streams into a single reactive stream
+    return _localDataSource.watchActivityById(id).asyncMap((data) async {
+      if (data == null) return null;
+      await _ensureCachesLoaded();
+
+      final activity = _mapToActivity(data);
+      final typeData = await _localDataSource.getActivityTypeById(data.activityTypeId);
+      final photos = await _localDataSource.getActivityPhotos(id);
+      final logs = await _localDataSource.getAuditLogs(id);
+
+      return domain.ActivityWithDetails(
+        activity: activity,
+        activityType: typeData != null ? _mapToActivityType(typeData) : null,
+        photos: photos.map(_mapToActivityPhoto).toList(),
+        auditLogs: logs.map(_mapToAuditLog).toList(),
+      );
+    });
+  }
+
   // ==========================================
   // Get Operations
   // ==========================================

@@ -14,6 +14,9 @@ abstract class BrokerRepository {
   /// Watch all brokers as a stream.
   Stream<List<Broker>> watchAllBrokers();
 
+  /// Watch a single broker by ID (reactive stream).
+  Stream<Broker?> watchBrokerById(String id);
+
   /// Get all brokers.
   Future<List<Broker>> getAllBrokers();
 
@@ -48,6 +51,9 @@ abstract class BrokerRepository {
 
   /// Get pipeline count for a broker.
   Future<int> getBrokerPipelineCount(String brokerId);
+
+  /// Watch pipeline count for a broker (reactive stream).
+  Stream<int> watchBrokerPipelineCount(String brokerId);
 
   // ==========================================
   // Sync Operations
