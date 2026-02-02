@@ -74,6 +74,23 @@ class PipelineRepositoryImpl implements PipelineRepository {
     });
   }
 
+  @override
+  Stream<List<domain.Pipeline>> watchPipelinesPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    return _localDataSource
+        .watchPipelinesPaginated(limit: limit, searchQuery: searchQuery)
+        .asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToPipeline).toList();
+    });
+  }
+
+  @override
+  Future<int> getPipelineCount({String? searchQuery}) =>
+      _localDataSource.getPipelineCount(searchQuery: searchQuery);
+
   /// Watch pipelines for a specific customer.
   @override
   Stream<List<domain.Pipeline>> watchCustomerPipelines(String customerId) {
@@ -172,6 +189,11 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final stageProbability = newStage.probability;
       final weightedValue = dto.potentialPremium * (stageProbability / 100);
 
+      // Get the customer's assigned RM to set as pipeline's assigned RM
+      // This ensures the customer's owner can see pipelines for their customers
+      final customer = await _customerDataSource.getCustomerById(dto.customerId);
+      final assignedRmId = customer?.assignedRmId ?? _currentUserId;
+
       final companion = db.PipelinesCompanion.insert(
         id: id,
         code: code,
@@ -190,7 +212,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         expectedCloseDate: Value(dto.expectedCloseDate),
         isTender: Value(dto.isTender),
         notes: Value(dto.notes),
-        assignedRmId: _currentUserId,
+        assignedRmId: assignedRmId,
         createdBy: _currentUserId,
         isPendingSync: const Value(true),
         createdAt: now,
@@ -213,6 +235,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
           statusId: defaultStatus?.id ?? '',
           weightedValue: weightedValue,
           now: now,
+          assignedRmId: assignedRmId,
         ),
       );
 
@@ -245,6 +268,14 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final existing = await _localDataSource.getPipelineById(id);
       if (existing == null) {
         return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
+      }
+
+      // Check if pipeline is already closed
+      final currentStage = await _localDataSource.getStageById(existing.stageId);
+      if (currentStage != null && currentStage.isFinal) {
+        return Left(ValidationFailure(
+          message: 'Pipeline sudah ditutup dan tidak dapat diubah',
+        ));
       }
 
       // Calculate new weighted value if potential premium changed
@@ -328,10 +359,39 @@ class PipelineRepositoryImpl implements PipelineRepository {
         return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
       }
 
+      // Check if pipeline is already closed
+      final currentStage = await _localDataSource.getStageById(existing.stageId);
+      if (currentStage != null && currentStage.isFinal) {
+        return Left(ValidationFailure(
+          message: 'Pipeline sudah ditutup dan tidak dapat diubah',
+        ));
+      }
+
       // Get stage info to check if it's final
       final stage = await _localDataSource.getStageById(dto.stageId);
       if (stage == null) {
         return Left(ValidationFailure(message: 'Invalid stage: ${dto.stageId}'));
+      }
+
+      // Validate required fields for final stages
+      if (stage.isFinal && stage.isWon) {
+        if (dto.policyNumber == null || dto.policyNumber!.isEmpty) {
+          return Left(ValidationFailure(
+            message: 'Nomor polis wajib diisi untuk stage ini',
+          ));
+        }
+        if (dto.finalPremium == null || dto.finalPremium! <= 0) {
+          return Left(ValidationFailure(
+            message: 'Premi final wajib diisi untuk stage ini',
+          ));
+        }
+      }
+      if (stage.isFinal && !stage.isWon) {
+        if (dto.declineReason == null || dto.declineReason!.isEmpty) {
+          return Left(ValidationFailure(
+            message: 'Alasan penolakan wajib diisi untuk stage ini',
+          ));
+        }
       }
 
       // Get default status for the new stage
@@ -446,6 +506,14 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final existing = await _localDataSource.getPipelineById(id);
       if (existing == null) {
         return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
+      }
+
+      // Check if pipeline is already closed
+      final currentStage = await _localDataSource.getStageById(existing.stageId);
+      if (currentStage != null && currentStage.isFinal) {
+        return Left(ValidationFailure(
+          message: 'Pipeline sudah ditutup dan tidak dapat diubah',
+        ));
       }
 
       final companion = db.PipelinesCompanion(
@@ -771,6 +839,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
     required String statusId,
     required double weightedValue,
     required DateTime now,
+    required String assignedRmId,
   }) {
     return {
       'id': id,
@@ -790,7 +859,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       'expected_close_date': dto.expectedCloseDate?.toIso8601String(),
       'is_tender': dto.isTender,
       'notes': _sanitizeUuid(dto.notes),
-      'assigned_rm_id': _currentUserId,
+      'assigned_rm_id': assignedRmId,
       'created_by': _currentUserId,
       'created_at': now.toIso8601String(),
       'updated_at': now.toIso8601String(),

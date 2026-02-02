@@ -21,6 +21,44 @@ class PipelineLocalDataSource {
     return query.watch();
   }
 
+  /// Watch pipelines with pagination support.
+  /// Returns a reactive stream limited to [limit] items.
+  /// Optionally filters by [searchQuery] on code.
+  Stream<List<Pipeline>> watchPipelinesPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    var query = _db.select(_db.pipelines)..where((p) => p.deletedAt.isNull());
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final pattern = '%${searchQuery.toLowerCase()}%';
+      query = query..where((p) => p.code.lower().like(pattern));
+    }
+
+    query = query
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)])
+      ..limit(limit);
+
+    return query.watch();
+  }
+
+  /// Get count of pipelines, optionally filtered by search query.
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getPipelineCount({String? searchQuery}) async {
+    if (searchQuery == null || searchQuery.isEmpty) {
+      return _db.pipelines
+          .count(where: (p) => p.deletedAt.isNull())
+          .getSingle();
+    }
+
+    final pattern = '%${searchQuery.toLowerCase()}%';
+    return _db.pipelines
+        .count(
+          where: (p) => p.deletedAt.isNull() & p.code.lower().like(pattern),
+        )
+        .getSingle();
+  }
+
   /// Watch pipelines for a specific customer.
   Stream<List<Pipeline>> watchCustomerPipelines(String customerId) {
     final query = _db.select(_db.pipelines)

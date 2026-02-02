@@ -55,17 +55,47 @@ final hvcRepositoryProvider = Provider<HvcRepository>((ref) {
 // HVC List Providers
 // ==========================================
 
+/// Default page size for HVC pagination.
+const hvcPageSize = 25;
+
 /// Provider for watching all HVCs as a stream.
+/// @deprecated Use [paginatedHvcsProvider] for lazy loading.
 final hvcListStreamProvider = StreamProvider<List<domain.Hvc>>((ref) {
   final repository = ref.watch(hvcRepositoryProvider);
   return repository.watchAllHvcs();
 });
 
 /// Provider for fetching HVCs by search query.
+/// @deprecated Use [paginatedHvcsProvider] with search query for lazy loading.
 final hvcSearchProvider = FutureProvider.family
     .autoDispose<List<domain.Hvc>, String>((ref, query) async {
   final repository = ref.watch(hvcRepositoryProvider);
   return repository.searchHvcs(query);
+});
+
+// ==========================================
+// Paginated HVC Providers
+// ==========================================
+
+/// State provider for HVC list pagination limit.
+/// Increment this to load more items.
+final hvcLimitProvider = StateProvider<int>((ref) => hvcPageSize);
+
+/// Provider for watching HVCs with pagination (reactive stream).
+/// Handles both list and search - pass null for full list or search query.
+final paginatedHvcsProvider =
+    StreamProvider.family<List<domain.Hvc>, String?>((ref, searchQuery) {
+  final limit = ref.watch(hvcLimitProvider);
+  final repository = ref.watch(hvcRepositoryProvider);
+  return repository.watchHvcsPaginated(limit: limit, searchQuery: searchQuery);
+});
+
+/// Provider for total HVC count (for "hasMore" calculation).
+/// Pass search query to get filtered count.
+final hvcTotalCountProvider =
+    FutureProvider.family<int, String?>((ref, searchQuery) {
+  final repository = ref.watch(hvcRepositoryProvider);
+  return repository.getHvcCount(searchQuery: searchQuery);
 });
 
 // ==========================================

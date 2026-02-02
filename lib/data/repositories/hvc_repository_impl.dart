@@ -53,6 +53,19 @@ class HvcRepositoryImpl implements HvcRepository {
           );
 
   @override
+  Stream<List<domain.Hvc>> watchHvcsPaginated({
+    required int limit,
+    String? searchQuery,
+  }) =>
+      _localDataSource
+          .watchHvcsPaginated(limit: limit, searchQuery: searchQuery)
+          .map((hvcs) => hvcs.map(_mapToHvc).toList());
+
+  @override
+  Future<int> getHvcCount({String? searchQuery}) =>
+      _localDataSource.getHvcCount(searchQuery: searchQuery);
+
+  @override
   Stream<domain.Hvc?> watchHvcById(String id) =>
       _localDataSource.watchHvcById(id).asyncMap((data) async {
         if (data == null) return null;

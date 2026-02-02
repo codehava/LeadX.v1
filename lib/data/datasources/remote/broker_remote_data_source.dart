@@ -10,16 +10,43 @@ class BrokerRemoteDataSource {
   // Broker Operations
   // ==========================================
 
-  /// Fetch brokers from Supabase for incremental sync.
-  Future<List<Map<String, dynamic>>> fetchBrokers({DateTime? since}) async {
-    var query = _supabase.from('brokers').select();
+  /// Page size for paginated fetches.
+  static const int _pageSize = 500;
 
-    if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+  /// Fetch brokers from Supabase for incremental sync.
+  /// When [since] is null, performs a full sync (only non-deleted records).
+  /// When [since] is provided, fetches records updated OR deleted since that time.
+  /// Uses pagination to handle large datasets (1000+ records).
+  Future<List<Map<String, dynamic>>> fetchBrokers({DateTime? since}) async {
+    final allResults = <Map<String, dynamic>>[];
+    int offset = 0;
+    bool hasMore = true;
+
+    while (hasMore) {
+      var query = _supabase.from('brokers').select();
+
+      if (since != null) {
+        // Delta sync: fetch updated OR deleted since last sync
+        query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      } else {
+        // Full sync: only non-deleted records
+        query = query.isFilter('deleted_at', null);
+      }
+
+      // Add ordering for consistent pagination and fetch page
+      final response = await query
+          .order('created_at', ascending: true)
+          .range(offset, offset + _pageSize - 1);
+
+      final pageData = List<Map<String, dynamic>>.from(response as List);
+      allResults.addAll(pageData);
+
+      // Check if there are more results
+      hasMore = pageData.length == _pageSize;
+      offset += _pageSize;
     }
 
-    final response = await query;
-    return List<Map<String, dynamic>>.from(response as List);
+    return allResults;
   }
 
   /// Create a new broker.

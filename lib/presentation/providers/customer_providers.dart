@@ -71,7 +71,11 @@ final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
 // Customer List Providers
 // ==========================================
 
+/// Default page size for customer pagination.
+const customerPageSize = 25;
+
 /// Provider for watching all customers as a stream.
+/// @deprecated Use [paginatedCustomersProvider] for lazy loading.
 final customerListStreamProvider =
     StreamProvider<List<domain.Customer>>((ref) {
   final repository = ref.watch(customerRepositoryProvider);
@@ -79,10 +83,36 @@ final customerListStreamProvider =
 });
 
 /// Provider for fetching customers by search query.
+/// @deprecated Use [paginatedCustomersProvider] with search query for lazy loading.
 final customerSearchProvider = FutureProvider.family
     .autoDispose<List<domain.Customer>, String>((ref, query) async {
   final repository = ref.watch(customerRepositoryProvider);
   return repository.searchCustomers(query);
+});
+
+// ==========================================
+// Paginated Customer Providers
+// ==========================================
+
+/// State provider for customer list pagination limit.
+/// Increment this to load more items.
+final customerLimitProvider = StateProvider<int>((ref) => customerPageSize);
+
+/// Provider for watching customers with pagination (reactive stream).
+/// Handles both list and search - pass null for full list or search query.
+final paginatedCustomersProvider =
+    StreamProvider.family<List<domain.Customer>, String?>((ref, searchQuery) {
+  final limit = ref.watch(customerLimitProvider);
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.watchCustomersPaginated(limit: limit, searchQuery: searchQuery);
+});
+
+/// Provider for total customer count (for "hasMore" calculation).
+/// Pass search query to get filtered count.
+final customerTotalCountProvider =
+    FutureProvider.family<int, String?>((ref, searchQuery) {
+  final repository = ref.watch(customerRepositoryProvider);
+  return repository.getCustomerCount(searchQuery: searchQuery);
 });
 
 // ==========================================

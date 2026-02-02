@@ -400,7 +400,7 @@ class InitialSyncService {
 
   Future<void> _syncPipelineStages() async {
     final data = await _supabase.from('pipeline_stages').select().eq('is_active', true);
-    
+
     await _db.batch((batch) {
       for (final row in data as List) {
         batch.insert(
@@ -411,6 +411,10 @@ class InitialSyncService {
             name: row['name'] as String,
             probability: row['probability'] as int,
             sequence: row['sequence'] as int,
+            color: Value(row['color'] as String?),
+            isFinal: Value(row['is_final'] as bool? ?? false),
+            isWon: Value(row['is_won'] as bool? ?? false),
+            isActive: Value(row['is_active'] as bool? ?? true),
             createdAt: DateTime.parse(row['created_at'] as String),
             updatedAt: DateTime.parse(row['updated_at'] as String),
           ),
@@ -649,28 +653,45 @@ class InitialSyncService {
   // ============================================
 
   Future<void> _syncBrokers({DateTime? since}) async {
-    var query = _supabase.from('brokers').select();
+    // Use pagination for large datasets (1000+ records)
+    final allData = <Map<String, dynamic>>[];
+    int offset = 0;
+    bool hasMore = true;
 
-    if (since != null) {
-      // Delta sync: fetch updated OR deleted since last sync
-      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
-    } else {
-      // Full sync: only non-deleted records
-      query = query.isFilter('deleted_at', null);
+    while (hasMore) {
+      var query = _supabase.from('brokers').select();
+
+      if (since != null) {
+        // Delta sync: fetch updated OR deleted since last sync
+        query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      } else {
+        // Full sync: only non-deleted records
+        query = query.isFilter('deleted_at', null);
+      }
+
+      // Add ordering for consistent pagination and fetch page
+      final response = await query
+          .order('created_at', ascending: true)
+          .range(offset, offset + pageSize - 1);
+
+      final pageData = List<Map<String, dynamic>>.from(response as List);
+      allData.addAll(pageData);
+
+      // Check if there are more results
+      hasMore = pageData.length == pageSize;
+      offset += pageSize;
     }
-
-    final data = await query;
 
     // Collect IDs of deleted records for batch deletion
     final deletedIds = <String>[];
     final recordsToUpsert = <Map<String, dynamic>>[];
 
-    for (final row in data as List) {
+    for (final row in allData) {
       final deletedAt = row['deleted_at'] as String?;
       if (deletedAt != null) {
         deletedIds.add(row['id'] as String);
       } else {
-        recordsToUpsert.add(row as Map<String, dynamic>);
+        recordsToUpsert.add(row);
       }
     }
 

@@ -60,11 +60,40 @@ final pipelineRepositoryProvider = Provider<PipelineRepositoryImpl>((ref) {
 // Stream Providers
 // ==========================================
 
+/// Default page size for pipeline pagination.
+const pipelinePageSize = 25;
+
 /// Provider for watching all pipelines as a reactive stream.
+/// @deprecated Use [paginatedPipelinesProvider] for lazy loading.
 final pipelineListStreamProvider =
     StreamProvider<List<domain.Pipeline>>((ref) {
   final repository = ref.watch(pipelineRepositoryProvider);
   return repository.watchAllPipelines();
+});
+
+// ==========================================
+// Paginated Pipeline Providers
+// ==========================================
+
+/// State provider for pipeline list pagination limit.
+/// Increment this to load more items.
+final pipelineLimitProvider = StateProvider<int>((ref) => pipelinePageSize);
+
+/// Provider for watching pipelines with pagination (reactive stream).
+/// Handles both list and search - pass null for full list or search query.
+final paginatedPipelinesProvider =
+    StreamProvider.family<List<domain.Pipeline>, String?>((ref, searchQuery) {
+  final limit = ref.watch(pipelineLimitProvider);
+  final repository = ref.watch(pipelineRepositoryProvider);
+  return repository.watchPipelinesPaginated(limit: limit, searchQuery: searchQuery);
+});
+
+/// Provider for total pipeline count (for "hasMore" calculation).
+/// Pass search query to get filtered count.
+final pipelineTotalCountProvider =
+    FutureProvider.family<int, String?>((ref, searchQuery) {
+  final repository = ref.watch(pipelineRepositoryProvider);
+  return repository.getPipelineCount(searchQuery: searchQuery);
 });
 
 /// Provider for watching pipelines for a specific customer.

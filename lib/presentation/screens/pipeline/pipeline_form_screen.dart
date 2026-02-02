@@ -65,6 +65,18 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         await ref.read(pipelineDetailProvider(widget.pipelineId!).future);
 
     if (pipeline != null && mounted) {
+      // Check if pipeline is closed - prevent editing
+      if (pipeline.isClosed) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pipeline sudah ditutup dan tidak dapat diedit'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        if (mounted) context.pop();
+        return;
+      }
+
       _potentialPremiumController.text = pipeline.potentialPremium.toString();
       _tsiController.text = pipeline.tsi?.toString() ?? '';
       _notesController.text = pipeline.notes ?? '';

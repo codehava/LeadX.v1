@@ -54,6 +54,19 @@ class CustomerRepositoryImpl implements CustomerRepository {
           );
 
   @override
+  Stream<List<domain.Customer>> watchCustomersPaginated({
+    required int limit,
+    String? searchQuery,
+  }) =>
+      _localDataSource
+          .watchCustomersPaginated(limit: limit, searchQuery: searchQuery)
+          .map((customers) => customers.map(_mapToCustomer).toList());
+
+  @override
+  Future<int> getCustomerCount({String? searchQuery}) =>
+      _localDataSource.getCustomerCount(searchQuery: searchQuery);
+
+  @override
   Stream<domain.Customer?> watchCustomerById(String id) =>
       _localDataSource.watchCustomerById(id).map(
             (data) => data != null ? _mapToCustomer(data) : null,

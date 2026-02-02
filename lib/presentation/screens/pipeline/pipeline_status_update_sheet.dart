@@ -20,6 +20,17 @@ class PipelineStatusUpdateSheet extends ConsumerStatefulWidget {
 
   /// Show the status update sheet.
   static Future<void> show(BuildContext context, Pipeline pipeline) {
+    // Guard against updating closed pipelines
+    if (pipeline.isClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pipeline sudah ditutup dan tidak dapat diubah'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return Future.value();
+    }
+
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

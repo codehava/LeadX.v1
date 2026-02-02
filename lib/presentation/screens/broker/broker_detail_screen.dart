@@ -587,12 +587,25 @@ class _PipelineCard extends StatelessWidget {
   final Pipeline pipeline;
   final VoidCallback onTap;
 
+  /// Returns a color with good contrast for text on a light background.
+  /// Darkens light colors to ensure readability.
+  Color _getContrastTextColor(Color color) {
+    final luminance = color.computeLuminance();
+    // If the color is too light, darken it significantly for readability
+    if (luminance > 0.4) {
+      // Darken light colors by blending with black
+      return Color.lerp(color, Colors.black, 0.5)!;
+    }
+    return color;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final stageColor = pipeline.stageColor != null 
+    final stageColor = pipeline.stageColor != null
         ? Color(int.parse('FF${pipeline.stageColor!.replaceAll('#', '')}', radix: 16))
         : AppColors.primary;
+    final stageTextColor = _getContrastTextColor(stageColor);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -609,13 +622,13 @@ class _PipelineCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: stageColor.withValues(alpha: 0.2),
+                      color: stageColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       pipeline.stageName ?? 'Unknown Stage',
                       style: TextStyle(
-                        color: stageColor,
+                        color: stageTextColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),

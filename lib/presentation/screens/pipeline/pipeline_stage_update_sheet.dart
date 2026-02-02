@@ -23,6 +23,17 @@ class PipelineStageUpdateSheet extends ConsumerStatefulWidget {
 
   /// Show the stage update sheet.
   static Future<void> show(BuildContext context, Pipeline pipeline) {
+    // Guard against updating closed pipelines
+    if (pipeline.isClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pipeline sudah ditutup dan tidak dapat diubah'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return Future.value();
+    }
+
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -278,6 +289,11 @@ class _PipelineStageUpdateSheetState
             if (selected) {
               setState(() {
                 _selectedStageId = stage.id;
+                // Pre-populate final premium with potential premium for won stages
+                if (stage.isFinal && stage.isWon && _finalPremiumController.text.isEmpty) {
+                  _finalPremiumController.text =
+                      widget.pipeline.potentialPremium.toStringAsFixed(0);
+                }
               });
             }
           },
@@ -317,7 +333,7 @@ class _PipelineStageUpdateSheetState
               const SizedBox(height: 16),
               AppTextField(
                 controller: _finalPremiumController,
-                label: 'Premi Final (Rp)',
+                label: 'Premi Final (Rp) *',
                 hint: 'Masukkan premi final',
                 keyboardType: TextInputType.number,
               ),
@@ -359,20 +375,43 @@ class _PipelineStageUpdateSheetState
       return;
     }
 
-    // Validate final stage fields
-    final stagesAsync = ref.read(pipelineStagesProvider);
-    final stages = stagesAsync.value ?? [];
+    // Validate final stage fields (use same provider as UI for consistency)
+    final stagesAsync = ref.read(pipelineStagesStreamProvider);
+    final stages = stagesAsync.value ?? <PipelineStageDto>[];
     final selectedStage = stages.where((s) => s.id == _selectedStageId).firstOrNull;
     
     if (selectedStage?.isFinal == true) {
-      if (selectedStage!.isWon && _policyNumberController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nomor polis wajib diisi'),
-            backgroundColor: Colors.red,
-          ),
+      if (selectedStage!.isWon) {
+        if (_policyNumberController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Nomor polis wajib diisi'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        if (_finalPremiumController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Premi final wajib diisi'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        final parsedPremium = double.tryParse(
+          _finalPremiumController.text.replaceAll(',', ''),
         );
-        return;
+        if (parsedPremium == null || parsedPremium <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Masukkan premi final yang valid'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
       }
       if (!selectedStage.isWon && _declineReasonController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(

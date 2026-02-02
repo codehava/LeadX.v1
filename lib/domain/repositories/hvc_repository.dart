@@ -14,6 +14,17 @@ abstract class HvcRepository {
   /// Watch all HVCs as a stream.
   Stream<List<Hvc>> watchAllHvcs();
 
+  /// Watch HVCs with pagination support (reactive stream).
+  /// Returns up to [limit] HVCs, optionally filtered by [searchQuery].
+  Stream<List<Hvc>> watchHvcsPaginated({
+    required int limit,
+    String? searchQuery,
+  });
+
+  /// Get total count of HVCs, optionally filtered by [searchQuery].
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getHvcCount({String? searchQuery});
+
   /// Watch a single HVC by ID (reactive stream).
   Stream<Hvc?> watchHvcById(String id);
 

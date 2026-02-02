@@ -10,7 +10,7 @@ import '../../widgets/common/app_search_field.dart';
 import '../../widgets/broker/broker_card.dart';
 import '../../../domain/entities/broker.dart';
 
-/// Screen displaying list of Brokers.
+/// Screen displaying list of Brokers with lazy loading.
 class BrokerListScreen extends ConsumerStatefulWidget {
   const BrokerListScreen({super.key});
 
@@ -22,11 +22,39 @@ class _BrokerListScreenState extends ConsumerState<BrokerListScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    // Load more when near the bottom (200px threshold)
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    final currentLimit = ref.read(brokerLimitProvider);
+    final totalCount =
+        ref.read(brokerTotalCountProvider(searchKey)).valueOrNull ?? 0;
+
+    // Only load more if there are more items
+    if (currentLimit < totalCount) {
+      ref.read(brokerLimitProvider.notifier).state += brokerPageSize;
+    }
   }
 
   @override
@@ -39,30 +67,18 @@ class _BrokerListScreenState extends ConsumerState<BrokerListScreen> {
             ? AppSearchField(
                 controller: _searchController,
                 hintText: 'Cari Broker...',
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
+                onChanged: _onSearchChanged,
                 autofocus: true,
               )
             : const Text('Broker'),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  _searchQuery = '';
-                }
-              });
-            },
+            onPressed: _toggleSearch,
           ),
         ],
       ),
-      body: _searchQuery.isNotEmpty ? _buildSearchResults() : _buildBrokerList(),
+      body: _buildBrokerList(),
       floatingActionButton: isAdmin
           ? FloatingActionButton.extended(
               onPressed: () => context.push('/home/brokers/new'),
@@ -73,16 +89,48 @@ class _BrokerListScreenState extends ConsumerState<BrokerListScreen> {
     );
   }
 
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        _searchQuery = '';
+        // Reset pagination when closing search
+        ref.read(brokerLimitProvider.notifier).state = brokerPageSize;
+      }
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    // Debounce search
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted && value == _searchController.text) {
+        setState(() => _searchQuery = value);
+        // Reset to first page on new search
+        ref.read(brokerLimitProvider.notifier).state = brokerPageSize;
+      }
+    });
+  }
+
   Widget _buildBrokerList() {
-    final brokersAsync = ref.watch(brokerListStreamProvider);
+    // Use single paginated provider for both list and search
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    final brokersAsync = ref.watch(paginatedBrokersProvider(searchKey));
+    final totalCount =
+        ref.watch(brokerTotalCountProvider(searchKey)).valueOrNull ?? 0;
 
     return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(brokerListStreamProvider);
-      },
+      onRefresh: _handleRefresh,
       child: brokersAsync.when(
         data: (brokers) {
           if (brokers.isEmpty) {
+            if (_searchQuery.isNotEmpty) {
+              return AppEmptyState(
+                icon: Icons.search_off,
+                title: 'Tidak Ditemukan',
+                subtitle: 'Tidak ada Broker yang cocok dengan "$_searchQuery".',
+              );
+            }
             return const AppEmptyState(
               icon: Icons.handshake_outlined,
               title: 'Belum Ada Broker',
@@ -90,10 +138,22 @@ class _BrokerListScreenState extends ConsumerState<BrokerListScreen> {
             );
           }
 
+          final hasMore = brokers.length < totalCount;
+
           return ListView.builder(
+            controller: _scrollController,
             padding: const EdgeInsets.only(top: 8, bottom: 88),
-            itemCount: brokers.length,
+            // Add 1 for loading indicator if there are more items
+            itemCount: brokers.length + (hasMore ? 1 : 0),
             itemBuilder: (context, index) {
+              // Show loading indicator at the end
+              if (index == brokers.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
               final broker = brokers[index];
               return _BrokerCardWithCount(
                 broker: broker,
@@ -107,45 +167,20 @@ class _BrokerListScreenState extends ConsumerState<BrokerListScreen> {
         ),
         error: (error, stack) => AppErrorState(
           title: 'Gagal memuat data Broker',
-          onRetry: () => ref.invalidate(brokerListStreamProvider),
+          onRetry: _handleRefresh,
         ),
       ),
     );
   }
 
-  Widget _buildSearchResults() {
-    final searchAsync = ref.watch(brokerSearchProvider(_searchQuery));
-
-    return searchAsync.when(
-      data: (brokers) {
-        if (brokers.isEmpty) {
-          return AppEmptyState(
-            icon: Icons.search_off,
-            title: 'Tidak Ditemukan',
-            subtitle: 'Tidak ada Broker yang cocok dengan "$_searchQuery".',
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 8, bottom: 88),
-          itemCount: brokers.length,
-          itemBuilder: (context, index) {
-            final broker = brokers[index];
-            return _BrokerCardWithCount(
-              broker: broker,
-              onTap: () => context.push('/home/brokers/${broker.id}'),
-            );
-          },
-        );
-      },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      error: (error, stack) => AppErrorState(
-        title: 'Gagal mencari Broker',
-        onRetry: () => ref.invalidate(brokerSearchProvider(_searchQuery)),
-      ),
-    );
+  Future<void> _handleRefresh() async {
+    // Reset pagination to first page
+    ref.read(brokerLimitProvider.notifier).state = brokerPageSize;
+    // Invalidate count provider to refresh total
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    ref.invalidate(brokerTotalCountProvider(searchKey));
+    // Wait a bit for the stream to refresh
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }
 

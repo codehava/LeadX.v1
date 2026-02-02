@@ -50,17 +50,47 @@ final brokerRepositoryProvider = Provider<BrokerRepository>((ref) {
 // List Providers
 // ==========================================
 
+/// Default page size for broker pagination.
+const brokerPageSize = 25;
+
 /// Stream provider for all brokers.
+/// @deprecated Use [paginatedBrokersProvider] for lazy loading.
 final brokerListStreamProvider = StreamProvider<List<domain.Broker>>((ref) {
   final repository = ref.watch(brokerRepositoryProvider);
   return repository.watchAllBrokers();
 });
 
 /// Provider for searching brokers.
+/// @deprecated Use [paginatedBrokersProvider] with search query for lazy loading.
 final brokerSearchProvider = FutureProvider.autoDispose
     .family<List<domain.Broker>, String>((ref, query) async {
   final repository = ref.watch(brokerRepositoryProvider);
   return repository.searchBrokers(query);
+});
+
+// ==========================================
+// Paginated Broker Providers
+// ==========================================
+
+/// State provider for broker list pagination limit.
+/// Increment this to load more items.
+final brokerLimitProvider = StateProvider<int>((ref) => brokerPageSize);
+
+/// Provider for watching brokers with pagination (reactive stream).
+/// Handles both list and search - pass null for full list or search query.
+final paginatedBrokersProvider =
+    StreamProvider.family<List<domain.Broker>, String?>((ref, searchQuery) {
+  final limit = ref.watch(brokerLimitProvider);
+  final repository = ref.watch(brokerRepositoryProvider);
+  return repository.watchBrokersPaginated(limit: limit, searchQuery: searchQuery);
+});
+
+/// Provider for total broker count (for "hasMore" calculation).
+/// Pass search query to get filtered count.
+final brokerTotalCountProvider =
+    FutureProvider.family<int, String?>((ref, searchQuery) {
+  final repository = ref.watch(brokerRepositoryProvider);
+  return repository.getBrokerCount(searchQuery: searchQuery);
 });
 
 // ==========================================

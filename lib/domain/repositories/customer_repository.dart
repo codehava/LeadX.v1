@@ -15,6 +15,17 @@ abstract class CustomerRepository {
   /// Returns customers assigned to current user based on hierarchy.
   Stream<List<Customer>> watchAllCustomers();
 
+  /// Watch customers with pagination support (reactive stream).
+  /// Returns up to [limit] customers, optionally filtered by [searchQuery].
+  Stream<List<Customer>> watchCustomersPaginated({
+    required int limit,
+    String? searchQuery,
+  });
+
+  /// Get total count of customers, optionally filtered by [searchQuery].
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getCustomerCount({String? searchQuery});
+
   /// Watch a specific customer by ID (reactive stream).
   Stream<Customer?> watchCustomerById(String id);
 

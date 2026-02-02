@@ -11,13 +11,19 @@ class HvcRemoteDataSource {
   // ==========================================
 
   /// Fetch HVCs from Supabase for incremental sync.
+  /// When [since] is null, performs a full sync (only non-deleted records).
+  /// When [since] is provided, fetches records updated OR deleted since that time.
   Future<List<Map<String, dynamic>>> fetchHvcs({DateTime? since}) async {
     var query = _supabase.from('hvcs').select();
-    
+
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      // Delta sync: fetch updated OR deleted since last sync
+      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+    } else {
+      // Full sync: only non-deleted records
+      query = query.isFilter('deleted_at', null);
     }
-    
+
     final response = await query;
     return List<Map<String, dynamic>>.from(response as List);
   }
@@ -67,15 +73,21 @@ class HvcRemoteDataSource {
   // ==========================================
 
   /// Fetch customer-HVC links for incremental sync.
+  /// When [since] is null, performs a full sync (only non-deleted records).
+  /// When [since] is provided, fetches records updated OR deleted since that time.
   Future<List<Map<String, dynamic>>> fetchCustomerHvcLinks({
     DateTime? since,
   }) async {
     var query = _supabase.from('customer_hvc_links').select();
-    
+
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      // Delta sync: fetch updated OR deleted since last sync
+      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+    } else {
+      // Full sync: only non-deleted records
+      query = query.isFilter('deleted_at', null);
     }
-    
+
     final response = await query;
     return List<Map<String, dynamic>>.from(response as List);
   }

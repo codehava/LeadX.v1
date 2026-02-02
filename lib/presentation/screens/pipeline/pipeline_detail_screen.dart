@@ -55,19 +55,22 @@ class PipelineDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(pipeline.code),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () => context.push(
-              '/home/pipelines/${pipeline.id}/edit?customerId=$customerId',
+          if (!pipeline.isClosed)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => context.push(
+                '/home/pipelines/${pipeline.id}/edit?customerId=$customerId',
+              ),
             ),
-          ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, pipeline),
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'history', child: Text('Riwayat Stage')),
-              const PopupMenuItem(value: 'stage', child: Text('Pindah Stage')),
-              const PopupMenuItem(value: 'status', child: Text('Update Status')),
-              const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+              if (!pipeline.isClosed) ...[
+                const PopupMenuItem(value: 'stage', child: Text('Pindah Stage')),
+                const PopupMenuItem(value: 'status', child: Text('Update Status')),
+                const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+              ],
             ],
           ),
         ],
@@ -187,10 +190,13 @@ class PipelineDetailScreen extends ConsumerWidget {
 
   Widget _buildStageCard(Pipeline pipeline, ThemeData theme) {
     final stageColor = _parseColor(pipeline.stageColor);
+    final stageTextColor = stageColor != null
+        ? _getContrastTextColor(stageColor)
+        : theme.colorScheme.primary;
     final probability = pipeline.stageProbability ?? 0;
-    
+
     return Card(
-      color: stageColor?.withAlpha(30),
+      color: stageColor?.withAlpha(25),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -221,7 +227,7 @@ class PipelineDetailScreen extends ConsumerWidget {
                     pipeline.stageName ?? 'Unknown Stage',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: stageColor,
+                      color: stageTextColor,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -301,6 +307,17 @@ class PipelineDetailScreen extends ConsumerWidget {
     String action,
     Pipeline pipeline,
   ) {
+    // Guard against actions on closed pipelines (defense in depth)
+    if (action != 'history' && pipeline.isClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pipeline sudah ditutup dan tidak dapat diubah'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     switch (action) {
       case 'history':
         context.push('/home/pipelines/${pipeline.id}/history?customerId=$customerId');
@@ -357,6 +374,15 @@ class PipelineDetailScreen extends ConsumerWidget {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Returns a color with good contrast for text on a light background.
+  Color _getContrastTextColor(Color color) {
+    final luminance = color.computeLuminance();
+    if (luminance > 0.4) {
+      return Color.lerp(color, Colors.black, 0.5)!;
+    }
+    return color;
   }
 
   String _formatDate(DateTime date) {

@@ -14,6 +14,17 @@ abstract class BrokerRepository {
   /// Watch all brokers as a stream.
   Stream<List<Broker>> watchAllBrokers();
 
+  /// Watch brokers with pagination support (reactive stream).
+  /// Returns up to [limit] brokers, optionally filtered by [searchQuery].
+  Stream<List<Broker>> watchBrokersPaginated({
+    required int limit,
+    String? searchQuery,
+  });
+
+  /// Get total count of brokers, optionally filtered by [searchQuery].
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getBrokerCount({String? searchQuery});
+
   /// Watch a single broker by ID (reactive stream).
   Stream<Broker?> watchBrokerById(String id);
 

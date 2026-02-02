@@ -14,6 +14,17 @@ abstract class PipelineRepository {
   /// Returns pipelines assigned to current user based on hierarchy.
   Stream<List<Pipeline>> watchAllPipelines();
 
+  /// Watch pipelines with pagination support (reactive stream).
+  /// Returns up to [limit] pipelines, optionally filtered by [searchQuery].
+  Stream<List<Pipeline>> watchPipelinesPaginated({
+    required int limit,
+    String? searchQuery,
+  });
+
+  /// Get total count of pipelines, optionally filtered by [searchQuery].
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getPipelineCount({String? searchQuery});
+
   /// Watch pipelines for a specific customer.
   Stream<List<Pipeline>> watchCustomerPipelines(String customerId);
 

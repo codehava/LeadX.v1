@@ -243,37 +243,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
 
     return Stack(
       children: [
-        GestureDetector(
-          onLongPress: () async {
-            // Long press = force re-sync master data
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Re-sync Master Data?'),
-                content: const Text(
-                  'Ini akan mengunduh ulang semua data master (provinsi, kota, tipe perusahaan, dll) dari server.\n\n'
-                  'Gunakan jika dropdown tidak menampilkan data.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Batal'),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Re-sync'),
-                  ),
-                ],
-              ),
-            );
-            if (confirmed == true && context.mounted) {
-              await SyncProgressSheet.show(context);
-            }
-          },
-          child: IconButton(
-            icon: SyncStatusBadge(status: status),
-            tooltip: 'Sync (tahan untuk re-sync master data)',
-            onPressed: () async {
+        Tooltip(
+          message: 'Sync (tahan untuk re-sync master data)',
+          child: InkWell(
+            onTap: () async {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Sinkronisasi dimulai...'),
@@ -298,6 +271,37 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 }
               }
             },
+            onLongPress: () async {
+              // Long press = force re-sync master data
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Re-sync Master Data?'),
+                  content: const Text(
+                    'Ini akan mengunduh ulang semua data master (provinsi, kota, tipe perusahaan, dll) dari server.\n\n'
+                    'Gunakan jika dropdown tidak menampilkan data.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Batal'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Re-sync'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true && context.mounted) {
+                await SyncProgressSheet.show(context);
+              }
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SyncStatusBadge(status: status),
+            ),
           ),
         ),
         // Badge for pending count

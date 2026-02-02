@@ -41,6 +41,21 @@ class BrokerRepositoryImpl implements BrokerRepository {
   }
 
   @override
+  Stream<List<domain.Broker>> watchBrokersPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    return localDataSource
+        .watchBrokersPaginated(limit: limit, searchQuery: searchQuery)
+        .map((list) => list.map((data) => _mapToBroker(data)).toList());
+  }
+
+  @override
+  Future<int> getBrokerCount({String? searchQuery}) {
+    return localDataSource.getBrokerCount(searchQuery: searchQuery);
+  }
+
+  @override
   Stream<domain.Broker?> watchBrokerById(String id) {
     return localDataSource.watchBrokerById(id).map(
           (data) => data != null ? _mapToBroker(data) : null,

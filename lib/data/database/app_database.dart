@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -160,6 +160,17 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(userScores, userScores.score);
             await m.addColumn(userScores, userScores.rank);
             // Rename PeriodSummaryScores to UserScoreSnapshots handled by recreation
+          }
+          // Migration from v5 to v6: Add Cadence tables
+          if (from < 6) {
+            await m.createTable(cadenceScheduleConfig);
+            await m.createTable(cadenceMeetings);
+            await m.createTable(cadenceParticipants);
+          }
+          // Migration from v6 to v7: Add preMeetingHours column to cadence_schedule_config
+          if (from < 7) {
+            await m.addColumn(
+                cadenceScheduleConfig, cadenceScheduleConfig.preMeetingHours);
           }
         },
         beforeOpen: (details) async {

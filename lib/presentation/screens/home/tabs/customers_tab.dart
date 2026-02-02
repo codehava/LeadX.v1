@@ -11,6 +11,7 @@ import '../../../widgets/common/empty_state.dart';
 import '../../../widgets/common/loading_indicator.dart';
 
 /// Customers tab showing customer list with search and filter.
+/// Uses lazy loading with pagination for better performance.
 class CustomersTab extends ConsumerStatefulWidget {
   const CustomersTab({super.key});
 
@@ -20,20 +21,45 @@ class CustomersTab extends ConsumerStatefulWidget {
 
 class _CustomersTabState extends ConsumerState<CustomersTab> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
   String _searchQuery = '';
   bool _showSearchBar = false;
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    // Load more when near the bottom (200px threshold)
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    final currentLimit = ref.read(customerLimitProvider);
+    final totalCount =
+        ref.read(customerTotalCountProvider(searchKey)).valueOrNull ?? 0;
+
+    // Only load more if there are more items
+    if (currentLimit < totalCount) {
+      ref.read(customerLimitProvider.notifier).state += customerPageSize;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: _showSearchBar
@@ -55,16 +81,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Filter chips
-          _buildFilterChips(colorScheme),
-          // Customer list
-          Expanded(
-            child: _buildCustomerList(),
-          ),
-        ],
-      ),
+      body: _buildCustomerList(),
       floatingActionButton: FloatingActionButton(
         heroTag: 'customers_tab_fab',
         onPressed: () => context.push(RoutePaths.customerCreate),
@@ -73,49 +90,19 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     );
   }
 
-  Widget _buildFilterChips(ColorScheme colorScheme) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          FilterChip(
-            label: const Text('Semua'),
-            selected: true,
-            onSelected: (_) {},
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            label: const Text('Aktif'),
-            selected: false,
-            onSelected: (_) {},
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            label: const Text('Belum Sync'),
-            selected: false,
-            onSelected: (_) {},
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCustomerList() {
-    // Use search provider if searching, otherwise use list stream
-    if (_searchQuery.isNotEmpty) {
-      return _buildSearchResults();
-    }
-    return _buildListStream();
-  }
-
-  Widget _buildListStream() {
-    final customersAsync = ref.watch(customerListStreamProvider);
+    // Use single paginated provider for both list and search
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    final customersAsync = ref.watch(paginatedCustomersProvider(searchKey));
+    final totalCount =
+        ref.watch(customerTotalCountProvider(searchKey)).valueOrNull ?? 0;
 
     return customersAsync.when(
       data: (customers) {
         if (customers.isEmpty) {
+          if (_searchQuery.isNotEmpty) {
+            return AppEmptyState.noSearchResults();
+          }
           return AppEmptyState.noData(
             title: 'Belum ada customer',
             subtitle: 'Tap tombol + untuk menambahkan customer baru',
@@ -123,7 +110,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
             onAction: () => context.push(RoutePaths.customerCreate),
           );
         }
-        return _buildCustomerListView(customers);
+        return _buildCustomerListView(customers, totalCount);
       },
       loading: () => const Center(child: AppLoadingIndicator()),
       error: (error, _) => Center(
@@ -135,7 +122,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
             Text('Error: $error'),
             const SizedBox(height: 16),
             OutlinedButton(
-              onPressed: () => ref.invalidate(customerListStreamProvider),
+              onPressed: _handleRefresh,
               child: const Text('Coba Lagi'),
             ),
           ],
@@ -144,28 +131,25 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     );
   }
 
-  Widget _buildSearchResults() {
-    final searchAsync = ref.watch(customerSearchProvider(_searchQuery));
+  Widget _buildCustomerListView(List<Customer> customers, int totalCount) {
+    final hasMore = customers.length < totalCount;
 
-    return searchAsync.when(
-      data: (customers) {
-        if (customers.isEmpty) {
-          return AppEmptyState.noSearchResults();
-        }
-        return _buildCustomerListView(customers);
-      },
-      loading: () => const Center(child: AppLoadingIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
-    );
-  }
-
-  Widget _buildCustomerListView(List<Customer> customers) {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.only(top: 8, bottom: 88),
-        itemCount: customers.length,
+        // Add 1 for loading indicator if there are more items
+        itemCount: customers.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
+          // Show loading indicator at the end
+          if (index == customers.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
           final customer = customers[index];
           return CustomerCard(
             customer: customer,
@@ -182,6 +166,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
       if (!_showSearchBar) {
         _searchController.clear();
         _searchQuery = '';
+        // Reset pagination when closing search
+        ref.read(customerLimitProvider.notifier).state = customerPageSize;
       }
     });
   }
@@ -191,6 +177,8 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted && value == _searchController.text) {
         setState(() => _searchQuery = value);
+        // Reset to first page on new search
+        ref.read(customerLimitProvider.notifier).state = customerPageSize;
       }
     });
   }
@@ -200,8 +188,11 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
   }
 
   Future<void> _handleRefresh() async {
-    // Trigger a manual sync
-    ref.invalidate(customerListStreamProvider);
+    // Reset pagination to first page
+    ref.read(customerLimitProvider.notifier).state = customerPageSize;
+    // Invalidate count provider to refresh total
+    final searchKey = _searchQuery.isEmpty ? null : _searchQuery;
+    ref.invalidate(customerTotalCountProvider(searchKey));
     // Wait a bit for the stream to refresh
     await Future.delayed(const Duration(milliseconds: 500));
   }

@@ -21,6 +21,32 @@ class CustomerLocalDataSource {
     return query.watch();
   }
 
+  /// Watch customers with pagination support.
+  /// Returns a reactive stream limited to [limit] items.
+  /// Optionally filters by [searchQuery] on name, code, or address.
+  Stream<List<Customer>> watchCustomersPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    var query = _db.select(_db.customers)
+      ..where((c) => c.deletedAt.isNull());
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final pattern = '%${searchQuery.toLowerCase()}%';
+      query = query
+        ..where((c) =>
+            c.name.lower().like(pattern) |
+            c.code.lower().like(pattern) |
+            c.address.lower().like(pattern));
+    }
+
+    query = query
+      ..orderBy([(c) => OrderingTerm.asc(c.name)])
+      ..limit(limit);
+
+    return query.watch();
+  }
+
   /// Watch customers assigned to a specific RM.
   Stream<List<Customer>> watchCustomersByRm(String rmId) {
     final query = _db.select(_db.customers)
@@ -169,6 +195,25 @@ class CustomerLocalDataSource {
   /// Get total count of customers.
   Future<int> getTotalCount() =>
       _db.customers.count(where: (c) => c.deletedAt.isNull()).getSingle();
+
+  /// Get count of customers, optionally filtered by search query.
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getCustomerCount({String? searchQuery}) async {
+    if (searchQuery == null || searchQuery.isEmpty) {
+      return getTotalCount();
+    }
+
+    final pattern = '%${searchQuery.toLowerCase()}%';
+    return _db.customers
+        .count(
+          where: (c) =>
+              c.deletedAt.isNull() &
+              (c.name.lower().like(pattern) |
+                  c.code.lower().like(pattern) |
+                  c.address.lower().like(pattern)),
+        )
+        .getSingle();
+  }
 
   /// Get count of active customers.
   Future<int> getActiveCount() => _db.customers

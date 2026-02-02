@@ -22,6 +22,46 @@ class HvcLocalDataSource {
         .watch();
   }
 
+  /// Watch HVCs with pagination support.
+  /// Returns a reactive stream limited to [limit] items.
+  /// Optionally filters by [searchQuery] on name or code.
+  Stream<List<Hvc>> watchHvcsPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    var query = _db.select(_db.hvcs)..where((t) => t.deletedAt.isNull());
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final pattern = '%${searchQuery.toLowerCase()}%';
+      query = query
+        ..where((t) =>
+            t.name.lower().like(pattern) | t.code.lower().like(pattern));
+    }
+
+    query = query
+      ..orderBy([(t) => OrderingTerm(expression: t.name)])
+      ..limit(limit);
+
+    return query.watch();
+  }
+
+  /// Get count of HVCs, optionally filtered by search query.
+  /// Used for pagination "hasMore" calculation.
+  Future<int> getHvcCount({String? searchQuery}) async {
+    if (searchQuery == null || searchQuery.isEmpty) {
+      return _db.hvcs.count(where: (t) => t.deletedAt.isNull()).getSingle();
+    }
+
+    final pattern = '%${searchQuery.toLowerCase()}%';
+    return _db.hvcs
+        .count(
+          where: (t) =>
+              t.deletedAt.isNull() &
+              (t.name.lower().like(pattern) | t.code.lower().like(pattern)),
+        )
+        .getSingle();
+  }
+
   /// Get all active HVCs.
   Future<List<Hvc>> getAllHvcs() async {
     return (_db.select(_db.hvcs)

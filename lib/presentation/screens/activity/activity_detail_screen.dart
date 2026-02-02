@@ -818,21 +818,19 @@ class ActivityDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _openInMaps(BuildContext context, double lat, double lon) {
-    // Open in Google Maps via URL
-    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lon';
-    // Using launchUrl would require url_launcher, for now just show snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Koordinat: $lat, $lon'),
-        action: SnackBarAction(
-          label: 'Copy',
-          onPressed: () {
-            // TODO: Copy to clipboard
-          },
-        ),
-      ),
-    );
+  Future<void> _openInMaps(BuildContext context, double lat, double lon) async {
+    final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tidak dapat membuka peta. Koordinat: $lat, $lon'),
+          ),
+        );
+      }
+    }
   }
 
   Color _getAuditLogColor(String action) {

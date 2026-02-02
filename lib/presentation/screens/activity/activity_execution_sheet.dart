@@ -378,18 +378,35 @@ class _ActivityExecutionSheetState
     ActivityExecutionState executionState,
     ActivityFormState formState,
   ) {
+    // Watch activity types to determine photo requirement in real-time
+    final activityTypesAsync = ref.watch(activityTypesProvider);
+
+    // Determine if photo is required based on activity type
+    final requiresPhoto = activityTypesAsync.maybeWhen(
+      data: (types) {
+        final activityType = types.where(
+          (t) => t.id == widget.activity.activityTypeId,
+        ).firstOrNull;
+        return activityType?.requirePhoto ?? false;
+      },
+      orElse: () => _requiresPhoto, // Fall back to cached value while loading
+    );
+
+    // Also check if activity types are still loading
+    final isLoadingTypes = activityTypesAsync.isLoading;
+
     final hasTarget = widget.targetLat != null && widget.targetLon != null;
     final isValidLocation = executionState.isValid || !hasTarget;
     final hasOverride =
         _showOverrideForm && _overrideReasonController.text.isNotEmpty;
     final locationOk = isValidLocation || hasOverride;
-    final photoOk = !_requiresPhoto || _capturedPhotos.isNotEmpty;
-    final canExecute = locationOk && photoOk;
+    final photoOk = !requiresPhoto || _capturedPhotos.isNotEmpty;
+    final canExecute = locationOk && photoOk && !isLoadingTypes;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_requiresPhoto && _capturedPhotos.isEmpty)
+        if (requiresPhoto && _capturedPhotos.isEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
@@ -420,6 +437,18 @@ class _ActivityExecutionSheetState
   }
 
   Widget _buildPhotoSection(ThemeData theme) {
+    // Watch activity types to determine photo requirement in real-time
+    final activityTypesAsync = ref.watch(activityTypesProvider);
+    final requiresPhoto = activityTypesAsync.maybeWhen(
+      data: (types) {
+        final activityType = types.where(
+          (t) => t.id == widget.activity.activityTypeId,
+        ).firstOrNull;
+        return activityType?.requirePhoto ?? false;
+      },
+      orElse: () => _requiresPhoto, // Fall back to cached value while loading
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -429,7 +458,7 @@ class _ActivityExecutionSheetState
               'Foto Bukti',
               style: theme.textTheme.titleSmall,
             ),
-            if (_requiresPhoto)
+            if (requiresPhoto)
               Container(
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
