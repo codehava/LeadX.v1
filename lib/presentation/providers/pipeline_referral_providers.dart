@@ -47,6 +47,7 @@ final pipelineReferralRepositoryProvider =
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    currentUserRole: currentUser?.role.name.toUpperCase() ?? '',
     database: database,
   );
 });
@@ -92,6 +93,20 @@ final pendingApprovalsProvider =
   }
 
   return repository.watchPendingApprovals(currentUser.id);
+});
+
+/// Provider for watching all referrals (for admin users).
+final allReferralsProvider =
+    StreamProvider.autoDispose<List<PipelineReferral>>((ref) {
+  final repository = ref.watch(pipelineReferralRepositoryProvider);
+  final currentUser = ref.watch(currentUserProvider).valueOrNull;
+
+  // Only admins can see all referrals
+  if (currentUser == null || !currentUser.isAdmin) {
+    return Stream.value([]);
+  }
+
+  return repository.watchAllReferrals();
 });
 
 /// Provider for watching inbound referrals for a specific user.
@@ -227,7 +242,16 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> acceptReferral(String id, {String? notes}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.acceptReferral(id, notes);
-    if (!mounted) return false;
+
+    // Check if notifier is still mounted - if not, the operation still succeeded
+    // but we can't update state. Return based on result, not mounted status.
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] acceptReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -250,7 +274,14 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> rejectReferral(String id, String reason) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.rejectReferral(id, reason);
-    if (!mounted) return false;
+
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] rejectReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -273,7 +304,14 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> approveReferral(String id, {String? notes}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.approveReferral(id, _currentUserId, notes);
-    if (!mounted) return false;
+
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] approveReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -297,7 +335,14 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result =
         await _repository.rejectAsManager(id, _currentUserId, reason);
-    if (!mounted) return false;
+
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] rejectAsManager: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -320,7 +365,14 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
   Future<bool> cancelReferral(String id, String reason) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.cancelReferral(id, reason);
-    if (!mounted) return false;
+
+    final isSuccess = result.isRight();
+
+    if (!mounted) {
+      debugPrint('[ReferralNotifier] cancelReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      return isSuccess;
+    }
+
     return result.fold(
       (failure) {
         state = state.copyWith(

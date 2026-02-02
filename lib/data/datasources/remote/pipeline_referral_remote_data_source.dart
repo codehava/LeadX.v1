@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Remote data source for pipeline referral operations via Supabase.
@@ -148,7 +149,7 @@ class PipelineReferralRemoteDataSource {
         'approver_type': result['approver_type'] as String,
       };
     } catch (e) {
-      print('[ReferralRemote] Error finding approver: $e');
+      debugPrint('[ReferralRemote] Error finding approver: $e');
       return null;
     }
   }

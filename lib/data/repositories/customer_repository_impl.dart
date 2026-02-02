@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -94,18 +95,18 @@ class CustomerRepositoryImpl implements CustomerRepository {
       );
 
       // Save locally first
-      print('[CustomerRepo] Inserting customer locally: $id');
+      debugPrint('[CustomerRepo] Inserting customer locally: $id');
       await _localDataSource.insertCustomer(companion);
 
       // Queue for sync
-      print('[CustomerRepo] Queueing customer for sync: $id');
+      debugPrint('[CustomerRepo] Queueing customer for sync: $id');
       await _syncService.queueOperation(
         entityType: SyncEntityType.customer,
         entityId: id,
         operation: SyncOperation.create,
         payload: _createSyncPayload(id, code, dto, now),
       );
-      print('[CustomerRepo] Customer queued successfully');
+      debugPrint('[CustomerRepo] Customer queued successfully');
 
       // Trigger sync to upload immediately
       unawaited(_syncService.triggerSync());
@@ -406,12 +407,12 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
     try {
-      print('[CustomerRepo] syncFromRemote called, currentUserId=$_currentUserId, since=$since');
+      debugPrint('[CustomerRepo] syncFromRemote called, currentUserId=$_currentUserId, since=$since');
       final remoteData = await _remoteDataSource.fetchCustomers(since: since);
-      print('[CustomerRepo] fetchCustomers returned ${remoteData.length} records');
+      debugPrint('[CustomerRepo] fetchCustomers returned ${remoteData.length} records');
 
       if (remoteData.isEmpty) {
-        print('[CustomerRepo] No customers returned from remote - check RLS policies if unexpected');
+        debugPrint('[CustomerRepo] No customers returned from remote - check RLS policies if unexpected');
         return const Right(0);
       }
 
@@ -470,7 +471,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
         return const Right(0);
       }
 
-      print('[CustomerRepo] Syncing ${remoteData.length} key persons from remote');
+      debugPrint('[CustomerRepo] Syncing ${remoteData.length} key persons from remote');
 
       final companions = remoteData.map((data) {
         return db.KeyPersonsCompanion(

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/failures.dart';
@@ -520,11 +521,11 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final remoteData = await _remoteDataSource.fetchPipelines(since: since);
       
       if (remoteData.isEmpty) {
-        print('[PipelineRepo] No pipelines to sync from remote');
+        debugPrint('[PipelineRepo] No pipelines to sync from remote');
         return;
       }
 
-      print('[PipelineRepo] Syncing ${remoteData.length} pipelines from remote');
+      debugPrint('[PipelineRepo] Syncing ${remoteData.length} pipelines from remote');
 
       final companions = remoteData.map((data) {
         return db.PipelinesCompanion(
@@ -568,9 +569,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
       }).toList();
 
       await _localDataSource.upsertPipelines(companions);
-      print('[PipelineRepo] Successfully synced ${companions.length} pipelines');
+      debugPrint('[PipelineRepo] Successfully synced ${companions.length} pipelines');
     } catch (e) {
-      print('[PipelineRepo] Error syncing from remote: $e');
+      debugPrint('[PipelineRepo] Error syncing from remote: $e');
       rethrow;
     }
   }
@@ -599,43 +600,43 @@ class PipelineRepositoryImpl implements PipelineRepository {
       _stageProbabilityCache = {for (final s in stages) s.id: s.probability};
       _stageIsFinalCache = {for (final s in stages) s.id: s.isFinal};
       _stageIsWonCache = {for (final s in stages) s.id: s.isWon};
-      print('[PipelineRepo] Loaded ${stages.length} stages');
+      debugPrint('[PipelineRepo] Loaded ${stages.length} stages');
     }
     if (_statusNameCache == null) {
       final statuses = await _localDataSource.getPipelineStatuses();
       _statusNameCache = {for (final s in statuses) s.id: s.name};
-      print('[PipelineRepo] Loaded ${statuses.length} statuses');
+      debugPrint('[PipelineRepo] Loaded ${statuses.length} statuses');
     }
     if (_cobNameCache == null) {
       final cobs = await _masterDataSource.getCobs();
       _cobNameCache = {for (final c in cobs) c.id: c.name};
-      print('[PipelineRepo] Loaded ${cobs.length} COBs');
+      debugPrint('[PipelineRepo] Loaded ${cobs.length} COBs');
     }
     if (_lobNameCache == null) {
       // Get all LOBs by not filtering by COB
       final allLobs = await _getAllLobs();
       _lobNameCache = {for (final l in allLobs) l.id: l.name};
-      print('[PipelineRepo] Loaded ${allLobs.length} LOBs');
+      debugPrint('[PipelineRepo] Loaded ${allLobs.length} LOBs');
     }
     if (_leadSourceNameCache == null) {
       final sources = await _masterDataSource.getLeadSources();
       _leadSourceNameCache = {for (final s in sources) s.id: s.name};
-      print('[PipelineRepo] Loaded ${sources.length} lead sources');
+      debugPrint('[PipelineRepo] Loaded ${sources.length} lead sources');
     }
     if (_brokerNameCache == null) {
       final brokers = await _masterDataSource.getBrokers();
       _brokerNameCache = {for (final b in brokers) b.id: b.name};
-      print('[PipelineRepo] Loaded ${brokers.length} brokers');
+      debugPrint('[PipelineRepo] Loaded ${brokers.length} brokers');
     }
     if (_customerNameCache == null) {
       final customers = await _customerDataSource.getAllCustomers();
       _customerNameCache = {for (final c in customers) c.id: c.name};
-      print('[PipelineRepo] Loaded ${customers.length} customers');
+      debugPrint('[PipelineRepo] Loaded ${customers.length} customers');
     }
     if (_userNameCache == null) {
       final users = await _database.select(_database.users).get();
       _userNameCache = {for (final u in users) u.id: u.name};
-      print('[PipelineRepo] Loaded ${users.length} users');
+      debugPrint('[PipelineRepo] Loaded ${users.length} users');
     }
   }
 
@@ -653,7 +654,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
     _brokerNameCache = null;
     _customerNameCache = null;
     _userNameCache = null;
-    print('[PipelineRepo] Caches invalidated');
+    debugPrint('[PipelineRepo] Caches invalidated');
   }
 
   /// Get all LOBs from database.

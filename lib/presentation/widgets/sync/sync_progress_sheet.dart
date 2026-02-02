@@ -16,7 +16,7 @@ class SyncProgressSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) async {
     // Prevent showing multiple times (race condition between LoginScreen and HomeScreen)
     if (_isShowing) {
-      print('[SyncProgressSheet] Already showing, skipping duplicate call');
+      debugPrint('[SyncProgressSheet] Already showing, skipping duplicate call');
       return;
     }
 
@@ -53,12 +53,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
   }
 
   Future<void> _startSync() async {
-    print('[SyncProgressSheet] Starting initial sync...');
+    debugPrint('[SyncProgressSheet] Starting initial sync...');
     final initialSyncService = ref.read(initialSyncServiceProvider);
     
     // Listen to progress updates
     initialSyncService.progressStream.listen((progress) {
-      print('[SyncProgressSheet] Progress: ${progress.message} (${progress.percentage}%)');
+      debugPrint('[SyncProgressSheet] Progress: ${progress.message} (${progress.percentage}%)');
       if (mounted) {
         setState(() {
           _progress = progress;
@@ -74,7 +74,7 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       },
     );
 
-    print('[SyncProgressSheet] Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
+    debugPrint('[SyncProgressSheet] Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
 
     if (!result.success && result.errors.isNotEmpty) {
       if (mounted) {
@@ -101,12 +101,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       });
     }
 
-    print('[SyncProgressSheet] Starting delta sync...');
+    debugPrint('[SyncProgressSheet] Starting delta sync...');
     try {
       final deltaResult = await initialSyncService.performDeltaSync();
-      print('[SyncProgressSheet] Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
+      debugPrint('[SyncProgressSheet] Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
     } catch (e) {
-      print('[SyncProgressSheet] Delta sync error: $e');
+      debugPrint('[SyncProgressSheet] Delta sync error: $e');
       // Don't fail the whole sync for delta sync errors - they can retry later
     }
 
@@ -125,12 +125,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       });
     }
 
-    print('[SyncProgressSheet] Starting user data pull...');
+    debugPrint('[SyncProgressSheet] Starting user data pull...');
     try {
       await ref.read(syncNotifierProvider.notifier).triggerSync();
-      print('[SyncProgressSheet] User data pull complete');
+      debugPrint('[SyncProgressSheet] User data pull complete');
     } catch (e) {
-      print('[SyncProgressSheet] User data pull error: $e');
+      debugPrint('[SyncProgressSheet] User data pull error: $e');
       // Don't fail the whole sync for user data errors - they can retry later
     }
 

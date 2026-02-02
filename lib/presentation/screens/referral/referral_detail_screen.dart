@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/pipeline_referral.dart';
 import '../../providers/auth_providers.dart';
@@ -53,13 +54,14 @@ class ReferralDetailScreen extends ConsumerWidget {
 
     final isReferrer = currentUser != null && referral.isReferrer(currentUser.id);
     final isReceiver = currentUser != null && referral.isReceiver(currentUser.id);
+    final isAdmin = currentUser?.isAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(referral.code),
         actions: [
-          // Cancel action for referrer
-          if (isReferrer && referral.canBeCancelled)
+          // Cancel action for referrer (admin can also cancel)
+          if ((isReferrer || isAdmin) && referral.canBeCancelled)
             IconButton(
               icon: const Icon(Icons.cancel_outlined),
               tooltip: 'Batalkan Referral',
@@ -295,9 +297,10 @@ class ReferralDetailScreen extends ConsumerWidget {
 
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final isManager = currentUser?.canManageSubordinates ?? false;
+    final isAdmin = currentUser?.isAdmin ?? false;
 
-    // Receiver actions - Accept/Reject referral
-    if (isReceiver && referral.canBeAccepted) {
+    // Receiver actions - Accept/Reject referral (admin can also do this)
+    if ((isReceiver || isAdmin) && referral.canBeAccepted) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -332,8 +335,8 @@ class ReferralDetailScreen extends ConsumerWidget {
       );
     }
 
-    // Manager actions - Approve/Reject after receiver accepted
-    if (isManager && referral.canBeApproved) {
+    // Manager actions - Approve/Reject after receiver accepted (admin can also do this)
+    if ((isManager || isAdmin) && referral.canBeApproved) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -415,12 +418,13 @@ class ReferralDetailScreen extends ConsumerWidget {
                 notes: notesController.text.isEmpty ? null : notesController.text,
               );
               if (context.mounted) {
+                final state = ref.read(referralActionNotifierProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       success
-                          ? 'Referral berhasil diterima'
-                          : 'Gagal menerima referral',
+                          ? 'Referral berhasil diterima, menunggu approval'
+                          : state.errorMessage ?? 'Gagal menerima referral',
                     ),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),
@@ -490,18 +494,19 @@ class ReferralDetailScreen extends ConsumerWidget {
                 reasonController.text,
               );
               if (context.mounted) {
+                final state = ref.read(referralActionNotifierProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       success
                           ? 'Referral berhasil ditolak'
-                          : 'Gagal menolak referral',
+                          : state.errorMessage ?? 'Gagal menolak referral',
                     ),
                     backgroundColor: success ? Colors.orange : Colors.red,
                   ),
                 );
-                if (success) {
-                  ref.invalidate(referralDetailProvider(referralId));
+                if (success && context.mounted) {
+                  context.pop();
                 }
               }
             },
@@ -566,18 +571,19 @@ class ReferralDetailScreen extends ConsumerWidget {
                 reasonController.text,
               );
               if (context.mounted) {
+                final state = ref.read(referralActionNotifierProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       success
                           ? 'Referral berhasil dibatalkan'
-                          : 'Gagal membatalkan referral',
+                          : state.errorMessage ?? 'Gagal membatalkan referral',
                     ),
                     backgroundColor: success ? Colors.grey : Colors.red,
                   ),
                 );
-                if (success) {
-                  ref.invalidate(referralDetailProvider(referralId));
+                if (success && context.mounted) {
+                  context.pop();
                 }
               }
             },
@@ -633,18 +639,20 @@ class ReferralDetailScreen extends ConsumerWidget {
                 notes: notesController.text.isEmpty ? null : notesController.text,
               );
               if (context.mounted) {
+                final state = ref.read(referralActionNotifierProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       success
                           ? 'Referral berhasil disetujui'
-                          : 'Gagal menyetujui referral',
+                          : state.errorMessage ?? 'Gagal menyetujui referral',
                     ),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),
                 );
-                if (success) {
-                  ref.invalidate(referralDetailProvider(referralId));
+                if (success && context.mounted) {
+                  // Navigate back to referral list
+                  context.pop();
                 }
               }
             },
@@ -708,18 +716,20 @@ class ReferralDetailScreen extends ConsumerWidget {
                 reasonController.text,
               );
               if (context.mounted) {
+                final state = ref.read(referralActionNotifierProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       success
                           ? 'Referral berhasil ditolak'
-                          : 'Gagal menolak referral',
+                          : state.errorMessage ?? 'Gagal menolak referral',
                     ),
                     backgroundColor: success ? Colors.orange : Colors.red,
                   ),
                 );
-                if (success) {
-                  ref.invalidate(referralDetailProvider(referralId));
+                if (success && context.mounted) {
+                  // Navigate back to referral list
+                  context.pop();
                 }
               }
             },

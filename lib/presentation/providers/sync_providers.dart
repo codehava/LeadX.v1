@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/local/activity_local_data_source.dart';
@@ -134,28 +135,28 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     state = const AsyncValue.loading();
     try {
       // Step 1: Push - upload local changes to Supabase
-      print('[SyncNotifier] Starting push sync...');
+      debugPrint('[SyncNotifier] Starting push sync...');
       final pushResult = await _syncService.triggerSync();
-      print('[SyncNotifier] Push sync complete: ${pushResult.successCount} uploaded');
+      debugPrint('[SyncNotifier] Push sync complete: ${pushResult.successCount} uploaded');
 
       // Step 2: Sync pending photos to Supabase Storage
-      print('[SyncNotifier] Starting photo sync...');
+      debugPrint('[SyncNotifier] Starting photo sync...');
       await _syncPhotos();
-      print('[SyncNotifier] Photo sync complete');
+      debugPrint('[SyncNotifier] Photo sync complete');
 
       // Step 3: Sync pending audit logs (after activities are synced)
-      print('[SyncNotifier] Starting audit log sync...');
+      debugPrint('[SyncNotifier] Starting audit log sync...');
       await _syncAuditLogs();
-      print('[SyncNotifier] Audit log sync complete');
+      debugPrint('[SyncNotifier] Audit log sync complete');
 
       // Step 4: Pull - download changes from Supabase
-      print('[SyncNotifier] Starting pull sync...');
+      debugPrint('[SyncNotifier] Starting pull sync...');
       await _pullFromRemote();
-      print('[SyncNotifier] Pull sync complete');
+      debugPrint('[SyncNotifier] Pull sync complete');
 
       state = AsyncValue.data(pushResult);
     } catch (e, st) {
-      print('[SyncNotifier] Sync error: $e');
+      debugPrint('[SyncNotifier] Sync error: $e');
       state = AsyncValue.error(e, st);
     }
   }
@@ -165,7 +166,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     try {
       await _activityRepository.syncPendingPhotos();
     } catch (e) {
-      print('[SyncNotifier] Photo sync error: $e');
+      debugPrint('[SyncNotifier] Photo sync error: $e');
     }
   }
 
@@ -174,43 +175,43 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     try {
       await _activityRepository.syncPendingAuditLogs();
     } catch (e) {
-      print('[SyncNotifier] Audit log sync error: $e');
+      debugPrint('[SyncNotifier] Audit log sync error: $e');
     }
   }
 
   /// Pull data from Supabase to local database.
   Future<void> _pullFromRemote() async {
-    print('[SyncNotifier] Starting _pullFromRemote...');
+    debugPrint('[SyncNotifier] Starting _pullFromRemote...');
 
     // Pull customers
     try {
-      print('[SyncNotifier] Calling customerRepository.syncFromRemote...');
+      debugPrint('[SyncNotifier] Calling customerRepository.syncFromRemote...');
       final customerResult = await _customerRepository.syncFromRemote();
       customerResult.fold(
-        (failure) => print('[SyncNotifier] Customer pull failed: ${failure.message}'),
-        (count) => print('[SyncNotifier] Pulled $count customers'),
+        (failure) => debugPrint('[SyncNotifier] Customer pull failed: ${failure.message}'),
+        (count) => debugPrint('[SyncNotifier] Pulled $count customers'),
       );
     } catch (e, st) {
-      print('[SyncNotifier] Customer pull error: $e');
-      print('[SyncNotifier] Stack trace: $st');
+      debugPrint('[SyncNotifier] Customer pull error: $e');
+      debugPrint('[SyncNotifier] Stack trace: $st');
     }
 
     // Pull key persons
     try {
       final keyPersonResult = await _customerRepository.syncKeyPersonsFromRemote();
       keyPersonResult.fold(
-        (failure) => print('[SyncNotifier] Key person pull failed: ${failure.message}'),
-        (count) => print('[SyncNotifier] Pulled $count key persons'),
+        (failure) => debugPrint('[SyncNotifier] Key person pull failed: ${failure.message}'),
+        (count) => debugPrint('[SyncNotifier] Pulled $count key persons'),
       );
     } catch (e) {
-      print('[SyncNotifier] Key person pull error: $e');
+      debugPrint('[SyncNotifier] Key person pull error: $e');
     }
 
     // Pull pipelines
     try {
       await _pipelineRepository.syncFromRemote();
     } catch (e) {
-      print('[SyncNotifier] Pipeline pull error: $e');
+      debugPrint('[SyncNotifier] Pipeline pull error: $e');
     }
 
     // Pull activities
@@ -223,48 +224,48 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       // Invalidate activity type cache to refresh names
       _activityRepository.invalidateCaches();
     } catch (e) {
-      print('[SyncNotifier] Activity pull error: $e');
+      debugPrint('[SyncNotifier] Activity pull error: $e');
     }
 
     // Pull HVCs
     try {
       final hvcResult = await _hvcRepository.syncFromRemote();
       hvcResult.fold(
-        (failure) => print('[SyncNotifier] HVC pull failed: ${failure.message}'),
-        (count) => print('[SyncNotifier] Pulled $count HVCs'),
+        (failure) => debugPrint('[SyncNotifier] HVC pull failed: ${failure.message}'),
+        (count) => debugPrint('[SyncNotifier] Pulled $count HVCs'),
       );
     } catch (e) {
-      print('[SyncNotifier] HVC pull error: $e');
+      debugPrint('[SyncNotifier] HVC pull error: $e');
     }
 
     // Pull HVC-Customer links
     try {
       final hvcLinkResult = await _hvcRepository.syncLinksFromRemote();
       hvcLinkResult.fold(
-        (failure) => print('[SyncNotifier] HVC link pull failed: ${failure.message}'),
-        (count) => print('[SyncNotifier] Pulled $count HVC-Customer links'),
+        (failure) => debugPrint('[SyncNotifier] HVC link pull failed: ${failure.message}'),
+        (count) => debugPrint('[SyncNotifier] Pulled $count HVC-Customer links'),
       );
     } catch (e) {
-      print('[SyncNotifier] HVC link pull error: $e');
+      debugPrint('[SyncNotifier] HVC link pull error: $e');
     }
 
     // Pull Brokers
     try {
       final brokerResult = await _brokerRepository.syncFromRemote();
       brokerResult.fold(
-        (failure) => print('[SyncNotifier] Broker pull failed: ${failure.message}'),
-        (count) => print('[SyncNotifier] Pulled $count brokers'),
+        (failure) => debugPrint('[SyncNotifier] Broker pull failed: ${failure.message}'),
+        (count) => debugPrint('[SyncNotifier] Pulled $count brokers'),
       );
     } catch (e) {
-      print('[SyncNotifier] Broker pull error: $e');
+      debugPrint('[SyncNotifier] Broker pull error: $e');
     }
 
     // Pull Cadence configs and meetings
     try {
       await _cadenceRepository.syncFromRemote();
-      print('[SyncNotifier] Pulled cadence data');
+      debugPrint('[SyncNotifier] Pulled cadence data');
     } catch (e) {
-      print('[SyncNotifier] Cadence pull error: $e');
+      debugPrint('[SyncNotifier] Cadence pull error: $e');
     }
   }
 

@@ -83,6 +83,9 @@ abstract class PipelineReferralRepository {
   /// Returns referrals where current user is the designated approver.
   Stream<List<PipelineReferral>> watchPendingApprovals(String managerId);
 
+  /// Watch all referrals (for admin users).
+  Stream<List<PipelineReferral>> watchAllReferrals();
+
   // ==========================================
   // List Operations
   // ==========================================

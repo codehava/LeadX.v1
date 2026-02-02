@@ -678,11 +678,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final remoteData = await _remoteDataSource.fetchActivities(since: since);
 
       if (remoteData.isEmpty) {
-        print('[ActivityRepo] No activities to sync from remote');
+        debugPrint('[ActivityRepo] No activities to sync from remote');
         return;
       }
 
-      print('[ActivityRepo] Syncing ${remoteData.length} activities from remote');
+      debugPrint('[ActivityRepo] Syncing ${remoteData.length} activities from remote');
 
       final companions = remoteData.map((data) {
         // Handle potentially null fields with defaults
@@ -726,9 +726,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
       }).toList();
 
       await _localDataSource.upsertActivities(companions);
-      print('[ActivityRepo] Successfully synced ${companions.length} activities');
+      debugPrint('[ActivityRepo] Successfully synced ${companions.length} activities');
     } catch (e) {
-      print('[ActivityRepo] Error syncing from remote: $e');
+      debugPrint('[ActivityRepo] Error syncing from remote: $e');
       rethrow;
     }
   }
@@ -799,17 +799,17 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final pendingPhotos = await _localDataSource.getPendingUploadPhotos();
       
       if (pendingPhotos.isEmpty) {
-        print('[ActivityRepo] No pending photos to upload');
+        debugPrint('[ActivityRepo] No pending photos to upload');
         return;
       }
 
-      print('[ActivityRepo] Uploading ${pendingPhotos.length} pending photos');
+      debugPrint('[ActivityRepo] Uploading ${pendingPhotos.length} pending photos');
 
       for (final photo in pendingPhotos) {
         try {
           // Skip if no local path
           if (photo.localPath == null || photo.localPath!.isEmpty) {
-            print('[ActivityRepo] Skipping photo ${photo.id}: no local path');
+            debugPrint('[ActivityRepo] Skipping photo ${photo.id}: no local path');
             continue;
           }
 
@@ -835,16 +835,16 @@ class ActivityRepositoryImpl implements ActivityRepository {
           // Mark as uploaded locally
           await _localDataSource.markPhotoAsUploaded(photo.id, photoUrl);
 
-          print('[ActivityRepo] Uploaded photo ${photo.id} -> $photoUrl');
+          debugPrint('[ActivityRepo] Uploaded photo ${photo.id} -> $photoUrl');
         } catch (e) {
-          print('[ActivityRepo] Failed to upload photo ${photo.id}: $e');
+          debugPrint('[ActivityRepo] Failed to upload photo ${photo.id}: $e');
           // Continue with next photo, don't fail entire batch
         }
       }
 
-      print('[ActivityRepo] Photo sync completed');
+      debugPrint('[ActivityRepo] Photo sync completed');
     } catch (e) {
-      print('[ActivityRepo] Error syncing photos: $e');
+      debugPrint('[ActivityRepo] Error syncing photos: $e');
       rethrow;
     }
   }

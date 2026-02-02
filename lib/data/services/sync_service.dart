@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/sync_models.dart';
@@ -67,10 +68,10 @@ class SyncService {
 
   /// Process all pending items in the sync queue.
   Future<SyncResult> processQueue() async {
-    print('[SyncService] processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
+    debugPrint('[SyncService] processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
     
     if (_isSyncing) {
-      print('[SyncService] Sync already in progress, returning');
+      debugPrint('[SyncService] Sync already in progress, returning');
       return SyncResult(
         success: false,
         processedCount: 0,
@@ -83,7 +84,7 @@ class SyncService {
 
     // Check connectivity - first the cached state
     if (!_connectivityService.isConnected) {
-      print('[SyncService] Device is offline (cached state), returning');
+      debugPrint('[SyncService] Device is offline (cached state), returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -98,7 +99,7 @@ class SyncService {
     // Verify server is actually reachable before attempting sync
     final isReachable = await _connectivityService.checkServerReachability();
     if (!isReachable) {
-      print('[SyncService] Server is unreachable, returning');
+      debugPrint('[SyncService] Server is unreachable, returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -122,7 +123,7 @@ class SyncService {
       );
 
       // Debug: Log pending items
-      print('[SyncService] Found ${pendingItems.length} pending items to sync');
+      debugPrint('[SyncService] Found ${pendingItems.length} pending items to sync');
       if (pendingItems.isEmpty) {
         _updateState(const SyncState.idle());
         return SyncResult(
@@ -150,7 +151,7 @@ class SyncService {
         ));
 
         try {
-          print('[SyncService] Processing item: ${item.entityType}/${item.entityId} (${item.operation})');
+          debugPrint('[SyncService] Processing item: ${item.entityType}/${item.entityId} (${item.operation})');
           await _processItem(item);
           await _syncQueueDataSource.markAsCompleted(item.id);
           
@@ -163,9 +164,9 @@ class SyncService {
           }
           
           successCount++;
-          print('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
+          debugPrint('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
         } catch (e) {
-          print('[SyncService] Failed to sync ${item.entityType}/${item.entityId}: $e');
+          debugPrint('[SyncService] Failed to sync ${item.entityType}/${item.entityId}: $e');
           await _syncQueueDataSource.incrementRetryCount(item.id);
           await _syncQueueDataSource.markAsFailed(item.id, e.toString());
           errors.add('${item.entityType}/${item.entityId}: $e');
@@ -336,9 +337,9 @@ class SyncService {
       case 'cadenceConfig':
         // CadenceScheduleConfig doesn't have isPendingSync column
         // Just log success - the sync queue completion handles the tracking
-        print('[SyncService] Synced cadenceConfig: $entityId');
+        debugPrint('[SyncService] Synced cadenceConfig: $entityId');
       default:
-        print('[SyncService] Unknown entity type for marking synced: $entityType');
+        debugPrint('[SyncService] Unknown entity type for marking synced: $entityType');
     }
   }
 
@@ -350,9 +351,9 @@ class SyncService {
         await (_database.delete(_database.customerHvcLinks)
               ..where((l) => l.id.equals(entityId)))
             .go();
-        print('[SyncService] Hard deleted customerHvcLink locally: $entityId');
+        debugPrint('[SyncService] Hard deleted customerHvcLink locally: $entityId');
       default:
-        print('[SyncService] Unknown entity type for hard delete: $entityType');
+        debugPrint('[SyncService] Unknown entity type for hard delete: $entityType');
     }
   }
 

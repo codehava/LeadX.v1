@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import 'tables/activities.dart';
 import 'tables/cadence.dart';
@@ -185,7 +186,7 @@ QueryExecutor _openConnection() {
       onResult: (result) {
         if (result.missingFeatures.isNotEmpty) {
           // ignore: avoid_print
-          print('Using ${result.chosenImplementation} due to '
+          debugPrint('Using ${result.chosenImplementation} due to '
               'missing features: ${result.missingFeatures}');
         }
       },

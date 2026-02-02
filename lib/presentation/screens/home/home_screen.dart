@@ -38,7 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final appSettings = ref.read(appSettingsServiceProvider);
     final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
 
-    print('[HomeScreen] Checking initial sync: hasInitialSynced=$hasInitialSynced');
+    debugPrint('[HomeScreen] Checking initial sync: hasInitialSynced=$hasInitialSynced');
 
     if (!hasInitialSynced && mounted) {
       // Double-check with a small delay to allow LoginScreen's markInitialSyncCompleted to persist
@@ -46,13 +46,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final stillNotSynced = !await appSettings.hasInitialSyncCompleted();
 
       if (stillNotSynced && mounted) {
-        print('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
+        debugPrint('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
         await SyncProgressSheet.show(context);
         // Only mark completed if SyncProgressSheet actually ran (not skipped due to _isShowing)
         final nowSynced = await appSettings.hasInitialSyncCompleted();
         if (!nowSynced) {
           await appSettings.markInitialSyncCompleted();
-          print('[HomeScreen] Initial sync completed and marked');
+          debugPrint('[HomeScreen] Initial sync completed and marked');
         }
       }
     }

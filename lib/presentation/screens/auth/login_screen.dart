@@ -41,19 +41,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final appSettings = ref.read(appSettingsServiceProvider);
       final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
 
-      print('[LoginScreen] Login success, hasInitialSynced=$hasInitialSynced');
+      debugPrint('[LoginScreen] Login success, hasInitialSynced=$hasInitialSynced');
 
       if (!hasInitialSynced) {
         // Show sync progress sheet
-        print('[LoginScreen] Starting initial sync...');
+        debugPrint('[LoginScreen] Starting initial sync...');
         if (mounted) {
           await SyncProgressSheet.show(context);
           // Mark as completed after sync
           await appSettings.markInitialSyncCompleted();
-          print('[LoginScreen] Initial sync completed');
+          debugPrint('[LoginScreen] Initial sync completed');
         }
       } else {
-        print('[LoginScreen] Initial sync already completed, skipping');
+        debugPrint('[LoginScreen] Initial sync already completed, skipping');
       }
 
       if (mounted) {
