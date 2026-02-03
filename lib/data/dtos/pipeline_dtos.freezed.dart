@@ -1311,6 +1311,8 @@ mixin _$PipelineSyncDto {
   String? get referredByUserId => throw _privateConstructorUsedError;
   @JsonKey(name: 'referral_id')
   String? get referralId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'scored_to_user_id')
+  String? get scoredToUserId => throw _privateConstructorUsedError;
   @JsonKey(name: 'closed_at')
   DateTime? get closedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'deleted_at')
@@ -1360,6 +1362,7 @@ abstract class $PipelineSyncDtoCopyWith<$Res> {
     @JsonKey(name: 'is_tender') bool isTender,
     @JsonKey(name: 'referred_by_user_id') String? referredByUserId,
     @JsonKey(name: 'referral_id') String? referralId,
+    @JsonKey(name: 'scored_to_user_id') String? scoredToUserId,
     @JsonKey(name: 'closed_at') DateTime? closedAt,
     @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   });
@@ -1406,6 +1409,7 @@ class _$PipelineSyncDtoCopyWithImpl<$Res, $Val extends PipelineSyncDto>
     Object? isTender = null,
     Object? referredByUserId = freezed,
     Object? referralId = freezed,
+    Object? scoredToUserId = freezed,
     Object? closedAt = freezed,
     Object? deletedAt = freezed,
   }) {
@@ -1515,6 +1519,10 @@ class _$PipelineSyncDtoCopyWithImpl<$Res, $Val extends PipelineSyncDto>
                 ? _value.referralId
                 : referralId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            scoredToUserId: freezed == scoredToUserId
+                ? _value.scoredToUserId
+                : scoredToUserId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             closedAt: freezed == closedAt
                 ? _value.closedAt
                 : closedAt // ignore: cast_nullable_to_non_nullable
@@ -1565,6 +1573,7 @@ abstract class _$$PipelineSyncDtoImplCopyWith<$Res>
     @JsonKey(name: 'is_tender') bool isTender,
     @JsonKey(name: 'referred_by_user_id') String? referredByUserId,
     @JsonKey(name: 'referral_id') String? referralId,
+    @JsonKey(name: 'scored_to_user_id') String? scoredToUserId,
     @JsonKey(name: 'closed_at') DateTime? closedAt,
     @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   });
@@ -1610,6 +1619,7 @@ class __$$PipelineSyncDtoImplCopyWithImpl<$Res>
     Object? isTender = null,
     Object? referredByUserId = freezed,
     Object? referralId = freezed,
+    Object? scoredToUserId = freezed,
     Object? closedAt = freezed,
     Object? deletedAt = freezed,
   }) {
@@ -1719,6 +1729,10 @@ class __$$PipelineSyncDtoImplCopyWithImpl<$Res>
             ? _value.referralId
             : referralId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        scoredToUserId: freezed == scoredToUserId
+            ? _value.scoredToUserId
+            : scoredToUserId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         closedAt: freezed == closedAt
             ? _value.closedAt
             : closedAt // ignore: cast_nullable_to_non_nullable
@@ -1762,6 +1776,7 @@ class _$PipelineSyncDtoImpl implements _PipelineSyncDto {
     @JsonKey(name: 'is_tender') this.isTender = false,
     @JsonKey(name: 'referred_by_user_id') this.referredByUserId,
     @JsonKey(name: 'referral_id') this.referralId,
+    @JsonKey(name: 'scored_to_user_id') this.scoredToUserId,
     @JsonKey(name: 'closed_at') this.closedAt,
     @JsonKey(name: 'deleted_at') this.deletedAt,
   });
@@ -1844,6 +1859,9 @@ class _$PipelineSyncDtoImpl implements _PipelineSyncDto {
   @JsonKey(name: 'referral_id')
   final String? referralId;
   @override
+  @JsonKey(name: 'scored_to_user_id')
+  final String? scoredToUserId;
+  @override
   @JsonKey(name: 'closed_at')
   final DateTime? closedAt;
   @override
@@ -1852,7 +1870,7 @@ class _$PipelineSyncDtoImpl implements _PipelineSyncDto {
 
   @override
   String toString() {
-    return 'PipelineSyncDto(id: $id, code: $code, customerId: $customerId, stageId: $stageId, statusId: $statusId, cobId: $cobId, lobId: $lobId, leadSourceId: $leadSourceId, assignedRmId: $assignedRmId, createdBy: $createdBy, potentialPremium: $potentialPremium, createdAt: $createdAt, updatedAt: $updatedAt, brokerId: $brokerId, brokerPicId: $brokerPicId, customerContactId: $customerContactId, tsi: $tsi, finalPremium: $finalPremium, weightedValue: $weightedValue, expectedCloseDate: $expectedCloseDate, policyNumber: $policyNumber, declineReason: $declineReason, notes: $notes, isTender: $isTender, referredByUserId: $referredByUserId, referralId: $referralId, closedAt: $closedAt, deletedAt: $deletedAt)';
+    return 'PipelineSyncDto(id: $id, code: $code, customerId: $customerId, stageId: $stageId, statusId: $statusId, cobId: $cobId, lobId: $lobId, leadSourceId: $leadSourceId, assignedRmId: $assignedRmId, createdBy: $createdBy, potentialPremium: $potentialPremium, createdAt: $createdAt, updatedAt: $updatedAt, brokerId: $brokerId, brokerPicId: $brokerPicId, customerContactId: $customerContactId, tsi: $tsi, finalPremium: $finalPremium, weightedValue: $weightedValue, expectedCloseDate: $expectedCloseDate, policyNumber: $policyNumber, declineReason: $declineReason, notes: $notes, isTender: $isTender, referredByUserId: $referredByUserId, referralId: $referralId, scoredToUserId: $scoredToUserId, closedAt: $closedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -1905,6 +1923,8 @@ class _$PipelineSyncDtoImpl implements _PipelineSyncDto {
                 other.referredByUserId == referredByUserId) &&
             (identical(other.referralId, referralId) ||
                 other.referralId == referralId) &&
+            (identical(other.scoredToUserId, scoredToUserId) ||
+                other.scoredToUserId == scoredToUserId) &&
             (identical(other.closedAt, closedAt) ||
                 other.closedAt == closedAt) &&
             (identical(other.deletedAt, deletedAt) ||
@@ -1941,6 +1961,7 @@ class _$PipelineSyncDtoImpl implements _PipelineSyncDto {
     isTender,
     referredByUserId,
     referralId,
+    scoredToUserId,
     closedAt,
     deletedAt,
   ]);
@@ -1990,6 +2011,7 @@ abstract class _PipelineSyncDto implements PipelineSyncDto {
     @JsonKey(name: 'is_tender') final bool isTender,
     @JsonKey(name: 'referred_by_user_id') final String? referredByUserId,
     @JsonKey(name: 'referral_id') final String? referralId,
+    @JsonKey(name: 'scored_to_user_id') final String? scoredToUserId,
     @JsonKey(name: 'closed_at') final DateTime? closedAt,
     @JsonKey(name: 'deleted_at') final DateTime? deletedAt,
   }) = _$PipelineSyncDtoImpl;
@@ -2071,6 +2093,9 @@ abstract class _PipelineSyncDto implements PipelineSyncDto {
   @override
   @JsonKey(name: 'referral_id')
   String? get referralId;
+  @override
+  @JsonKey(name: 'scored_to_user_id')
+  String? get scoredToUserId;
   @override
   @JsonKey(name: 'closed_at')
   DateTime? get closedAt;

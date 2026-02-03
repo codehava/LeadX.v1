@@ -425,10 +425,12 @@ INSERT INTO measure_definitions (id, code, name, description, measure_type, data
   (uuid_generate_v4(), 'PROPOSAL_SENT', 'Proposal Terkirim', 'Proposals sent to customers', 'LEAD', 'COUNT', 'proposals', 'activities', 'type=PROPOSAL AND status=COMPLETED', 1.0, 3, 'WEEKLY', 6);
 
 -- Lag Measures (40% of total score) - Results/outcomes
+-- NOTE: Lag measures use scored_to_user_id (not assigned_rm_id) to credit the user
+-- who actually won the pipeline, even if ownership later transferred.
 INSERT INTO measure_definitions (id, code, name, description, measure_type, data_type, unit, source_table, source_condition, weight, default_target, period_type, sort_order) VALUES
-  (uuid_generate_v4(), 'PIPELINE_WON', 'Pipeline Closing', 'Pipelines closed as won', 'LAG', 'COUNT', 'deals', 'pipelines', 'stage=ACCEPTED', 1.5, 3, 'MONTHLY', 7),
-  (uuid_generate_v4(), 'PREMIUM_WON', 'Premium Closing', 'Total premium from won pipelines', 'LAG', 'SUM', 'IDR', 'pipelines', 'stage=ACCEPTED', 2.0, 500000000, 'MONTHLY', 8),
-  (uuid_generate_v4(), 'CONVERSION_RATE', 'Conversion Rate', 'Pipeline win rate percentage', 'LAG', 'PERCENTAGE', '%', 'pipelines', 'is_final=true', 1.5, 40, 'MONTHLY', 9);
+  (uuid_generate_v4(), 'PIPELINE_WON', 'Pipeline Closing', 'Pipelines closed as won', 'LAG', 'COUNT', 'deals', 'pipelines', 'scored_to_user_id=user_id AND stage=ACCEPTED', 1.5, 3, 'MONTHLY', 7),
+  (uuid_generate_v4(), 'PREMIUM_WON', 'Premium Closing', 'Total premium from won pipelines', 'LAG', 'SUM', 'IDR', 'pipelines', 'scored_to_user_id=user_id AND stage=ACCEPTED', 2.0, 500000000, 'MONTHLY', 8),
+  (uuid_generate_v4(), 'CONVERSION_RATE', 'Conversion Rate', 'Pipeline win rate percentage', 'LAG', 'PERCENTAGE', '%', 'pipelines', 'scored_to_user_id=user_id AND is_final=true', 1.5, 40, 'MONTHLY', 9);
 
 -- App Settings
 INSERT INTO app_settings (key, value, value_type, description) VALUES

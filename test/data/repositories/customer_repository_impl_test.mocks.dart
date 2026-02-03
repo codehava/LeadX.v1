@@ -54,6 +54,20 @@ class MockCustomerLocalDataSource extends _i1.Mock
           as _i4.Stream<List<_i5.Customer>>);
 
   @override
+  _i4.Stream<List<_i5.Customer>> watchCustomersPaginated({
+    required int? limit,
+    String? searchQuery,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchCustomersPaginated, [], {
+              #limit: limit,
+              #searchQuery: searchQuery,
+            }),
+            returnValue: _i4.Stream<List<_i5.Customer>>.empty(),
+          )
+          as _i4.Stream<List<_i5.Customer>>);
+
+  @override
   _i4.Stream<List<_i5.Customer>> watchCustomersByRm(String? rmId) =>
       (super.noSuchMethod(
             Invocation.method(#watchCustomersByRm, [rmId]),
@@ -201,6 +215,16 @@ class MockCustomerLocalDataSource extends _i1.Mock
   _i4.Future<int> getTotalCount() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalCount, []),
+            returnValue: _i4.Future<int>.value(0),
+          )
+          as _i4.Future<int>);
+
+  @override
+  _i4.Future<int> getCustomerCount({String? searchQuery}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCustomerCount, [], {
+              #searchQuery: searchQuery,
+            }),
             returnValue: _i4.Future<int>.value(0),
           )
           as _i4.Future<int>);

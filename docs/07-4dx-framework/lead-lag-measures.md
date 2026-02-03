@@ -68,9 +68,9 @@ Dokumen ini menjelaskan secara detail semua **Lead Measures** dan **Lag Measures
 | PROPOSAL_SENT | `activities` | type='PROPOSAL', status='COMPLETED' | COUNT(*) |
 | NEW_CUSTOMER | `customers` | created_by=user_id, created_at in period | COUNT(*) |
 | NEW_PIPELINE | `pipelines` | assigned_rm_id=user_id, created_at in period | COUNT(*) |
-| PIPELINE_WON | `pipelines` | stage='ACCEPTED', won_date in period | COUNT(*) |
-| PREMIUM_WON | `pipelines` | stage='ACCEPTED', won_date in period | SUM(final_premium) |
-| CONVERSION_RATE | `pipelines` | closed in period | WON/TOTAL × 100 |
+| PIPELINE_WON | `pipelines` | scored_to_user_id=user_id, stage='ACCEPTED', won_date in period | COUNT(*) |
+| PREMIUM_WON | `pipelines` | scored_to_user_id=user_id, stage='ACCEPTED', won_date in period | SUM(final_premium) |
+| CONVERSION_RATE | `pipelines` | scored_to_user_id=user_id, closed in period | WON/TOTAL × 100 |
 
 > **Note**: Admin TIDAK bisa mengubah source data - hanya target, weight, dan bonus config.
 
@@ -254,7 +254,7 @@ WHERE user_id = :user_id
 | **Category** | LAG |
 | **Description** | Jumlah pipeline yang berhasil closing (stage ACCEPTED) |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `assigned_rm_id = :user_id AND stage = 'ACCEPTED'` |
+| **Filter Criteria** | `scored_to_user_id = :user_id AND stage = 'ACCEPTED'` |
 | **Calculation** | COUNT where stage changed to ACCEPTED in period |
 | **Period** | Monthly |
 | **Default Target** | 3 per month |
@@ -264,11 +264,13 @@ WHERE user_id = :user_id
 ```sql
 SELECT COUNT(*) as pipeline_won
 FROM pipelines
-WHERE assigned_rm_id = :user_id
+WHERE scored_to_user_id = :user_id
   AND stage = 'ACCEPTED'
   AND won_date >= :period_start
   AND won_date < :period_end;
 ```
+
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline, even if ownership later transferred.
 
 ---
 
@@ -281,7 +283,7 @@ WHERE assigned_rm_id = :user_id
 | **Category** | LAG |
 | **Description** | Total nilai premium dari pipeline yang closing |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `assigned_rm_id = :user_id AND stage = 'ACCEPTED'` |
+| **Filter Criteria** | `scored_to_user_id = :user_id AND stage = 'ACCEPTED'` |
 | **Calculation** | SUM of final_premium |
 | **Period** | Monthly |
 | **Default Target** | Rp 500.000.000 per month |
@@ -291,11 +293,13 @@ WHERE assigned_rm_id = :user_id
 ```sql
 SELECT COALESCE(SUM(final_premium), 0) as premium_won
 FROM pipelines
-WHERE assigned_rm_id = :user_id
+WHERE scored_to_user_id = :user_id
   AND stage = 'ACCEPTED'
   AND won_date >= :period_start
   AND won_date < :period_end;
 ```
+
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline.
 
 ---
 
@@ -308,7 +312,7 @@ WHERE assigned_rm_id = :user_id
 | **Category** | LAG |
 | **Description** | Persentase pipeline yang berhasil closing vs total closed |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `assigned_rm_id = :user_id AND stage IN ('ACCEPTED', 'REJECTED')` |
+| **Filter Criteria** | `scored_to_user_id = :user_id AND stage IN ('ACCEPTED', 'REJECTED')` |
 | **Calculation** | (COUNT WON / COUNT ALL CLOSED) × 100 |
 | **Period** | Monthly |
 | **Default Target** | 40% |
@@ -317,19 +321,21 @@ WHERE assigned_rm_id = :user_id
 **SQL Query:**
 ```sql
 WITH closed_pipelines AS (
-  SELECT 
+  SELECT
     COUNT(*) FILTER (WHERE stage = 'ACCEPTED') as won,
     COUNT(*) FILTER (WHERE stage IN ('ACCEPTED', 'REJECTED')) as total
   FROM pipelines
-  WHERE assigned_rm_id = :user_id
+  WHERE scored_to_user_id = :user_id
     AND stage IN ('ACCEPTED', 'REJECTED')
     AND COALESCE(won_date, lost_date) >= :period_start
     AND COALESCE(won_date, lost_date) < :period_end
 )
-SELECT 
+SELECT
   CASE WHEN total > 0 THEN (won::float / total * 100) ELSE 0 END as conversion_rate
 FROM closed_pipelines;
 ```
+
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who closed the pipeline.
 
 ---
 

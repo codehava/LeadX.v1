@@ -491,6 +491,30 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i5.Stream<List<_i3.Pipeline>>);
 
   @override
+  _i5.Stream<List<_i3.Pipeline>> watchPipelinesPaginated({
+    required int? limit,
+    String? searchQuery,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchPipelinesPaginated, [], {
+              #limit: limit,
+              #searchQuery: searchQuery,
+            }),
+            returnValue: _i5.Stream<List<_i3.Pipeline>>.empty(),
+          )
+          as _i5.Stream<List<_i3.Pipeline>>);
+
+  @override
+  _i5.Future<int> getPipelineCount({String? searchQuery}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPipelineCount, [], {
+              #searchQuery: searchQuery,
+            }),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
   _i5.Stream<List<_i3.Pipeline>> watchCustomerPipelines(String? customerId) =>
       (super.noSuchMethod(
             Invocation.method(#watchCustomerPipelines, [customerId]),
@@ -1056,6 +1080,20 @@ class MockCustomerLocalDataSource extends _i1.Mock
           as _i5.Stream<List<_i3.Customer>>);
 
   @override
+  _i5.Stream<List<_i3.Customer>> watchCustomersPaginated({
+    required int? limit,
+    String? searchQuery,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchCustomersPaginated, [], {
+              #limit: limit,
+              #searchQuery: searchQuery,
+            }),
+            returnValue: _i5.Stream<List<_i3.Customer>>.empty(),
+          )
+          as _i5.Stream<List<_i3.Customer>>);
+
+  @override
   _i5.Stream<List<_i3.Customer>> watchCustomersByRm(String? rmId) =>
       (super.noSuchMethod(
             Invocation.method(#watchCustomersByRm, [rmId]),
@@ -1203,6 +1241,16 @@ class MockCustomerLocalDataSource extends _i1.Mock
   _i5.Future<int> getTotalCount() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalCount, []),
+            returnValue: _i5.Future<int>.value(0),
+          )
+          as _i5.Future<int>);
+
+  @override
+  _i5.Future<int> getCustomerCount({String? searchQuery}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCustomerCount, [], {
+              #searchQuery: searchQuery,
+            }),
             returnValue: _i5.Future<int>.value(0),
           )
           as _i5.Future<int>);

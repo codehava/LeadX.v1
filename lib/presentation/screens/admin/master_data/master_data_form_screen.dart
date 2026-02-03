@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../presentation/providers/admin_providers.dart';
 import '../../../../presentation/providers/master_data_providers.dart';
+import '../../../widgets/layout/responsive_layout.dart';
 import 'master_data_entity_type.dart';
 
 /// Generic form screen for creating and editing master data entities.
@@ -375,12 +376,18 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
+          : Center(
+              child: SingleChildScrollView(
+                padding: ResponsiveLayout.isDesktop(context)
+                    ? const EdgeInsets.all(32)
+                    : const EdgeInsets.all(16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                     // Code field
                     TextFormField(
                       controller: _codeController,
@@ -1064,7 +1071,9 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
                         ),
                       ],
                     ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

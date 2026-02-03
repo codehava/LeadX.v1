@@ -87,8 +87,9 @@ Pipeline Referral adalah mekanisme untuk **memindahkan prospek** dari satu RM ke
 │  │  System automatically transfers ownership:                               ││
 │  │  • Customer: Reassigned to Receiver RM                                   ││
 │  │  • All OPEN pipelines: Reassigned to Receiver with referrer credit      ││
-│  │  • All CLOSED pipelines: Reassigned to Receiver for history             ││
-│  │  • referred_by_user_id: Set to Referrer RM (for 4DX bonus tracking)     ││
+│  │  • All CLOSED pipelines: assigned_rm_id changes (for visibility)        ││
+│  │  • referred_by_user_id: Set on OPEN pipelines for 4DX bonus tracking    ││
+│  │  • scored_to_user_id: Already locked on won pipelines (never changes)   ││
 │  │                                                                          ││
 │  │  Status: COMPLETED                                                       ││
 │  │                                                                          ││
@@ -176,12 +177,24 @@ Example:
 
 ### 4DX Impact
 
+**For OPEN pipelines transferred (won after transfer):**
+
 | Measure | Referrer | Receiver |
 |---------|----------|----------|
 | NEW_PIPELINE | ❌ | ✅ (counts for receiver) |
-| PIPELINE_WON | ❌ | ✅ (counts for receiver) |
-| PREMIUM_WON | ❌ | ✅ (counts for receiver) |
+| PIPELINE_WON | ❌ | ✅ (receiver wins, gets scored_to_user_id) |
+| PREMIUM_WON | ❌ | ✅ (receiver wins, gets scored_to_user_id) |
 | REFERRAL_BONUS | ✅ (bonus score) | ❌ |
+
+**For CLOSED pipelines (already won before transfer):**
+
+| Measure | Original Owner | New Owner |
+|---------|----------------|-----------|
+| PIPELINE_WON | ✅ (scored_to_user_id unchanged) | ❌ |
+| PREMIUM_WON | ✅ (scored_to_user_id unchanged) | ❌ |
+
+> **Note:** `scored_to_user_id` is set when a pipeline is won and never changes.
+> Only `assigned_rm_id` changes for visibility purposes.
 
 ---
 

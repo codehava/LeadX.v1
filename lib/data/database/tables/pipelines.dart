@@ -28,6 +28,8 @@ class Pipelines extends Table {
   TextColumn get referredByUserId => text().nullable().references(Users, #id)(); // Referrer for scoring
   TextColumn get referralId => text().nullable()(); // FK → pipeline_referrals
   TextColumn get assignedRmId => text().references(Users, #id)();
+  /// User who receives 4DX lag measure credit. Set when pipeline reaches WON stage, never changes after.
+  TextColumn get scoredToUserId => text().nullable().references(Users, #id)();
   TextColumn get createdBy => text().references(Users, #id)();
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();

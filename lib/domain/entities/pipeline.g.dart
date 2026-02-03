@@ -90,6 +90,7 @@ _$PipelineImpl _$$PipelineImplFromJson(Map<String, dynamic> json) =>
       isTender: json['isTender'] as bool? ?? false,
       referredByUserId: json['referredByUserId'] as String?,
       referralId: json['referralId'] as String?,
+      scoredToUserId: json['scoredToUserId'] as String?,
       isPendingSync: json['isPendingSync'] as bool? ?? false,
       closedAt: json['closedAt'] == null
           ? null
@@ -112,6 +113,7 @@ _$PipelineImpl _$$PipelineImplFromJson(Map<String, dynamic> json) =>
       leadSourceName: json['leadSourceName'] as String?,
       brokerName: json['brokerName'] as String?,
       assignedRmName: json['assignedRmName'] as String?,
+      scoredToUserName: json['scoredToUserName'] as String?,
     );
 
 Map<String, dynamic> _$$PipelineImplToJson(_$PipelineImpl instance) =>
@@ -142,6 +144,7 @@ Map<String, dynamic> _$$PipelineImplToJson(_$PipelineImpl instance) =>
       'isTender': instance.isTender,
       'referredByUserId': instance.referredByUserId,
       'referralId': instance.referralId,
+      'scoredToUserId': instance.scoredToUserId,
       'isPendingSync': instance.isPendingSync,
       'closedAt': instance.closedAt?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
@@ -158,6 +161,7 @@ Map<String, dynamic> _$$PipelineImplToJson(_$PipelineImpl instance) =>
       'leadSourceName': instance.leadSourceName,
       'brokerName': instance.brokerName,
       'assignedRmName': instance.assignedRmName,
+      'scoredToUserName': instance.scoredToUserName,
     };
 
 _$PipelineWithDetailsImpl _$$PipelineWithDetailsImplFromJson(

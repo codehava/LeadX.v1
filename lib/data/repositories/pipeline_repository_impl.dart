@@ -640,6 +640,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
           isTender: Value(data['is_tender'] as bool? ?? false),
           referredByUserId: Value(data['referred_by_user_id'] as String?),
           referralId: Value(data['referral_id'] as String?),
+          scoredToUserId: Value(data['scored_to_user_id'] as String?),
           assignedRmId: Value(data['assigned_rm_id'] as String? ?? ''),
           createdBy: Value(data['created_by'] as String? ?? ''),
           isPendingSync: const Value(false),
@@ -773,6 +774,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         isTender: data.isTender,
         referredByUserId: data.referredByUserId,
         referralId: data.referralId,
+        scoredToUserId: data.scoredToUserId,
         assignedRmId: data.assignedRmId,
         createdBy: data.createdBy,
         isPendingSync: data.isPendingSync,
@@ -794,6 +796,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         brokerName: data.brokerId == null ? null : _brokerNameCache?[data.brokerId],
         customerName: _customerNameCache?[data.customerId],
         assignedRmName: _userNameCache?[data.assignedRmId],
+        scoredToUserName: _userNameCache?[data.scoredToUserId],
       );
 
   /// Map Drift PipelineStage to domain PipelineStageInfo.
@@ -891,6 +894,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       'notes': _sanitizeUuid(data.notes),
       'referred_by_user_id': _sanitizeUuid(data.referredByUserId),
       'referral_id': _sanitizeUuid(data.referralId),
+      'scored_to_user_id': _sanitizeUuid(data.scoredToUserId),
       'assigned_rm_id': data.assignedRmId,
       'created_by': data.createdBy,
       'created_at': data.createdAt.toIso8601String(),

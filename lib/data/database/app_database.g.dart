@@ -10470,6 +10470,20 @@ class $PipelinesTable extends Pipelines
       'REFERENCES users (id)',
     ),
   );
+  static const VerificationMeta _scoredToUserIdMeta = const VerificationMeta(
+    'scoredToUserId',
+  );
+  @override
+  late final GeneratedColumn<String> scoredToUserId = GeneratedColumn<String>(
+    'scored_to_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
   static const VerificationMeta _createdByMeta = const VerificationMeta(
     'createdBy',
   );
@@ -10579,6 +10593,7 @@ class $PipelinesTable extends Pipelines
     referredByUserId,
     referralId,
     assignedRmId,
+    scoredToUserId,
     createdBy,
     isPendingSync,
     createdAt,
@@ -10787,6 +10802,15 @@ class $PipelinesTable extends Pipelines
     } else if (isInserting) {
       context.missing(_assignedRmIdMeta);
     }
+    if (data.containsKey('scored_to_user_id')) {
+      context.handle(
+        _scoredToUserIdMeta,
+        scoredToUserId.isAcceptableOrUnknown(
+          data['scored_to_user_id']!,
+          _scoredToUserIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_by')) {
       context.handle(
         _createdByMeta,
@@ -10942,6 +10966,10 @@ class $PipelinesTable extends Pipelines
         DriftSqlType.string,
         data['${effectivePrefix}assigned_rm_id'],
       )!,
+      scoredToUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scored_to_user_id'],
+      ),
       createdBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}created_by'],
@@ -11003,6 +11031,9 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
   final String? referredByUserId;
   final String? referralId;
   final String assignedRmId;
+
+  /// User who receives 4DX lag measure credit. Set when pipeline reaches WON stage, never changes after.
+  final String? scoredToUserId;
   final String createdBy;
   final bool isPendingSync;
   final DateTime createdAt;
@@ -11034,6 +11065,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
     this.referredByUserId,
     this.referralId,
     required this.assignedRmId,
+    this.scoredToUserId,
     required this.createdBy,
     required this.isPendingSync,
     required this.createdAt,
@@ -11092,6 +11124,9 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
       map['referral_id'] = Variable<String>(referralId);
     }
     map['assigned_rm_id'] = Variable<String>(assignedRmId);
+    if (!nullToAbsent || scoredToUserId != null) {
+      map['scored_to_user_id'] = Variable<String>(scoredToUserId);
+    }
     map['created_by'] = Variable<String>(createdBy);
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -11155,6 +11190,9 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
           ? const Value.absent()
           : Value(referralId),
       assignedRmId: Value(assignedRmId),
+      scoredToUserId: scoredToUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scoredToUserId),
       createdBy: Value(createdBy),
       isPendingSync: Value(isPendingSync),
       createdAt: Value(createdAt),
@@ -11204,6 +11242,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
       referredByUserId: serializer.fromJson<String?>(json['referredByUserId']),
       referralId: serializer.fromJson<String?>(json['referralId']),
       assignedRmId: serializer.fromJson<String>(json['assignedRmId']),
+      scoredToUserId: serializer.fromJson<String?>(json['scoredToUserId']),
       createdBy: serializer.fromJson<String>(json['createdBy']),
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -11240,6 +11279,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
       'referredByUserId': serializer.toJson<String?>(referredByUserId),
       'referralId': serializer.toJson<String?>(referralId),
       'assignedRmId': serializer.toJson<String>(assignedRmId),
+      'scoredToUserId': serializer.toJson<String?>(scoredToUserId),
       'createdBy': serializer.toJson<String>(createdBy),
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -11274,6 +11314,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
     Value<String?> referredByUserId = const Value.absent(),
     Value<String?> referralId = const Value.absent(),
     String? assignedRmId,
+    Value<String?> scoredToUserId = const Value.absent(),
     String? createdBy,
     bool? isPendingSync,
     DateTime? createdAt,
@@ -11315,6 +11356,9 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
         : this.referredByUserId,
     referralId: referralId.present ? referralId.value : this.referralId,
     assignedRmId: assignedRmId ?? this.assignedRmId,
+    scoredToUserId: scoredToUserId.present
+        ? scoredToUserId.value
+        : this.scoredToUserId,
     createdBy: createdBy ?? this.createdBy,
     isPendingSync: isPendingSync ?? this.isPendingSync,
     createdAt: createdAt ?? this.createdAt,
@@ -11374,6 +11418,9 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
       assignedRmId: data.assignedRmId.present
           ? data.assignedRmId.value
           : this.assignedRmId,
+      scoredToUserId: data.scoredToUserId.present
+          ? data.scoredToUserId.value
+          : this.scoredToUserId,
       createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       isPendingSync: data.isPendingSync.present
           ? data.isPendingSync.value
@@ -11414,6 +11461,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
           ..write('referredByUserId: $referredByUserId, ')
           ..write('referralId: $referralId, ')
           ..write('assignedRmId: $assignedRmId, ')
+          ..write('scoredToUserId: $scoredToUserId, ')
           ..write('createdBy: $createdBy, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
@@ -11450,6 +11498,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
     referredByUserId,
     referralId,
     assignedRmId,
+    scoredToUserId,
     createdBy,
     isPendingSync,
     createdAt,
@@ -11485,6 +11534,7 @@ class Pipeline extends DataClass implements Insertable<Pipeline> {
           other.referredByUserId == this.referredByUserId &&
           other.referralId == this.referralId &&
           other.assignedRmId == this.assignedRmId &&
+          other.scoredToUserId == this.scoredToUserId &&
           other.createdBy == this.createdBy &&
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
@@ -11518,6 +11568,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
   final Value<String?> referredByUserId;
   final Value<String?> referralId;
   final Value<String> assignedRmId;
+  final Value<String?> scoredToUserId;
   final Value<String> createdBy;
   final Value<bool> isPendingSync;
   final Value<DateTime> createdAt;
@@ -11550,6 +11601,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
     this.referredByUserId = const Value.absent(),
     this.referralId = const Value.absent(),
     this.assignedRmId = const Value.absent(),
+    this.scoredToUserId = const Value.absent(),
     this.createdBy = const Value.absent(),
     this.isPendingSync = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -11583,6 +11635,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
     this.referredByUserId = const Value.absent(),
     this.referralId = const Value.absent(),
     required String assignedRmId,
+    this.scoredToUserId = const Value.absent(),
     required String createdBy,
     this.isPendingSync = const Value.absent(),
     required DateTime createdAt,
@@ -11628,6 +11681,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
     Expression<String>? referredByUserId,
     Expression<String>? referralId,
     Expression<String>? assignedRmId,
+    Expression<String>? scoredToUserId,
     Expression<String>? createdBy,
     Expression<bool>? isPendingSync,
     Expression<DateTime>? createdAt,
@@ -11661,6 +11715,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
       if (referredByUserId != null) 'referred_by_user_id': referredByUserId,
       if (referralId != null) 'referral_id': referralId,
       if (assignedRmId != null) 'assigned_rm_id': assignedRmId,
+      if (scoredToUserId != null) 'scored_to_user_id': scoredToUserId,
       if (createdBy != null) 'created_by': createdBy,
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
       if (createdAt != null) 'created_at': createdAt,
@@ -11696,6 +11751,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
     Value<String?>? referredByUserId,
     Value<String?>? referralId,
     Value<String>? assignedRmId,
+    Value<String?>? scoredToUserId,
     Value<String>? createdBy,
     Value<bool>? isPendingSync,
     Value<DateTime>? createdAt,
@@ -11729,6 +11785,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
       referredByUserId: referredByUserId ?? this.referredByUserId,
       referralId: referralId ?? this.referralId,
       assignedRmId: assignedRmId ?? this.assignedRmId,
+      scoredToUserId: scoredToUserId ?? this.scoredToUserId,
       createdBy: createdBy ?? this.createdBy,
       isPendingSync: isPendingSync ?? this.isPendingSync,
       createdAt: createdAt ?? this.createdAt,
@@ -11812,6 +11869,9 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
     if (assignedRmId.present) {
       map['assigned_rm_id'] = Variable<String>(assignedRmId.value);
     }
+    if (scoredToUserId.present) {
+      map['scored_to_user_id'] = Variable<String>(scoredToUserId.value);
+    }
     if (createdBy.present) {
       map['created_by'] = Variable<String>(createdBy.value);
     }
@@ -11865,6 +11925,7 @@ class PipelinesCompanion extends UpdateCompanion<Pipeline> {
           ..write('referredByUserId: $referredByUserId, ')
           ..write('referralId: $referralId, ')
           ..write('assignedRmId: $assignedRmId, ')
+          ..write('scoredToUserId: $scoredToUserId, ')
           ..write('createdBy: $createdBy, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
@@ -43217,6 +43278,7 @@ typedef $$PipelinesTableCreateCompanionBuilder =
       Value<String?> referredByUserId,
       Value<String?> referralId,
       required String assignedRmId,
+      Value<String?> scoredToUserId,
       required String createdBy,
       Value<bool> isPendingSync,
       required DateTime createdAt,
@@ -43251,6 +43313,7 @@ typedef $$PipelinesTableUpdateCompanionBuilder =
       Value<String?> referredByUserId,
       Value<String?> referralId,
       Value<String> assignedRmId,
+      Value<String?> scoredToUserId,
       Value<String> createdBy,
       Value<bool> isPendingSync,
       Value<DateTime> createdAt,
@@ -43316,6 +43379,25 @@ final class $$PipelinesTableReferences
       $_db.users,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_assignedRmIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _scoredToUserIdTable(_$AppDatabase db) =>
+      db.users.createAlias(
+        $_aliasNameGenerator(db.pipelines.scoredToUserId, db.users.id),
+      );
+
+  $$UsersTableProcessedTableManager? get scoredToUserId {
+    final $_column = $_itemColumn<String>('scored_to_user_id');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_scoredToUserIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -43548,6 +43630,29 @@ class $$PipelinesTableFilterComposer
     final $$UsersTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.assignedRmId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get scoredToUserId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scoredToUserId,
       referencedTable: $db.users,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -43824,6 +43929,29 @@ class $$PipelinesTableOrderingComposer
     return composer;
   }
 
+  $$UsersTableOrderingComposer get scoredToUserId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scoredToUserId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$UsersTableOrderingComposer get createdBy {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -44028,6 +44156,29 @@ class $$PipelinesTableAnnotationComposer
     return composer;
   }
 
+  $$UsersTableAnnotationComposer get scoredToUserId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scoredToUserId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$UsersTableAnnotationComposer get createdBy {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -44094,6 +44245,7 @@ class $$PipelinesTableTableManager
             bool customerId,
             bool referredByUserId,
             bool assignedRmId,
+            bool scoredToUserId,
             bool createdBy,
             bool activitiesRefs,
           })
@@ -44134,6 +44286,7 @@ class $$PipelinesTableTableManager
                 Value<String?> referredByUserId = const Value.absent(),
                 Value<String?> referralId = const Value.absent(),
                 Value<String> assignedRmId = const Value.absent(),
+                Value<String?> scoredToUserId = const Value.absent(),
                 Value<String> createdBy = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -44166,6 +44319,7 @@ class $$PipelinesTableTableManager
                 referredByUserId: referredByUserId,
                 referralId: referralId,
                 assignedRmId: assignedRmId,
+                scoredToUserId: scoredToUserId,
                 createdBy: createdBy,
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
@@ -44200,6 +44354,7 @@ class $$PipelinesTableTableManager
                 Value<String?> referredByUserId = const Value.absent(),
                 Value<String?> referralId = const Value.absent(),
                 required String assignedRmId,
+                Value<String?> scoredToUserId = const Value.absent(),
                 required String createdBy,
                 Value<bool> isPendingSync = const Value.absent(),
                 required DateTime createdAt,
@@ -44232,6 +44387,7 @@ class $$PipelinesTableTableManager
                 referredByUserId: referredByUserId,
                 referralId: referralId,
                 assignedRmId: assignedRmId,
+                scoredToUserId: scoredToUserId,
                 createdBy: createdBy,
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
@@ -44254,6 +44410,7 @@ class $$PipelinesTableTableManager
                 customerId = false,
                 referredByUserId = false,
                 assignedRmId = false,
+                scoredToUserId = false,
                 createdBy = false,
                 activitiesRefs = false,
               }) {
@@ -44311,6 +44468,19 @@ class $$PipelinesTableTableManager
                                         ._assignedRmIdTable(db),
                                     referencedColumn: $$PipelinesTableReferences
                                         ._assignedRmIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (scoredToUserId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.scoredToUserId,
+                                    referencedTable: $$PipelinesTableReferences
+                                        ._scoredToUserIdTable(db),
+                                    referencedColumn: $$PipelinesTableReferences
+                                        ._scoredToUserIdTable(db)
                                         .id,
                                   )
                                   as T;
@@ -44378,6 +44548,7 @@ typedef $$PipelinesTableProcessedTableManager =
         bool customerId,
         bool referredByUserId,
         bool assignedRmId,
+        bool scoredToUserId,
         bool createdBy,
         bool activitiesRefs,
       })

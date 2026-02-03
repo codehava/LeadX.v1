@@ -712,6 +712,9 @@ mixin _$Pipeline {
   bool get isTender => throw _privateConstructorUsedError;
   String? get referredByUserId => throw _privateConstructorUsedError;
   String? get referralId => throw _privateConstructorUsedError;
+
+  /// User who receives 4DX lag measure credit. Set at win time, never changes.
+  String? get scoredToUserId => throw _privateConstructorUsedError;
   bool get isPendingSync => throw _privateConstructorUsedError;
   DateTime? get closedAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt => throw _privateConstructorUsedError;
@@ -729,6 +732,9 @@ mixin _$Pipeline {
   String? get leadSourceName => throw _privateConstructorUsedError;
   String? get brokerName => throw _privateConstructorUsedError;
   String? get assignedRmName => throw _privateConstructorUsedError;
+
+  /// Display name for user who receives scoring credit.
+  String? get scoredToUserName => throw _privateConstructorUsedError;
 
   /// Serializes this Pipeline to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -772,6 +778,7 @@ abstract class $PipelineCopyWith<$Res> {
     bool isTender,
     String? referredByUserId,
     String? referralId,
+    String? scoredToUserId,
     bool isPendingSync,
     DateTime? closedAt,
     DateTime? deletedAt,
@@ -788,6 +795,7 @@ abstract class $PipelineCopyWith<$Res> {
     String? leadSourceName,
     String? brokerName,
     String? assignedRmName,
+    String? scoredToUserName,
   });
 }
 
@@ -832,6 +840,7 @@ class _$PipelineCopyWithImpl<$Res, $Val extends Pipeline>
     Object? isTender = null,
     Object? referredByUserId = freezed,
     Object? referralId = freezed,
+    Object? scoredToUserId = freezed,
     Object? isPendingSync = null,
     Object? closedAt = freezed,
     Object? deletedAt = freezed,
@@ -848,6 +857,7 @@ class _$PipelineCopyWithImpl<$Res, $Val extends Pipeline>
     Object? leadSourceName = freezed,
     Object? brokerName = freezed,
     Object? assignedRmName = freezed,
+    Object? scoredToUserName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -955,6 +965,10 @@ class _$PipelineCopyWithImpl<$Res, $Val extends Pipeline>
                 ? _value.referralId
                 : referralId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            scoredToUserId: freezed == scoredToUserId
+                ? _value.scoredToUserId
+                : scoredToUserId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             isPendingSync: null == isPendingSync
                 ? _value.isPendingSync
                 : isPendingSync // ignore: cast_nullable_to_non_nullable
@@ -1019,6 +1033,10 @@ class _$PipelineCopyWithImpl<$Res, $Val extends Pipeline>
                 ? _value.assignedRmName
                 : assignedRmName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            scoredToUserName: freezed == scoredToUserName
+                ? _value.scoredToUserName
+                : scoredToUserName // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -1061,6 +1079,7 @@ abstract class _$$PipelineImplCopyWith<$Res>
     bool isTender,
     String? referredByUserId,
     String? referralId,
+    String? scoredToUserId,
     bool isPendingSync,
     DateTime? closedAt,
     DateTime? deletedAt,
@@ -1077,6 +1096,7 @@ abstract class _$$PipelineImplCopyWith<$Res>
     String? leadSourceName,
     String? brokerName,
     String? assignedRmName,
+    String? scoredToUserName,
   });
 }
 
@@ -1120,6 +1140,7 @@ class __$$PipelineImplCopyWithImpl<$Res>
     Object? isTender = null,
     Object? referredByUserId = freezed,
     Object? referralId = freezed,
+    Object? scoredToUserId = freezed,
     Object? isPendingSync = null,
     Object? closedAt = freezed,
     Object? deletedAt = freezed,
@@ -1136,6 +1157,7 @@ class __$$PipelineImplCopyWithImpl<$Res>
     Object? leadSourceName = freezed,
     Object? brokerName = freezed,
     Object? assignedRmName = freezed,
+    Object? scoredToUserName = freezed,
   }) {
     return _then(
       _$PipelineImpl(
@@ -1243,6 +1265,10 @@ class __$$PipelineImplCopyWithImpl<$Res>
             ? _value.referralId
             : referralId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        scoredToUserId: freezed == scoredToUserId
+            ? _value.scoredToUserId
+            : scoredToUserId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         isPendingSync: null == isPendingSync
             ? _value.isPendingSync
             : isPendingSync // ignore: cast_nullable_to_non_nullable
@@ -1307,6 +1333,10 @@ class __$$PipelineImplCopyWithImpl<$Res>
             ? _value.assignedRmName
             : assignedRmName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        scoredToUserName: freezed == scoredToUserName
+            ? _value.scoredToUserName
+            : scoredToUserName // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -1342,6 +1372,7 @@ class _$PipelineImpl extends _Pipeline {
     this.isTender = false,
     this.referredByUserId,
     this.referralId,
+    this.scoredToUserId,
     this.isPendingSync = false,
     this.closedAt,
     this.deletedAt,
@@ -1358,6 +1389,7 @@ class _$PipelineImpl extends _Pipeline {
     this.leadSourceName,
     this.brokerName,
     this.assignedRmName,
+    this.scoredToUserName,
   }) : super._();
 
   factory _$PipelineImpl.fromJson(Map<String, dynamic> json) =>
@@ -1416,6 +1448,10 @@ class _$PipelineImpl extends _Pipeline {
   final String? referredByUserId;
   @override
   final String? referralId;
+
+  /// User who receives 4DX lag measure credit. Set at win time, never changes.
+  @override
+  final String? scoredToUserId;
   @override
   @JsonKey()
   final bool isPendingSync;
@@ -1451,9 +1487,13 @@ class _$PipelineImpl extends _Pipeline {
   @override
   final String? assignedRmName;
 
+  /// Display name for user who receives scoring credit.
+  @override
+  final String? scoredToUserName;
+
   @override
   String toString() {
-    return 'Pipeline(id: $id, code: $code, customerId: $customerId, stageId: $stageId, statusId: $statusId, cobId: $cobId, lobId: $lobId, leadSourceId: $leadSourceId, assignedRmId: $assignedRmId, createdBy: $createdBy, potentialPremium: $potentialPremium, createdAt: $createdAt, updatedAt: $updatedAt, brokerId: $brokerId, brokerPicId: $brokerPicId, customerContactId: $customerContactId, tsi: $tsi, finalPremium: $finalPremium, weightedValue: $weightedValue, expectedCloseDate: $expectedCloseDate, policyNumber: $policyNumber, declineReason: $declineReason, notes: $notes, isTender: $isTender, referredByUserId: $referredByUserId, referralId: $referralId, isPendingSync: $isPendingSync, closedAt: $closedAt, deletedAt: $deletedAt, lastSyncAt: $lastSyncAt, customerName: $customerName, stageName: $stageName, stageColor: $stageColor, stageProbability: $stageProbability, stageIsFinal: $stageIsFinal, stageIsWon: $stageIsWon, statusName: $statusName, cobName: $cobName, lobName: $lobName, leadSourceName: $leadSourceName, brokerName: $brokerName, assignedRmName: $assignedRmName)';
+    return 'Pipeline(id: $id, code: $code, customerId: $customerId, stageId: $stageId, statusId: $statusId, cobId: $cobId, lobId: $lobId, leadSourceId: $leadSourceId, assignedRmId: $assignedRmId, createdBy: $createdBy, potentialPremium: $potentialPremium, createdAt: $createdAt, updatedAt: $updatedAt, brokerId: $brokerId, brokerPicId: $brokerPicId, customerContactId: $customerContactId, tsi: $tsi, finalPremium: $finalPremium, weightedValue: $weightedValue, expectedCloseDate: $expectedCloseDate, policyNumber: $policyNumber, declineReason: $declineReason, notes: $notes, isTender: $isTender, referredByUserId: $referredByUserId, referralId: $referralId, scoredToUserId: $scoredToUserId, isPendingSync: $isPendingSync, closedAt: $closedAt, deletedAt: $deletedAt, lastSyncAt: $lastSyncAt, customerName: $customerName, stageName: $stageName, stageColor: $stageColor, stageProbability: $stageProbability, stageIsFinal: $stageIsFinal, stageIsWon: $stageIsWon, statusName: $statusName, cobName: $cobName, lobName: $lobName, leadSourceName: $leadSourceName, brokerName: $brokerName, assignedRmName: $assignedRmName, scoredToUserName: $scoredToUserName)';
   }
 
   @override
@@ -1506,6 +1546,8 @@ class _$PipelineImpl extends _Pipeline {
                 other.referredByUserId == referredByUserId) &&
             (identical(other.referralId, referralId) ||
                 other.referralId == referralId) &&
+            (identical(other.scoredToUserId, scoredToUserId) ||
+                other.scoredToUserId == scoredToUserId) &&
             (identical(other.isPendingSync, isPendingSync) ||
                 other.isPendingSync == isPendingSync) &&
             (identical(other.closedAt, closedAt) ||
@@ -1535,7 +1577,9 @@ class _$PipelineImpl extends _Pipeline {
             (identical(other.brokerName, brokerName) ||
                 other.brokerName == brokerName) &&
             (identical(other.assignedRmName, assignedRmName) ||
-                other.assignedRmName == assignedRmName));
+                other.assignedRmName == assignedRmName) &&
+            (identical(other.scoredToUserName, scoredToUserName) ||
+                other.scoredToUserName == scoredToUserName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1568,6 +1612,7 @@ class _$PipelineImpl extends _Pipeline {
     isTender,
     referredByUserId,
     referralId,
+    scoredToUserId,
     isPendingSync,
     closedAt,
     deletedAt,
@@ -1584,6 +1629,7 @@ class _$PipelineImpl extends _Pipeline {
     leadSourceName,
     brokerName,
     assignedRmName,
+    scoredToUserName,
   ]);
 
   /// Create a copy of Pipeline
@@ -1628,6 +1674,7 @@ abstract class _Pipeline extends Pipeline {
     final bool isTender,
     final String? referredByUserId,
     final String? referralId,
+    final String? scoredToUserId,
     final bool isPendingSync,
     final DateTime? closedAt,
     final DateTime? deletedAt,
@@ -1644,6 +1691,7 @@ abstract class _Pipeline extends Pipeline {
     final String? leadSourceName,
     final String? brokerName,
     final String? assignedRmName,
+    final String? scoredToUserName,
   }) = _$PipelineImpl;
   const _Pipeline._() : super._();
 
@@ -1702,6 +1750,10 @@ abstract class _Pipeline extends Pipeline {
   String? get referredByUserId;
   @override
   String? get referralId;
+
+  /// User who receives 4DX lag measure credit. Set at win time, never changes.
+  @override
+  String? get scoredToUserId;
   @override
   bool get isPendingSync;
   @override
@@ -1734,6 +1786,10 @@ abstract class _Pipeline extends Pipeline {
   String? get brokerName;
   @override
   String? get assignedRmName;
+
+  /// Display name for user who receives scoring credit.
+  @override
+  String? get scoredToUserName;
 
   /// Create a copy of Pipeline
   /// with the given fields replaced by the non-null parameter values.

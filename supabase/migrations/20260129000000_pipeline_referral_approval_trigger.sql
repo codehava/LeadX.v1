@@ -17,8 +17,8 @@ BEGIN
       updated_at = NOW()
     WHERE id = NEW.customer_id;
 
-    -- 2. Reassign ALL existing pipelines for this customer to receiver
-    --    AND set referred_by_user_id for 4DX tracking on open pipelines
+    -- 2. Reassign OPEN pipelines for this customer to receiver
+    --    AND set referred_by_user_id for 4DX tracking (referral bonus if pipeline wins)
     UPDATE pipelines
     SET
       assigned_rm_id = NEW.receiver_rm_id,
@@ -29,14 +29,15 @@ BEGIN
       AND deleted_at IS NULL
       AND closed_at IS NULL;  -- Only open pipelines
 
-    -- 3. Also reassign closed pipelines (without changing referrer)
+    -- 3. Reassign CLOSED pipelines for visibility (new RM can see customer history)
+    --    Note: scored_to_user_id is already set and won't change - original owner keeps scoring credit
     UPDATE pipelines
     SET
       assigned_rm_id = NEW.receiver_rm_id,
       updated_at = NOW()
     WHERE customer_id = NEW.customer_id
       AND deleted_at IS NULL
-      AND closed_at IS NOT NULL;
+      AND closed_at IS NOT NULL;  -- Only closed pipelines
 
     -- 4. Mark referral as COMPLETED
     NEW.status := 'COMPLETED';
@@ -62,8 +63,9 @@ CREATE TRIGGER on_referral_approved
 COMMENT ON FUNCTION handle_referral_approval() IS
 'Handles pipeline referral approval by:
 1. Reassigning customer to receiver RM
-2. Reassigning all open pipelines to receiver with referred_by_user_id set for 4DX tracking
-3. Reassigning closed pipelines to receiver (without changing referrer)
+2. Reassigning OPEN pipelines to receiver with referred_by_user_id set for 4DX tracking
+3. Reassigning CLOSED pipelines to receiver for visibility (customer history)
 4. Marking the referral as COMPLETED
 
-When pipelines close as WON, the original referrer gets 4DX credit via referred_by_user_id.';
+IMPORTANT: scored_to_user_id on closed pipelines is NOT changed - original owner keeps scoring credit.
+Only assigned_rm_id changes so the new RM can view the customer pipeline history.';

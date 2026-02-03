@@ -107,6 +107,7 @@ class PipelineSyncDto with _$PipelineSyncDto {
     @JsonKey(name: 'is_tender') @Default(false) bool isTender,
     @JsonKey(name: 'referred_by_user_id') String? referredByUserId,
     @JsonKey(name: 'referral_id') String? referralId,
+    @JsonKey(name: 'scored_to_user_id') String? scoredToUserId,
     @JsonKey(name: 'closed_at') DateTime? closedAt,
     @JsonKey(name: 'deleted_at') DateTime? deletedAt,
   }) = _PipelineSyncDto;

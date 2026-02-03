@@ -138,6 +138,7 @@ _$PipelineSyncDtoImpl _$$PipelineSyncDtoImplFromJson(
   isTender: json['is_tender'] as bool? ?? false,
   referredByUserId: json['referred_by_user_id'] as String?,
   referralId: json['referral_id'] as String?,
+  scoredToUserId: json['scored_to_user_id'] as String?,
   closedAt: json['closed_at'] == null
       ? null
       : DateTime.parse(json['closed_at'] as String),
@@ -175,6 +176,7 @@ Map<String, dynamic> _$$PipelineSyncDtoImplToJson(
   'is_tender': instance.isTender,
   'referred_by_user_id': instance.referredByUserId,
   'referral_id': instance.referralId,
+  'scored_to_user_id': instance.scoredToUserId,
   'closed_at': instance.closedAt?.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
 };

@@ -38,7 +38,9 @@
 | expected_close_date | DATE | YES | - | Expected close |
 | closed_at | TIMESTAMPTZ | YES | - | When won/lost |
 | notes | TEXT | YES | - | Notes |
-| assigned_to | UUID | NO | - | FK to users |
+| assigned_to | UUID | NO | - | FK to users (current operational owner) |
+| scored_to_user_id | UUID | YES | - | FK to users (4DX scoring credit, set at win) |
+| referred_by_user_id | UUID | YES | - | FK to users (referrer for bonus tracking) |
 | referral_id | UUID | YES | - | FK to pipeline_referrals |
 | created_at | TIMESTAMPTZ | NO | NOW() | Created |
 | updated_at | TIMESTAMPTZ | NO | NOW() | Updated |
@@ -57,6 +59,8 @@
 | lead_source_id | lead_sources(id) | RESTRICT |
 | broker_id | brokers(id) | SET NULL |
 | assigned_to | users(id) | RESTRICT |
+| scored_to_user_id | users(id) | SET NULL |
+| referred_by_user_id | users(id) | SET NULL |
 
 ### Referenced By
 
@@ -77,7 +81,8 @@
 | idx_pipelines_customer | customer_id | BTREE |
 | idx_pipelines_stage | stage | BTREE |
 | idx_pipelines_assigned | assigned_to | BTREE |
+| idx_pipelines_scored_to_user | scored_to_user_id | BTREE |
 
 ---
 
-*Table documentation v1.0*
+*Table documentation v1.1 - Added scored_to_user_id for 4DX scoring attribution*

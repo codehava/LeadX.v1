@@ -70,6 +70,8 @@ class Pipeline with _$Pipeline {
     @Default(false) bool isTender,
     String? referredByUserId,
     String? referralId,
+    /// User who receives 4DX lag measure credit. Set at win time, never changes.
+    String? scoredToUserId,
     @Default(false) bool isPendingSync,
     DateTime? closedAt,
     DateTime? deletedAt,
@@ -87,6 +89,8 @@ class Pipeline with _$Pipeline {
     String? leadSourceName,
     String? brokerName,
     String? assignedRmName,
+    /// Display name for user who receives scoring credit.
+    String? scoredToUserName,
   }) = _Pipeline;
 
   const Pipeline._();
