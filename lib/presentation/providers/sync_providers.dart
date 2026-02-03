@@ -461,12 +461,14 @@ final _activityRepositoryProvider = Provider<ActivityRepository>((ref) {
   final remoteDataSource = ref.watch(_activityRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
-  
+  final database = ref.watch(databaseProvider);
+
   return ActivityRepositoryImpl(
     localDataSource: localDataSource,
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 

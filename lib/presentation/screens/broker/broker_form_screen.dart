@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/validators.dart';
 import '../../../data/dtos/broker_dtos.dart';
 import '../../../domain/entities/broker.dart';
 import '../../providers/broker_providers.dart';
@@ -166,6 +167,7 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
                 hintText: 'Contoh: 5.5',
                 suffixText: '%',
               ),
+              validator: Validators.validatePercentage,
             ),
             const SizedBox(height: 24),
 
@@ -181,6 +183,7 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
                 hintText: '+62...',
                 prefixIcon: Icon(Icons.phone),
               ),
+              validator: Validators.validatePhone,
             ),
             const SizedBox(height: 16),
             
@@ -192,6 +195,7 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
                 hintText: 'email@example.com',
                 prefixIcon: Icon(Icons.email),
               ),
+              validator: Validators.validateEmail,
             ),
             const SizedBox(height: 16),
             
@@ -203,6 +207,7 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
                 hintText: 'https://...',
                 prefixIcon: Icon(Icons.language),
               ),
+              validator: Validators.validateUrl,
             ),
             const SizedBox(height: 24),
 

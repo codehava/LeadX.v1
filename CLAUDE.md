@@ -192,3 +192,33 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
    - For list providers: Use `StreamProvider` + `repository.watchAll*()`
    - For detail providers: Use `StreamProvider.family` + `repository.watch*ById(id)`
    - Ensure the full chain exists: Provider → Repository (interface + impl) → LocalDataSource → Drift `.watch()`
+
+## Data Layer Conventions
+
+### Data Source Method Naming
+- **Local DS:** `watch*()` → Stream, `get*()` → Future, `search*()` → Future<List>
+- **Remote DS:** `fetch*()`, `create*()`, `update*()`, `upsert*()`
+- Repositories orchestrate local DS, remote DS, and SyncService
+
+### DTO Types (per entity)
+| Type | Purpose | JSON Keys |
+|------|---------|-----------|
+| `{Entity}CreateDto` | New records | camelCase |
+| `{Entity}UpdateDto` | Partial updates | camelCase |
+| `{Entity}SyncDto` | Supabase sync | `@JsonKey(name: 'snake_case')` |
+
+### Entity Display Helpers
+Entities include computed properties for UI - always add these when creating new entities:
+- `displayName` - User-friendly name fallback
+- `status` / `statusText` - Computed from flags
+- `canExecute`, `hasLocation`, etc. - Computed booleans
+
+### Sync Queue Usage
+```dart
+await _syncService.queueOperation(
+  entityType: SyncEntityType.customer,  // from sync_models.dart
+  entityId: id,
+  operation: SyncOperation.create,      // create | update | delete
+  payload: { /* JSON matching SyncDto */ },
+);
+```

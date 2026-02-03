@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/validators.dart';
 import '../../../../data/dtos/admin/user_management_dtos.dart';
 import '../../../../data/dtos/master_data_dtos.dart';
 import '../../../../domain/entities/user.dart';
@@ -114,15 +115,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
               ),
               keyboardType: TextInputType.emailAddress,
               enabled: !isEditMode, // Email cannot be changed
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Email wajib diisi';
-                }
-                if (!value.contains('@')) {
-                  return 'Format email tidak valid';
-                }
-                return null;
-              },
+              validator: Validators.validateEmailRequired,
             ),
             const SizedBox(height: 16),
 
@@ -173,6 +166,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
+              validator: Validators.validatePhone,
             ),
             const SizedBox(height: 16),
 

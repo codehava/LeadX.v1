@@ -95,6 +95,16 @@ class ActivityCard extends StatelessWidget {
                 Text(
                   activity.objectName!,
                   style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (showObjectName && activity.keyPersonName != null)
+                Text(
+                  'PIC: ${activity.keyPersonName}',
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.outline,
                   ),
                   maxLines: 1,

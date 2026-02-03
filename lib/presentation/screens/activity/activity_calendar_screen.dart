@@ -5,96 +5,83 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
+import '../../providers/broker_providers.dart';
+import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
+import 'activity_execution_sheet.dart';
 
-/// Activity calendar screen for viewing activities in calendar/list view.
-class ActivityCalendarScreen extends ConsumerWidget {
+/// Full-screen activity calendar with month view.
+/// Tapping a day shows a bottom sheet with that day's activities.
+class ActivityCalendarScreen extends ConsumerStatefulWidget {
   const ActivityCalendarScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final selectedDate = ref.watch(selectedDateProvider);
-    final viewMode = ref.watch(calendarViewModeProvider);
+  ConsumerState<ActivityCalendarScreen> createState() =>
+      _ActivityCalendarScreenState();
+}
 
-    // Get start/end of 31-day range for activity query (15 days before today to 15 days after)
-    final today = DateTime.now();
-    final startOfRange = DateTime(today.year, today.month, today.day).subtract(const Duration(days: 15));
-    final endOfRange = DateTime(today.year, today.month, today.day, 23, 59, 59).add(const Duration(days: 15));
+class _ActivityCalendarScreenState extends ConsumerState<ActivityCalendarScreen> {
+  late DateTime _currentMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMonth = DateTime.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Get start/end of current month for activity query
+    final startOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final endOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0, 23, 59, 59);
 
     final activitiesAsync = ref.watch(
-      userActivitiesProvider((startDate: startOfRange, endDate: endOfRange)),
+      userActivitiesProvider((startDate: startOfMonth, endDate: endOfMonth)),
     );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kalender Aktivitas'),
-        actions: [
-          PopupMenuButton<CalendarViewMode>(
-            initialValue: viewMode,
-            onSelected: (mode) {
-              ref.read(calendarViewModeProvider.notifier).state = mode;
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: CalendarViewMode.day,
-                child: Text('Harian'),
-              ),
-              const PopupMenuItem(
-                value: CalendarViewMode.week,
-                child: Text('Mingguan'),
-              ),
-              const PopupMenuItem(
-                value: CalendarViewMode.month,
-                child: Text('Bulanan'),
-              ),
-            ],
-            child: const Padding(
-              padding: EdgeInsets.all(8),
-              child: Icon(Icons.view_module),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // Month selector
+          // Month navigation header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
                   onPressed: () {
-                    // Navigate to previous week
-                    ref.read(selectedDateProvider.notifier).state =
-                        selectedDate.subtract(const Duration(days: 7));
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month - 1,
+                      );
+                    });
                   },
                   icon: const Icon(Icons.chevron_left),
                 ),
                 GestureDetector(
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) {
-                      ref.read(selectedDateProvider.notifier).state = picked;
-                    }
-                  },
+                  onTap: () => _selectMonth(context),
                   child: Text(
-                    _formatMonthYear(selectedDate),
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    _formatMonthYear(_currentMonth),
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 IconButton(
                   onPressed: () {
-                    // Navigate to next week
-                    ref.read(selectedDateProvider.notifier).state =
-                        selectedDate.add(const Duration(days: 7));
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month + 1,
+                      );
+                    });
                   },
                   icon: const Icon(Icons.chevron_right),
                 ),
@@ -102,84 +89,19 @@ class ActivityCalendarScreen extends ConsumerWidget {
             ),
           ),
 
-          // Simple date picker row
-          SizedBox(
-            height: 80,
-            child: _buildWeekView(
-              context, 
-              ref, 
-              selectedDate, 
-              activitiesAsync.valueOrNull,
-            ),
-          ),
+          // Day of week headers
+          _buildDayHeaders(theme),
 
-          const Divider(),
+          const Divider(height: 1),
 
-          // Activities list
+          // Calendar grid
           Expanded(
             child: activitiesAsync.when(
-              data: (activities) {
-                // Filter to selected date
-                final dayActivities = activities.where((a) {
-                  final d = a.scheduledDatetime;
-                  return d.year == selectedDate.year &&
-                      d.month == selectedDate.month &&
-                      d.day == selectedDate.day;
-                }).toList();
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(userActivitiesProvider((startDate: startOfRange, endDate: endOfRange)));
-                  },
-                  child: dayActivities.isEmpty
-                      ? ListView(
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.4,
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.event_available,
-                                      size: 64,
-                                      color: theme.colorScheme.outline,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Tidak ada aktivitas',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        color: theme.colorScheme.outline,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _formatDate(selectedDate),
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: theme.colorScheme.outline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: dayActivities.length,
-                          itemBuilder: (context, index) {
-                            final activity = dayActivities[index];
-                            return _ActivityListTile(
-                              activity: activity,
-                              onTap: () {
-                                context.go('/home/activities/${activity.id}');
-                              },
-                            );
-                          },
-                        ),
-                );
-              },
+              data: (activities) => _buildCalendarGrid(
+                context,
+                theme,
+                activities,
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error: $e')),
             ),
@@ -195,65 +117,458 @@ class ActivityCalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeekView(BuildContext context, WidgetRef ref, DateTime selectedDate, [List<Activity>? activities]) {
-    final theme = Theme.of(context);
-    final today = DateTime.now();
-    
-    // 31 days view: 15 days before today + today + 15 days after
-    const totalDays = 31;
-    const todayIndex = 15; // Today is at index 15 (0-indexed, center of 31 days)
-    final startDate = DateTime(today.year, today.month, today.day).subtract(const Duration(days: todayIndex));
-    
-    // Count activities per day (using date string as key for cross-month support)
-    Map<String, int> activityCountByDate = {};
-    if (activities != null) {
-      for (final activity in activities) {
-        final d = activity.scheduledDatetime;
-        final key = '${d.year}-${d.month}-${d.day}';
-        activityCountByDate[key] = (activityCountByDate[key] ?? 0) + 1;
-      }
-    }
-    
-    return _ScrollableDayPicker(
-      totalDays: totalDays,
-      todayIndex: todayIndex,
-      startDate: startDate,
-      selectedDate: selectedDate,
-      today: today,
-      activityCountByDate: activityCountByDate,
-      onDateSelected: (date) {
-        ref.read(selectedDateProvider.notifier).state = date;
-      },
-      getDayName: _getDayName,
+  Widget _buildDayHeaders(ThemeData theme) {
+    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
+        children: days.map((day) {
+          final isWeekend = day == 'Sab' || day == 'Min';
+          return Expanded(
+            child: Center(
+              child: Text(
+                day,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isWeekend
+                      ? theme.colorScheme.error.withValues(alpha: 0.7)
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  String _getDayName(int weekday) {
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    return days[weekday - 1];
+  Widget _buildCalendarGrid(
+    BuildContext context,
+    ThemeData theme,
+    List<Activity> activities,
+  ) {
+    final today = DateTime.now();
+    final firstDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final lastDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
+    final daysInMonth = lastDayOfMonth.day;
+
+    // Monday = 1, Sunday = 7 in Dart
+    // We want Monday as first day, so offset is (weekday - 1)
+    final firstWeekday = firstDayOfMonth.weekday;
+    final leadingEmptyDays = firstWeekday - 1;
+
+    // Count activities per day
+    Map<int, List<Activity>> activitiesByDay = {};
+    for (final activity in activities) {
+      final d = activity.scheduledDatetime;
+      if (d.month == _currentMonth.month && d.year == _currentMonth.year) {
+        activitiesByDay.putIfAbsent(d.day, () => []).add(activity);
+      }
+    }
+
+    // Total cells needed (leading empty + days in month)
+    final totalCells = leadingEmptyDays + daysInMonth;
+    final rowCount = (totalCells / 7).ceil();
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+      ),
+      itemCount: rowCount * 7,
+      itemBuilder: (context, index) {
+        final dayNumber = index - leadingEmptyDays + 1;
+
+        // Empty cell for leading days or trailing days
+        if (dayNumber < 1 || dayNumber > daysInMonth) {
+          return const SizedBox();
+        }
+
+        final date = DateTime(_currentMonth.year, _currentMonth.month, dayNumber);
+        final isToday = date.day == today.day &&
+            date.month == today.month &&
+            date.year == today.year;
+        final isWeekend = date.weekday == 6 || date.weekday == 7;
+        final dayActivities = activitiesByDay[dayNumber] ?? [];
+        final activityCount = dayActivities.length;
+
+        return _CalendarDayCell(
+          day: dayNumber,
+          isToday: isToday,
+          isWeekend: isWeekend,
+          activityCount: activityCount,
+          activities: dayActivities,
+          onTap: () => _showDayActivities(context, date, dayActivities),
+        );
+      },
+    );
+  }
+
+  void _showDayActivities(
+    BuildContext context,
+    DateTime date,
+    List<Activity> activities,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DayActivitiesSheet(
+        date: date,
+        activities: activities,
+        onActivityTap: (activity) {
+          Navigator.pop(context);
+          context.push('/home/activities/${activity.id}');
+        },
+        onExecute: (activity) {
+          Navigator.pop(context);
+          _executeActivity(activity);
+        },
+      ),
+    );
+  }
+
+  void _executeActivity(Activity activity) {
+    double? targetLat;
+    double? targetLon;
+
+    switch (activity.objectType) {
+      case ActivityObjectType.customer:
+        if (activity.customerId != null) {
+          final customer =
+              ref.read(customerDetailProvider(activity.customerId!)).value;
+          targetLat = customer?.latitude;
+          targetLon = customer?.longitude;
+        }
+        break;
+      case ActivityObjectType.broker:
+        if (activity.brokerId != null) {
+          final broker =
+              ref.read(brokerDetailProvider(activity.brokerId!)).value;
+          targetLat = broker?.latitude;
+          targetLon = broker?.longitude;
+        }
+        break;
+      case ActivityObjectType.hvc:
+        if (activity.hvcId != null) {
+          final hvc = ref.read(hvcDetailProvider(activity.hvcId!)).value;
+          targetLat = hvc?.latitude;
+          targetLon = hvc?.longitude;
+        }
+        break;
+    }
+
+    ActivityExecutionSheet.show(
+      context,
+      activity: activity,
+      targetLat: targetLat,
+      targetLon: targetLon,
+    );
+  }
+
+  Future<void> _selectMonth(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _currentMonth,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      initialDatePickerMode: DatePickerMode.year,
+    );
+    if (picked != null) {
+      setState(() {
+        _currentMonth = DateTime(picked.year, picked.month);
+      });
+    }
   }
 
   String _formatMonthYear(DateTime date) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
+}
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+/// Calendar day cell widget.
+class _CalendarDayCell extends StatelessWidget {
+  final int day;
+  final bool isToday;
+  final bool isWeekend;
+  final int activityCount;
+  final List<Activity> activities;
+  final VoidCallback onTap;
+
+  const _CalendarDayCell({
+    required this.day,
+    required this.isToday,
+    required this.isWeekend,
+    required this.activityCount,
+    required this.activities,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Determine status colors for the day
+    Color? statusIndicatorColor;
+    if (activities.isNotEmpty) {
+      final hasOverdue =
+          activities.any((a) => a.status == ActivityStatus.overdue);
+      final hasPlanned =
+          activities.any((a) => a.status == ActivityStatus.planned);
+      final allCompleted =
+          activities.every((a) => a.status == ActivityStatus.completed);
+
+      if (hasOverdue) {
+        statusIndicatorColor = AppColors.error;
+      } else if (allCompleted) {
+        statusIndicatorColor = AppColors.success;
+      } else if (hasPlanned) {
+        statusIndicatorColor = AppColors.info;
+      }
+    }
+
+    return Material(
+      color: isToday
+          ? theme.colorScheme.primaryContainer
+          : theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: isToday
+                ? Border.all(color: theme.colorScheme.primary, width: 2)
+                : Border.all(color: theme.colorScheme.outlineVariant, width: 0.5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                day.toString(),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                  color: isWeekend
+                      ? theme.colorScheme.error.withValues(alpha: 0.8)
+                      : isToday
+                          ? theme.colorScheme.primary
+                          : null,
+                ),
+              ),
+              const SizedBox(height: 4),
+              if (activityCount > 0)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int i = 0; i < (activityCount > 3 ? 3 : activityCount); i++)
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: statusIndicatorColor ?? AppColors.primary,
+                        ),
+                      ),
+                    if (activityCount > 3)
+                      Text(
+                        '+',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: statusIndicatorColor ?? AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                )
+              else
+                const SizedBox(height: 6),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-/// Activity list tile for calendar view.
+/// Bottom sheet showing activities for a selected day.
+class _DayActivitiesSheet extends StatelessWidget {
+  final DateTime date;
+  final List<Activity> activities;
+  final ValueChanged<Activity> onActivityTap;
+  final ValueChanged<Activity> onExecute;
+
+  const _DayActivitiesSheet({
+    required this.date,
+    required this.activities,
+    required this.onActivityTap,
+    required this.onExecute,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.5,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formatFullDate(date),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${activities.length} aktivitas',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(),
+
+              // Activities list
+              Expanded(
+                child: activities.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.event_available,
+                              size: 48,
+                              color: theme.colorScheme.outline,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Tidak ada aktivitas',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: activities.length,
+                        itemBuilder: (context, index) {
+                          final activity = activities[index];
+                          return _ActivityListTile(
+                            activity: activity,
+                            onTap: () => onActivityTap(activity),
+                            onExecute:
+                                activity.canExecute ? () => onExecute(activity) : null,
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatFullDate(DateTime date) {
+    const days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu'
+    ];
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
+  }
+}
+
+/// Activity list tile for the day activities sheet.
 class _ActivityListTile extends StatelessWidget {
   final Activity activity;
   final VoidCallback onTap;
+  final VoidCallback? onExecute;
 
   const _ActivityListTile({
     required this.activity,
     required this.onTap,
+    this.onExecute,
   });
 
   @override
@@ -262,55 +577,92 @@ class _ActivityListTile extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
+      child: InkWell(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: _getStatusColor().withValues(alpha: 0.2),
-          child: Icon(
-            _getTypeIcon(),
-            color: _getStatusColor(),
-            size: 20,
-          ),
-        ),
-        title: Text(
-          activity.displayName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _formatTime(activity.scheduledDatetime),
-              style: theme.textTheme.bodySmall,
-            ),
-            if (activity.objectName != null)
-              Text(
-                activity.objectName!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: _getStatusColor().withValues(alpha: 0.2),
+                child: Icon(
+                  _getTypeIcon(),
+                  color: _getStatusColor(),
+                  size: 20,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-          ],
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _getStatusColor().withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          _formatTime(activity.scheduledDatetime),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                        if (activity.objectName != null) ...[
+                          Text(
+                            ' • ',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              activity.objectName!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getStatusColor().withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  activity.statusText,
+                  style: TextStyle(
+                    color: _getStatusColor(),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (onExecute != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: onExecute,
+                  icon: const Icon(Icons.play_circle_fill),
+                  color: AppColors.success,
+                  tooltip: 'Eksekusi',
+                ),
+              ],
+            ],
           ),
-          child: Text(
-            activity.statusText,
-            style: TextStyle(
-              color: _getStatusColor(),
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
         ),
-        isThreeLine: activity.objectName != null,
       ),
     );
   }
@@ -355,156 +707,5 @@ class _ActivityListTile extends StatelessWidget {
 
   String _formatTime(DateTime dt) {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-  }
-}
-
-/// Scrollable day picker widget with 31 days centered on today.
-class _ScrollableDayPicker extends StatefulWidget {
-  final int totalDays;
-  final int todayIndex;
-  final DateTime startDate;
-  final DateTime selectedDate;
-  final DateTime today;
-  final Map<String, int> activityCountByDate;
-  final ValueChanged<DateTime> onDateSelected;
-  final String Function(int) getDayName;
-
-  const _ScrollableDayPicker({
-    required this.totalDays,
-    required this.todayIndex,
-    required this.startDate,
-    required this.selectedDate,
-    required this.today,
-    required this.activityCountByDate,
-    required this.onDateSelected,
-    required this.getDayName,
-  });
-
-  @override
-  State<_ScrollableDayPicker> createState() => _ScrollableDayPickerState();
-}
-
-class _ScrollableDayPickerState extends State<_ScrollableDayPicker> {
-  late ScrollController _scrollController;
-  static const double _itemWidth = 56.0; // 48 width + 8 padding
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToToday();
-    });
-  }
-
-  void _scrollToToday() {
-    if (!_scrollController.hasClients) return;
-    
-    // Calculate the offset to center today
-    final viewportWidth = _scrollController.position.viewportDimension;
-    final todayOffset = widget.todayIndex * _itemWidth;
-    final centeredOffset = todayOffset - (viewportWidth / 2) + (_itemWidth / 2);
-    
-    _scrollController.jumpTo(
-      centeredOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return ListView.builder(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      itemCount: widget.totalDays,
-      itemBuilder: (context, index) {
-        final date = widget.startDate.add(Duration(days: index));
-        final isSelected = date.day == widget.selectedDate.day &&
-            date.month == widget.selectedDate.month &&
-            date.year == widget.selectedDate.year;
-        final isToday = date.day == widget.today.day &&
-            date.month == widget.today.month &&
-            date.year == widget.today.year;
-        final dateKey = '${date.year}-${date.month}-${date.day}';
-        final activityCount = widget.activityCountByDate[dateKey] ?? 0;
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: GestureDetector(
-            onTap: () {
-              widget.onDateSelected(date);
-            },
-            child: Container(
-              width: 48,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : isToday
-                        ? theme.colorScheme.primaryContainer
-                        : null,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.getDayName(date.weekday),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date.day.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : isToday
-                              ? theme.colorScheme.primary
-                              : null,
-                    ),
-                  ),
-                  // Activity indicator dots
-                  const SizedBox(height: 2),
-                  if (activityCount > 0)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (int i = 0; i < (activityCount > 3 ? 3 : activityCount); i++)
-                          Container(
-                            width: 4,
-                            height: 4,
-                            margin: const EdgeInsets.symmetric(horizontal: 1),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isSelected
-                                  ? theme.colorScheme.onPrimary
-                                  : AppColors.primary,
-                            ),
-                          ),
-                      ],
-                    )
-                  else
-                    const SizedBox(height: 4),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }

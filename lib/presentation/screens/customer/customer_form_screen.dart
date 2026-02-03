@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/validators.dart';
 import '../../../data/dtos/customer_dtos.dart';
 import '../../../data/services/gps_service.dart';
 import '../../providers/customer_providers.dart';
@@ -276,6 +277,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               label: 'Kode Pos',
               hint: 'Masukkan kode pos',
               keyboardType: TextInputType.number,
+              validator: Validators.validatePostalCode,
             ),
 
             const SizedBox(height: 32),
@@ -288,6 +290,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               label: 'Nomor Telepon',
               hint: 'Contoh: 021-1234567',
               keyboardType: TextInputType.phone,
+              validator: Validators.validatePhone,
             ),
             const SizedBox(height: 16),
             AppTextField(
@@ -295,6 +298,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               label: 'Email',
               hint: 'Contoh: info@customer.com',
               keyboardType: TextInputType.emailAddress,
+              validator: Validators.validateEmail,
             ),
             const SizedBox(height: 16),
             AppTextField(
@@ -302,6 +306,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
               label: 'Website',
               hint: 'Contoh: www.customer.com',
               keyboardType: TextInputType.url,
+              validator: Validators.validateUrl,
             ),
 
             const SizedBox(height: 32),

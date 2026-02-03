@@ -95,11 +95,12 @@ class _AutocompleteFieldState<T> extends State<AutocompleteField<T>> {
   final LayerLink _layerLink = LayerLink();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
+
   OverlayEntry? _overlayEntry;
   List<AutocompleteItem<T>> _filteredItems = [];
   bool _isOpen = false;
   T? _selectedValue;
+  FormFieldState<T>? _formFieldState;
 
   @override
   void initState() {
@@ -305,6 +306,7 @@ class _AutocompleteFieldState<T> extends State<AutocompleteField<T>> {
       _textController.text = item.label;
     });
     widget.onChanged?.call(item.value);
+    _formFieldState?.didChange(item.value);
     _focusNode.unfocus();
     _removeOverlay();
   }
@@ -315,6 +317,7 @@ class _AutocompleteFieldState<T> extends State<AutocompleteField<T>> {
       _textController.clear();
     });
     widget.onChanged?.call(null);
+    _formFieldState?.didChange(null);
   }
 
   void _onTextChanged(String value) {
@@ -334,6 +337,7 @@ class _AutocompleteFieldState<T> extends State<AutocompleteField<T>> {
       if (selectedItem != null && selectedItem.label != value) {
         _selectedValue = null;
         widget.onChanged?.call(null);
+        _formFieldState?.didChange(null);
       }
     }
   }
@@ -346,6 +350,8 @@ class _AutocompleteFieldState<T> extends State<AutocompleteField<T>> {
       initialValue: widget.value,
       validator: widget.validator,
       builder: (state) {
+        // Store reference to sync FormField state with internal selection
+        _formFieldState = state;
         final hasError = state.hasError;
         final errorText = state.errorText;
 

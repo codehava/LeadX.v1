@@ -121,6 +121,13 @@ class ActivityDetailScreen extends ConsumerWidget {
                         leading: Icon(_getObjectTypeIcon(activity.objectType)),
                         title: Text(_getObjectTypeLabel(activity.objectType)),
                         subtitle: Text(activity.objectName!),
+                        onTap: () => _navigateToObject(context, activity),
+                      ),
+                    if (activity.keyPersonName != null)
+                      ListTile(
+                        leading: const Icon(Icons.person),
+                        title: const Text('PIC'),
+                        subtitle: Text(activity.keyPersonName!),
                       ),
                     if (activity.summary != null)
                       ListTile(
@@ -720,6 +727,26 @@ class ActivityDetailScreen extends ConsumerWidget {
         return 'HVC';
       case ActivityObjectType.broker:
         return 'Broker';
+    }
+  }
+
+  void _navigateToObject(BuildContext context, Activity activity) {
+    switch (activity.objectType) {
+      case ActivityObjectType.customer:
+        if (activity.customerId != null) {
+          context.go('/home/customers/${activity.customerId}');
+        }
+        break;
+      case ActivityObjectType.hvc:
+        if (activity.hvcId != null) {
+          context.go('/home/hvcs/${activity.hvcId}');
+        }
+        break;
+      case ActivityObjectType.broker:
+        if (activity.brokerId != null) {
+          context.go('/home/brokers/${activity.brokerId}');
+        }
+        break;
     }
   }
 

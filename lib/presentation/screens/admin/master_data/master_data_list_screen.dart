@@ -279,29 +279,47 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
         final item = _filteredData[index];
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4),
-          child: ListTile(
-            title: Text(item['name']?.toString() ?? '-'),
-            subtitle: _buildMobileSubtitle(item),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildStatusChip(item['is_active'] == true),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') _navigateToForm(item['id'].toString());
-                    if (value == 'delete') _showDeleteConfirmation(item);
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Hapus', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          child: InkWell(
             onTap: () => _navigateToForm(item['id'].toString()),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['name']?.toString() ?? '-',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        _buildMobileSubtitle(item),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatusChip(item['is_active'] == true),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') _navigateToForm(item['id'].toString());
+                      if (value == 'delete') _showDeleteConfirmation(item);
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },

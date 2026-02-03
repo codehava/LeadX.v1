@@ -168,9 +168,19 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(cadenceParticipants);
           }
           // Migration from v6 to v7: Add preMeetingHours column to cadence_schedule_config
+          // Note: Only needed for databases created before preMeetingHours was added to table schema.
+          // Databases created with v6 already have this column from createTable.
           if (from < 7) {
-            await m.addColumn(
-                cadenceScheduleConfig, cadenceScheduleConfig.preMeetingHours);
+            // Check if column already exists (it will if table was created with current schema)
+            final result = await customSelect(
+              "SELECT COUNT(*) as cnt FROM pragma_table_info('cadence_schedule_config') WHERE name = 'pre_meeting_hours'",
+            ).getSingle();
+            final columnExists = (result.data['cnt'] as int) > 0;
+
+            if (!columnExists) {
+              await m.addColumn(
+                  cadenceScheduleConfig, cadenceScheduleConfig.preMeetingHours);
+            }
           }
         },
         beforeOpen: (details) async {

@@ -427,6 +427,8 @@ mixin _$Activity {
   String? get activityTypeColor => throw _privateConstructorUsedError;
   String? get objectName =>
       throw _privateConstructorUsedError; // Customer/HVC/Broker name
+  String? get keyPersonName =>
+      throw _privateConstructorUsedError; // Key person/PIC name
   String? get userName => throw _privateConstructorUsedError;
 
   /// Serializes this Activity to a JSON map.
@@ -479,6 +481,7 @@ abstract class $ActivityCopyWith<$Res> {
     String? activityTypeIcon,
     String? activityTypeColor,
     String? objectName,
+    String? keyPersonName,
     String? userName,
   });
 }
@@ -532,6 +535,7 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
     Object? activityTypeIcon = freezed,
     Object? activityTypeColor = freezed,
     Object? objectName = freezed,
+    Object? keyPersonName = freezed,
     Object? userName = freezed,
   }) {
     return _then(
@@ -672,6 +676,10 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
                 ? _value.objectName
                 : objectName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            keyPersonName: freezed == keyPersonName
+                ? _value.keyPersonName
+                : keyPersonName // ignore: cast_nullable_to_non_nullable
+                      as String?,
             userName: freezed == userName
                 ? _value.userName
                 : userName // ignore: cast_nullable_to_non_nullable
@@ -726,6 +734,7 @@ abstract class _$$ActivityImplCopyWith<$Res>
     String? activityTypeIcon,
     String? activityTypeColor,
     String? objectName,
+    String? keyPersonName,
     String? userName,
   });
 }
@@ -778,6 +787,7 @@ class __$$ActivityImplCopyWithImpl<$Res>
     Object? activityTypeIcon = freezed,
     Object? activityTypeColor = freezed,
     Object? objectName = freezed,
+    Object? keyPersonName = freezed,
     Object? userName = freezed,
   }) {
     return _then(
@@ -918,6 +928,10 @@ class __$$ActivityImplCopyWithImpl<$Res>
             ? _value.objectName
             : objectName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        keyPersonName: freezed == keyPersonName
+            ? _value.keyPersonName
+            : keyPersonName // ignore: cast_nullable_to_non_nullable
+                  as String?,
         userName: freezed == userName
             ? _value.userName
             : userName // ignore: cast_nullable_to_non_nullable
@@ -965,6 +979,7 @@ class _$ActivityImpl extends _Activity {
     this.activityTypeIcon,
     this.activityTypeColor,
     this.objectName,
+    this.keyPersonName,
     this.userName,
   }) : super._();
 
@@ -1051,11 +1066,14 @@ class _$ActivityImpl extends _Activity {
   final String? objectName;
   // Customer/HVC/Broker name
   @override
+  final String? keyPersonName;
+  // Key person/PIC name
+  @override
   final String? userName;
 
   @override
   String toString() {
-    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, syncedAt: $syncedAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, userName: $userName)';
+    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, syncedAt: $syncedAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, keyPersonName: $keyPersonName, userName: $userName)';
   }
 
   @override
@@ -1125,6 +1143,8 @@ class _$ActivityImpl extends _Activity {
                 other.activityTypeColor == activityTypeColor) &&
             (identical(other.objectName, objectName) ||
                 other.objectName == objectName) &&
+            (identical(other.keyPersonName, keyPersonName) ||
+                other.keyPersonName == keyPersonName) &&
             (identical(other.userName, userName) ||
                 other.userName == userName));
   }
@@ -1167,6 +1187,7 @@ class _$ActivityImpl extends _Activity {
     activityTypeIcon,
     activityTypeColor,
     objectName,
+    keyPersonName,
     userName,
   ]);
 
@@ -1220,6 +1241,7 @@ abstract class _Activity extends Activity {
     final String? activityTypeIcon,
     final String? activityTypeColor,
     final String? objectName,
+    final String? keyPersonName,
     final String? userName,
   }) = _$ActivityImpl;
   const _Activity._() : super._();
@@ -1295,6 +1317,8 @@ abstract class _Activity extends Activity {
   String? get activityTypeColor;
   @override
   String? get objectName; // Customer/HVC/Broker name
+  @override
+  String? get keyPersonName; // Key person/PIC name
   @override
   String? get userName;
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/validators.dart';
 import '../../../data/dtos/hvc_dtos.dart';
 import '../../../domain/entities/hvc.dart';
 import '../../providers/gps_providers.dart';
@@ -216,6 +217,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
                 hintText: '500',
               ),
               keyboardType: TextInputType.number,
+              validator: Validators.validatePositiveNumber,
             ),
             const SizedBox(height: 16),
 
@@ -228,6 +230,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
                 prefixText: 'Rp ',
               ),
               keyboardType: TextInputType.number,
+              validator: Validators.validatePositiveNumber,
             ),
             const SizedBox(height: 32),
 

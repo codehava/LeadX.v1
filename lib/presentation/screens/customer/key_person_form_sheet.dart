@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/validators.dart';
 import '../../../data/dtos/customer_dtos.dart';
 import '../../../domain/entities/key_person.dart';
 import '../../providers/broker_providers.dart';
@@ -204,6 +205,7 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
                         label: 'Nomor Telepon',
                         hint: 'Contoh: 08123456789',
                         keyboardType: TextInputType.phone,
+                        validator: Validators.validatePhone,
                       ),
                       const SizedBox(height: 16),
 

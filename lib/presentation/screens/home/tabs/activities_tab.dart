@@ -10,7 +10,6 @@ import '../../../providers/broker_providers.dart';
 import '../../../providers/customer_providers.dart';
 import '../../../providers/hvc_providers.dart';
 import '../../activity/activity_execution_sheet.dart';
-import '../../activity/immediate_activity_sheet.dart';
 
 /// Activities tab showing activity calendar and list.
 class ActivitiesTab extends ConsumerStatefulWidget {
@@ -76,7 +75,7 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
           // Week view date picker
           SizedBox(
             height: 80,
-            child: _buildWeekView(context, ref, selectedDate),
+            child: _buildWeekView(context, ref, selectedDate, activitiesAsync.valueOrNull),
           ),
 
           const Divider(),
@@ -197,13 +196,23 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
   }
 
   Widget _buildWeekView(
-      BuildContext context, WidgetRef ref, DateTime selectedDate) {
+      BuildContext context, WidgetRef ref, DateTime selectedDate, [List<Activity>? activities]) {
     final theme = Theme.of(context);
     final today = DateTime.now();
 
     // Get the week containing the selected date
     final startOfWeek =
         selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+
+    // Count activities per day
+    Map<String, int> activityCountByDate = {};
+    if (activities != null) {
+      for (final activity in activities) {
+        final d = activity.scheduledDatetime;
+        final key = '${d.year}-${d.month}-${d.day}';
+        activityCountByDate[key] = (activityCountByDate[key] ?? 0) + 1;
+      }
+    }
 
     return ListView.builder(
       scrollDirection: Axis.horizontal,
@@ -217,6 +226,8 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
         final isToday = date.day == today.day &&
             date.month == today.month &&
             date.year == today.year;
+        final dateKey = '${date.year}-${date.month}-${date.day}';
+        final activityCount = activityCountByDate[dateKey] ?? 0;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -259,6 +270,28 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
                               : null,
                     ),
                   ),
+                  // Activity indicator dots
+                  const SizedBox(height: 2),
+                  if (activityCount > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (int i = 0; i < (activityCount > 3 ? 3 : activityCount); i++)
+                          Container(
+                            width: 4,
+                            height: 4,
+                            margin: const EdgeInsets.symmetric(horizontal: 1),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected
+                                  ? theme.colorScheme.onPrimary
+                                  : AppColors.primary,
+                            ),
+                          ),
+                      ],
+                    )
+                  else
+                    const SizedBox(height: 4),
                 ],
               ),
             ),

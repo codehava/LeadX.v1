@@ -20,21 +20,28 @@ class ActivityRepositoryImpl implements ActivityRepository {
     required ActivityRemoteDataSource remoteDataSource,
     required SyncService syncService,
     required String currentUserId,
+    required db.AppDatabase database,
   })  : _localDataSource = localDataSource,
         _remoteDataSource = remoteDataSource,
         _syncService = syncService,
-        _currentUserId = currentUserId;
+        _currentUserId = currentUserId,
+        _database = database;
 
   final ActivityLocalDataSource _localDataSource;
   final ActivityRemoteDataSource _remoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
+  final db.AppDatabase _database;
   final _uuid = const Uuid();
 
   // Lookup caches for efficient name resolution
   Map<String, String>? _activityTypeNameCache;
   Map<String, String>? _activityTypeIconCache;
   Map<String, String>? _activityTypeColorCache;
+  Map<String, String>? _customerNameCache;
+  Map<String, String>? _hvcNameCache;
+  Map<String, String>? _brokerNameCache;
+  Map<String, String>? _keyPersonNameCache;
 
   // ==========================================
   // Watch Operations
@@ -969,6 +976,38 @@ class ActivityRepositoryImpl implements ActivityRepository {
       _activityTypeIconCache = {for (final t in types) t.id: t.icon ?? ''};
       _activityTypeColorCache = {for (final t in types) t.id: t.color ?? ''};
     }
+
+    // Load customer name cache
+    if (_customerNameCache == null) {
+      final customers = await (_database.select(_database.customers)
+        ..where((c) => c.deletedAt.isNull())).get();
+      _customerNameCache = {for (final c in customers) c.id: c.name};
+      debugPrint('[ActivityRepo] Loaded ${_customerNameCache!.length} customer names');
+    }
+
+    // Load HVC name cache
+    if (_hvcNameCache == null) {
+      final hvcs = await (_database.select(_database.hvcs)
+        ..where((h) => h.deletedAt.isNull())).get();
+      _hvcNameCache = {for (final h in hvcs) h.id: h.name};
+      debugPrint('[ActivityRepo] Loaded ${_hvcNameCache!.length} HVC names');
+    }
+
+    // Load broker name cache
+    if (_brokerNameCache == null) {
+      final brokers = await (_database.select(_database.brokers)
+        ..where((b) => b.deletedAt.isNull())).get();
+      _brokerNameCache = {for (final b in brokers) b.id: b.name};
+      debugPrint('[ActivityRepo] Loaded ${_brokerNameCache!.length} broker names');
+    }
+
+    // Load key person name cache
+    if (_keyPersonNameCache == null) {
+      final keyPersons = await (_database.select(_database.keyPersons)
+        ..where((k) => k.deletedAt.isNull())).get();
+      _keyPersonNameCache = {for (final k in keyPersons) k.id: k.name};
+      debugPrint('[ActivityRepo] Loaded ${_keyPersonNameCache!.length} key person names');
+    }
   }
 
   @override
@@ -976,7 +1015,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
     _activityTypeNameCache = null;
     _activityTypeIconCache = null;
     _activityTypeColorCache = null;
-    debugPrint('[ActivityRepo] Activity type caches invalidated');
+    _customerNameCache = null;
+    _hvcNameCache = null;
+    _brokerNameCache = null;
+    _keyPersonNameCache = null;
+    debugPrint('[ActivityRepo] Activity caches invalidated');
   }
 
   Future<void> _insertAuditLog({
@@ -1032,41 +1075,62 @@ class ActivityRepositoryImpl implements ActivityRepository {
     }
   }
 
-  domain.Activity _mapToActivity(db.Activity data) => domain.Activity(
-        id: data.id,
-        userId: data.userId,
-        createdBy: data.createdBy,
-        objectType: _parseObjectType(data.objectType),
-        activityTypeId: data.activityTypeId,
-        scheduledDatetime: data.scheduledDatetime,
-        status: _parseStatus(data.status),
-        customerId: data.customerId,
-        hvcId: data.hvcId,
-        brokerId: data.brokerId,
-        summary: data.summary,
-        notes: data.notes,
-        isImmediate: data.isImmediate,
-        executedAt: data.executedAt,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        locationAccuracy: data.locationAccuracy,
-        distanceFromTarget: data.distanceFromTarget,
-        isLocationOverride: data.isLocationOverride,
-        overrideReason: data.overrideReason,
-        rescheduledFromId: data.rescheduledFromId,
-        rescheduledToId: data.rescheduledToId,
-        cancelledAt: data.cancelledAt,
-        cancelReason: data.cancelReason,
-        isPendingSync: data.isPendingSync,
-        syncedAt: data.syncedAt,
-        deletedAt: data.deletedAt,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        // Lookup fields
-        activityTypeName: _activityTypeNameCache?[data.activityTypeId],
-        activityTypeIcon: _activityTypeIconCache?[data.activityTypeId],
-        activityTypeColor: _activityTypeColorCache?[data.activityTypeId],
-      );
+  domain.Activity _mapToActivity(db.Activity data) {
+    // Resolve object name based on object type
+    String? objectName;
+    if (data.objectType == 'CUSTOMER' && data.customerId != null) {
+      objectName = _customerNameCache?[data.customerId!];
+    } else if (data.objectType == 'HVC' && data.hvcId != null) {
+      objectName = _hvcNameCache?[data.hvcId!];
+    } else if (data.objectType == 'BROKER' && data.brokerId != null) {
+      objectName = _brokerNameCache?[data.brokerId!];
+    }
+
+    // Resolve key person name
+    String? keyPersonName;
+    if (data.keyPersonId != null) {
+      keyPersonName = _keyPersonNameCache?[data.keyPersonId!];
+    }
+
+    return domain.Activity(
+      id: data.id,
+      userId: data.userId,
+      createdBy: data.createdBy,
+      objectType: _parseObjectType(data.objectType),
+      activityTypeId: data.activityTypeId,
+      scheduledDatetime: data.scheduledDatetime,
+      status: _parseStatus(data.status),
+      customerId: data.customerId,
+      hvcId: data.hvcId,
+      brokerId: data.brokerId,
+      keyPersonId: data.keyPersonId,
+      summary: data.summary,
+      notes: data.notes,
+      isImmediate: data.isImmediate,
+      executedAt: data.executedAt,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      locationAccuracy: data.locationAccuracy,
+      distanceFromTarget: data.distanceFromTarget,
+      isLocationOverride: data.isLocationOverride,
+      overrideReason: data.overrideReason,
+      rescheduledFromId: data.rescheduledFromId,
+      rescheduledToId: data.rescheduledToId,
+      cancelledAt: data.cancelledAt,
+      cancelReason: data.cancelReason,
+      isPendingSync: data.isPendingSync,
+      syncedAt: data.syncedAt,
+      deletedAt: data.deletedAt,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      // Lookup fields
+      activityTypeName: _activityTypeNameCache?[data.activityTypeId],
+      activityTypeIcon: _activityTypeIconCache?[data.activityTypeId],
+      activityTypeColor: _activityTypeColorCache?[data.activityTypeId],
+      objectName: objectName,
+      keyPersonName: keyPersonName,
+    );
+  }
 
   domain.ActivityObjectType _parseObjectType(String value) {
     switch (value) {

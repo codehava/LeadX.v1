@@ -57,10 +57,17 @@ class _ActivityRescheduleSheetState
       hour: widget.activity.scheduledDatetime.hour,
       minute: widget.activity.scheduledDatetime.minute,
     );
+    // Listen to reason text changes to update button state
+    _reasonController.addListener(_onReasonChanged);
+  }
+
+  void _onReasonChanged() {
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _reasonController.removeListener(_onReasonChanged);
     _reasonController.dispose();
     super.dispose();
   }
@@ -181,10 +188,13 @@ class _ActivityRescheduleSheetState
                     // Reason (required)
                     TextFormField(
                       controller: _reasonController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Alasan Reschedule *',
                         hintText: 'Mengapa aktivitas dijadwalkan ulang?',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        helperText: _reasonController.text.isEmpty
+                            ? 'Isi alasan untuk mengaktifkan tombol'
+                            : null,
                       ),
                       maxLines: 2,
                     ),

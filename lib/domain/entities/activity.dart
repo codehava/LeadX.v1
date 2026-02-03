@@ -94,6 +94,7 @@ class Activity with _$Activity {
     String? activityTypeIcon,
     String? activityTypeColor,
     String? objectName, // Customer/HVC/Broker name
+    String? keyPersonName, // Key person/PIC name
     String? userName, // Activity owner name
   }) = _Activity;
 

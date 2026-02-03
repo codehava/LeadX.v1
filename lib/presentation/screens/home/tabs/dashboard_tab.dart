@@ -335,13 +335,6 @@ class DashboardTab extends ConsumerWidget {
                         icon: const Icon(Icons.event, size: 18),
                         label: const Text('Jadwalkan'),
                       ),
-                      FilledButton.tonalIcon(
-                        onPressed: () {
-                          context.go('/home/activity/calendar');
-                        },
-                        icon: const Icon(Icons.calendar_month, size: 18),
-                        label: const Text('Kalender'),
-                      ),
                     ],
                   ),
                 ],

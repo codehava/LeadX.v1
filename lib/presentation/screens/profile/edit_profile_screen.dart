@@ -322,6 +322,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       // Refresh to show new photo
       ref.invalidate(currentUserProvider);
+
+      // Navigate back to profile
+      context.pop();
     } else {
       final state = ref.read(profilePhotoNotifierProvider);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -371,6 +374,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
 
       ref.invalidate(currentUserProvider);
+
+      // Navigate back to profile
+      context.pop();
     } else {
       final state = ref.read(profilePhotoNotifierProvider);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -390,20 +396,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Implement profile update via AuthRepository when backend supports it
-      // For now, just show success message
-      await Future.delayed(const Duration(milliseconds: 500));
+      final repository = ref.read(authRepositoryProvider);
+
+      final name = _nameController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      final result = await repository.updateProfile(
+        name: name,
+        phone: phone.isNotEmpty ? phone : null,
+      );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profil berhasil diperbarui'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal memperbarui profil: ${failure.message}'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        },
+        (user) {
+          ref.invalidate(currentUserProvider);
 
-      context.pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profil berhasil diperbarui'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          context.pop();
+        },
+      );
     } catch (e) {
       if (!mounted) return;
 

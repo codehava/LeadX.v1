@@ -78,6 +78,7 @@ _$ActivityImpl _$$ActivityImplFromJson(Map<String, dynamic> json) =>
       activityTypeIcon: json['activityTypeIcon'] as String?,
       activityTypeColor: json['activityTypeColor'] as String?,
       objectName: json['objectName'] as String?,
+      keyPersonName: json['keyPersonName'] as String?,
       userName: json['userName'] as String?,
     );
 
@@ -117,6 +118,7 @@ Map<String, dynamic> _$$ActivityImplToJson(_$ActivityImpl instance) =>
       'activityTypeIcon': instance.activityTypeIcon,
       'activityTypeColor': instance.activityTypeColor,
       'objectName': instance.objectName,
+      'keyPersonName': instance.keyPersonName,
       'userName': instance.userName,
     };
 
