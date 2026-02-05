@@ -113,9 +113,11 @@ abstract class RouteNames {
   // 4DX Configuration
   static const String admin4dx = 'admin-4dx';
   static const String adminMeasures = 'admin-measures';
-  static const String adminMeasureForm = 'admin-measure-form';
+  static const String adminMeasureCreate = 'admin-measure-create';
+  static const String adminMeasureEdit = 'admin-measure-edit';
   static const String adminPeriods = 'admin-periods';
-  static const String adminPeriodForm = 'admin-period-form';
+  static const String adminPeriodCreate = 'admin-period-create';
+  static const String adminPeriodEdit = 'admin-period-edit';
 
   // Bulk Upload
   static const String adminBulkUpload = 'admin-bulk-upload';
@@ -206,9 +208,11 @@ abstract class RoutePaths {
   // 4DX Configuration
   static const String admin4dx = '/admin/4dx';
   static const String adminMeasures = '/admin/4dx/measures';
-  static const String adminMeasureForm = '/admin/4dx/measures/form';
+  static const String adminMeasureCreate = '/admin/4dx/measures/create';
+  static const String adminMeasureEdit = '/admin/4dx/measures/:id';
   static const String adminPeriods = '/admin/4dx/periods';
-  static const String adminPeriodForm = '/admin/4dx/periods/form';
+  static const String adminPeriodCreate = '/admin/4dx/periods/create';
+  static const String adminPeriodEdit = '/admin/4dx/periods/:id';
 
   // Bulk Upload
   static const String adminBulkUpload = '/admin/bulk-upload';

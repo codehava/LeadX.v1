@@ -21,6 +21,11 @@ class MeasureDefinition with _$MeasureDefinition {
     String? calculationFormula,
     String? sourceTable,
     String? sourceCondition,
+    @Default(1.0) double weight, // Scoring weight
+    @Default(0) double defaultTarget, // Default target value
+    String? periodType, // 'WEEKLY', 'MONTHLY', 'QUARTERLY'
+    String? templateType, // Template used (activity_count, pipeline_count, etc.)
+    Map<String, dynamic>? templateConfig, // Original template selections for editing
     @Default(true) bool isActive,
     @Default(0) int sortOrder,
     DateTime? createdAt,
@@ -41,6 +46,7 @@ class ScoringPeriod with _$ScoringPeriod {
     required DateTime startDate,
     required DateTime endDate,
     @Default(false) bool isCurrent,
+    @Default(false) bool isLocked, // Locked periods cannot be modified
     @Default(true) bool isActive,
     DateTime? createdAt,
     DateTime? updatedAt,

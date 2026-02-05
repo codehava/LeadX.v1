@@ -20305,6 +20305,28 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     requiredDuringInsert: false,
     defaultValue: const Constant('WEEKLY'),
   );
+  static const VerificationMeta _templateTypeMeta = const VerificationMeta(
+    'templateType',
+  );
+  @override
+  late final GeneratedColumn<String> templateType = GeneratedColumn<String>(
+    'template_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _templateConfigMeta = const VerificationMeta(
+    'templateConfig',
+  );
+  @override
+  late final GeneratedColumn<String> templateConfig = GeneratedColumn<String>(
+    'template_config',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -20370,6 +20392,8 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     weight,
     defaultTarget,
     periodType,
+    templateType,
+    templateConfig,
     isActive,
     sortOrder,
     createdAt,
@@ -20499,6 +20523,24 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
         periodType.isAcceptableOrUnknown(data['period_type']!, _periodTypeMeta),
       );
     }
+    if (data.containsKey('template_type')) {
+      context.handle(
+        _templateTypeMeta,
+        templateType.isAcceptableOrUnknown(
+          data['template_type']!,
+          _templateTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('template_config')) {
+      context.handle(
+        _templateConfigMeta,
+        templateConfig.isAcceptableOrUnknown(
+          data['template_config']!,
+          _templateConfigMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -20592,6 +20634,14 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
         DriftSqlType.string,
         data['${effectivePrefix}period_type'],
       )!,
+      templateType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_type'],
+      ),
+      templateConfig: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_config'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -20633,6 +20683,8 @@ class MeasureDefinition extends DataClass
   final double weight;
   final double? defaultTarget;
   final String periodType;
+  final String? templateType;
+  final String? templateConfig;
   final bool isActive;
   final int sortOrder;
   final DateTime createdAt;
@@ -20652,6 +20704,8 @@ class MeasureDefinition extends DataClass
     required this.weight,
     this.defaultTarget,
     required this.periodType,
+    this.templateType,
+    this.templateConfig,
     required this.isActive,
     required this.sortOrder,
     required this.createdAt,
@@ -20686,6 +20740,12 @@ class MeasureDefinition extends DataClass
       map['default_target'] = Variable<double>(defaultTarget);
     }
     map['period_type'] = Variable<String>(periodType);
+    if (!nullToAbsent || templateType != null) {
+      map['template_type'] = Variable<String>(templateType);
+    }
+    if (!nullToAbsent || templateConfig != null) {
+      map['template_config'] = Variable<String>(templateConfig);
+    }
     map['is_active'] = Variable<bool>(isActive);
     map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -20721,6 +20781,12 @@ class MeasureDefinition extends DataClass
           ? const Value.absent()
           : Value(defaultTarget),
       periodType: Value(periodType),
+      templateType: templateType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(templateType),
+      templateConfig: templateConfig == null && nullToAbsent
+          ? const Value.absent()
+          : Value(templateConfig),
       isActive: Value(isActive),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
@@ -20752,6 +20818,8 @@ class MeasureDefinition extends DataClass
       weight: serializer.fromJson<double>(json['weight']),
       defaultTarget: serializer.fromJson<double?>(json['defaultTarget']),
       periodType: serializer.fromJson<String>(json['periodType']),
+      templateType: serializer.fromJson<String?>(json['templateType']),
+      templateConfig: serializer.fromJson<String?>(json['templateConfig']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -20776,6 +20844,8 @@ class MeasureDefinition extends DataClass
       'weight': serializer.toJson<double>(weight),
       'defaultTarget': serializer.toJson<double?>(defaultTarget),
       'periodType': serializer.toJson<String>(periodType),
+      'templateType': serializer.toJson<String?>(templateType),
+      'templateConfig': serializer.toJson<String?>(templateConfig),
       'isActive': serializer.toJson<bool>(isActive),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -20798,6 +20868,8 @@ class MeasureDefinition extends DataClass
     double? weight,
     Value<double?> defaultTarget = const Value.absent(),
     String? periodType,
+    Value<String?> templateType = const Value.absent(),
+    Value<String?> templateConfig = const Value.absent(),
     bool? isActive,
     int? sortOrder,
     DateTime? createdAt,
@@ -20825,6 +20897,10 @@ class MeasureDefinition extends DataClass
         ? defaultTarget.value
         : this.defaultTarget,
     periodType: periodType ?? this.periodType,
+    templateType: templateType.present ? templateType.value : this.templateType,
+    templateConfig: templateConfig.present
+        ? templateConfig.value
+        : this.templateConfig,
     isActive: isActive ?? this.isActive,
     sortOrder: sortOrder ?? this.sortOrder,
     createdAt: createdAt ?? this.createdAt,
@@ -20862,6 +20938,12 @@ class MeasureDefinition extends DataClass
       periodType: data.periodType.present
           ? data.periodType.value
           : this.periodType,
+      templateType: data.templateType.present
+          ? data.templateType.value
+          : this.templateType,
+      templateConfig: data.templateConfig.present
+          ? data.templateConfig.value
+          : this.templateConfig,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -20886,6 +20968,8 @@ class MeasureDefinition extends DataClass
           ..write('weight: $weight, ')
           ..write('defaultTarget: $defaultTarget, ')
           ..write('periodType: $periodType, ')
+          ..write('templateType: $templateType, ')
+          ..write('templateConfig: $templateConfig, ')
           ..write('isActive: $isActive, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
@@ -20910,6 +20994,8 @@ class MeasureDefinition extends DataClass
     weight,
     defaultTarget,
     periodType,
+    templateType,
+    templateConfig,
     isActive,
     sortOrder,
     createdAt,
@@ -20933,6 +21019,8 @@ class MeasureDefinition extends DataClass
           other.weight == this.weight &&
           other.defaultTarget == this.defaultTarget &&
           other.periodType == this.periodType &&
+          other.templateType == this.templateType &&
+          other.templateConfig == this.templateConfig &&
           other.isActive == this.isActive &&
           other.sortOrder == this.sortOrder &&
           other.createdAt == this.createdAt &&
@@ -20954,6 +21042,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
   final Value<double> weight;
   final Value<double?> defaultTarget;
   final Value<String> periodType;
+  final Value<String?> templateType;
+  final Value<String?> templateConfig;
   final Value<bool> isActive;
   final Value<int> sortOrder;
   final Value<DateTime> createdAt;
@@ -20974,6 +21064,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     this.weight = const Value.absent(),
     this.defaultTarget = const Value.absent(),
     this.periodType = const Value.absent(),
+    this.templateType = const Value.absent(),
+    this.templateConfig = const Value.absent(),
     this.isActive = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -20995,6 +21087,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     this.weight = const Value.absent(),
     this.defaultTarget = const Value.absent(),
     this.periodType = const Value.absent(),
+    this.templateType = const Value.absent(),
+    this.templateConfig = const Value.absent(),
     this.isActive = const Value.absent(),
     this.sortOrder = const Value.absent(),
     required DateTime createdAt,
@@ -21022,6 +21116,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     Expression<double>? weight,
     Expression<double>? defaultTarget,
     Expression<String>? periodType,
+    Expression<String>? templateType,
+    Expression<String>? templateConfig,
     Expression<bool>? isActive,
     Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
@@ -21043,6 +21139,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
       if (weight != null) 'weight': weight,
       if (defaultTarget != null) 'default_target': defaultTarget,
       if (periodType != null) 'period_type': periodType,
+      if (templateType != null) 'template_type': templateType,
+      if (templateConfig != null) 'template_config': templateConfig,
       if (isActive != null) 'is_active': isActive,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
@@ -21066,6 +21164,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     Value<double>? weight,
     Value<double?>? defaultTarget,
     Value<String>? periodType,
+    Value<String?>? templateType,
+    Value<String?>? templateConfig,
     Value<bool>? isActive,
     Value<int>? sortOrder,
     Value<DateTime>? createdAt,
@@ -21087,6 +21187,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
       weight: weight ?? this.weight,
       defaultTarget: defaultTarget ?? this.defaultTarget,
       periodType: periodType ?? this.periodType,
+      templateType: templateType ?? this.templateType,
+      templateConfig: templateConfig ?? this.templateConfig,
       isActive: isActive ?? this.isActive,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
@@ -21140,6 +21242,12 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
     if (periodType.present) {
       map['period_type'] = Variable<String>(periodType.value);
     }
+    if (templateType.present) {
+      map['template_type'] = Variable<String>(templateType.value);
+    }
+    if (templateConfig.present) {
+      map['template_config'] = Variable<String>(templateConfig.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -21175,6 +21283,8 @@ class MeasureDefinitionsCompanion extends UpdateCompanion<MeasureDefinition> {
           ..write('weight: $weight, ')
           ..write('defaultTarget: $defaultTarget, ')
           ..write('periodType: $periodType, ')
+          ..write('templateType: $templateType, ')
+          ..write('templateConfig: $templateConfig, ')
           ..write('isActive: $isActive, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
@@ -48255,6 +48365,8 @@ typedef $$MeasureDefinitionsTableCreateCompanionBuilder =
       Value<double> weight,
       Value<double?> defaultTarget,
       Value<String> periodType,
+      Value<String?> templateType,
+      Value<String?> templateConfig,
       Value<bool> isActive,
       Value<int> sortOrder,
       required DateTime createdAt,
@@ -48277,6 +48389,8 @@ typedef $$MeasureDefinitionsTableUpdateCompanionBuilder =
       Value<double> weight,
       Value<double?> defaultTarget,
       Value<String> periodType,
+      Value<String?> templateType,
+      Value<String?> templateConfig,
       Value<bool> isActive,
       Value<int> sortOrder,
       Value<DateTime> createdAt,
@@ -48416,6 +48530,16 @@ class $$MeasureDefinitionsTableFilterComposer
 
   ColumnFilters<String> get periodType => $composableBuilder(
     column: $table.periodType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get templateType => $composableBuilder(
+    column: $table.templateType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get templateConfig => $composableBuilder(
+    column: $table.templateConfig,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -48569,6 +48693,16 @@ class $$MeasureDefinitionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get templateType => $composableBuilder(
+    column: $table.templateType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get templateConfig => $composableBuilder(
+    column: $table.templateConfig,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -48654,6 +48788,16 @@ class $$MeasureDefinitionsTableAnnotationComposer
 
   GeneratedColumn<String> get periodType => $composableBuilder(
     column: $table.periodType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get templateType => $composableBuilder(
+    column: $table.templateType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get templateConfig => $composableBuilder(
+    column: $table.templateConfig,
     builder: (column) => column,
   );
 
@@ -48767,6 +48911,8 @@ class $$MeasureDefinitionsTableTableManager
                 Value<double> weight = const Value.absent(),
                 Value<double?> defaultTarget = const Value.absent(),
                 Value<String> periodType = const Value.absent(),
+                Value<String?> templateType = const Value.absent(),
+                Value<String?> templateConfig = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -48787,6 +48933,8 @@ class $$MeasureDefinitionsTableTableManager
                 weight: weight,
                 defaultTarget: defaultTarget,
                 periodType: periodType,
+                templateType: templateType,
+                templateConfig: templateConfig,
                 isActive: isActive,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
@@ -48809,6 +48957,8 @@ class $$MeasureDefinitionsTableTableManager
                 Value<double> weight = const Value.absent(),
                 Value<double?> defaultTarget = const Value.absent(),
                 Value<String> periodType = const Value.absent(),
+                Value<String?> templateType = const Value.absent(),
+                Value<String?> templateConfig = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 required DateTime createdAt,
@@ -48829,6 +48979,8 @@ class $$MeasureDefinitionsTableTableManager
                 weight: weight,
                 defaultTarget: defaultTarget,
                 periodType: periodType,
+                templateType: templateType,
+                templateConfig: templateConfig,
                 isActive: isActive,
                 sortOrder: sortOrder,
                 createdAt: createdAt,

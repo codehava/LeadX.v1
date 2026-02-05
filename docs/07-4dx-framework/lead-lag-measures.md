@@ -107,6 +107,203 @@ Managers see updated team scores
 
 ---
 
+## pg_cron Setup (Production)
+
+### Installation
+
+pg_cron is a PostgreSQL extension for scheduling recurring jobs. On Supabase, it's pre-installed but needs to be enabled:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+```
+
+### Score Aggregation Cron Job
+
+This job processes the `dirty_users` queue every 10 minutes, recalculating aggregate scores for managers:
+
+```sql
+-- Schedule score aggregation cron job
+SELECT cron.schedule(
+  'score-aggregation-cron',        -- Job name
+  '*/10 * * * *',                  -- Every 10 minutes
+  $$
+  DECLARE
+    v_user_id UUID;
+    v_period_id UUID;
+  BEGIN
+    -- Get current period
+    SELECT id INTO v_period_id FROM scoring_periods WHERE is_current = TRUE;
+
+    -- Process each dirty user
+    FOR v_user_id IN SELECT user_id FROM dirty_users ORDER BY dirtied_at LOOP
+      BEGIN
+        -- Recalculate aggregate (includes subordinates)
+        PERFORM recalculate_aggregate(v_user_id, v_period_id);
+
+        -- Remove from dirty queue
+        DELETE FROM dirty_users WHERE user_id = v_user_id;
+
+      EXCEPTION WHEN OTHERS THEN
+        -- Log error but continue processing other users
+        INSERT INTO system_errors (error_type, entity_id, error_message)
+        VALUES ('CRON_USER_FAILED', v_user_id, SQLERRM);
+      END;
+    END LOOP;
+  END;
+  $$
+);
+```
+
+### Verify Cron Job
+
+Check that the job is scheduled:
+
+```sql
+-- List all cron jobs
+SELECT * FROM cron.job WHERE jobname = 'score-aggregation-cron';
+
+-- View recent job runs
+SELECT
+  jobid,
+  runid,
+  job_pid,
+  status,
+  start_time,
+  end_time,
+  end_time - start_time as duration
+FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'score-aggregation-cron')
+ORDER BY start_time DESC
+LIMIT 10;
+```
+
+### Monitoring & Troubleshooting
+
+**Check for errors:**
+```sql
+-- View failed job runs
+SELECT * FROM cron.job_run_details
+WHERE status = 'failed'
+  AND jobid = (SELECT jobid FROM cron.job WHERE jobname = 'score-aggregation-cron')
+ORDER BY start_time DESC;
+
+-- View system errors from cron processing
+SELECT * FROM system_errors
+WHERE error_type = 'CRON_USER_FAILED'
+  AND resolved_at IS NULL
+ORDER BY created_at DESC;
+```
+
+**Manual trigger (for testing):**
+```sql
+-- Manually run the cron job logic
+DO $$
+DECLARE
+  v_user_id UUID;
+  v_period_id UUID;
+BEGIN
+  SELECT id INTO v_period_id FROM scoring_periods WHERE is_current = TRUE;
+
+  FOR v_user_id IN SELECT user_id FROM dirty_users ORDER BY dirtied_at LOOP
+    BEGIN
+      PERFORM recalculate_aggregate(v_user_id, v_period_id);
+      DELETE FROM dirty_users WHERE user_id = v_user_id;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE NOTICE 'Failed to process user %: %', v_user_id, SQLERRM;
+    END;
+  END LOOP;
+END;
+$$;
+```
+
+**Unschedule (if needed):**
+```sql
+-- Remove the cron job
+SELECT cron.unschedule('score-aggregation-cron');
+```
+
+### Alternative: Supabase Edge Function
+
+Instead of pg_cron, you can use a Supabase Edge Function with scheduled invocations:
+
+```typescript
+// supabase/functions/score-aggregation-cron/index.ts
+import { createClient } from '@supabase/supabase-js';
+
+Deno.serve(async () => {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // Get current period
+  const { data: period } = await supabase
+    .from('scoring_periods')
+    .select('id')
+    .eq('is_current', true)
+    .single();
+
+  if (!period) {
+    return new Response('No current period', { status: 400 });
+  }
+
+  // Get dirty users
+  const { data: dirtyUsers } = await supabase
+    .from('dirty_users')
+    .select('user_id')
+    .order('dirtied_at');
+
+  let processed = 0;
+  let failed = 0;
+
+  for (const { user_id } of dirtyUsers ?? []) {
+    try {
+      await supabase.rpc('recalculate_aggregate', {
+        p_user_id: user_id,
+        p_period_id: period.id
+      });
+
+      await supabase
+        .from('dirty_users')
+        .delete()
+        .eq('user_id', user_id);
+
+      processed++;
+    } catch (error) {
+      await supabase.from('system_errors').insert({
+        error_type: 'CRON_USER_FAILED',
+        entity_id: user_id,
+        error_message: error.message
+      });
+      failed++;
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ processed, failed }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+});
+```
+
+Then schedule via Supabase dashboard or CLI:
+```bash
+# Deploy function
+supabase functions deploy score-aggregation-cron
+
+# Schedule via pg_cron (pointing to Edge Function)
+SELECT cron.schedule(
+  'score-aggregation-edge',
+  '*/10 * * * *',
+  $$SELECT net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/score-aggregation-cron',
+    headers := '{"Authorization": "Bearer <anon-key>"}'::jsonb
+  );$$
+);
+```
+
+---
+
 ## Target Distribution & Score Ownership
 
 ### Target Distribution
@@ -251,19 +448,20 @@ Example use cases:
 
 ### Measure Calculation Source (Auto-Generated)
 
-| Measure | Source Table | Filter | Calculation |
-|---------|-------------|--------|-------------|
-| VISIT_COUNT | `activities` | type='VISIT', status='COMPLETED' | COUNT(*) |
-| CALL_COUNT | `activities` | type='CALL', status='COMPLETED' | COUNT(*) |
-| MEETING_COUNT | `activities` | type='MEETING', status='COMPLETED' | COUNT(*) |
-| PROPOSAL_SENT | `activities` | type='PROPOSAL', status='COMPLETED' | COUNT(*) |
-| NEW_CUSTOMER | `customers` | created_by=user_id, created_at in period | COUNT(*) |
-| NEW_PIPELINE | `pipelines` | assigned_rm_id=user_id, created_at in period | COUNT(*) |
-| PIPELINE_WON | `pipelines` | scored_to_user_id=user_id, stage='ACCEPTED', won_date in period | COUNT(*) |
-| PREMIUM_WON | `pipelines` | scored_to_user_id=user_id, stage='ACCEPTED', won_date in period | SUM(final_premium) |
-| CONVERSION_RATE | `pipelines` | scored_to_user_id=user_id, closed in period | WON/TOTAL × 100 |
+| Measure Code | Source Table | Filter Condition | Calculation | Period | Target |
+|--------------|-------------|------------------|-------------|--------|--------|
+| LEAD-001 | `activities` | activity_type_id='VISIT' AND status='COMPLETED' | COUNT(*) | Weekly | 10 |
+| LEAD-002 | `activities` | activity_type_id='CALL' AND status='COMPLETED' | COUNT(*) | Weekly | 20 |
+| LEAD-003 | `activities` | activity_type_id='MEETING' AND status='COMPLETED' | COUNT(*) | Weekly | 5 |
+| LEAD-004 | `customers` | created_by=:user_id | COUNT(*) | Monthly | 4 |
+| LEAD-005 | `pipelines` | assigned_rm_id=:user_id | COUNT(*) | Monthly | 5 |
+| LEAD-006 | `pipeline_stage_history` | to_stage_id='P2' AND changed_by=:user_id | COUNT(*) | Weekly | 3 |
+| LAG-001 | `pipelines` | stage_id IN (is_won) AND scored_to_user_id=:user_id | COUNT(*) | Monthly | 3 |
+| LAG-002 | `pipelines` | stage_id IN (is_won) AND scored_to_user_id=:user_id | SUM(final_premium) | Monthly | 500M IDR |
+| LAG-003 | `pipelines` | scored_to_user_id=:user_id AND closed_at IS NOT NULL | (WON/TOTAL)×100 | Monthly | 40% |
+| LAG-004 | `pipelines` | referred_by_user_id=:user_id AND stage_id IN (is_won) | SUM(final_premium×referral_pct) | Monthly | 100M IDR |
 
-> **Note**: Admin TIDAK bisa mengubah source data - hanya target, weight, dan bonus config.
+> **Note**: Admin can modify target, weight, and bonus config - but NOT source_condition (locked after creation to preserve historical data integrity).
 
 ---
 
@@ -306,131 +504,215 @@ Example use cases:
 
 ## 📈 Lead Measures (60% Score Weight)
 
-### LM-001: Visit Count (Kunjungan Customer)
+### LEAD-001: Visit Count (Kunjungan Customer)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `VISIT_COUNT` |
-| **Name** | Customer Visits |
+| **Code** | `LEAD-001` |
+| **Name** | Visit Count |
 | **Category** | LEAD |
 | **Description** | Jumlah kunjungan fisik ke customer yang tercatat dan verified |
 | **Source Table** | `activities` |
-| **Filter Criteria** | `type = 'VISIT' AND status = 'COMPLETED'` |
+| **Filter Criteria** | `activity_type_id = '<VISIT_UUID>' AND status = 'COMPLETED'` |
 | **Calculation** | COUNT of matching records |
-| **Period** | Weekly (Monday 00:00 - Sunday 23:59) |
+| **Data Type** | COUNT |
+| **Period** | Weekly |
 | **Default Target** | 10 per week |
 | **Weight** | 1.0 |
+| **Unit** | count |
+| **Template Type** | `activity_count` |
 
-**Bonuses:**
-| Condition | Bonus |
-|-----------|-------|
-| GPS Verified (accuracy < 100m) | +5% |
-| Photo Attached | +5% |
-| Logged within 30 min of visit | +15% |
-| Check-in & Check-out recorded | +10% |
+**Template Config:**
+```json
+{
+  "activity_types": ["VISIT"],
+  "statuses": ["COMPLETED"],
+  "customer_type": null
+}
+```
 
-**SQL Query:**
+**SQL Query (runtime - UUIDs resolved):**
 ```sql
 SELECT COUNT(*) as visit_count
 FROM activities
 WHERE user_id = :user_id
-  AND type = 'VISIT'
+  AND activity_type_id = (SELECT id FROM activity_types WHERE code = 'VISIT')
   AND status = 'COMPLETED'
-  AND activity_time >= :period_start
-  AND activity_time < :period_end;
+  AND created_at >= :period_start
+  AND created_at < :period_end;
 ```
 
 ---
 
-### LM-002: Call Count (Telepon)
+### LEAD-002: Call Count (Telepon)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `CALL_COUNT` |
-| **Name** | Phone Calls Made |
+| **Code** | `LEAD-002` |
+| **Name** | Call Count |
 | **Category** | LEAD |
 | **Description** | Jumlah telepon ke customer/prospect yang tercatat |
 | **Source Table** | `activities` |
-| **Filter Criteria** | `type = 'CALL' AND status = 'COMPLETED'` |
+| **Filter Criteria** | `activity_type_id = '<CALL_UUID>' AND status = 'COMPLETED'` |
 | **Calculation** | COUNT of matching records |
+| **Data Type** | COUNT |
 | **Period** | Weekly |
 | **Default Target** | 20 per week |
 | **Weight** | 1.0 |
+| **Unit** | count |
+| **Template Type** | `activity_count` |
 
-**Bonuses:**
-| Condition | Bonus |
-|-----------|-------|
-| Call duration > 5 min | +10% |
-| Notes recorded | +5% |
-| Follow-up scheduled | +10% |
+**Template Config:**
+```json
+{
+  "activity_types": ["CALL"],
+  "statuses": ["COMPLETED"],
+  "customer_type": null
+}
+```
 
 ---
 
-### LM-003: Meeting Count (Meeting)
+### LEAD-003: Meeting Count (Meeting)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `MEETING_COUNT` |
-| **Name** | Meetings Conducted |
+| **Code** | `LEAD-003` |
+| **Name** | Meeting Count |
 | **Category** | LEAD |
 | **Description** | Jumlah meeting (virtual/offline) yang dilakukan |
 | **Source Table** | `activities` |
-| **Filter Criteria** | `type = 'MEETING' AND status = 'COMPLETED'` |
+| **Filter Criteria** | `activity_type_id = '<MEETING_UUID>' AND status = 'COMPLETED'` |
 | **Calculation** | COUNT of matching records |
+| **Data Type** | COUNT |
 | **Period** | Weekly |
 | **Default Target** | 5 per week |
 | **Weight** | 1.0 |
+| **Unit** | count |
+| **Template Type** | `activity_count` |
+
+**Template Config:**
+```json
+{
+  "activity_types": ["MEETING"],
+  "statuses": ["COMPLETED"],
+  "customer_type": null
+}
+```
 
 ---
 
-### LM-004: New Customer (Customer Baru)
+### LEAD-004: New Customer (Customer Baru)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `NEW_CUSTOMER` |
-| **Name** | New Customers Registered |
+| **Code** | `LEAD-004` |
+| **Name** | New Customer |
 | **Category** | LEAD |
 | **Description** | Jumlah customer baru yang didaftarkan oleh RM |
 | **Source Table** | `customers` |
 | **Filter Criteria** | `created_by = :user_id` |
 | **Calculation** | COUNT of new records in period |
+| **Data Type** | COUNT |
 | **Period** | Monthly |
 | **Default Target** | 4 per month |
 | **Weight** | 1.5 (higher weight) |
+| **Unit** | count |
+| **Template Type** | `customer_acquisition` |
+
+**Template Config:**
+```json
+{
+  "customer_types": null,
+  "company_sizes": null
+}
+```
+
+**SQL Query:**
+```sql
+SELECT COUNT(*) as new_customer_count
+FROM customers
+WHERE created_by = :user_id
+  AND created_at >= :period_start
+  AND created_at < :period_end;
+```
 
 ---
 
-### LM-005: New Pipeline (Pipeline Baru)
+### LEAD-005: New Pipeline (Pipeline Baru)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `NEW_PIPELINE` |
-| **Name** | New Pipelines Created |
+| **Code** | `LEAD-005` |
+| **Name** | New Pipeline |
 | **Category** | LEAD |
 | **Description** | Jumlah pipeline/opportunity baru yang dibuat |
 | **Source Table** | `pipelines` |
 | **Filter Criteria** | `assigned_rm_id = :user_id` |
 | **Calculation** | COUNT of new records in period |
+| **Data Type** | COUNT |
 | **Period** | Monthly |
 | **Default Target** | 5 per month |
 | **Weight** | 1.2 |
+| **Unit** | count |
+| **Template Type** | `pipeline_count` |
+
+**Template Config:**
+```json
+{
+  "stages": ["NEW"],
+  "filters": {}
+}
+```
+
+**SQL Query:**
+```sql
+SELECT COUNT(*) as new_pipeline_count
+FROM pipelines
+WHERE assigned_rm_id = :user_id
+  AND created_at >= :period_start
+  AND created_at < :period_end;
+```
 
 ---
 
-### LM-006: Proposal Sent (Proposal Terkirim)
+### LEAD-006: Proposal Sent (Proposal Stage Reached)
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `PROPOSAL_SENT` |
-| **Name** | Proposals Sent |
+| **Code** | `LEAD-006` |
+| **Name** | Proposal Sent |
 | **Category** | LEAD |
-| **Description** | Jumlah proposal yang dikirim ke customer |
-| **Source Table** | `activities` |
-| **Filter Criteria** | `type = 'PROPOSAL' AND status = 'COMPLETED'` |
-| **Calculation** | COUNT of matching records |
+| **Description** | Jumlah pipeline yang mencapai stage P2 (Proposal Sent) |
+| **Source Table** | `pipeline_stage_history` |
+| **Filter Criteria** | `to_stage_id IN (SELECT id FROM pipeline_stages WHERE code = 'P2') AND changed_by = :user_id` |
+| **Calculation** | COUNT of stage transitions |
+| **Data Type** | COUNT |
 | **Period** | Weekly |
 | **Default Target** | 3 per week |
 | **Weight** | 1.3 (higher importance) |
+| **Unit** | count |
+| **Template Type** | `stage_milestone` |
+
+**Template Config:**
+```json
+{
+  "target_stage": "P2",
+  "from_any": true
+}
+```
+
+**SQL Query:**
+```sql
+SELECT COUNT(*) as proposal_sent_count
+FROM pipeline_stage_history
+WHERE to_stage_id IN (SELECT id FROM pipeline_stages WHERE code = 'P2')
+  AND changed_by = :user_id
+  AND changed_at >= :period_start
+  AND changed_at < :period_end;
+```
+
+> **Note:** This measure tracks when pipelines reach the P2 (Proposal Sent) stage, regardless of previous stage. Uses `pipeline_stage_history` table to capture the milestone event.
 
 ---
 
@@ -440,28 +722,39 @@ WHERE user_id = :user_id
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `PIPELINE_WON` |
-| **Name** | Pipelines Closed Won |
+| **Code** | `LAG-001` |
+| **Name** | Pipeline Won |
 | **Category** | LAG |
-| **Description** | Jumlah pipeline yang berhasil closing (stage ACCEPTED) |
+| **Description** | Jumlah pipeline yang berhasil closing (won stages) |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `scored_to_user_id = :user_id AND stage = 'ACCEPTED'` |
-| **Calculation** | COUNT where stage changed to ACCEPTED in period |
+| **Filter Criteria** | `stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true) AND scored_to_user_id = :user_id` |
+| **Calculation** | COUNT where stage_id is a won stage in period |
+| **Data Type** | COUNT |
 | **Period** | Monthly |
 | **Default Target** | 3 per month |
 | **Weight** | 1.5 |
+| **Unit** | count |
+| **Template Type** | `pipeline_count` |
+
+**Template Config:**
+```json
+{
+  "stages": ["ACCEPTED"],
+  "filters": {}
+}
+```
 
 **SQL Query:**
 ```sql
 SELECT COUNT(*) as pipeline_won
 FROM pipelines
 WHERE scored_to_user_id = :user_id
-  AND stage = 'ACCEPTED'
-  AND won_date >= :period_start
-  AND won_date < :period_end;
+  AND stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true)
+  AND closed_at >= :period_start
+  AND closed_at < :period_end;
 ```
 
-> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline, even if ownership later transferred.
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline. Uses `stage_id` (UUID) with join to `pipeline_stages.is_won` flag rather than hardcoded stage text.
 
 ---
 
@@ -469,28 +762,40 @@ WHERE scored_to_user_id = :user_id
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `PREMIUM_WON` |
-| **Name** | Total Premium from Won Pipelines |
+| **Code** | `LAG-002` |
+| **Name** | Premium Won |
 | **Category** | LAG |
 | **Description** | Total nilai premium dari pipeline yang closing |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `scored_to_user_id = :user_id AND stage = 'ACCEPTED'` |
+| **Filter Criteria** | `stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true) AND scored_to_user_id = :user_id` |
 | **Calculation** | SUM of final_premium |
+| **Data Type** | SUM |
 | **Period** | Monthly |
 | **Default Target** | Rp 500.000.000 per month |
 | **Weight** | 2.0 (highest weight) |
+| **Unit** | IDR |
+| **Template Type** | `pipeline_revenue` |
+
+**Template Config:**
+```json
+{
+  "stage": "ACCEPTED",
+  "revenue_field": "final_premium",
+  "filters": {}
+}
+```
 
 **SQL Query:**
 ```sql
 SELECT COALESCE(SUM(final_premium), 0) as premium_won
 FROM pipelines
 WHERE scored_to_user_id = :user_id
-  AND stage = 'ACCEPTED'
-  AND won_date >= :period_start
-  AND won_date < :period_end;
+  AND stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true)
+  AND closed_at >= :period_start
+  AND closed_at < :period_end;
 ```
 
-> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline.
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who won the pipeline. Uses `stage_id` (UUID) with join to `pipeline_stages.is_won` flag.
 
 ---
 
@@ -498,35 +803,39 @@ WHERE scored_to_user_id = :user_id
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `CONVERSION_RATE` |
-| **Name** | Pipeline Conversion Rate |
+| **Code** | `LAG-003` |
+| **Name** | Conversion Rate |
 | **Category** | LAG |
 | **Description** | Persentase pipeline yang berhasil closing vs total closed |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `scored_to_user_id = :user_id AND stage IN ('ACCEPTED', 'REJECTED')` |
+| **Filter Criteria** | `scored_to_user_id = :user_id AND closed_at IS NOT NULL` |
 | **Calculation** | (COUNT WON / COUNT ALL CLOSED) × 100 |
+| **Data Type** | PERCENTAGE |
 | **Period** | Monthly |
 | **Default Target** | 40% |
 | **Weight** | 1.0 |
+| **Unit** | % |
+| **Template Type** | `pipeline_conversion` |
+
+**Template Config:**
+```json
+{}
+```
 
 **SQL Query:**
 ```sql
-WITH closed_pipelines AS (
-  SELECT
-    COUNT(*) FILTER (WHERE stage = 'ACCEPTED') as won,
-    COUNT(*) FILTER (WHERE stage IN ('ACCEPTED', 'REJECTED')) as total
-  FROM pipelines
-  WHERE scored_to_user_id = :user_id
-    AND stage IN ('ACCEPTED', 'REJECTED')
-    AND COALESCE(won_date, lost_date) >= :period_start
-    AND COALESCE(won_date, lost_date) < :period_end
-)
 SELECT
-  CASE WHEN total > 0 THEN (won::float / total * 100) ELSE 0 END as conversion_rate
-FROM closed_pipelines;
+  CASE WHEN COUNT(*) > 0
+  THEN (COUNT(*) FILTER (WHERE stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true))::NUMERIC / COUNT(*)) * 100
+  ELSE 0
+  END as conversion_rate
+FROM pipelines
+WHERE scored_to_user_id = :user_id
+  AND closed_at >= :period_start
+  AND closed_at < :period_end;
 ```
 
-> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who closed the pipeline.
+> **Note:** Uses `scored_to_user_id` (not `assigned_rm_id`) to credit the user who closed the pipeline. Special calculation type that divides won count by total closed count.
 
 ---
 
@@ -534,30 +843,44 @@ FROM closed_pipelines;
 
 | Attribute | Value |
 |-----------|-------|
-| **Code** | `REFERRAL_PREMIUM` |
-| **Name** | Premium from Referred Pipelines |
+| **Code** | `LAG-004` |
+| **Name** | Referral Premium |
 | **Category** | LAG |
 | **Description** | Premium dari pipeline yang di-referral oleh user lain dan won. Dihitung sebagai `final_premium × referral_percentage` untuk partial credit ke referrer. |
 | **Source Table** | `pipelines` |
-| **Filter Criteria** | `referred_by_user_id = :user_id AND stage = 'ACCEPTED'` |
+| **Filter Criteria** | `referred_by_user_id = :user_id AND stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true)` |
 | **Calculation** | SUM(final_premium × referral_percentage) |
+| **Data Type** | SUM |
 | **Period** | Monthly |
-| **Default Target** | Based on team targets |
-| **Weight** | 1.0 |
+| **Default Target** | Rp 100.000.000 per month |
+| **Weight** | 1.5 |
+| **Unit** | IDR |
+| **Template Type** | `pipeline_revenue` |
+
+**Template Config:**
+```json
+{
+  "stage": "ACCEPTED",
+  "revenue_field": "final_premium",
+  "filters": {
+    "referral": true
+  }
+}
+```
 
 **SQL Query:**
 ```sql
 SELECT COALESCE(SUM(final_premium * referral_percentage), 0) as referral_premium
 FROM pipelines
 WHERE referred_by_user_id = :user_id
-  AND stage = 'ACCEPTED'
-  AND won_date >= :period_start
-  AND won_date < :period_end;
+  AND stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true)
+  AND closed_at >= :period_start
+  AND closed_at < :period_end;
 ```
 
-> **Note:** When a pipeline with `referred_by_user_id` set reaches ACCEPTED stage:
-> - The `scored_to_user_id` (closer) gets full PREMIUM_WON credit
-> - The `referred_by_user_id` (referrer) gets partial REFERRAL_PREMIUM credit (percentage-based)
+> **Note:** When a pipeline with `referred_by_user_id` set reaches a won stage:
+> - The `scored_to_user_id` (closer) gets full PREMIUM_WON credit (LAG-002)
+> - The `referred_by_user_id` (referrer) gets partial REFERRAL_PREMIUM credit (LAG-004, percentage-based)
 
 ---
 

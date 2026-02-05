@@ -7,6 +7,9 @@ import '../../presentation/screens/activity/activity_calendar_screen.dart';
 import '../../presentation/screens/activity/activity_detail_screen.dart';
 import '../../presentation/screens/activity/activity_form_screen.dart';
 import '../../presentation/screens/admin/admin_home_screen.dart';
+import '../../presentation/screens/admin/4dx/admin_4dx_home_screen.dart';
+import '../../presentation/screens/admin/4dx/measures/admin_measure_list_screen.dart';
+import '../../presentation/screens/admin/4dx/measures/admin_measure_form_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_form_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_list_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_menu_screen.dart';
@@ -712,18 +715,61 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // 4DX Configuration (placeholders for Phase 4)
+          // 4DX Configuration
           GoRoute(
             path: '4dx',
             name: RouteNames.admin4dx,
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('4DX Configuration')),
-                ),
+                child: const Admin4DXHomeScreen(),
               ),
             ),
+            routes: [
+              // Measures List
+              GoRoute(
+                path: 'measures',
+                name: RouteNames.adminMeasures,
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: const AdminMeasureListScreen(),
+                  ),
+                ),
+                routes: [
+                  // Create Measure
+                  GoRoute(
+                    path: 'create',
+                    name: RouteNames.adminMeasureCreate,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const AdminMeasureFormScreen(),
+                  ),
+                  // Edit Measure
+                  GoRoute(
+                    path: ':id',
+                    name: RouteNames.adminMeasureEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return AdminMeasureFormScreen(measureId: id);
+                    },
+                  ),
+                ],
+              ),
+              // Periods List
+              GoRoute(
+                path: 'periods',
+                name: RouteNames.adminPeriods,
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: const Placeholder(
+                      child: Center(child: Text('Periods List - Coming Soon')),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
 
           // Cadence Management

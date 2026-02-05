@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../database/app_database.dart' as db;
@@ -53,6 +55,13 @@ class ScoreboardLocalDataSource {
             calculationFormula: Value(def.calculationFormula),
             sourceTable: Value(def.sourceTable),
             sourceCondition: Value(def.sourceCondition),
+            weight: Value(def.weight),
+            defaultTarget: Value(def.defaultTarget),
+            periodType: Value(def.periodType ?? 'WEEKLY'),
+            templateType: Value(def.templateType),
+            templateConfig: Value(def.templateConfig != null
+              ? jsonEncode(def.templateConfig)
+              : null),
             isActive: Value(def.isActive),
             sortOrder: Value(def.sortOrder),
             createdAt: def.createdAt ?? DateTime.now(),
@@ -110,6 +119,7 @@ class ScoreboardLocalDataSource {
             startDate: period.startDate,
             endDate: period.endDate,
             isCurrent: Value(period.isCurrent),
+            isLocked: Value(period.isLocked),
             isActive: Value(period.isActive),
             createdAt: period.createdAt ?? DateTime.now(),
             updatedAt: period.updatedAt ?? DateTime.now(),
@@ -338,6 +348,13 @@ class ScoreboardLocalDataSource {
       calculationFormula: data.calculationFormula,
       sourceTable: data.sourceTable,
       sourceCondition: data.sourceCondition,
+      weight: data.weight,
+      defaultTarget: data.defaultTarget ?? 0,
+      periodType: data.periodType,
+      templateType: data.templateType,
+      templateConfig: data.templateConfig != null
+        ? jsonDecode(data.templateConfig!) as Map<String, dynamic>
+        : null,
       isActive: data.isActive,
       sortOrder: data.sortOrder,
       createdAt: data.createdAt,
@@ -353,6 +370,7 @@ class ScoreboardLocalDataSource {
       startDate: data.startDate,
       endDate: data.endDate,
       isCurrent: data.isCurrent,
+      isLocked: data.isLocked,
       isActive: data.isActive,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

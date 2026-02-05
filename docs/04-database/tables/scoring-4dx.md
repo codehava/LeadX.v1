@@ -17,24 +17,26 @@ Tabel-tabel untuk implementasi 4 Disciplines of Execution. Schema ini konsisten 
 
 ### measure_definitions
 
-Definisi measure untuk lead & lag metrics.
+Definisi measure untuk lead & lag metrics. Uses template-based configuration for admin UI.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| code | VARCHAR(20) | Unique code (VISIT_COUNT, PREMIUM_WON, etc.) |
+| code | VARCHAR(20) | Unique code (LEAD-001, LEAD-002, LAG-001, etc.) |
 | name | VARCHAR(100) | Display name |
 | description | TEXT | Detail description |
 | measure_type | VARCHAR(20) | LEAD or LAG |
 | data_type | VARCHAR(20) | COUNT, SUM, PERCENTAGE |
-| unit | VARCHAR(50) | Unit (visits, IDR, %) |
+| unit | VARCHAR(50) | Unit (count, IDR, %) |
 | calculation_method | VARCHAR(50) | How to calculate |
 | calculation_formula | TEXT | Formula for computed measures |
-| source_table | VARCHAR(50) | Auto-pull source (activities, pipelines, customers) |
-| source_condition | TEXT | WHERE clause for source |
+| source_table | VARCHAR(50) | Auto-pull source (activities, pipelines, customers, pipeline_stage_history) |
+| source_condition | TEXT | WHERE clause for source (uses UUIDs, :user_id placeholder) |
 | weight | DECIMAL(5,2) | Scoring weight (default 1.0) |
 | default_target | DECIMAL(18,2) | Default target value |
 | period_type | VARCHAR(20) | WEEKLY, MONTHLY, QUARTERLY |
+| template_type | VARCHAR(50) | Template used (activity_count, pipeline_count, pipeline_revenue, etc.) |
+| template_config | JSONB | Original template selections for editing |
 | sort_order | INTEGER | Display order |
 | is_active | BOOLEAN | Active flag |
 

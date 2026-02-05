@@ -33,6 +33,15 @@ mixin _$MeasureDefinition {
   String? get calculationFormula => throw _privateConstructorUsedError;
   String? get sourceTable => throw _privateConstructorUsedError;
   String? get sourceCondition => throw _privateConstructorUsedError;
+  double get weight => throw _privateConstructorUsedError; // Scoring weight
+  double get defaultTarget =>
+      throw _privateConstructorUsedError; // Default target value
+  String? get periodType =>
+      throw _privateConstructorUsedError; // 'WEEKLY', 'MONTHLY', 'QUARTERLY'
+  String? get templateType =>
+      throw _privateConstructorUsedError; // Template used (activity_count, pipeline_count, etc.)
+  Map<String, dynamic>? get templateConfig =>
+      throw _privateConstructorUsedError; // Original template selections for editing
   bool get isActive => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -66,6 +75,11 @@ abstract class $MeasureDefinitionCopyWith<$Res> {
     String? calculationFormula,
     String? sourceTable,
     String? sourceCondition,
+    double weight,
+    double defaultTarget,
+    String? periodType,
+    String? templateType,
+    Map<String, dynamic>? templateConfig,
     bool isActive,
     int sortOrder,
     DateTime? createdAt,
@@ -98,6 +112,11 @@ class _$MeasureDefinitionCopyWithImpl<$Res, $Val extends MeasureDefinition>
     Object? calculationFormula = freezed,
     Object? sourceTable = freezed,
     Object? sourceCondition = freezed,
+    Object? weight = null,
+    Object? defaultTarget = null,
+    Object? periodType = freezed,
+    Object? templateType = freezed,
+    Object? templateConfig = freezed,
     Object? isActive = null,
     Object? sortOrder = null,
     Object? createdAt = freezed,
@@ -145,6 +164,26 @@ class _$MeasureDefinitionCopyWithImpl<$Res, $Val extends MeasureDefinition>
                 ? _value.sourceCondition
                 : sourceCondition // ignore: cast_nullable_to_non_nullable
                       as String?,
+            weight: null == weight
+                ? _value.weight
+                : weight // ignore: cast_nullable_to_non_nullable
+                      as double,
+            defaultTarget: null == defaultTarget
+                ? _value.defaultTarget
+                : defaultTarget // ignore: cast_nullable_to_non_nullable
+                      as double,
+            periodType: freezed == periodType
+                ? _value.periodType
+                : periodType // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            templateType: freezed == templateType
+                ? _value.templateType
+                : templateType // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            templateConfig: freezed == templateConfig
+                ? _value.templateConfig
+                : templateConfig // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
             isActive: null == isActive
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
@@ -187,6 +226,11 @@ abstract class _$$MeasureDefinitionImplCopyWith<$Res>
     String? calculationFormula,
     String? sourceTable,
     String? sourceCondition,
+    double weight,
+    double defaultTarget,
+    String? periodType,
+    String? templateType,
+    Map<String, dynamic>? templateConfig,
     bool isActive,
     int sortOrder,
     DateTime? createdAt,
@@ -218,6 +262,11 @@ class __$$MeasureDefinitionImplCopyWithImpl<$Res>
     Object? calculationFormula = freezed,
     Object? sourceTable = freezed,
     Object? sourceCondition = freezed,
+    Object? weight = null,
+    Object? defaultTarget = null,
+    Object? periodType = freezed,
+    Object? templateType = freezed,
+    Object? templateConfig = freezed,
     Object? isActive = null,
     Object? sortOrder = null,
     Object? createdAt = freezed,
@@ -265,6 +314,26 @@ class __$$MeasureDefinitionImplCopyWithImpl<$Res>
             ? _value.sourceCondition
             : sourceCondition // ignore: cast_nullable_to_non_nullable
                   as String?,
+        weight: null == weight
+            ? _value.weight
+            : weight // ignore: cast_nullable_to_non_nullable
+                  as double,
+        defaultTarget: null == defaultTarget
+            ? _value.defaultTarget
+            : defaultTarget // ignore: cast_nullable_to_non_nullable
+                  as double,
+        periodType: freezed == periodType
+            ? _value.periodType
+            : periodType // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        templateType: freezed == templateType
+            ? _value.templateType
+            : templateType // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        templateConfig: freezed == templateConfig
+            ? _value._templateConfig
+            : templateConfig // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
@@ -300,11 +369,16 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
     this.calculationFormula,
     this.sourceTable,
     this.sourceCondition,
+    this.weight = 1.0,
+    this.defaultTarget = 0,
+    this.periodType,
+    this.templateType,
+    final Map<String, dynamic>? templateConfig,
     this.isActive = true,
     this.sortOrder = 0,
     this.createdAt,
     this.updatedAt,
-  });
+  }) : _templateConfig = templateConfig;
 
   factory _$MeasureDefinitionImpl.fromJson(Map<String, dynamic> json) =>
       _$$MeasureDefinitionImplFromJson(json);
@@ -333,6 +407,32 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
   final String? sourceCondition;
   @override
   @JsonKey()
+  final double weight;
+  // Scoring weight
+  @override
+  @JsonKey()
+  final double defaultTarget;
+  // Default target value
+  @override
+  final String? periodType;
+  // 'WEEKLY', 'MONTHLY', 'QUARTERLY'
+  @override
+  final String? templateType;
+  // Template used (activity_count, pipeline_count, etc.)
+  final Map<String, dynamic>? _templateConfig;
+  // Template used (activity_count, pipeline_count, etc.)
+  @override
+  Map<String, dynamic>? get templateConfig {
+    final value = _templateConfig;
+    if (value == null) return null;
+    if (_templateConfig is EqualUnmodifiableMapView) return _templateConfig;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  // Original template selections for editing
+  @override
+  @JsonKey()
   final bool isActive;
   @override
   @JsonKey()
@@ -344,7 +444,7 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
 
   @override
   String toString() {
-    return 'MeasureDefinition(id: $id, code: $code, name: $name, description: $description, measureType: $measureType, dataType: $dataType, unit: $unit, calculationFormula: $calculationFormula, sourceTable: $sourceTable, sourceCondition: $sourceCondition, isActive: $isActive, sortOrder: $sortOrder, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'MeasureDefinition(id: $id, code: $code, name: $name, description: $description, measureType: $measureType, dataType: $dataType, unit: $unit, calculationFormula: $calculationFormula, sourceTable: $sourceTable, sourceCondition: $sourceCondition, weight: $weight, defaultTarget: $defaultTarget, periodType: $periodType, templateType: $templateType, templateConfig: $templateConfig, isActive: $isActive, sortOrder: $sortOrder, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -368,6 +468,17 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
                 other.sourceTable == sourceTable) &&
             (identical(other.sourceCondition, sourceCondition) ||
                 other.sourceCondition == sourceCondition) &&
+            (identical(other.weight, weight) || other.weight == weight) &&
+            (identical(other.defaultTarget, defaultTarget) ||
+                other.defaultTarget == defaultTarget) &&
+            (identical(other.periodType, periodType) ||
+                other.periodType == periodType) &&
+            (identical(other.templateType, templateType) ||
+                other.templateType == templateType) &&
+            const DeepCollectionEquality().equals(
+              other._templateConfig,
+              _templateConfig,
+            ) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.sortOrder, sortOrder) ||
@@ -380,7 +491,7 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     code,
@@ -392,11 +503,16 @@ class _$MeasureDefinitionImpl implements _MeasureDefinition {
     calculationFormula,
     sourceTable,
     sourceCondition,
+    weight,
+    defaultTarget,
+    periodType,
+    templateType,
+    const DeepCollectionEquality().hash(_templateConfig),
     isActive,
     sortOrder,
     createdAt,
     updatedAt,
-  );
+  ]);
 
   /// Create a copy of MeasureDefinition
   /// with the given fields replaced by the non-null parameter values.
@@ -427,6 +543,11 @@ abstract class _MeasureDefinition implements MeasureDefinition {
     final String? calculationFormula,
     final String? sourceTable,
     final String? sourceCondition,
+    final double weight,
+    final double defaultTarget,
+    final String? periodType,
+    final String? templateType,
+    final Map<String, dynamic>? templateConfig,
     final bool isActive,
     final int sortOrder,
     final DateTime? createdAt,
@@ -457,6 +578,16 @@ abstract class _MeasureDefinition implements MeasureDefinition {
   @override
   String? get sourceCondition;
   @override
+  double get weight; // Scoring weight
+  @override
+  double get defaultTarget; // Default target value
+  @override
+  String? get periodType; // 'WEEKLY', 'MONTHLY', 'QUARTERLY'
+  @override
+  String? get templateType; // Template used (activity_count, pipeline_count, etc.)
+  @override
+  Map<String, dynamic>? get templateConfig; // Original template selections for editing
+  @override
   bool get isActive;
   @override
   int get sortOrder;
@@ -486,6 +617,8 @@ mixin _$ScoringPeriod {
   DateTime get startDate => throw _privateConstructorUsedError;
   DateTime get endDate => throw _privateConstructorUsedError;
   bool get isCurrent => throw _privateConstructorUsedError;
+  bool get isLocked =>
+      throw _privateConstructorUsedError; // Locked periods cannot be modified
   bool get isActive => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -514,6 +647,7 @@ abstract class $ScoringPeriodCopyWith<$Res> {
     DateTime startDate,
     DateTime endDate,
     bool isCurrent,
+    bool isLocked,
     bool isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -541,6 +675,7 @@ class _$ScoringPeriodCopyWithImpl<$Res, $Val extends ScoringPeriod>
     Object? startDate = null,
     Object? endDate = null,
     Object? isCurrent = null,
+    Object? isLocked = null,
     Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -570,6 +705,10 @@ class _$ScoringPeriodCopyWithImpl<$Res, $Val extends ScoringPeriod>
             isCurrent: null == isCurrent
                 ? _value.isCurrent
                 : isCurrent // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isLocked: null == isLocked
+                ? _value.isLocked
+                : isLocked // ignore: cast_nullable_to_non_nullable
                       as bool,
             isActive: null == isActive
                 ? _value.isActive
@@ -605,6 +744,7 @@ abstract class _$$ScoringPeriodImplCopyWith<$Res>
     DateTime startDate,
     DateTime endDate,
     bool isCurrent,
+    bool isLocked,
     bool isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -631,6 +771,7 @@ class __$$ScoringPeriodImplCopyWithImpl<$Res>
     Object? startDate = null,
     Object? endDate = null,
     Object? isCurrent = null,
+    Object? isLocked = null,
     Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -661,6 +802,10 @@ class __$$ScoringPeriodImplCopyWithImpl<$Res>
             ? _value.isCurrent
             : isCurrent // ignore: cast_nullable_to_non_nullable
                   as bool,
+        isLocked: null == isLocked
+            ? _value.isLocked
+            : isLocked // ignore: cast_nullable_to_non_nullable
+                  as bool,
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
@@ -688,6 +833,7 @@ class _$ScoringPeriodImpl implements _ScoringPeriod {
     required this.startDate,
     required this.endDate,
     this.isCurrent = false,
+    this.isLocked = false,
     this.isActive = true,
     this.createdAt,
     this.updatedAt,
@@ -712,6 +858,10 @@ class _$ScoringPeriodImpl implements _ScoringPeriod {
   final bool isCurrent;
   @override
   @JsonKey()
+  final bool isLocked;
+  // Locked periods cannot be modified
+  @override
+  @JsonKey()
   final bool isActive;
   @override
   final DateTime? createdAt;
@@ -720,7 +870,7 @@ class _$ScoringPeriodImpl implements _ScoringPeriod {
 
   @override
   String toString() {
-    return 'ScoringPeriod(id: $id, name: $name, periodType: $periodType, startDate: $startDate, endDate: $endDate, isCurrent: $isCurrent, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ScoringPeriod(id: $id, name: $name, periodType: $periodType, startDate: $startDate, endDate: $endDate, isCurrent: $isCurrent, isLocked: $isLocked, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -737,6 +887,8 @@ class _$ScoringPeriodImpl implements _ScoringPeriod {
             (identical(other.endDate, endDate) || other.endDate == endDate) &&
             (identical(other.isCurrent, isCurrent) ||
                 other.isCurrent == isCurrent) &&
+            (identical(other.isLocked, isLocked) ||
+                other.isLocked == isLocked) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.createdAt, createdAt) ||
@@ -755,6 +907,7 @@ class _$ScoringPeriodImpl implements _ScoringPeriod {
     startDate,
     endDate,
     isCurrent,
+    isLocked,
     isActive,
     createdAt,
     updatedAt,
@@ -782,6 +935,7 @@ abstract class _ScoringPeriod implements ScoringPeriod {
     required final DateTime startDate,
     required final DateTime endDate,
     final bool isCurrent,
+    final bool isLocked,
     final bool isActive,
     final DateTime? createdAt,
     final DateTime? updatedAt,
@@ -802,6 +956,8 @@ abstract class _ScoringPeriod implements ScoringPeriod {
   DateTime get endDate;
   @override
   bool get isCurrent;
+  @override
+  bool get isLocked; // Locked periods cannot be modified
   @override
   bool get isActive;
   @override

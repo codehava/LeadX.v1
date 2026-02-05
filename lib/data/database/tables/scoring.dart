@@ -26,6 +26,8 @@ class MeasureDefinitions extends Table {
   RealColumn get defaultTarget => real().nullable()(); // Default target value
   TextColumn get periodType =>
       text().withDefault(const Constant('WEEKLY'))(); // 'WEEKLY', 'MONTHLY', 'QUARTERLY'
+  TextColumn get templateType => text().nullable()(); // Template used (activity_count, pipeline_count, etc.)
+  TextColumn get templateConfig => text().nullable()(); // JSON config for template (stored as JSON string)
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime()();

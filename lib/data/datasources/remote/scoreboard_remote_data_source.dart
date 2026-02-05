@@ -25,6 +25,18 @@ class ScoreboardRemoteDataSource {
         .toList();
   }
 
+  /// Fetch all measure definitions (including inactive) for admin.
+  Future<List<MeasureDefinition>> fetchAllMeasureDefinitions() async {
+    final response = await _supabase
+        .from('measure_definitions')
+        .select()
+        .order('sort_order');
+
+    return (response as List)
+        .map((json) => _mapToMeasureDefinition(json as Map<String, dynamic>))
+        .toList();
+  }
+
   // ============================================
   // SCORING PERIODS
   // ============================================
@@ -233,6 +245,103 @@ class ScoreboardRemoteDataSource {
   }
 
   // ============================================
+  // ADMIN: MEASURE MANAGEMENT
+  // ============================================
+
+  /// Create a new measure definition (Admin only).
+  Future<MeasureDefinition> createMeasureDefinition(
+      Map<String, dynamic> data) async {
+    final response = await _supabase
+        .from('measure_definitions')
+        .insert(data)
+        .select()
+        .single();
+
+    return _mapToMeasureDefinition(response);
+  }
+
+  /// Update an existing measure definition (Admin only).
+  Future<MeasureDefinition> updateMeasureDefinition(
+      String id, Map<String, dynamic> data) async {
+    final response = await _supabase
+        .from('measure_definitions')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+    return _mapToMeasureDefinition(response);
+  }
+
+  /// Soft delete a measure definition (Admin only).
+  Future<void> deleteMeasureDefinition(String id) async {
+    await _supabase
+        .from('measure_definitions')
+        .update({'is_active': false})
+        .eq('id', id);
+  }
+
+  // ============================================
+  // ADMIN: PERIOD MANAGEMENT
+  // ============================================
+
+  /// Create a new scoring period (Admin only).
+  Future<ScoringPeriod> createScoringPeriod(Map<String, dynamic> data) async {
+    final response = await _supabase
+        .from('scoring_periods')
+        .insert(data)
+        .select()
+        .single();
+
+    return _mapToScoringPeriod(response);
+  }
+
+  /// Update an existing scoring period (Admin only).
+  Future<ScoringPeriod> updateScoringPeriod(
+      String id, Map<String, dynamic> data) async {
+    final response = await _supabase
+        .from('scoring_periods')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+    return _mapToScoringPeriod(response);
+  }
+
+  /// Delete a scoring period (Admin only).
+  Future<void> deleteScoringPeriod(String id) async {
+    await _supabase.from('scoring_periods').delete().eq('id', id);
+  }
+
+  /// Lock a scoring period (Admin only).
+  Future<ScoringPeriod> lockPeriod(String id) async {
+    final response = await _supabase
+        .from('scoring_periods')
+        .update({'is_locked': true})
+        .eq('id', id)
+        .select()
+        .single();
+
+    return _mapToScoringPeriod(response);
+  }
+
+  /// Set a period as current (Admin only).
+  Future<void> setCurrentPeriod(String id) async {
+    // First, unset all other periods
+    await _supabase
+        .from('scoring_periods')
+        .update({'is_current': false})
+        .neq('id', id);
+
+    // Then set the selected period as current
+    await _supabase
+        .from('scoring_periods')
+        .update({'is_current': true})
+        .eq('id', id);
+  }
+
+  // ============================================
   // MAPPERS
   // ============================================
 
@@ -243,8 +352,15 @@ class ScoreboardRemoteDataSource {
       name: json['name'] as String,
       description: json['description'] as String?,
       measureType: json['measure_type'] as String,
-      dataType: (json['unit'] as String?) ?? 'COUNT', // Map unit to dataType
+      dataType: json['data_type'] as String,
       unit: json['unit'] as String?,
+      sourceTable: json['source_table'] as String?,
+      sourceCondition: json['source_condition'] as String?,
+      weight: (json['weight'] as num?)?.toDouble() ?? 1.0,
+      defaultTarget: (json['default_target'] as num?)?.toDouble() ?? 0,
+      periodType: json['period_type'] as String?,
+      templateType: json['template_type'] as String?,
+      templateConfig: json['template_config'] as Map<String, dynamic>?,
       sortOrder: (json['sort_order'] as int?) ?? 0,
       isActive: (json['is_active'] as bool?) ?? true,
       createdAt: json['created_at'] != null
@@ -264,7 +380,8 @@ class ScoreboardRemoteDataSource {
       startDate: DateTime.parse(json['start_date'] as String),
       endDate: DateTime.parse(json['end_date'] as String),
       isCurrent: (json['is_current'] as bool?) ?? false,
-      isActive: (json['is_locked'] as bool?) != true, // Invert is_locked to isActive
+      isLocked: (json['is_locked'] as bool?) ?? false,
+      isActive: (json['is_active'] as bool?) ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,

@@ -30,16 +30,20 @@ CREATE TABLE measure_definitions (
   unit VARCHAR(50) NOT NULL,
   calculation_method VARCHAR(50),
   calculation_formula TEXT,           -- For computed measures
-  source_table VARCHAR(50),           -- Auto-pull from table (activities, pipelines, customers)
-  source_condition TEXT,              -- WHERE clause for source
+  source_table VARCHAR(50),           -- Auto-pull from table (activities, pipelines, customers, pipeline_stage_history)
+  source_condition TEXT,              -- WHERE clause for source (uses UUIDs for FK columns, :user_id placeholder)
   weight DECIMAL(5, 2) DEFAULT 1.0,
   default_target DECIMAL(18, 2),      -- Default target value
   period_type VARCHAR(20) DEFAULT 'WEEKLY' CHECK (period_type IN ('WEEKLY', 'MONTHLY', 'QUARTERLY')),
+  template_type VARCHAR(50),          -- Template used (activity_count, pipeline_count, pipeline_revenue, stage_milestone, etc.)
+  template_config JSONB,              -- Original template selections for editing
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_measures_template_type ON measure_definitions(template_type);
 
 CREATE TABLE user_targets (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -384,23 +388,92 @@ INSERT INTO cobs (id, code, name, sort_order) VALUES
   (uuid_generate_v4(), 'KI', 'Kredit Investasi', 2),
   (uuid_generate_v4(), 'GI', 'General Insurance', 3);
 
--- Measure Definitions (4DX) - 9 measures as per documentation
--- Lead Measures (60% of total score) - Activities that drive results
-INSERT INTO measure_definitions (id, code, name, description, measure_type, data_type, unit, source_table, source_condition, weight, default_target, period_type, sort_order) VALUES
-  (uuid_generate_v4(), 'VISIT_COUNT', 'Kunjungan Pelanggan', 'Physical customer visits completed', 'LEAD', 'COUNT', 'visits', 'activities', 'type=VISIT AND status=COMPLETED', 1.0, 10, 'WEEKLY', 1),
-  (uuid_generate_v4(), 'CALL_COUNT', 'Telepon', 'Phone calls made to customers', 'LEAD', 'COUNT', 'calls', 'activities', 'type=CALL AND status=COMPLETED', 1.0, 20, 'WEEKLY', 2),
-  (uuid_generate_v4(), 'MEETING_COUNT', 'Meeting', 'Meetings conducted with customers', 'LEAD', 'COUNT', 'meetings', 'activities', 'type=MEETING AND status=COMPLETED', 1.0, 5, 'WEEKLY', 3),
-  (uuid_generate_v4(), 'NEW_CUSTOMER', 'Pelanggan Baru', 'New customers registered', 'LEAD', 'COUNT', 'customers', 'customers', 'created_by=user_id', 1.0, 4, 'MONTHLY', 4),
-  (uuid_generate_v4(), 'NEW_PIPELINE', 'Pipeline Baru', 'New pipelines created', 'LEAD', 'COUNT', 'pipelines', 'pipelines', 'assigned_rm_id=user_id', 1.0, 5, 'MONTHLY', 5),
-  (uuid_generate_v4(), 'PROPOSAL_SENT', 'Proposal Terkirim', 'Proposals sent to customers', 'LEAD', 'COUNT', 'proposals', 'activities', 'type=PROPOSAL AND status=COMPLETED', 1.0, 3, 'WEEKLY', 6);
+-- ============================================
+-- MEASURE DEFINITIONS SEED DATA (4DX)
+-- ============================================
+-- 10 measures total: 6 LEAD (60% weight) + 4 LAG (40% weight)
+-- NOTE: This is DOCUMENTATION ONLY - actual seed in supabase/migrations/20260205100000_seed_default_measures.sql
+-- UUIDs are fetched dynamically from activity_types and pipeline_stages master tables
 
--- Lag Measures (40% of total score) - Results/outcomes
--- NOTE: Lag measures use scored_to_user_id (not assigned_rm_id) to credit the user
--- who actually won the pipeline, even if ownership later transferred.
-INSERT INTO measure_definitions (id, code, name, description, measure_type, data_type, unit, source_table, source_condition, weight, default_target, period_type, sort_order) VALUES
-  (uuid_generate_v4(), 'PIPELINE_WON', 'Pipeline Closing', 'Pipelines closed as won', 'LAG', 'COUNT', 'deals', 'pipelines', 'scored_to_user_id=user_id AND stage=ACCEPTED', 1.5, 3, 'MONTHLY', 7),
-  (uuid_generate_v4(), 'PREMIUM_WON', 'Premium Closing', 'Total premium from won pipelines', 'LAG', 'SUM', 'IDR', 'pipelines', 'scored_to_user_id=user_id AND stage=ACCEPTED', 2.0, 500000000, 'MONTHLY', 8),
-  (uuid_generate_v4(), 'CONVERSION_RATE', 'Conversion Rate', 'Pipeline win rate percentage', 'LAG', 'PERCENTAGE', '%', 'pipelines', 'scored_to_user_id=user_id AND is_final=true', 1.5, 40, 'MONTHLY', 9);
+-- Lead Measures (60% of total score) - Activities that drive results
+DO $$
+DECLARE
+  v_visit_type_id UUID;
+  v_call_type_id UUID;
+  v_meeting_type_id UUID;
+BEGIN
+  -- Fetch activity type UUIDs from master data
+  SELECT id INTO v_visit_type_id FROM activity_types WHERE code = 'VISIT';
+  SELECT id INTO v_call_type_id FROM activity_types WHERE code = 'CALL';
+  SELECT id INTO v_meeting_type_id FROM activity_types WHERE code = 'MEETING';
+
+  INSERT INTO measure_definitions (code, name, measure_type, source_table, source_condition, data_type, default_target, weight, period_type, unit, template_type, template_config, is_active) VALUES
+    -- LEAD-001: Visit Count
+    ('LEAD-001', 'Visit Count', 'LEAD', 'activities',
+     'activity_type_id = ''' || v_visit_type_id || ''' AND status = ''COMPLETED''',
+     'COUNT', 10, 1.0, 'WEEKLY', 'count', 'activity_count',
+     '{"activity_types":["VISIT"],"statuses":["COMPLETED"],"customer_type":null}', TRUE),
+
+    -- LEAD-002: Call Count
+    ('LEAD-002', 'Call Count', 'LEAD', 'activities',
+     'activity_type_id = ''' || v_call_type_id || ''' AND status = ''COMPLETED''',
+     'COUNT', 20, 1.0, 'WEEKLY', 'count', 'activity_count',
+     '{"activity_types":["CALL"],"statuses":["COMPLETED"],"customer_type":null}', TRUE),
+
+    -- LEAD-003: Meeting Count
+    ('LEAD-003', 'Meeting Count', 'LEAD', 'activities',
+     'activity_type_id = ''' || v_meeting_type_id || ''' AND status = ''COMPLETED''',
+     'COUNT', 5, 1.0, 'WEEKLY', 'count', 'activity_count',
+     '{"activity_types":["MEETING"],"statuses":["COMPLETED"],"customer_type":null}', TRUE),
+
+    -- LEAD-004: New Customer
+    ('LEAD-004', 'New Customer', 'LEAD', 'customers',
+     'created_by = :user_id',
+     'COUNT', 4, 1.5, 'MONTHLY', 'count', 'customer_acquisition',
+     '{"customer_types":null,"company_sizes":null}', TRUE),
+
+    -- LEAD-005: New Pipeline
+    ('LEAD-005', 'New Pipeline', 'LEAD', 'pipelines',
+     'assigned_rm_id = :user_id',
+     'COUNT', 5, 1.2, 'MONTHLY', 'count', 'pipeline_count',
+     '{"stages":["NEW"],"filters":{}}', TRUE),
+
+    -- LEAD-006: Proposal Sent (stage milestone)
+    ('LEAD-006', 'Proposal Sent', 'LEAD', 'pipeline_stage_history',
+     'to_stage_id IN (SELECT id FROM pipeline_stages WHERE code = ''P2'') AND changed_by = :user_id',
+     'COUNT', 3, 1.3, 'WEEKLY', 'count', 'stage_milestone',
+     '{"target_stage":"P2","from_any":true}', TRUE);
+
+  -- Lag Measures (40% of total score) - Results/outcomes
+  -- NOTE: Lag measures use scored_to_user_id (not assigned_rm_id) to credit the user
+  -- who actually won the pipeline, even if ownership later transferred.
+  INSERT INTO measure_definitions (code, name, measure_type, source_table, source_condition, data_type, default_target, weight, period_type, unit, template_type, template_config, is_active) VALUES
+    -- LAG-001: Pipeline Won
+    ('LAG-001', 'Pipeline Won', 'LAG', 'pipelines',
+     'stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true) AND scored_to_user_id = :user_id',
+     'COUNT', 3, 1.5, 'MONTHLY', 'count', 'pipeline_count',
+     '{"stages":["ACCEPTED"],"filters":{}}', TRUE),
+
+    -- LAG-002: Premium Won
+    ('LAG-002', 'Premium Won', 'LAG', 'pipelines',
+     'stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true) AND scored_to_user_id = :user_id',
+     'SUM', 500000000, 2.0, 'MONTHLY', 'IDR', 'pipeline_revenue',
+     '{"stage":"ACCEPTED","revenue_field":"final_premium","filters":{}}', TRUE),
+
+    -- LAG-003: Conversion Rate
+    ('LAG-003', 'Conversion Rate', 'LAG', 'pipelines',
+     'scored_to_user_id = :user_id AND closed_at IS NOT NULL',
+     'PERCENTAGE', 40, 1.0, 'MONTHLY', '%', 'pipeline_conversion',
+     '{}', TRUE),
+
+    -- LAG-004: Referral Premium
+    ('LAG-004', 'Referral Premium', 'LAG', 'pipelines',
+     'referred_by_user_id = :user_id AND stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true)',
+     'SUM', 100000000, 1.5, 'MONTHLY', 'IDR', 'pipeline_revenue',
+     '{"stage":"ACCEPTED","revenue_field":"final_premium","filters":{"referral":true}}', TRUE);
+
+  RAISE NOTICE 'Successfully seeded 10 default measures (6 LEAD + 4 LAG)';
+END $$;
 
 -- App Settings
 INSERT INTO app_settings (key, value, value_type, description) VALUES
