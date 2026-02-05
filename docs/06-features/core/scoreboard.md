@@ -27,10 +27,6 @@
 - Compare peers
 - Filter by period
 
-### Achievements
-- Badge system
-- Unlock milestones
-- Share achievements
 
 ---
 

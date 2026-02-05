@@ -413,18 +413,6 @@ Rank: #2 in team (out of 8 RMs)
 
 ---
 
-## 🎮 Gamification Elements
-
-### Badges & Achievements
-
-| Badge | Criteria | Points |
-|-------|----------|--------|
-| 🌟 **Top Performer** | Rank #1 in team for 4 weeks | +20 bonus |
-| 🔥 **Hot Streak** | 100% lead measure 3 weeks in a row | +15 bonus |
-| 🏆 **Closer** | 5 pipelines won in a month | +25 bonus |
-| 📍 **Road Warrior** | 50 visits in a month | +10 bonus |
-| ✅ **Consistent** | 100% cadence attendance for quarter | +30 bonus |
-
 ### Leaderboard Types
 
 1. **Team Leaderboard** - RMs within same BH
