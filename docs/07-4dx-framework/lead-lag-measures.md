@@ -10,6 +10,197 @@ Dokumen ini menjelaskan secara detail semua **Lead Measures** dan **Lag Measures
 
 > **⚠️ PENTING**: Semua metrics dalam 4DX LeadX adalah **AUTO-CALCULATED** dari data yang sudah ada di aplikasi. Tidak ada input manual untuk metrics - semuanya dihitung dari tabel `activities`, `pipelines`, `customers`, dan `cadence_*`.
 
+> **Technical Note**: Lead and Lag measures use the identical `measure_definitions` table structure.
+> The only programmatic difference is the `measure_type` field ('LEAD' or 'LAG'). This allows
+> uniform handling in the scoring engine while maintaining semantic separation.
+
+---
+
+## Server-Side Calculation
+
+All 4DX scores are calculated **server-side** (Supabase/PostgreSQL). The mobile app:
+- Reads pre-calculated scores from `user_scores` and `user_score_snapshots` tables
+- Does NOT perform score calculations locally
+- Syncs calculation results via the standard sync mechanism
+
+
+---
+
+## Score Calculation Architecture
+
+### Table Relationship
+```
+user_scores              →    user_score_snapshots
+(per measure)                 (aggregate of all measures)
+
+| user | measure | actual |    | user | lead_score | lag_score | total |
+|------|---------|--------|    |------|------------|-----------|-------|
+| RM1  | VISIT   | 8      | →  | RM1  | 85.5       | 72.0      | 80.1  |
+| RM1  | CALL    | 15     |
+| RM1  | PREMIUM | 300M   |
+```
+
+### Two-Tier Calculation Strategy
+
+| Tier | Who | When | How |
+|------|-----|------|-----|
+| **RM (immediate)** | Individual RM | On activity completion | PostgreSQL trigger |
+| **Atasan (periodic)** | BH, BM, ROH | Every 10 minutes | Cron job with dirty tracking |
+
+### Dirty User Tracking
+
+To avoid recalculating ALL users every 10 minutes, track who needs recalculation:
+
+```sql
+-- Internal table (NO RLS - system use only)
+CREATE TABLE dirty_users (
+  user_id UUID PRIMARY KEY REFERENCES users(id),
+  dirtied_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Trigger Flow (RM Immediate + Mark Dirty)
+```
+Activity Completed
+    ↓
+PostgreSQL Trigger fires (SECURITY DEFINER)
+    ↓
+1. Update user_scores for that measure
+    ↓
+2. Recalculate user_score_snapshots for RM
+    ↓
+3. Mark RM + ALL ancestors as dirty
+   (INSERT INTO dirty_users SELECT ancestor_id FROM user_hierarchy...)
+    ↓
+RM sees updated score immediately
+```
+
+### Cron Job Flow (Atasan Every 10 Min)
+```
+Every 10 minutes (pg_cron or Supabase scheduled function)
+    ↓
+1. Get all dirty users (simple SELECT)
+    ↓
+2. For each dirty user, recalculate their aggregate
+   (their own scores + all subordinates' scores)
+    ↓
+3. TRUNCATE dirty_users
+    ↓
+Managers see updated team scores
+```
+
+### RLS Considerations
+
+| Component | RLS Setting | Reason |
+|-----------|-------------|--------|
+| `dirty_users` table | **NO RLS** | Internal system table, no user access |
+| Trigger functions | `SECURITY DEFINER` | Must write to dirty_users, read user_hierarchy |
+| Cron function | `SECURITY DEFINER` or service_role | Must update all user_score_snapshots |
+| `user_score_snapshots` | **Keep existing RLS** | App users see own + subordinates only |
+
+### Why This Approach?
+- **RM gets immediate feedback** - Most important user sees real-time progress
+- **Managers accept 10-min staleness** - Checking trends, not real-time
+- **Efficient** - Only dirty users recalculated, not everyone
+- **Simple cron job** - No hierarchy lookup, just process the dirty list
+- **Consistent analytics** - All managers see same snapshot within each 10-min window
+
+---
+
+## Target Distribution & Score Ownership
+
+### Target Distribution
+Measure targets are distributed via **direct bawahans** (subordinates), not organizational structure:
+
+- When a manager sets targets, they cascade to users where `user_hierarchy.depth = 1`
+  (direct reports only)
+- This differs from org structure (branches → regional offices) which is for administrative grouping
+- Each RM receives individual targets set by their direct BH
+
+### Score Ownership & Hierarchy Aggregation
+Scores cascade UP the hierarchy - each atasan (superior) sees aggregated scores:
+
+| Role | Sees |
+|------|------|
+| **RM** | Own scores only |
+| **BH** | Own scores + all RMs under them (aggregated) |
+| **BM** | Own scores + all BHs + their RMs (aggregated) |
+| **ROH** | Own scores + all BMs + BHs + RMs (aggregated) |
+
+**Key principle:** An atasan's view aggregates EVERYTHING below them in the hierarchy, not just direct reports.
+
+This uses `user_hierarchy` table with varying depths:
+- `depth = 1`: Direct bawahan
+- `depth = 2`: Bawahan's bawahan
+- `depth = n`: All descendants
+
+```sql
+-- Example: Get all scores for a BM (including all subordinates)
+SELECT SUM(actual_value)
+FROM user_scores us
+JOIN user_hierarchy uh ON uh.descendant_id = us.user_id
+WHERE uh.ancestor_id = :manager_id  -- All depths included
+  AND us.measure_id = :measure_id;
+```
+
+---
+
+## Flexible Source Configuration
+
+Measures can pull from multiple sources and apply discriminators:
+
+### Multiple Activity Types per Measure
+A single measure can track multiple activity types:
+```json
+{
+  "source_table": "activities",
+  "source_condition": "activity_type_id IN ('VISIT', 'CALL', 'MEETING') AND status = 'COMPLETED'"
+}
+```
+
+### Entity Type Discrimination
+Measures can filter by customer type, broker involvement, etc:
+```json
+{
+  "source_table": "activities",
+  "source_condition": "customer_type = 'BROKER' AND status = 'COMPLETED'"
+}
+```
+
+### Template-Based Measures
+Different measures may source from entirely different tables based on their template/configuration:
+
+| Template | Source Table | Example Measures |
+|----------|-------------|------------------|
+| Activity-based | `activities` | VISIT_COUNT, CALL_COUNT, MEETING_COUNT |
+| Customer-based | `customers` | NEW_CUSTOMER |
+| Pipeline-based | `pipelines` | PIPELINE_WON, PREMIUM_WON, REFERRAL_PREMIUM |
+| Stage-transition-based | `pipeline_stage_history` | PROPOSAL_STAGE_REACHED, NEGOTIATION_REACHED |
+
+**Note on Referral Measures:** Referral tracking uses `pipelines.referred_by_user_id` field.
+When a referred pipeline wins, the referrer gets partial credit calculated as
+`final_premium × referral_percentage`.
+
+### Stage/Status Transition Measures
+Measures can count when pipelines reach specific stages using `pipeline_stage_history`:
+```json
+{
+  "source_table": "pipeline_stage_history",
+  "source_condition": "to_stage_id = 'PROPOSAL_SENT_STAGE_UUID' AND changed_by = :user_id"
+}
+```
+
+This tracks pipeline progression milestones:
+- `from_stage_id` / `to_stage_id` - stage transitions
+- `from_status_id` / `to_status_id` - status transitions
+- `changed_by` - who moved the pipeline
+- `changed_at` - when the transition occurred
+
+Example use cases:
+- Count pipelines that reached "Proposal Sent" stage
+- Count pipelines moved to "Negotiation" stage
+- Track stage velocity (time between stages)
+
 ---
 
 ## ⚙️ Admin Panel Configuration
@@ -339,6 +530,37 @@ FROM closed_pipelines;
 
 ---
 
+### LAG-004: Referral Premium (Premium dari Pipeline yang Di-referral)
+
+| Attribute | Value |
+|-----------|-------|
+| **Code** | `REFERRAL_PREMIUM` |
+| **Name** | Premium from Referred Pipelines |
+| **Category** | LAG |
+| **Description** | Premium dari pipeline yang di-referral oleh user lain dan won. Dihitung sebagai `final_premium × referral_percentage` untuk partial credit ke referrer. |
+| **Source Table** | `pipelines` |
+| **Filter Criteria** | `referred_by_user_id = :user_id AND stage = 'ACCEPTED'` |
+| **Calculation** | SUM(final_premium × referral_percentage) |
+| **Period** | Monthly |
+| **Default Target** | Based on team targets |
+| **Weight** | 1.0 |
+
+**SQL Query:**
+```sql
+SELECT COALESCE(SUM(final_premium * referral_percentage), 0) as referral_premium
+FROM pipelines
+WHERE referred_by_user_id = :user_id
+  AND stage = 'ACCEPTED'
+  AND won_date >= :period_start
+  AND won_date < :period_end;
+```
+
+> **Note:** When a pipeline with `referred_by_user_id` set reaches ACCEPTED stage:
+> - The `scored_to_user_id` (closer) gets full PREMIUM_WON credit
+> - The `referred_by_user_id` (referrer) gets partial REFERRAL_PREMIUM credit (percentage-based)
+
+---
+
 ## 🧮 Score Calculation
 
 ### Formula Lengkap
@@ -381,58 +603,11 @@ Untuk mencegah gaming, setiap measure di-cap pada 150%:
 
 ---
 
-## ⚙️ Measure Configuration
+## ⚙️ Database Schema
 
-### Database Schema
+For complete table schemas (`measure_definitions`, `scoring_periods`, `user_targets`, `user_scores`, `user_score_snapshots`), see:
 
-```sql
-CREATE TABLE measure_definitions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  code VARCHAR(50) UNIQUE NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  category VARCHAR(10) CHECK (category IN ('LEAD', 'LAG')),
-  description TEXT,
-  source_table VARCHAR(100),
-  filter_criteria JSONB,
-  calculation_type VARCHAR(20), -- COUNT, SUM, AVERAGE, PERCENTAGE
-  period_type VARCHAR(20), -- DAILY, WEEKLY, MONTHLY, QUARTERLY
-  default_target NUMERIC,
-  weight NUMERIC DEFAULT 1.0,
-  bonus_config JSONB,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE user_measure_targets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  measure_id UUID REFERENCES measure_definitions(id),
-  target_value NUMERIC NOT NULL,
-  effective_from DATE NOT NULL,
-  effective_to DATE,
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, measure_id, effective_from)
-);
-
-CREATE TABLE measure_achievements (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  measure_id UUID REFERENCES measure_definitions(id),
-  period_start DATE NOT NULL,
-  period_end DATE NOT NULL,
-  target_value NUMERIC NOT NULL,
-  actual_value NUMERIC NOT NULL,
-  achievement_pct NUMERIC GENERATED ALWAYS AS (
-    LEAST(150, CASE WHEN target_value > 0 
-      THEN (actual_value / target_value * 100) 
-      ELSE 0 END)
-  ) STORED,
-  calculated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, measure_id, period_start)
-);
-```
+**[Scoring & 4DX Tables](../04-database/tables/scoring-4dx.md)**
 
 ---
 

@@ -12,9 +12,12 @@
 
 | Aspect | Implementation |
 |--------|---------------|
-| **Metrics Source** | AUTO-CALCULATED dari data aplikasi (activities, pipelines, customers) |
+| **Metrics Source** | AUTO-CALCULATED dari data aplikasi (activities, pipelines, customers, pipeline_stage_history) |
+| **Calculation Location** | Server-side (Supabase/PostgreSQL) - client read-only |
 | **Admin Config** | Measure targets, weights, bonuses dikonfigurasi di Admin Panel |
-| **Real-time** | Score dihitung real-time berdasarkan data aktual |
+| **Approval** | Measures/scores: None required (auto-calculated from operational data). |
+| **Distribution** | Targets cascade via direct bawahans (user_hierarchy), not org structure |
+| **Real-time** | RM scores updated immediately via triggers; Manager aggregates every 10 min |
 | **No Manual Entry** | Tidak ada input manual untuk metrics - semuanya dari data operasional |
 
 > **Admin Panel Location**: `Admin Panel > 4DX Settings > Measure Configuration`
@@ -35,7 +38,7 @@
 │  │  "The more you try to do, the less you actually accomplish."           ││
 │  │                                                                          ││
 │  │  Principles:                                                             ││
-│  │  • Maximum 2-3 WIGs at any time                                         ││
+│  │  • Maximum 2 WIGs at any time                                           ││
 │  │  • Clear, measurable goals                                              ││
 │  │  • Format: "From X to Y by When"                                        ││
 │  │                                                                          ││
@@ -124,7 +127,7 @@
 
 ### LeadX Measure Definitions
 
-#### Lead Measures (60% of Score)
+#### Lead Measures (60% of Score) JUST EXAMPLE, CAN BE MORE
 
 | Measure | Description | Source | Default Target |
 |---------|-------------|--------|----------------|
@@ -135,13 +138,14 @@
 | **NEW_PIPELINE** | New pipelines created | Pipelines (newly created) | 5/month |
 | **PROPOSAL_SENT** | Proposals sent to customers | Activities (Proposal, completed) | 3/week |
 
-#### Lag Measures (40% of Score)
+#### Lag Measures (40% of Score) JUST EXAMPLE, CAN BE MORE
 
 | Measure | Description | Source | Default Target |
 |---------|-------------|--------|----------------|
 | **PIPELINE_WON** | Pipelines closed as WON | Pipelines (stage=ACCEPTED) | 3/month |
 | **PREMIUM_WON** | Total premium from won pipelines | Pipelines (final_premium, WON) | Rp 500M/month |
 | **CONVERSION_RATE** | Win rate percentage | Pipelines (WON / Total closed) | 40% |
+| **REFERRAL_PREMIUM** | Premium from referred pipelines | Pipelines (referred_by_user_id) | Variable |
 
 ---
 
@@ -196,7 +200,7 @@ RM Budi's Weekly Score Calculation:
 
 LEAD MEASURES (60%):
 ├── Visit Count:     8/10 = 80%
-├── Call Count:      25/20 = 125% (capped at 125%)
+├── Call Count:      25/20 = 125%
 ├── Meeting Count:   4/5 = 80%
 ├── Proposal Sent:   3/3 = 100%
 └── Average Lead:    (80 + 125 + 80 + 100) / 4 = 96.25%
@@ -405,7 +409,7 @@ Rank: #2 in team (out of 8 RMs)
 | **Team Cadence** | Weekly (Monday) | BH | RMs under BH | 30 min |
 | **Branch Cadence** | Weekly (Friday) | BM | BHs under BM | 45 min |
 | **Regional Cadence** | Monthly | ROH | BMs under ROH | 60 min |
-| **Corporate Cadence** | Quarterly | Admin/Dir | ROHs | 90 min |
+| **Company Cadence** | Quarterly | Admin/Dir | ROHs | 90 min |
 
 ---
 
@@ -479,7 +483,6 @@ Rank: #2 in team (out of 8 RMs)
 - [Lead-Lag Measures](lead-lag-measures.md) - Detailed measure definitions
 - [Scoreboard Design](scoreboard-design.md) - UI specifications
 - [Cadence Accountability](cadence-accountability.md) - Meeting flow details
-- [WIG Management](wig-management.md) - Goal setting process
 
 ---
 

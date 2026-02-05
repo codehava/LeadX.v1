@@ -12,7 +12,6 @@ import 'tables/pipelines.dart';
 import 'tables/scoring.dart';
 import 'tables/sync_queue.dart';
 import 'tables/users.dart';
-import 'tables/wigs.dart';
 
 part 'app_database.g.dart';
 
@@ -79,13 +78,7 @@ part 'app_database.g.dart';
     ScoringPeriods,
     UserTargets,
     UserScores,
-    UserScoreSnapshots,
-
-    // ============================================
-    // WIG - WILDLY IMPORTANT GOALS (2 tables)
-    // ============================================
-    Wigs,
-    WigProgress,
+    UserScoreAggregates,
 
     // ============================================
     // CADENCE (3 tables)
@@ -118,7 +111,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -142,11 +135,9 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(
                 pipelineStageHistoryItems, pipelineStageHistoryItems.createdLocally);
           }
-          // Migration from v4 to v5: Add WIG tables and update scoring tables
+          // Migration from v4 to v5: Update scoring tables
+          // Note: WIG tables were removed in v8 (consolidated into measures)
           if (from < 5) {
-            // Add new WIG tables
-            await m.createTable(wigs);
-            await m.createTable(wigProgress);
             // Add new columns to measure_definitions
             await m.addColumn(measureDefinitions, measureDefinitions.weight);
             await m.addColumn(measureDefinitions, measureDefinitions.defaultTarget);
@@ -181,6 +172,16 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(
                   cadenceScheduleConfig, cadenceScheduleConfig.preMeetingHours);
             }
+          }
+          // Migration from v7 to v8: Drop WIG tables (consolidated into measures)
+          if (from < 8) {
+            await customStatement('DROP TABLE IF EXISTS wig_progress');
+            await customStatement('DROP TABLE IF EXISTS wigs');
+          }
+          // Migration from v8 to v9: Rename user_score_snapshots to user_score_aggregates
+          if (from < 9) {
+            await customStatement(
+                'ALTER TABLE user_score_snapshots RENAME TO user_score_aggregates');
           }
         },
         beforeOpen: (details) async {

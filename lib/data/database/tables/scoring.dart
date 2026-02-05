@@ -88,10 +88,10 @@ class UserScores extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// User score snapshots - aggregated scores per period with ranking.
-/// Maps to user_score_snapshots in PostgreSQL.
-@DataClassName('UserScoreSnapshot')
-class UserScoreSnapshots extends Table {
+/// User score aggregates - real-time aggregated scores per period with ranking.
+/// Maps to user_score_aggregates in PostgreSQL (renamed from user_score_snapshots).
+@DataClassName('UserScoreAggregate')
+class UserScoreAggregates extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text().references(Users, #id)();
   TextColumn get periodId => text().references(ScoringPeriods, #id)();

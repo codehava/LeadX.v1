@@ -8,7 +8,7 @@
 
 Tabel-tabel untuk implementasi 4 Disciplines of Execution. Schema ini konsisten dengan:
 - SQL: `docs/04-database/sql/03_4dx_system_seed.sql`
-- Drift: `lib/data/database/tables/scoring.dart` dan `wigs.dart`
+- Drift: `lib/data/database/tables/scoring.dart`
 - Dokumentasi: `docs/07-4dx-framework/`
 
 ---
@@ -69,7 +69,7 @@ Target per user per period per measure.
 
 ### user_scores
 
-Skor aktual per user per period per measure.
+Skor aktual per user per period per measure. **Calculated server-side** - client reads only.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -84,9 +84,15 @@ Skor aktual per user per period per measure.
 | rank | INTEGER | Rank within team |
 | calculated_at | TIMESTAMPTZ | When calculated |
 
-### user_score_snapshots
+**Notes:**
+- Multiple activity types can contribute to a single measure through the `source_condition` field in `measure_definitions`
+- Discrimination by customer type, broker status, etc. is supported via `source_condition`
+- Stage transition tracking uses `pipeline_stage_history` as source table
+- RM scores updated immediately via triggers; manager aggregates recalculated every 10 min via cron with dirty user tracking
 
-Agregat skor final per period (untuk history & ranking).
+### user_score_aggregates
+
+Real-time aggregated scores per user per period for leaderboard and dashboard display.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -100,54 +106,42 @@ Agregat skor final per period (untuk history & ranking).
 | total_score | DECIMAL(10,2) | (lead*0.6 + lag*0.4) + bonus - penalty |
 | rank | INTEGER | Rank in period |
 | rank_change | INTEGER | +/- from previous period |
-| calculated_at | TIMESTAMPTZ | Snapshot timestamp |
+| calculated_at | TIMESTAMPTZ | Last calculation timestamp |
 
----
+### user_score_snapshots (Server-only)
 
-## 🎯 WIG Tables (Discipline 1)
-
-### wigs (Wildly Important Goals)
-
-Format: "From [baseline] to [target] by [deadline]"
+Historical point-in-time snapshots of individual user scores. Created on period lock or scheduled intervals.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| title | VARCHAR(200) | WIG title |
-| description | TEXT | Description |
-| level | VARCHAR(20) | COMPANY, REGIONAL, BRANCH, TEAM |
-| owner_id | UUID | FK to users |
-| parent_wig_id | UUID | FK to wigs (cascade) |
-| measure_type | VARCHAR(20) | LAG or LEAD |
+| user_id | UUID | FK to users |
+| period_id | UUID | FK to scoring_periods |
 | measure_id | UUID | FK to measure_definitions |
-| baseline_value | NUMERIC | From X |
-| target_value | NUMERIC | To Y |
-| current_value | NUMERIC | Current progress |
-| start_date | DATE | Start date |
-| end_date | DATE | By when |
-| status | VARCHAR(20) | DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, ACTIVE, COMPLETED, CANCELLED |
-| submitted_at | TIMESTAMPTZ | When submitted |
-| approved_by | UUID | FK to users |
-| approved_at | TIMESTAMPTZ | When approved |
-| rejection_reason | TEXT | Why rejected |
-| last_progress_update | TIMESTAMPTZ | Last update |
-| progress_percentage | NUMERIC | Progress % |
-| created_by | UUID | FK to users |
+| snapshot_at | TIMESTAMPTZ | When snapshot was taken |
+| target_value | DECIMAL(18,2) | Target at snapshot time |
+| actual_value | DECIMAL(18,2) | Actual at snapshot time |
+| percentage | DECIMAL(5,2) | Achievement percentage |
+| score | DECIMAL(10,2) | Weighted score |
+| rank | INTEGER | Rank at snapshot time |
 
-### wig_progress
+### user_score_aggregate_snapshots (Server-only)
 
-History progress per WIG.
+Historical point-in-time snapshots of aggregated scores. Created on period lock or scheduled intervals.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| wig_id | UUID | FK to wigs |
-| recorded_date | DATE | Recording date |
-| value | NUMERIC | Value at this point |
-| progress_percentage | NUMERIC | Calculated % |
-| status | VARCHAR(20) | ON_TRACK, AT_RISK, OFF_TRACK |
-| notes | TEXT | Notes |
-| recorded_by | UUID | FK to users |
+| user_id | UUID | FK to users |
+| period_id | UUID | FK to scoring_periods |
+| snapshot_at | TIMESTAMPTZ | When snapshot was taken |
+| lead_score | DECIMAL(10,2) | Lead score at snapshot |
+| lag_score | DECIMAL(10,2) | Lag score at snapshot |
+| bonus_points | DECIMAL(10,2) | Bonus at snapshot |
+| penalty_points | DECIMAL(10,2) | Penalty at snapshot |
+| total_score | DECIMAL(10,2) | Total score at snapshot |
+| rank | INTEGER | Rank at snapshot |
+| rank_change | INTEGER | Rank change at snapshot |
 
 ---
 
@@ -165,23 +159,14 @@ percentage = MIN(150, (actual_value / target_value) × 100)
 total_score = (lead_score × 0.6) + (lag_score × 0.4) + bonus_points - penalty_points
 ```
 
-### WIG Status Calculation
-```
-expected_progress = (days_elapsed / total_days) × 100
-
-ON_TRACK:  ≥ 90% of expected
-AT_RISK:   70-89% of expected
-OFF_TRACK: < 70% of expected
-```
-
 ---
 
 ## 🔗 Related Files
 
 - SQL Schema: `docs/04-database/sql/03_4dx_system_seed.sql`
-- Drift Tables: `lib/data/database/tables/scoring.dart`, `wigs.dart`
+- Drift Tables: `lib/data/database/tables/scoring.dart`
 - 4DX Overview: `docs/07-4dx-framework/4dx-overview.md`
-- WIG Management: `docs/07-4dx-framework/wig-management.md`
+- Lead-Lag Measures: `docs/07-4dx-framework/lead-lag-measures.md`
 
 ---
 

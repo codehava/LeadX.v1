@@ -141,6 +141,26 @@ CREATE POLICY "users_update_self" ON users
 FOR UPDATE USING (id = (SELECT auth.uid()));
 
 -- ============================================
+-- USER HIERARCHY TABLE
+-- ============================================
+
+ALTER TABLE user_hierarchy ENABLE ROW LEVEL SECURITY;
+
+-- Users can see relationships where they are ancestor or descendant
+-- This allows seeing own hierarchy (who they supervise, who supervises them)
+CREATE POLICY "user_hierarchy_select_own" ON user_hierarchy
+FOR SELECT USING (
+  ancestor_id = (SELECT auth.uid())
+  OR descendant_id = (SELECT auth.uid())
+);
+
+-- Admins have full access for management
+CREATE POLICY "user_hierarchy_admin_all" ON user_hierarchy
+FOR ALL USING (is_admin());
+
+-- No INSERT/UPDATE/DELETE for non-admins - managed by triggers on users.parent_id
+
+-- ============================================
 -- CUSTOMERS TABLE
 -- ============================================
 
@@ -810,11 +830,11 @@ FOR ALL USING (user_id = (SELECT auth.uid()));
 -- SYSTEM TABLES
 -- ============================================
 
--- Sync queue - users own
+-- Sync queue - service_role access only (no authenticated user access)
+-- SECURITY FIX (2026-02-04): Removed permissive USING(true) policy
+-- App uses local SQLite for sync queue, this table is for admin/debug only
 ALTER TABLE sync_queue_items ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "sync_queue_own" ON sync_queue_items
-FOR ALL USING (true); -- Handled by app logic
+-- No policies = no authenticated user access, only service_role can access
 
 -- Audit logs - admins only
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
@@ -835,15 +855,16 @@ FOR ALL USING (is_admin());
 -- MASTER DATA TABLES (Read-only for all, Admin modify)
 -- ============================================
 
--- Apply to all master data tables
+-- Apply to all master data tables (including organizational tables)
 DO $$
 DECLARE
   tbl TEXT;
 BEGIN
   FOREACH tbl IN ARRAY ARRAY[
-    'provinces', 'cities', 'company_types', 'ownership_types', 
-    'industries', 'cobs', 'lobs', 'pipeline_stages', 
-    'pipeline_statuses', 'activity_types', 'lead_sources', 
+    'regional_offices', 'branches',  -- Organizational (added 2026-02-04)
+    'provinces', 'cities', 'company_types', 'ownership_types',
+    'industries', 'cobs', 'lobs', 'pipeline_stages',
+    'pipeline_statuses', 'activity_types', 'lead_sources',
     'decline_reasons', 'hvc_types'
   ] LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);

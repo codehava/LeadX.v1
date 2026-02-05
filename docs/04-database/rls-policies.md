@@ -366,6 +366,89 @@ FOR SELECT USING (
 
 ---
 
+## 🛡️ Security Audit Fixes (2026-02-04)
+
+### Issue 1: CRITICAL - sync_queue_items RLS Bypass
+
+**Problem:** Policy `USING (true)` allowed ALL authenticated users to see ALL sync queue items, including sensitive payloads with customer data, pipeline values, and personal information.
+
+**Fix:** Removed permissive policy. Table now has RLS enabled with no policies = service_role access only.
+
+```sql
+-- Migration: 20260204100000_fix_sync_queue_rls.sql
+DROP POLICY IF EXISTS "sync_queue_own" ON sync_queue_items;
+-- No new policy = no authenticated user access
+```
+
+### Issue 2: HIGH - user_hierarchy Missing RLS
+
+**Problem:** Table had no RLS enabled, exposing the complete organizational hierarchy to any authenticated user.
+
+**Fix:** Enabled RLS with scoped policies.
+
+```sql
+-- Migration: 20260204100001_enable_user_hierarchy_rls.sql
+ALTER TABLE user_hierarchy ENABLE ROW LEVEL SECURITY;
+
+-- Users see only their own relationships
+CREATE POLICY "user_hierarchy_select_own" ON user_hierarchy
+FOR SELECT USING (
+  ancestor_id = (SELECT auth.uid())
+  OR descendant_id = (SELECT auth.uid())
+);
+
+-- Admins have full access
+CREATE POLICY "user_hierarchy_admin_all" ON user_hierarchy
+FOR ALL USING (is_admin());
+```
+
+### Issue 3: MEDIUM - hvcs Overly Permissive Policy
+
+**Problem:** Policy `hvcs_select_authenticated` allowed all users to see ALL HVCs regardless of ownership.
+
+**Fix:** Replaced with three scoped policies.
+
+```sql
+-- Migration: 20260204100002_fix_hvcs_rls.sql
+DROP POLICY IF EXISTS "hvcs_select_authenticated" ON hvcs;
+
+-- Policy 1: Own HVCs
+CREATE POLICY "hvcs_select_own" ON hvcs
+FOR SELECT USING (created_by = (SELECT auth.uid()));
+
+-- Policy 2: Subordinate HVCs
+CREATE POLICY "hvcs_select_hierarchy" ON hvcs
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM user_hierarchy
+    WHERE ancestor_id = (SELECT auth.uid())
+    AND descendant_id = hvcs.created_by
+  )
+);
+
+-- Policy 3: HVCs linked to accessible customers
+CREATE POLICY "hvcs_select_via_customer_link" ON hvcs
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM customer_hvc_links chl
+    JOIN customers c ON c.id = chl.customer_id
+    WHERE chl.hvc_id = hvcs.id
+    AND chl.deleted_at IS NULL
+    AND c.deleted_at IS NULL
+    AND (
+      c.assigned_rm_id = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM user_hierarchy
+        WHERE ancestor_id = (SELECT auth.uid())
+        AND descendant_id = c.assigned_rm_id
+      )
+    )
+  )
+);
+```
+
+---
+
 ## ✅ RLS Checklist
 
 - [x] Enable RLS on all user-facing tables
@@ -374,6 +457,7 @@ FOR SELECT USING (
 - [x] Use `(SELECT auth.uid())` for caching
 - [x] Document all policies with comments
 - [x] Test with different user roles
+- [x] Security audit completed (2026-02-04)
 
 ---
 

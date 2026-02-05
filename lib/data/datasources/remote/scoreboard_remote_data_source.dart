@@ -135,7 +135,7 @@ class ScoreboardRemoteDataSource {
   Future<PeriodSummary?> fetchUserPeriodSummary(
       String userId, String periodId) async {
     final response = await _supabase
-        .from('user_score_snapshots')
+        .from('user_score_aggregates')
         .select('''
           *,
           users!inner(name),
@@ -157,7 +157,7 @@ class ScoreboardRemoteDataSource {
     int limit = 10,
   }) async {
     final response = await _supabase
-        .from('user_score_snapshots')
+        .from('user_score_aggregates')
         .select('''
           *,
           users!inner(id, name, branch_id, branches(name))
@@ -217,7 +217,7 @@ class ScoreboardRemoteDataSource {
 
     // Get team members count for rank context
     final teamCountResponse = await _supabase
-        .from('user_score_snapshots')
+        .from('user_score_aggregates')
         .select('id')
         .eq('period_id', currentPeriod.id);
 

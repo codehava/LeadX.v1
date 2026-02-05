@@ -248,7 +248,7 @@ class ScoreboardLocalDataSource {
   /// Get user's period summary.
   Future<PeriodSummary?> getUserPeriodSummary(
       String userId, String periodId) async {
-    final query = _db.select(_db.userScoreSnapshots)
+    final query = _db.select(_db.userScoreAggregates)
       ..where((t) => t.userId.equals(userId) & t.periodId.equals(periodId));
 
     final result = await query.getSingleOrNull();
@@ -258,15 +258,15 @@ class ScoreboardLocalDataSource {
   /// Get leaderboard for a period.
   Future<List<PeriodSummary>> getLeaderboard(String periodId,
       {int? limit}) async {
-    var query = _db.select(_db.userScoreSnapshots).join([
-      leftOuterJoin(_db.users, _db.users.id.equalsExp(_db.userScoreSnapshots.userId)),
+    var query = _db.select(_db.userScoreAggregates).join([
+      leftOuterJoin(_db.users, _db.users.id.equalsExp(_db.userScoreAggregates.userId)),
       leftOuterJoin(_db.scoringPeriods,
-          _db.scoringPeriods.id.equalsExp(_db.userScoreSnapshots.periodId)),
+          _db.scoringPeriods.id.equalsExp(_db.userScoreAggregates.periodId)),
     ])
-      ..where(_db.userScoreSnapshots.periodId.equals(periodId))
+      ..where(_db.userScoreAggregates.periodId.equals(periodId))
       ..orderBy([
-        OrderingTerm.asc(_db.userScoreSnapshots.rank),
-        OrderingTerm.desc(_db.userScoreSnapshots.totalScore),
+        OrderingTerm.asc(_db.userScoreAggregates.rank),
+        OrderingTerm.desc(_db.userScoreAggregates.totalScore),
       ]);
 
     if (limit != null) {
@@ -275,7 +275,7 @@ class ScoreboardLocalDataSource {
 
     final results = await query.get();
     return results.map((row) {
-      final summary = row.readTable(_db.userScoreSnapshots);
+      final summary = row.readTable(_db.userScoreAggregates);
       final user = row.readTableOrNull(_db.users);
       final period = row.readTableOrNull(_db.scoringPeriods);
       return _mapToPeriodSummary(summary, user, period);
@@ -290,12 +290,12 @@ class ScoreboardLocalDataSource {
 
   /// Get total team members count for a period.
   Future<int> getTeamMembersCount(String periodId) async {
-    final query = _db.selectOnly(_db.userScoreSnapshots)
-      ..addColumns([_db.userScoreSnapshots.id.count()])
-      ..where(_db.userScoreSnapshots.periodId.equals(periodId));
+    final query = _db.selectOnly(_db.userScoreAggregates)
+      ..addColumns([_db.userScoreAggregates.id.count()])
+      ..where(_db.userScoreAggregates.periodId.equals(periodId));
 
     final result = await query.getSingle();
-    return result.read(_db.userScoreSnapshots.id.count()) ?? 0;
+    return result.read(_db.userScoreAggregates.id.count()) ?? 0;
   }
 
   /// Insert or update period summaries.
@@ -303,8 +303,8 @@ class ScoreboardLocalDataSource {
     await _db.batch((batch) {
       for (final summary in summaries) {
         batch.insert(
-          _db.userScoreSnapshots,
-          db.UserScoreSnapshotsCompanion.insert(
+          _db.userScoreAggregates,
+          db.UserScoreAggregatesCompanion.insert(
             id: summary.id,
             userId: summary.userId,
             periodId: summary.periodId,
@@ -401,7 +401,7 @@ class ScoreboardLocalDataSource {
   }
 
   PeriodSummary _mapToPeriodSummary(
-    db.UserScoreSnapshot data,
+    db.UserScoreAggregate data,
     db.User? user,
     db.ScoringPeriod? period,
   ) {

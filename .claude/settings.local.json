@@ -37,7 +37,11 @@
       "Bash(flutter test:*)",
       "Bash(tasklist:*)",
       "Bash(taskkill:*)",
-      "Bash(netsh advfirewall firewall show rule:*)"
+      "Bash(netsh advfirewall firewall show rule:*)",
+      "Bash(xargs:*)",
+      "WebSearch",
+      "Bash(supabase db dump:*)",
+      "Bash(npx supabase:*)"
     ]
   }
 }

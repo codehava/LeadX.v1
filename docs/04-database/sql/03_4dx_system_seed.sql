@@ -77,7 +77,8 @@ CREATE INDEX idx_user_scores_user ON user_scores(user_id);
 CREATE INDEX idx_user_scores_period ON user_scores(period_id);
 CREATE INDEX idx_user_scores_measure ON user_scores(measure_id);
 
-CREATE TABLE user_score_snapshots (
+-- Real-time aggregated scores (synced to local SQLite)
+CREATE TABLE user_score_aggregates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id),
   period_id UUID REFERENCES scoring_periods(id),
@@ -93,78 +94,47 @@ CREATE TABLE user_score_snapshots (
   UNIQUE(user_id, period_id)
 );
 
+CREATE INDEX idx_user_score_aggregates_user ON user_score_aggregates(user_id);
+CREATE INDEX idx_user_score_aggregates_period ON user_score_aggregates(period_id);
+
+-- Historical snapshots of individual scores (server-only)
+CREATE TABLE user_score_snapshots (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  period_id UUID REFERENCES scoring_periods(id),
+  measure_id UUID REFERENCES measure_definitions(id),
+  snapshot_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  target_value DECIMAL(18, 2),
+  actual_value DECIMAL(18, 2),
+  percentage DECIMAL(5, 2),
+  score DECIMAL(10, 2),
+  rank INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE INDEX idx_user_score_snapshots_user ON user_score_snapshots(user_id);
 CREATE INDEX idx_user_score_snapshots_period ON user_score_snapshots(period_id);
+CREATE INDEX idx_user_score_snapshots_at ON user_score_snapshots(snapshot_at);
 
--- ============================================
--- WIG (WILDLY IMPORTANT GOALS) TABLES
--- ============================================
-
--- WIGs - Discipline 1: Focus on the Wildly Important
-CREATE TABLE wigs (
+-- Historical snapshots of aggregated scores (server-only)
+CREATE TABLE user_score_aggregate_snapshots (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-
-  -- Basic info
-  title VARCHAR(200) NOT NULL,
-  description TEXT,
-
-  -- Hierarchy
-  level VARCHAR(20) NOT NULL CHECK (level IN ('COMPANY', 'REGIONAL', 'BRANCH', 'TEAM')),
-  owner_id UUID NOT NULL REFERENCES users(id),
-  parent_wig_id UUID REFERENCES wigs(id),  -- For cascade from parent level
-
-  -- Measure link (optional - WIG can be linked to a specific measure)
-  measure_type VARCHAR(20) CHECK (measure_type IN ('LAG', 'LEAD')),
-  measure_id UUID REFERENCES measure_definitions(id),
-
-  -- WIG Statement: "From X to Y by When"
-  baseline_value NUMERIC NOT NULL,         -- From X
-  target_value NUMERIC NOT NULL,           -- To Y
-  current_value NUMERIC DEFAULT 0,         -- Current progress
-
-  -- Timeline
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,                  -- By When
-
-  -- Workflow
-  status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'ACTIVE', 'COMPLETED', 'CANCELLED')),
-  submitted_at TIMESTAMPTZ,
-  approved_by UUID REFERENCES users(id),
-  approved_at TIMESTAMPTZ,
-  rejection_reason TEXT,
-
-  -- Progress tracking
-  last_progress_update TIMESTAMPTZ,
-  progress_percentage NUMERIC DEFAULT 0,
-
-  -- Timestamps
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  deleted_at TIMESTAMPTZ
+  user_id UUID REFERENCES users(id),
+  period_id UUID REFERENCES scoring_periods(id),
+  snapshot_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  lead_score DECIMAL(10, 2) DEFAULT 0,
+  lag_score DECIMAL(10, 2) DEFAULT 0,
+  bonus_points DECIMAL(10, 2) DEFAULT 0,
+  penalty_points DECIMAL(10, 2) DEFAULT 0,
+  total_score DECIMAL(10, 2) DEFAULT 0,
+  rank INTEGER,
+  rank_change INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_wigs_owner ON wigs(owner_id);
-CREATE INDEX idx_wigs_level ON wigs(level);
-CREATE INDEX idx_wigs_status ON wigs(status);
-CREATE INDEX idx_wigs_parent ON wigs(parent_wig_id);
-
--- WIG Progress History
-CREATE TABLE wig_progress (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  wig_id UUID NOT NULL REFERENCES wigs(id) ON DELETE CASCADE,
-  recorded_date DATE NOT NULL,
-  value NUMERIC NOT NULL,                  -- Value at this point
-  progress_percentage NUMERIC NOT NULL,    -- Calculated percentage
-  status VARCHAR(20) CHECK (status IN ('ON_TRACK', 'AT_RISK', 'OFF_TRACK')),
-  notes TEXT,
-  recorded_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(wig_id, recorded_date)
-);
-
-CREATE INDEX idx_wig_progress_wig ON wig_progress(wig_id);
-CREATE INDEX idx_wig_progress_date ON wig_progress(recorded_date);
+CREATE INDEX idx_user_score_aggregate_snapshots_user ON user_score_aggregate_snapshots(user_id);
+CREATE INDEX idx_user_score_aggregate_snapshots_period ON user_score_aggregate_snapshots(period_id);
+CREATE INDEX idx_user_score_aggregate_snapshots_at ON user_score_aggregate_snapshots(snapshot_at);
 
 -- ============================================
 -- CADENCE TABLES

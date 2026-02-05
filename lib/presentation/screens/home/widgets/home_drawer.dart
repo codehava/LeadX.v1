@@ -95,7 +95,7 @@ class HomeDrawer extends StatelessWidget {
             context,
             icon: Icons.track_changes,
             title: 'Target',
-            subtitle: 'Kelola target WIG dan lead measures',
+            subtitle: 'Kelola target dan lead measures',
             onTap: onTargetsTap,
           ),
           _buildDrawerItem(
