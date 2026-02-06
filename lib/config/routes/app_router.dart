@@ -10,6 +10,8 @@ import '../../presentation/screens/admin/admin_home_screen.dart';
 import '../../presentation/screens/admin/4dx/admin_4dx_home_screen.dart';
 import '../../presentation/screens/admin/4dx/measures/admin_measure_list_screen.dart';
 import '../../presentation/screens/admin/4dx/measures/admin_measure_form_screen.dart';
+import '../../presentation/screens/admin/4dx/periods/admin_period_list_screen.dart';
+import '../../presentation/screens/admin/4dx/periods/admin_period_form_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_form_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_list_screen.dart';
 import '../../presentation/screens/admin/master_data/master_data_menu_screen.dart';
@@ -45,6 +47,7 @@ import '../../presentation/screens/referral/referral_create_screen.dart';
 import '../../presentation/screens/referral/referral_detail_screen.dart';
 import '../../presentation/screens/referral/referral_list_screen.dart';
 import '../../presentation/screens/scoreboard/scoreboard_screen.dart';
+import '../../presentation/screens/scoreboard/measure_detail_screen.dart';
 import '../../presentation/screens/sync/sync_queue_screen.dart';
 import '../../presentation/screens/cadence/cadence_list_screen.dart';
 import '../../presentation/screens/cadence/cadence_detail_screen.dart';
@@ -486,6 +489,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 child: const ScoreboardScreen(),
               ),
             ),
+            routes: [
+              // Measure Detail
+              GoRoute(
+                path: 'measure/:measureId',
+                name: RouteNames.measureDetail,
+                pageBuilder: (context, state) {
+                  final measureId = state.pathParameters['measureId']!;
+                  return MaterialPage(
+                    child: MeasureDetailScreen(measureId: measureId),
+                  );
+                },
+              ),
+            ],
           ),
 
           // Cadence
@@ -763,11 +779,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => NoTransitionPage(
                   child: ResponsiveShell(
                     currentRoute: state.matchedLocation,
-                    child: const Placeholder(
-                      child: Center(child: Text('Periods List - Coming Soon')),
-                    ),
+                    child: const AdminPeriodListScreen(),
                   ),
                 ),
+                routes: [
+                  // Create Period
+                  GoRoute(
+                    path: 'create',
+                    name: RouteNames.adminPeriodCreate,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) =>
+                        const AdminPeriodFormScreen(),
+                  ),
+                  // Edit Period
+                  GoRoute(
+                    path: ':id',
+                    name: RouteNames.adminPeriodEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return AdminPeriodFormScreen(periodId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

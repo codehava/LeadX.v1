@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/scoring_entities.dart';
+import '../../../config/routes/route_names.dart';
 import '../../providers/scoreboard_providers.dart';
 import '../../widgets/scoreboard/leaderboard_card.dart';
 import '../../widgets/scoreboard/measure_progress_bar.dart';
@@ -374,11 +376,20 @@ class ScoreboardScreen extends ConsumerWidget {
               final isLast = entry.key == scores.length - 1;
               return Padding(
                 padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-                child: MeasureProgressBar(
-                  measureName: score.measureName ?? 'Unknown',
-                  actualValue: score.actualValue,
-                  targetValue: score.targetValue,
-                  unit: score.measureUnit,
+                child: InkWell(
+                  onTap: () {
+                    context.pushNamed(
+                      RouteNames.measureDetail,
+                      pathParameters: {'measureId': score.measureId},
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: MeasureProgressBar(
+                    measureName: score.measureName ?? 'Unknown',
+                    actualValue: score.actualValue,
+                    targetValue: score.targetValue,
+                    unit: score.measureUnit,
+                  ),
                 ),
               );
             }),

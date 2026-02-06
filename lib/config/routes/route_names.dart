@@ -72,8 +72,9 @@ abstract class RouteNames {
   // ============================================
   // 4DX ROUTES
   // ============================================
-  
+
   static const String scoreboard = 'scoreboard';
+  static const String measureDetail = 'measure-detail';
   static const String targets = 'targets';
   static const String cadence = 'cadence';
   static const String cadenceDetail = 'cadence-detail';
@@ -177,6 +178,7 @@ abstract class RoutePaths {
 
   // 4DX
   static const String scoreboard = '/home/scoreboard';
+  static const String measureDetail = '/home/scoreboard/measure/:measureId';
   static const String targets = '/home/targets';
   static const String cadence = '/home/cadence';
   static const String cadenceDetail = '/home/cadence/:id';

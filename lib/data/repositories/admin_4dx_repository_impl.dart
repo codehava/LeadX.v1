@@ -222,7 +222,10 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
         );
       case 'QUARTERLY':
         final quarterEndMonth = ((startDate.month - 1) ~/ 3 + 1) * 3;
-        final endDate = DateTime(startDate.year, quarterEndMonth + 1, 0);
+        // Handle year rollover for Q4 (Oct-Dec) where quarterEndMonth = 12
+        final endDate = quarterEndMonth == 12
+            ? DateTime(startDate.year + 1, 1, 0) // Last day of Dec (year+1, month 1, day 0)
+            : DateTime(startDate.year, quarterEndMonth + 1, 0);
         return (
           'Q${(startDate.month - 1) ~/ 3 + 1} ${startDate.year}',
           endDate

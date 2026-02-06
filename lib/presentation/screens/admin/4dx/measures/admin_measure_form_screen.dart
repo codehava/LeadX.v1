@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../domain/entities/scoring_entities.dart';
 import '../../../../providers/admin/admin_4dx_providers.dart';
 import '../../../../providers/master_data_providers.dart';
 import '../../../../widgets/admin/multi_select_checkbox_field.dart';
@@ -237,14 +236,25 @@ class _AdminMeasureFormScreenState
       padding: const EdgeInsets.only(top: 16),
       child: Row(
         children: [
-          FilledButton(
-            onPressed: details.onStepContinue,
-            child: Text(isLastStep ? 'Simpan' : 'Lanjut'),
+          FilledButton.icon(
+            onPressed: _isLoading ? null : details.onStepContinue,
+            icon: _isLoading && isLastStep
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(isLastStep ? Icons.save : Icons.arrow_forward),
+            label: Text(
+              _isLoading && isLastStep
+                  ? 'Menyimpan...'
+                  : (isLastStep ? 'Simpan' : 'Lanjut'),
+            ),
           ),
           const SizedBox(width: 12),
           if (!isFirstStep)
             OutlinedButton(
-              onPressed: details.onStepCancel,
+              onPressed: _isLoading ? null : details.onStepCancel,
               child: const Text('Kembali'),
             ),
         ],
@@ -257,6 +267,9 @@ class _AdminMeasureFormScreenState
   }
 
   void _onStepContinue() {
+    // Prevent double-tap during save
+    if (_isLoading) return;
+
     if (_currentStep < _getMaxSteps() - 1) {
       // Validate current step
       if (_validateCurrentStep()) {
