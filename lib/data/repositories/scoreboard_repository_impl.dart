@@ -239,6 +239,67 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   }
 
   @override
+  Future<List<LeaderboardEntry>> getLeaderboardWithFilters(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+    String? searchQuery,
+    int limit = 100,
+  }) async {
+    // Always try remote for leaderboard as it needs to be current
+    if (await _connectivityService.isConnected) {
+      try {
+        return await _remoteDataSource.fetchLeaderboardWithFilters(
+          periodId,
+          branchId: branchId,
+          regionalOfficeId: regionalOfficeId,
+          searchQuery: searchQuery,
+          limit: limit,
+        );
+      } catch (e) {
+        // Fallback to local (basic, no filters)
+      }
+    }
+
+    // Fallback to local data (basic leaderboard, filters not supported offline)
+    final localData = await _localDataSource.getLeaderboard(periodId, limit: limit);
+    return localData.map((summary) {
+      return LeaderboardEntry(
+        id: summary.id,
+        rank: (summary.rank ?? 0).toString(),
+        userId: summary.userId,
+        userName: summary.userName ?? 'Unknown',
+        score: summary.compositeScore,
+        leadScore: summary.totalLeadScore,
+        lagScore: summary.totalLagScore,
+        rankChange: summary.rankChange,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<TeamSummary?> getTeamSummary(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+  }) async {
+    // Always try remote for team summary as it needs to be current
+    if (await _connectivityService.isConnected) {
+      try {
+        return await _remoteDataSource.fetchTeamSummary(
+          periodId,
+          branchId: branchId,
+          regionalOfficeId: regionalOfficeId,
+        );
+      } catch (e) {
+        // No fallback for team summary (requires aggregation)
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<int> getTeamMembersCount(String periodId) async {
     return _localDataSource.getTeamMembersCount(periodId);
   }

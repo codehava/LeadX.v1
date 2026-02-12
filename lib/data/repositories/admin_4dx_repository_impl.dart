@@ -15,7 +15,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
 
   @override
   Future<List<MeasureDefinition>> getAllMeasures() async {
-    return await _remoteDataSource.fetchAllMeasureDefinitions();
+    return _remoteDataSource.fetchAllMeasureDefinitions();
   }
 
   @override
@@ -65,7 +65,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
       'is_active': true,
     };
 
-    return await _remoteDataSource.createMeasureDefinition(data);
+    return _remoteDataSource.createMeasureDefinition(data);
   }
 
   @override
@@ -88,7 +88,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
     if (isActive != null) data['is_active'] = isActive;
     if (sortOrder != null) data['sort_order'] = sortOrder;
 
-    return await _remoteDataSource.updateMeasureDefinition(id, data);
+    return _remoteDataSource.updateMeasureDefinition(id, data);
   }
 
   @override
@@ -102,7 +102,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
 
   @override
   Future<List<ScoringPeriod>> getAllPeriods() async {
-    return await _remoteDataSource.fetchScoringPeriods();
+    return _remoteDataSource.fetchScoringPeriods();
   }
 
   @override
@@ -133,7 +133,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
       'is_active': true,
     };
 
-    return await _remoteDataSource.createScoringPeriod(data);
+    return _remoteDataSource.createScoringPeriod(data);
   }
 
   @override
@@ -152,7 +152,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
     if (isCurrent != null) data['is_current'] = isCurrent;
     if (isActive != null) data['is_active'] = isActive;
 
-    return await _remoteDataSource.updateScoringPeriod(id, data);
+    return _remoteDataSource.updateScoringPeriod(id, data);
   }
 
   @override
@@ -162,7 +162,7 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
 
   @override
   Future<ScoringPeriod> lockPeriod(String id) async {
-    return await _remoteDataSource.lockPeriod(id);
+    return _remoteDataSource.lockPeriod(id);
   }
 
   @override
@@ -177,9 +177,9 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
     required int count,
   }) async {
     final periods = <ScoringPeriod>[];
-    DateTime currentStart = startDate;
+    var currentStart = startDate;
 
-    for (int i = 0; i < count; i++) {
+    for (var i = 0; i < count; i++) {
       final (name, endDate) = _calculatePeriodEnd(periodType, currentStart, i + 1);
 
       final period = await createPeriod(
@@ -195,6 +195,95 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
     }
 
     return periods;
+  }
+
+  // ============================================
+  // TARGET MANAGEMENT
+  // ============================================
+
+  @override
+  Future<List<UserTarget>> getTargetsForPeriod(String periodId) async {
+    return _remoteDataSource.fetchTargetsForPeriod(periodId);
+  }
+
+  @override
+  Future<List<UserTarget>> getUserTargetsForPeriod(
+      String userId, String periodId) async {
+    return _remoteDataSource.fetchUserTargets(userId, periodId);
+  }
+
+  @override
+  Future<UserTarget> upsertUserTarget({
+    required String userId,
+    required String measureId,
+    required String periodId,
+    required double targetValue,
+    required String assignedBy,
+  }) async {
+    return _remoteDataSource.upsertUserTarget(
+      userId: userId,
+      measureId: measureId,
+      periodId: periodId,
+      targetValue: targetValue,
+      assignedBy: assignedBy,
+    );
+  }
+
+  @override
+  Future<void> bulkAssignTargets({
+    required String periodId,
+    required String assignedBy,
+    required List<String> userIds,
+    required Map<String, double> measureTargets,
+  }) async {
+    // Build cartesian product: each user × each measure target
+    final targets = <Map<String, dynamic>>[];
+    for (final userId in userIds) {
+      for (final entry in measureTargets.entries) {
+        targets.add({
+          'userId': userId,
+          'measureId': entry.key,
+          'targetValue': entry.value,
+        });
+      }
+    }
+
+    await _remoteDataSource.bulkUpsertUserTargets(
+      periodId: periodId,
+      assignedBy: assignedBy,
+      targets: targets,
+    );
+  }
+
+  @override
+  Future<void> applyDefaultTargets({
+    required String userId,
+    required String periodId,
+    required String assignedBy,
+  }) async {
+    // Fetch active measures and use their default targets
+    final measures = await _remoteDataSource.fetchMeasureDefinitions();
+    final targets = measures
+        .where((m) => m.defaultTarget > 0)
+        .map((m) => {
+              'userId': userId,
+              'measureId': m.id,
+              'targetValue': m.defaultTarget,
+            })
+        .toList();
+
+    if (targets.isNotEmpty) {
+      await _remoteDataSource.bulkUpsertUserTargets(
+        periodId: periodId,
+        assignedBy: assignedBy,
+        targets: targets,
+      );
+    }
+  }
+
+  @override
+  Future<void> deleteUserTarget(String targetId) async {
+    await _remoteDataSource.deleteUserTarget(targetId);
   }
 
   // Helper to calculate period end date and name

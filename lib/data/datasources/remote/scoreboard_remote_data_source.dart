@@ -89,10 +89,13 @@ class ScoreboardRemoteDataSource {
         userId: jsonMap['user_id'] as String,
         measureId: jsonMap['measure_id'] as String,
         periodId: jsonMap['period_id'] as String,
-        targetValue: (jsonMap['target_value'] as num).toDouble(),
+        targetValue: (jsonMap['target_value'] as num?)?.toDouble() ?? 0,
         assignedBy: jsonMap['assigned_by'] as String?,
         createdAt: jsonMap['assigned_at'] != null
             ? DateTime.parse(jsonMap['assigned_at'] as String)
+            : null,
+        updatedAt: jsonMap['updated_at'] != null
+            ? DateTime.parse(jsonMap['updated_at'] as String)
             : null,
         measureName: measure?['name'] as String?,
         measureType: measure?['measure_type'] as String?,
@@ -196,10 +199,240 @@ class ScoreboardRemoteDataSource {
     }).toList();
   }
 
+  /// Fetch leaderboard with filters for dedicated leaderboard screen.
+  Future<List<LeaderboardEntry>> fetchLeaderboardWithFilters(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+    String? searchQuery,
+    int limit = 100,
+  }) async {
+    dynamic query = _supabase
+        .from('user_score_aggregates')
+        .select('''
+          *,
+          users!inner(id, name, branch_id, regional_office_id, branches(name))
+        ''')
+        .eq('period_id', periodId);
+
+    // Apply filters
+    if (branchId != null) {
+      query = query.eq('users.branch_id', branchId);
+    }
+    if (regionalOfficeId != null) {
+      query = query.eq('users.regional_office_id', regionalOfficeId);
+    }
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      query = query.ilike('users.name', '%${searchQuery.trim()}%');
+    }
+
+    query = query.order('rank').limit(limit);
+
+    final response = await query;
+
+    return (response as List).map((json) {
+      final jsonMap = json as Map<String, dynamic>;
+      final user = jsonMap['users'] as Map<String, dynamic>?;
+      final branch = user?['branches'] as Map<String, dynamic>?;
+      return LeaderboardEntry(
+        id: jsonMap['id'] as String,
+        rank: (jsonMap['rank'] as int? ?? 0).toString(),
+        userId: user?['id'] as String? ?? '',
+        userName: user?['name'] as String? ?? 'Unknown',
+        score: (jsonMap['total_score'] as num?)?.toDouble() ?? 0,
+        leadScore: (jsonMap['lead_score'] as num?)?.toDouble() ?? 0,
+        lagScore: (jsonMap['lag_score'] as num?)?.toDouble() ?? 0,
+        rankChange: null, // Would need previous period comparison
+        branchName: branch?['name'] as String?,
+      );
+    }).toList();
+  }
+
   /// Fetch user's rank in a period.
   Future<int?> fetchUserRank(String userId, String periodId) async {
     final summary = await fetchUserPeriodSummary(userId, periodId);
     return summary?.rank;
+  }
+
+  // ============================================
+  // TEAM SUMMARY
+  // ============================================
+
+  /// Fetch team summary for branch or region.
+  Future<TeamSummary?> fetchTeamSummary(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+  }) async {
+    // Query user_score_aggregates to calculate team averages
+    dynamic query = _supabase
+        .from('user_score_aggregates')
+        .select('''
+          *,
+          users!inner(id, branch_id, regional_office_id, branches(id, name))
+        ''')
+        .eq('period_id', periodId);
+
+    // Apply filters
+    if (branchId != null) {
+      query = query.eq('users.branch_id', branchId);
+    }
+    if (regionalOfficeId != null) {
+      query = query.eq('users.regional_office_id', regionalOfficeId);
+    }
+
+    final response = await query;
+    final data = response as List;
+
+    if (data.isEmpty) return null;
+
+    // Calculate team aggregates
+    double totalScore = 0;
+    double totalLeadScore = 0;
+    double totalLagScore = 0;
+    int count = data.length;
+
+    for (final entry in data) {
+      final jsonMap = entry as Map<String, dynamic>;
+      totalScore += (jsonMap['total_score'] as num?)?.toDouble() ?? 0;
+      totalLeadScore += (jsonMap['lead_score'] as num?)?.toDouble() ?? 0;
+      totalLagScore += (jsonMap['lag_score'] as num?)?.toDouble() ?? 0;
+    }
+
+    // Get branch/region name from first user
+    final firstUser = data.first['users'] as Map<String, dynamic>?;
+    final branch = firstUser?['branches'] as Map<String, dynamic>?;
+
+    return TeamSummary(
+      id: '${periodId}_${branchId ?? regionalOfficeId ?? 'all'}',
+      periodId: periodId,
+      branchId: branchId,
+      regionalOfficeId: regionalOfficeId,
+      branchName: branch?['name'] as String?,
+      averageScore: count > 0 ? totalScore / count : 0,
+      averageLeadScore: count > 0 ? totalLeadScore / count : 0,
+      averageLagScore: count > 0 ? totalLagScore / count : 0,
+      teamMembersCount: count,
+      // TODO: Team rank and score change would require additional queries
+      // to compare across teams and periods
+    );
+  }
+
+  // ============================================
+  // ADMIN: TARGET MANAGEMENT
+  // ============================================
+
+  /// Fetch all targets for a specific period (Admin).
+  Future<List<UserTarget>> fetchTargetsForPeriod(String periodId) async {
+    final response = await _supabase
+        .from('user_targets')
+        .select('''
+          *,
+          measure_definitions!inner(name, measure_type, unit),
+          users!user_targets_user_id_fkey!inner(name)
+        ''')
+        .eq('period_id', periodId);
+
+    return (response as List).map((json) {
+      final jsonMap = json as Map<String, dynamic>;
+      final measure = jsonMap['measure_definitions'] as Map<String, dynamic>?;
+      return UserTarget(
+        id: jsonMap['id'] as String,
+        userId: jsonMap['user_id'] as String,
+        measureId: jsonMap['measure_id'] as String,
+        periodId: jsonMap['period_id'] as String,
+        targetValue: (jsonMap['target_value'] as num?)?.toDouble() ?? 0,
+        assignedBy: jsonMap['assigned_by'] as String?,
+        createdAt: jsonMap['assigned_at'] != null
+            ? DateTime.parse(jsonMap['assigned_at'] as String)
+            : null,
+        updatedAt: jsonMap['updated_at'] != null
+            ? DateTime.parse(jsonMap['updated_at'] as String)
+            : null,
+        measureName: measure?['name'] as String?,
+        measureType: measure?['measure_type'] as String?,
+        measureUnit: measure?['unit'] as String?,
+      );
+    }).toList();
+  }
+
+  /// Upsert a single user target (Admin).
+  Future<UserTarget> upsertUserTarget({
+    required String userId,
+    required String measureId,
+    required String periodId,
+    required double targetValue,
+    required String assignedBy,
+  }) async {
+    final response = await _supabase
+        .from('user_targets')
+        .upsert(
+          {
+            'user_id': userId,
+            'measure_id': measureId,
+            'period_id': periodId,
+            'target_value': targetValue,
+            'assigned_by': assignedBy,
+            'assigned_at': DateTime.now().toIso8601String(),
+          },
+          onConflict: 'user_id,measure_id,period_id',
+        )
+        .select('''
+          *,
+          measure_definitions!inner(name, measure_type, unit)
+        ''')
+        .single();
+
+    final measure =
+        response['measure_definitions'] as Map<String, dynamic>?;
+    return UserTarget(
+      id: response['id'] as String,
+      userId: response['user_id'] as String,
+      measureId: response['measure_id'] as String,
+      periodId: response['period_id'] as String,
+      targetValue: (response['target_value'] as num?)?.toDouble() ?? 0,
+      assignedBy: response['assigned_by'] as String?,
+      createdAt: response['assigned_at'] != null
+          ? DateTime.parse(response['assigned_at'] as String)
+          : null,
+      updatedAt: response['updated_at'] != null
+          ? DateTime.parse(response['updated_at'] as String)
+          : null,
+      measureName: measure?['name'] as String?,
+      measureType: measure?['measure_type'] as String?,
+      measureUnit: measure?['unit'] as String?,
+    );
+  }
+
+  /// Bulk upsert user targets (Admin).
+  ///
+  /// Returns the number of rows upserted for verification.
+  Future<int> bulkUpsertUserTargets({
+    required String periodId,
+    required String assignedBy,
+    required List<Map<String, dynamic>> targets,
+  }) async {
+    final now = DateTime.now().toIso8601String();
+    final rows = targets.map((t) => {
+          'user_id': t['userId'],
+          'measure_id': t['measureId'],
+          'period_id': periodId,
+          'target_value': t['targetValue'],
+          'assigned_by': assignedBy,
+          'assigned_at': now,
+        }).toList();
+
+    final response = await _supabase
+        .from('user_targets')
+        .upsert(rows, onConflict: 'user_id,measure_id,period_id')
+        .select('id');
+
+    return (response as List).length;
+  }
+
+  /// Delete a user target (Admin).
+  Future<void> deleteUserTarget(String targetId) async {
+    await _supabase.from('user_targets').delete().eq('id', targetId);
   }
 
   // ============================================
@@ -401,9 +634,12 @@ class ScoreboardRemoteDataSource {
       totalLeadScore: (json['lead_score'] as num?)?.toDouble() ?? 0,
       totalLagScore: (json['lag_score'] as num?)?.toDouble() ?? 0,
       compositeScore: (json['total_score'] as num?)?.toDouble() ?? 0,
+      bonusPoints: (json['bonus_points'] as num?)?.toDouble() ?? 0,
+      penaltyPoints: (json['penalty_points'] as num?)?.toDouble() ?? 0,
       rank: json['rank'] as int?,
-      calculatedAt: json['snapshot_at'] != null
-          ? DateTime.parse(json['snapshot_at'] as String)
+      rankChange: json['rank_change'] as int?,
+      calculatedAt: json['calculated_at'] != null
+          ? DateTime.parse(json['calculated_at'] as String)
           : null,
       userName: user?['name'] as String?,
       periodName: period?['name'] as String?,

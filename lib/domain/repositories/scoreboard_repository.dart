@@ -59,6 +59,22 @@ abstract class ScoreboardRepository {
   /// Get leaderboard for a period.
   Future<List<LeaderboardEntry>> getLeaderboard(String periodId, {int limit = 10});
 
+  /// Get leaderboard with filters for dedicated leaderboard screen.
+  Future<List<LeaderboardEntry>> getLeaderboardWithFilters(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+    String? searchQuery,
+    int limit = 100,
+  });
+
+  /// Get team summary for branch or region.
+  Future<TeamSummary?> getTeamSummary(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+  });
+
   /// Get total team members count.
   Future<int> getTeamMembersCount(String periodId);
 

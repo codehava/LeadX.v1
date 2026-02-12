@@ -18,6 +18,9 @@ class HomeDrawer extends StatelessWidget {
   final VoidCallback? onTargetsTap;
   final VoidCallback? onNotificationsTap;
   final VoidCallback? onHelpTap;
+  // Manager callbacks
+  final VoidCallback? onTeamTargetsTap;
+  final bool canManageTeamTargets;
   // Admin callbacks
   final VoidCallback? onAdminPanelTap;
   final bool isAdmin;
@@ -38,6 +41,8 @@ class HomeDrawer extends StatelessWidget {
     this.onTargetsTap,
     this.onNotificationsTap,
     this.onHelpTap,
+    this.onTeamTargetsTap,
+    this.canManageTeamTargets = false,
     this.onAdminPanelTap,
     this.isAdmin = false,
   });
@@ -98,6 +103,14 @@ class HomeDrawer extends StatelessWidget {
             subtitle: 'Kelola target dan lead measures',
             onTap: onTargetsTap,
           ),
+          if (canManageTeamTargets)
+            _buildDrawerItem(
+              context,
+              icon: Icons.group_work,
+              title: 'Tim Target',
+              subtitle: 'Tetapkan target untuk bawahan',
+              onTap: onTeamTargetsTap,
+            ),
           _buildDrawerItem(
             context,
             icon: Icons.groups,

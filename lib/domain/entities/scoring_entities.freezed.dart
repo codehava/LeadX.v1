@@ -1825,6 +1825,8 @@ mixin _$PeriodSummary {
   double get totalLeadScore => throw _privateConstructorUsedError;
   double get totalLagScore => throw _privateConstructorUsedError;
   double get compositeScore => throw _privateConstructorUsedError;
+  double get bonusPoints => throw _privateConstructorUsedError;
+  double get penaltyPoints => throw _privateConstructorUsedError;
   int? get rank => throw _privateConstructorUsedError;
   int? get rankChange => throw _privateConstructorUsedError;
   DateTime? get calculatedAt => throw _privateConstructorUsedError;
@@ -1858,6 +1860,8 @@ abstract class $PeriodSummaryCopyWith<$Res> {
     double totalLeadScore,
     double totalLagScore,
     double compositeScore,
+    double bonusPoints,
+    double penaltyPoints,
     int? rank,
     int? rankChange,
     DateTime? calculatedAt,
@@ -1889,6 +1893,8 @@ class _$PeriodSummaryCopyWithImpl<$Res, $Val extends PeriodSummary>
     Object? totalLeadScore = null,
     Object? totalLagScore = null,
     Object? compositeScore = null,
+    Object? bonusPoints = null,
+    Object? penaltyPoints = null,
     Object? rank = freezed,
     Object? rankChange = freezed,
     Object? calculatedAt = freezed,
@@ -1922,6 +1928,14 @@ class _$PeriodSummaryCopyWithImpl<$Res, $Val extends PeriodSummary>
             compositeScore: null == compositeScore
                 ? _value.compositeScore
                 : compositeScore // ignore: cast_nullable_to_non_nullable
+                      as double,
+            bonusPoints: null == bonusPoints
+                ? _value.bonusPoints
+                : bonusPoints // ignore: cast_nullable_to_non_nullable
+                      as double,
+            penaltyPoints: null == penaltyPoints
+                ? _value.penaltyPoints
+                : penaltyPoints // ignore: cast_nullable_to_non_nullable
                       as double,
             rank: freezed == rank
                 ? _value.rank
@@ -1973,6 +1987,8 @@ abstract class _$$PeriodSummaryImplCopyWith<$Res>
     double totalLeadScore,
     double totalLagScore,
     double compositeScore,
+    double bonusPoints,
+    double penaltyPoints,
     int? rank,
     int? rankChange,
     DateTime? calculatedAt,
@@ -2003,6 +2019,8 @@ class __$$PeriodSummaryImplCopyWithImpl<$Res>
     Object? totalLeadScore = null,
     Object? totalLagScore = null,
     Object? compositeScore = null,
+    Object? bonusPoints = null,
+    Object? penaltyPoints = null,
     Object? rank = freezed,
     Object? rankChange = freezed,
     Object? calculatedAt = freezed,
@@ -2036,6 +2054,14 @@ class __$$PeriodSummaryImplCopyWithImpl<$Res>
         compositeScore: null == compositeScore
             ? _value.compositeScore
             : compositeScore // ignore: cast_nullable_to_non_nullable
+                  as double,
+        bonusPoints: null == bonusPoints
+            ? _value.bonusPoints
+            : bonusPoints // ignore: cast_nullable_to_non_nullable
+                  as double,
+        penaltyPoints: null == penaltyPoints
+            ? _value.penaltyPoints
+            : penaltyPoints // ignore: cast_nullable_to_non_nullable
                   as double,
         rank: freezed == rank
             ? _value.rank
@@ -2080,6 +2106,8 @@ class _$PeriodSummaryImpl extends _PeriodSummary {
     this.totalLeadScore = 0,
     this.totalLagScore = 0,
     this.compositeScore = 0,
+    this.bonusPoints = 0,
+    this.penaltyPoints = 0,
     this.rank,
     this.rankChange,
     this.calculatedAt,
@@ -2108,6 +2136,12 @@ class _$PeriodSummaryImpl extends _PeriodSummary {
   @JsonKey()
   final double compositeScore;
   @override
+  @JsonKey()
+  final double bonusPoints;
+  @override
+  @JsonKey()
+  final double penaltyPoints;
+  @override
   final int? rank;
   @override
   final int? rankChange;
@@ -2125,7 +2159,7 @@ class _$PeriodSummaryImpl extends _PeriodSummary {
 
   @override
   String toString() {
-    return 'PeriodSummary(id: $id, userId: $userId, periodId: $periodId, totalLeadScore: $totalLeadScore, totalLagScore: $totalLagScore, compositeScore: $compositeScore, rank: $rank, rankChange: $rankChange, calculatedAt: $calculatedAt, createdAt: $createdAt, updatedAt: $updatedAt, userName: $userName, periodName: $periodName)';
+    return 'PeriodSummary(id: $id, userId: $userId, periodId: $periodId, totalLeadScore: $totalLeadScore, totalLagScore: $totalLagScore, compositeScore: $compositeScore, bonusPoints: $bonusPoints, penaltyPoints: $penaltyPoints, rank: $rank, rankChange: $rankChange, calculatedAt: $calculatedAt, createdAt: $createdAt, updatedAt: $updatedAt, userName: $userName, periodName: $periodName)';
   }
 
   @override
@@ -2143,6 +2177,10 @@ class _$PeriodSummaryImpl extends _PeriodSummary {
                 other.totalLagScore == totalLagScore) &&
             (identical(other.compositeScore, compositeScore) ||
                 other.compositeScore == compositeScore) &&
+            (identical(other.bonusPoints, bonusPoints) ||
+                other.bonusPoints == bonusPoints) &&
+            (identical(other.penaltyPoints, penaltyPoints) ||
+                other.penaltyPoints == penaltyPoints) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.rankChange, rankChange) ||
                 other.rankChange == rankChange) &&
@@ -2168,6 +2206,8 @@ class _$PeriodSummaryImpl extends _PeriodSummary {
     totalLeadScore,
     totalLagScore,
     compositeScore,
+    bonusPoints,
+    penaltyPoints,
     rank,
     rankChange,
     calculatedAt,
@@ -2199,6 +2239,8 @@ abstract class _PeriodSummary extends PeriodSummary {
     final double totalLeadScore,
     final double totalLagScore,
     final double compositeScore,
+    final double bonusPoints,
+    final double penaltyPoints,
     final int? rank,
     final int? rankChange,
     final DateTime? calculatedAt,
@@ -2224,6 +2266,10 @@ abstract class _PeriodSummary extends PeriodSummary {
   double get totalLagScore;
   @override
   double get compositeScore;
+  @override
+  double get bonusPoints;
+  @override
+  double get penaltyPoints;
   @override
   int? get rank;
   @override
@@ -3040,5 +3086,484 @@ abstract class _DashboardStats implements DashboardStats {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DashboardStatsImplCopyWith<_$DashboardStatsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+TeamSummary _$TeamSummaryFromJson(Map<String, dynamic> json) {
+  return _TeamSummary.fromJson(json);
+}
+
+/// @nodoc
+mixin _$TeamSummary {
+  String get id => throw _privateConstructorUsedError;
+  String get periodId => throw _privateConstructorUsedError;
+  String? get branchId => throw _privateConstructorUsedError;
+  String? get regionalOfficeId => throw _privateConstructorUsedError;
+  String? get branchName => throw _privateConstructorUsedError;
+  String? get regionalOfficeName => throw _privateConstructorUsedError;
+  double get averageScore => throw _privateConstructorUsedError;
+  double get averageLeadScore => throw _privateConstructorUsedError;
+  double get averageLagScore => throw _privateConstructorUsedError;
+  int? get teamRank => throw _privateConstructorUsedError;
+  int? get totalTeams => throw _privateConstructorUsedError;
+  int get teamMembersCount => throw _privateConstructorUsedError;
+  double? get scoreChange => throw _privateConstructorUsedError;
+  int? get rankChange => throw _privateConstructorUsedError;
+  DateTime? get calculatedAt => throw _privateConstructorUsedError;
+
+  /// Serializes this TeamSummary to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of TeamSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $TeamSummaryCopyWith<TeamSummary> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $TeamSummaryCopyWith<$Res> {
+  factory $TeamSummaryCopyWith(
+    TeamSummary value,
+    $Res Function(TeamSummary) then,
+  ) = _$TeamSummaryCopyWithImpl<$Res, TeamSummary>;
+  @useResult
+  $Res call({
+    String id,
+    String periodId,
+    String? branchId,
+    String? regionalOfficeId,
+    String? branchName,
+    String? regionalOfficeName,
+    double averageScore,
+    double averageLeadScore,
+    double averageLagScore,
+    int? teamRank,
+    int? totalTeams,
+    int teamMembersCount,
+    double? scoreChange,
+    int? rankChange,
+    DateTime? calculatedAt,
+  });
+}
+
+/// @nodoc
+class _$TeamSummaryCopyWithImpl<$Res, $Val extends TeamSummary>
+    implements $TeamSummaryCopyWith<$Res> {
+  _$TeamSummaryCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of TeamSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? periodId = null,
+    Object? branchId = freezed,
+    Object? regionalOfficeId = freezed,
+    Object? branchName = freezed,
+    Object? regionalOfficeName = freezed,
+    Object? averageScore = null,
+    Object? averageLeadScore = null,
+    Object? averageLagScore = null,
+    Object? teamRank = freezed,
+    Object? totalTeams = freezed,
+    Object? teamMembersCount = null,
+    Object? scoreChange = freezed,
+    Object? rankChange = freezed,
+    Object? calculatedAt = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            periodId: null == periodId
+                ? _value.periodId
+                : periodId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            branchId: freezed == branchId
+                ? _value.branchId
+                : branchId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            regionalOfficeId: freezed == regionalOfficeId
+                ? _value.regionalOfficeId
+                : regionalOfficeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branchName: freezed == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            regionalOfficeName: freezed == regionalOfficeName
+                ? _value.regionalOfficeName
+                : regionalOfficeName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            averageScore: null == averageScore
+                ? _value.averageScore
+                : averageScore // ignore: cast_nullable_to_non_nullable
+                      as double,
+            averageLeadScore: null == averageLeadScore
+                ? _value.averageLeadScore
+                : averageLeadScore // ignore: cast_nullable_to_non_nullable
+                      as double,
+            averageLagScore: null == averageLagScore
+                ? _value.averageLagScore
+                : averageLagScore // ignore: cast_nullable_to_non_nullable
+                      as double,
+            teamRank: freezed == teamRank
+                ? _value.teamRank
+                : teamRank // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            totalTeams: freezed == totalTeams
+                ? _value.totalTeams
+                : totalTeams // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            teamMembersCount: null == teamMembersCount
+                ? _value.teamMembersCount
+                : teamMembersCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            scoreChange: freezed == scoreChange
+                ? _value.scoreChange
+                : scoreChange // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            rankChange: freezed == rankChange
+                ? _value.rankChange
+                : rankChange // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            calculatedAt: freezed == calculatedAt
+                ? _value.calculatedAt
+                : calculatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$TeamSummaryImplCopyWith<$Res>
+    implements $TeamSummaryCopyWith<$Res> {
+  factory _$$TeamSummaryImplCopyWith(
+    _$TeamSummaryImpl value,
+    $Res Function(_$TeamSummaryImpl) then,
+  ) = __$$TeamSummaryImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String periodId,
+    String? branchId,
+    String? regionalOfficeId,
+    String? branchName,
+    String? regionalOfficeName,
+    double averageScore,
+    double averageLeadScore,
+    double averageLagScore,
+    int? teamRank,
+    int? totalTeams,
+    int teamMembersCount,
+    double? scoreChange,
+    int? rankChange,
+    DateTime? calculatedAt,
+  });
+}
+
+/// @nodoc
+class __$$TeamSummaryImplCopyWithImpl<$Res>
+    extends _$TeamSummaryCopyWithImpl<$Res, _$TeamSummaryImpl>
+    implements _$$TeamSummaryImplCopyWith<$Res> {
+  __$$TeamSummaryImplCopyWithImpl(
+    _$TeamSummaryImpl _value,
+    $Res Function(_$TeamSummaryImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of TeamSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? periodId = null,
+    Object? branchId = freezed,
+    Object? regionalOfficeId = freezed,
+    Object? branchName = freezed,
+    Object? regionalOfficeName = freezed,
+    Object? averageScore = null,
+    Object? averageLeadScore = null,
+    Object? averageLagScore = null,
+    Object? teamRank = freezed,
+    Object? totalTeams = freezed,
+    Object? teamMembersCount = null,
+    Object? scoreChange = freezed,
+    Object? rankChange = freezed,
+    Object? calculatedAt = freezed,
+  }) {
+    return _then(
+      _$TeamSummaryImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        periodId: null == periodId
+            ? _value.periodId
+            : periodId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        branchId: freezed == branchId
+            ? _value.branchId
+            : branchId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        regionalOfficeId: freezed == regionalOfficeId
+            ? _value.regionalOfficeId
+            : regionalOfficeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branchName: freezed == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        regionalOfficeName: freezed == regionalOfficeName
+            ? _value.regionalOfficeName
+            : regionalOfficeName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        averageScore: null == averageScore
+            ? _value.averageScore
+            : averageScore // ignore: cast_nullable_to_non_nullable
+                  as double,
+        averageLeadScore: null == averageLeadScore
+            ? _value.averageLeadScore
+            : averageLeadScore // ignore: cast_nullable_to_non_nullable
+                  as double,
+        averageLagScore: null == averageLagScore
+            ? _value.averageLagScore
+            : averageLagScore // ignore: cast_nullable_to_non_nullable
+                  as double,
+        teamRank: freezed == teamRank
+            ? _value.teamRank
+            : teamRank // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        totalTeams: freezed == totalTeams
+            ? _value.totalTeams
+            : totalTeams // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        teamMembersCount: null == teamMembersCount
+            ? _value.teamMembersCount
+            : teamMembersCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        scoreChange: freezed == scoreChange
+            ? _value.scoreChange
+            : scoreChange // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        rankChange: freezed == rankChange
+            ? _value.rankChange
+            : rankChange // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        calculatedAt: freezed == calculatedAt
+            ? _value.calculatedAt
+            : calculatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$TeamSummaryImpl extends _TeamSummary {
+  const _$TeamSummaryImpl({
+    required this.id,
+    required this.periodId,
+    this.branchId,
+    this.regionalOfficeId,
+    this.branchName,
+    this.regionalOfficeName,
+    this.averageScore = 0,
+    this.averageLeadScore = 0,
+    this.averageLagScore = 0,
+    this.teamRank,
+    this.totalTeams,
+    this.teamMembersCount = 0,
+    this.scoreChange,
+    this.rankChange,
+    this.calculatedAt,
+  }) : super._();
+
+  factory _$TeamSummaryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TeamSummaryImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String periodId;
+  @override
+  final String? branchId;
+  @override
+  final String? regionalOfficeId;
+  @override
+  final String? branchName;
+  @override
+  final String? regionalOfficeName;
+  @override
+  @JsonKey()
+  final double averageScore;
+  @override
+  @JsonKey()
+  final double averageLeadScore;
+  @override
+  @JsonKey()
+  final double averageLagScore;
+  @override
+  final int? teamRank;
+  @override
+  final int? totalTeams;
+  @override
+  @JsonKey()
+  final int teamMembersCount;
+  @override
+  final double? scoreChange;
+  @override
+  final int? rankChange;
+  @override
+  final DateTime? calculatedAt;
+
+  @override
+  String toString() {
+    return 'TeamSummary(id: $id, periodId: $periodId, branchId: $branchId, regionalOfficeId: $regionalOfficeId, branchName: $branchName, regionalOfficeName: $regionalOfficeName, averageScore: $averageScore, averageLeadScore: $averageLeadScore, averageLagScore: $averageLagScore, teamRank: $teamRank, totalTeams: $totalTeams, teamMembersCount: $teamMembersCount, scoreChange: $scoreChange, rankChange: $rankChange, calculatedAt: $calculatedAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TeamSummaryImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.periodId, periodId) ||
+                other.periodId == periodId) &&
+            (identical(other.branchId, branchId) ||
+                other.branchId == branchId) &&
+            (identical(other.regionalOfficeId, regionalOfficeId) ||
+                other.regionalOfficeId == regionalOfficeId) &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName) &&
+            (identical(other.regionalOfficeName, regionalOfficeName) ||
+                other.regionalOfficeName == regionalOfficeName) &&
+            (identical(other.averageScore, averageScore) ||
+                other.averageScore == averageScore) &&
+            (identical(other.averageLeadScore, averageLeadScore) ||
+                other.averageLeadScore == averageLeadScore) &&
+            (identical(other.averageLagScore, averageLagScore) ||
+                other.averageLagScore == averageLagScore) &&
+            (identical(other.teamRank, teamRank) ||
+                other.teamRank == teamRank) &&
+            (identical(other.totalTeams, totalTeams) ||
+                other.totalTeams == totalTeams) &&
+            (identical(other.teamMembersCount, teamMembersCount) ||
+                other.teamMembersCount == teamMembersCount) &&
+            (identical(other.scoreChange, scoreChange) ||
+                other.scoreChange == scoreChange) &&
+            (identical(other.rankChange, rankChange) ||
+                other.rankChange == rankChange) &&
+            (identical(other.calculatedAt, calculatedAt) ||
+                other.calculatedAt == calculatedAt));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    periodId,
+    branchId,
+    regionalOfficeId,
+    branchName,
+    regionalOfficeName,
+    averageScore,
+    averageLeadScore,
+    averageLagScore,
+    teamRank,
+    totalTeams,
+    teamMembersCount,
+    scoreChange,
+    rankChange,
+    calculatedAt,
+  );
+
+  /// Create a copy of TeamSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TeamSummaryImplCopyWith<_$TeamSummaryImpl> get copyWith =>
+      __$$TeamSummaryImplCopyWithImpl<_$TeamSummaryImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TeamSummaryImplToJson(this);
+  }
+}
+
+abstract class _TeamSummary extends TeamSummary {
+  const factory _TeamSummary({
+    required final String id,
+    required final String periodId,
+    final String? branchId,
+    final String? regionalOfficeId,
+    final String? branchName,
+    final String? regionalOfficeName,
+    final double averageScore,
+    final double averageLeadScore,
+    final double averageLagScore,
+    final int? teamRank,
+    final int? totalTeams,
+    final int teamMembersCount,
+    final double? scoreChange,
+    final int? rankChange,
+    final DateTime? calculatedAt,
+  }) = _$TeamSummaryImpl;
+  const _TeamSummary._() : super._();
+
+  factory _TeamSummary.fromJson(Map<String, dynamic> json) =
+      _$TeamSummaryImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get periodId;
+  @override
+  String? get branchId;
+  @override
+  String? get regionalOfficeId;
+  @override
+  String? get branchName;
+  @override
+  String? get regionalOfficeName;
+  @override
+  double get averageScore;
+  @override
+  double get averageLeadScore;
+  @override
+  double get averageLagScore;
+  @override
+  int? get teamRank;
+  @override
+  int? get totalTeams;
+  @override
+  int get teamMembersCount;
+  @override
+  double? get scoreChange;
+  @override
+  int? get rankChange;
+  @override
+  DateTime? get calculatedAt;
+
+  /// Create a copy of TeamSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TeamSummaryImplCopyWith<_$TeamSummaryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

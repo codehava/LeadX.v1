@@ -74,6 +74,7 @@ abstract class RouteNames {
   // ============================================
 
   static const String scoreboard = 'scoreboard';
+  static const String leaderboard = 'leaderboard';
   static const String measureDetail = 'measure-detail';
   static const String targets = 'targets';
   static const String cadence = 'cadence';
@@ -123,6 +124,14 @@ abstract class RouteNames {
   // Bulk Upload
   static const String adminBulkUpload = 'admin-bulk-upload';
   static const String adminBulkUploadEntity = 'admin-bulk-upload-entity';
+
+  // Target Management
+  static const String adminTargets = 'admin-targets';
+  static const String adminTargetForm = 'admin-target-form';
+
+  // Team Targets (Manager-facing)
+  static const String teamTargets = 'team-targets';
+  static const String teamTargetForm = 'team-target-form';
 
   // Cadence Configuration
   static const String adminCadence = 'admin-cadence';
@@ -178,6 +187,7 @@ abstract class RoutePaths {
 
   // 4DX
   static const String scoreboard = '/home/scoreboard';
+  static const String leaderboard = '/home/scoreboard/leaderboard';
   static const String measureDetail = '/home/scoreboard/measure/:measureId';
   static const String targets = '/home/targets';
   static const String cadence = '/home/cadence';
@@ -219,6 +229,14 @@ abstract class RoutePaths {
   // Bulk Upload
   static const String adminBulkUpload = '/admin/bulk-upload';
   static const String adminBulkUploadEntity = '/admin/bulk-upload/:entityType';
+
+  // Target Management
+  static const String adminTargets = '/admin/4dx/targets';
+  static const String adminTargetForm = '/admin/4dx/targets/:userId';
+
+  // Team Targets (Manager-facing)
+  static const String teamTargets = '/home/team-targets';
+  static const String teamTargetForm = '/home/team-targets/:userId';
 
   // Cadence Configuration
   static const String adminCadence = '/admin/cadence';

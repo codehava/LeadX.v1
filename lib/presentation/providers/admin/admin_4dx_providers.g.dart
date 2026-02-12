@@ -7,7 +7,7 @@ part of 'admin_4dx_providers.dart';
 // **************************************************************************
 
 String _$admin4DXRepositoryHash() =>
-    r'9f9b76b1ac7cf2f9fba4baae684fb1fb599fcdd2';
+    r'64d0b8f60cb342b06390826834571044255aaa10';
 
 /// See also [admin4DXRepository].
 @ProviderFor(admin4DXRepository)
@@ -25,7 +25,7 @@ final admin4DXRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef Admin4DXRepositoryRef = AutoDisposeProviderRef<Admin4DXRepository>;
-String _$allMeasuresHash() => r'208cb8ce49c23c705dd606f258be5d7249d2a479';
+String _$allMeasuresHash() => r'0108c66297418d7a77a37e1d2356042e658d95a9';
 
 /// Get all measure definitions (including inactive for admin).
 ///
@@ -45,7 +45,7 @@ final allMeasuresProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllMeasuresRef = AutoDisposeFutureProviderRef<List<MeasureDefinition>>;
-String _$measureByIdHash() => r'528e91eb3b3778b6ad52eb43006c002395119c14';
+String _$measureByIdHash() => r'b44017d9175879d08f9dc360cf49e37edadf4833';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -198,7 +198,7 @@ class _MeasureByIdProviderElement
   String get id => (origin as MeasureByIdProvider).id;
 }
 
-String _$allPeriodsHash() => r'c21b7b2a1f458e9cb6e2ca1b82c44cb36801fb39';
+String _$allPeriodsHash() => r'68209dfcf25c49592405c47a51ac58753a6b39a8';
 
 /// Get all scoring periods.
 ///
@@ -218,7 +218,7 @@ final allPeriodsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllPeriodsRef = AutoDisposeFutureProviderRef<List<ScoringPeriod>>;
-String _$periodByIdHash() => r'e912fc3f00ea6703d75977943e88874feb8a2406';
+String _$periodByIdHash() => r'108d9f04651bf3d45782af6fbbffe802b5a5fc9f';
 
 /// Get period by ID.
 ///
@@ -349,7 +349,285 @@ class _PeriodByIdProviderElement
   String get id => (origin as PeriodByIdProvider).id;
 }
 
-String _$measureFormHash() => r'24a6fd8c37056e019ff30beab1591cc091156721';
+String _$targetsForPeriodHash() => r'7e38d90fb5525c00f1a62aa32b6fb098027d1077';
+
+/// Get all targets for a specific period.
+///
+/// Copied from [targetsForPeriod].
+@ProviderFor(targetsForPeriod)
+const targetsForPeriodProvider = TargetsForPeriodFamily();
+
+/// Get all targets for a specific period.
+///
+/// Copied from [targetsForPeriod].
+class TargetsForPeriodFamily extends Family<AsyncValue<List<UserTarget>>> {
+  /// Get all targets for a specific period.
+  ///
+  /// Copied from [targetsForPeriod].
+  const TargetsForPeriodFamily();
+
+  /// Get all targets for a specific period.
+  ///
+  /// Copied from [targetsForPeriod].
+  TargetsForPeriodProvider call(String periodId) {
+    return TargetsForPeriodProvider(periodId);
+  }
+
+  @override
+  TargetsForPeriodProvider getProviderOverride(
+    covariant TargetsForPeriodProvider provider,
+  ) {
+    return call(provider.periodId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'targetsForPeriodProvider';
+}
+
+/// Get all targets for a specific period.
+///
+/// Copied from [targetsForPeriod].
+class TargetsForPeriodProvider
+    extends AutoDisposeFutureProvider<List<UserTarget>> {
+  /// Get all targets for a specific period.
+  ///
+  /// Copied from [targetsForPeriod].
+  TargetsForPeriodProvider(String periodId)
+    : this._internal(
+        (ref) => targetsForPeriod(ref as TargetsForPeriodRef, periodId),
+        from: targetsForPeriodProvider,
+        name: r'targetsForPeriodProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$targetsForPeriodHash,
+        dependencies: TargetsForPeriodFamily._dependencies,
+        allTransitiveDependencies:
+            TargetsForPeriodFamily._allTransitiveDependencies,
+        periodId: periodId,
+      );
+
+  TargetsForPeriodProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.periodId,
+  }) : super.internal();
+
+  final String periodId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<UserTarget>> Function(TargetsForPeriodRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TargetsForPeriodProvider._internal(
+        (ref) => create(ref as TargetsForPeriodRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        periodId: periodId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<UserTarget>> createElement() {
+    return _TargetsForPeriodProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TargetsForPeriodProvider && other.periodId == periodId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, periodId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TargetsForPeriodRef on AutoDisposeFutureProviderRef<List<UserTarget>> {
+  /// The parameter `periodId` of this provider.
+  String get periodId;
+}
+
+class _TargetsForPeriodProviderElement
+    extends AutoDisposeFutureProviderElement<List<UserTarget>>
+    with TargetsForPeriodRef {
+  _TargetsForPeriodProviderElement(super.provider);
+
+  @override
+  String get periodId => (origin as TargetsForPeriodProvider).periodId;
+}
+
+String _$adminUserTargetsHash() => r'6c60ca4b400d02ac378e22d7dc366ef562b33d23';
+
+/// Get targets for a specific user in a period.
+///
+/// Copied from [adminUserTargets].
+@ProviderFor(adminUserTargets)
+const adminUserTargetsProvider = AdminUserTargetsFamily();
+
+/// Get targets for a specific user in a period.
+///
+/// Copied from [adminUserTargets].
+class AdminUserTargetsFamily extends Family<AsyncValue<List<UserTarget>>> {
+  /// Get targets for a specific user in a period.
+  ///
+  /// Copied from [adminUserTargets].
+  const AdminUserTargetsFamily();
+
+  /// Get targets for a specific user in a period.
+  ///
+  /// Copied from [adminUserTargets].
+  AdminUserTargetsProvider call(String userId, String periodId) {
+    return AdminUserTargetsProvider(userId, periodId);
+  }
+
+  @override
+  AdminUserTargetsProvider getProviderOverride(
+    covariant AdminUserTargetsProvider provider,
+  ) {
+    return call(provider.userId, provider.periodId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'adminUserTargetsProvider';
+}
+
+/// Get targets for a specific user in a period.
+///
+/// Copied from [adminUserTargets].
+class AdminUserTargetsProvider
+    extends AutoDisposeFutureProvider<List<UserTarget>> {
+  /// Get targets for a specific user in a period.
+  ///
+  /// Copied from [adminUserTargets].
+  AdminUserTargetsProvider(String userId, String periodId)
+    : this._internal(
+        (ref) => adminUserTargets(ref as AdminUserTargetsRef, userId, periodId),
+        from: adminUserTargetsProvider,
+        name: r'adminUserTargetsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$adminUserTargetsHash,
+        dependencies: AdminUserTargetsFamily._dependencies,
+        allTransitiveDependencies:
+            AdminUserTargetsFamily._allTransitiveDependencies,
+        userId: userId,
+        periodId: periodId,
+      );
+
+  AdminUserTargetsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+    required this.periodId,
+  }) : super.internal();
+
+  final String userId;
+  final String periodId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<UserTarget>> Function(AdminUserTargetsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AdminUserTargetsProvider._internal(
+        (ref) => create(ref as AdminUserTargetsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+        periodId: periodId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<UserTarget>> createElement() {
+    return _AdminUserTargetsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AdminUserTargetsProvider &&
+        other.userId == userId &&
+        other.periodId == periodId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+    hash = _SystemHash.combine(hash, periodId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AdminUserTargetsRef on AutoDisposeFutureProviderRef<List<UserTarget>> {
+  /// The parameter `userId` of this provider.
+  String get userId;
+
+  /// The parameter `periodId` of this provider.
+  String get periodId;
+}
+
+class _AdminUserTargetsProviderElement
+    extends AutoDisposeFutureProviderElement<List<UserTarget>>
+    with AdminUserTargetsRef {
+  _AdminUserTargetsProviderElement(super.provider);
+
+  @override
+  String get userId => (origin as AdminUserTargetsProvider).userId;
+  @override
+  String get periodId => (origin as AdminUserTargetsProvider).periodId;
+}
+
+String _$measureFormHash() => r'69a00d09f5e90a6fca8038f0834b4526f31813ac';
 
 /// Measure creation/update notifier.
 ///
@@ -367,7 +645,7 @@ final measureFormProvider =
     );
 
 typedef _$MeasureForm = AutoDisposeAsyncNotifier<MeasureDefinition?>;
-String _$periodFormHash() => r'c5696870f704a7d13fa20591865a30c3aecec1c6';
+String _$periodFormHash() => r'ecc3f8307ece7e0f731c5927d567082acebcc341';
 
 /// Period creation/update notifier.
 ///
@@ -385,5 +663,23 @@ final periodFormProvider =
     );
 
 typedef _$PeriodForm = AutoDisposeAsyncNotifier<ScoringPeriod?>;
+String _$targetAssignmentHash() => r'4b4041e61dec099d2631634aae293f851232a9d8';
+
+/// Target assignment notifier for admin operations.
+///
+/// Copied from [TargetAssignment].
+@ProviderFor(TargetAssignment)
+final targetAssignmentProvider =
+    AutoDisposeAsyncNotifierProvider<TargetAssignment, void>.internal(
+      TargetAssignment.new,
+      name: r'targetAssignmentProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$targetAssignmentHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$TargetAssignment = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

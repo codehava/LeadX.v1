@@ -570,7 +570,6 @@ class _AdminMeasureFormScreenState
   }
 
   Widget _buildTemplateConfigWidget(String templateId) {
-    // TODO: Implement template-specific configuration widgets
     switch (templateId) {
       case 'activity_count':
         return _buildActivityCountConfig();

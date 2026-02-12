@@ -57,7 +57,7 @@ class Admin4DXHomeScreen extends ConsumerWidget {
                   value: measuresAsync.when(
                     data: (measures) => measures.length.toString(),
                     loading: () => '...',
-                    error: (_, __) => 'Error',
+                    error: (_, _) => 'Error',
                   ),
                   icon: Icons.speed,
                   color: Colors.blue,
@@ -70,7 +70,7 @@ class Admin4DXHomeScreen extends ConsumerWidget {
                   value: periodsAsync.when(
                     data: (periods) => periods.length.toString(),
                     loading: () => '...',
-                    error: (_, __) => 'Error',
+                    error: (_, _) => 'Error',
                   ),
                   icon: Icons.calendar_month,
                   color: Colors.green,
@@ -108,7 +108,7 @@ class Admin4DXHomeScreen extends ConsumerWidget {
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
           const SizedBox(height: 24),
 
@@ -128,6 +128,15 @@ class Admin4DXHomeScreen extends ConsumerWidget {
             subtitle: 'Atur periode penilaian mingguan/bulanan',
             color: Colors.green,
             onTap: () => context.push(RoutePaths.adminPeriods),
+          ),
+          const SizedBox(height: 12),
+
+          AdminMenuCard(
+            icon: Icons.track_changes,
+            title: 'Kelola Target',
+            subtitle: 'Atur target per pengguna untuk setiap periode',
+            color: Colors.teal,
+            onTap: () => context.push(RoutePaths.adminTargets),
           ),
           const SizedBox(height: 24),
 
@@ -195,7 +204,7 @@ class Admin4DXHomeScreen extends ConsumerWidget {
                       Text(
                         '${_formatDate(currentPeriod.startDate)} - ${_formatDate(currentPeriod.endDate)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                         ),
                       ),
                       if (currentPeriod.isLocked)
@@ -226,7 +235,7 @@ class Admin4DXHomeScreen extends ConsumerWidget {
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
         ],
       ),
@@ -267,7 +276,7 @@ class _StatsCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

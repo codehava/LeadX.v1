@@ -1117,6 +1117,380 @@ final dashboardStatsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DashboardStatsRef = AutoDisposeFutureProviderRef<DashboardStats>;
+String _$filteredLeaderboardHash() =>
+    r'5db380f1332576b2a74cf20ba9f4113d7f19e091';
+
+/// Get filtered leaderboard based on current filter state.
+///
+/// Copied from [filteredLeaderboard].
+@ProviderFor(filteredLeaderboard)
+const filteredLeaderboardProvider = FilteredLeaderboardFamily();
+
+/// Get filtered leaderboard based on current filter state.
+///
+/// Copied from [filteredLeaderboard].
+class FilteredLeaderboardFamily
+    extends Family<AsyncValue<List<LeaderboardEntry>>> {
+  /// Get filtered leaderboard based on current filter state.
+  ///
+  /// Copied from [filteredLeaderboard].
+  const FilteredLeaderboardFamily();
+
+  /// Get filtered leaderboard based on current filter state.
+  ///
+  /// Copied from [filteredLeaderboard].
+  FilteredLeaderboardProvider call(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+    String? searchQuery,
+  }) {
+    return FilteredLeaderboardProvider(
+      periodId,
+      branchId: branchId,
+      regionalOfficeId: regionalOfficeId,
+      searchQuery: searchQuery,
+    );
+  }
+
+  @override
+  FilteredLeaderboardProvider getProviderOverride(
+    covariant FilteredLeaderboardProvider provider,
+  ) {
+    return call(
+      provider.periodId,
+      branchId: provider.branchId,
+      regionalOfficeId: provider.regionalOfficeId,
+      searchQuery: provider.searchQuery,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'filteredLeaderboardProvider';
+}
+
+/// Get filtered leaderboard based on current filter state.
+///
+/// Copied from [filteredLeaderboard].
+class FilteredLeaderboardProvider
+    extends AutoDisposeFutureProvider<List<LeaderboardEntry>> {
+  /// Get filtered leaderboard based on current filter state.
+  ///
+  /// Copied from [filteredLeaderboard].
+  FilteredLeaderboardProvider(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+    String? searchQuery,
+  }) : this._internal(
+         (ref) => filteredLeaderboard(
+           ref as FilteredLeaderboardRef,
+           periodId,
+           branchId: branchId,
+           regionalOfficeId: regionalOfficeId,
+           searchQuery: searchQuery,
+         ),
+         from: filteredLeaderboardProvider,
+         name: r'filteredLeaderboardProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$filteredLeaderboardHash,
+         dependencies: FilteredLeaderboardFamily._dependencies,
+         allTransitiveDependencies:
+             FilteredLeaderboardFamily._allTransitiveDependencies,
+         periodId: periodId,
+         branchId: branchId,
+         regionalOfficeId: regionalOfficeId,
+         searchQuery: searchQuery,
+       );
+
+  FilteredLeaderboardProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.periodId,
+    required this.branchId,
+    required this.regionalOfficeId,
+    required this.searchQuery,
+  }) : super.internal();
+
+  final String periodId;
+  final String? branchId;
+  final String? regionalOfficeId;
+  final String? searchQuery;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<LeaderboardEntry>> Function(FilteredLeaderboardRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: FilteredLeaderboardProvider._internal(
+        (ref) => create(ref as FilteredLeaderboardRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        periodId: periodId,
+        branchId: branchId,
+        regionalOfficeId: regionalOfficeId,
+        searchQuery: searchQuery,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<LeaderboardEntry>> createElement() {
+    return _FilteredLeaderboardProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FilteredLeaderboardProvider &&
+        other.periodId == periodId &&
+        other.branchId == branchId &&
+        other.regionalOfficeId == regionalOfficeId &&
+        other.searchQuery == searchQuery;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, periodId.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, regionalOfficeId.hashCode);
+    hash = _SystemHash.combine(hash, searchQuery.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin FilteredLeaderboardRef
+    on AutoDisposeFutureProviderRef<List<LeaderboardEntry>> {
+  /// The parameter `periodId` of this provider.
+  String get periodId;
+
+  /// The parameter `branchId` of this provider.
+  String? get branchId;
+
+  /// The parameter `regionalOfficeId` of this provider.
+  String? get regionalOfficeId;
+
+  /// The parameter `searchQuery` of this provider.
+  String? get searchQuery;
+}
+
+class _FilteredLeaderboardProviderElement
+    extends AutoDisposeFutureProviderElement<List<LeaderboardEntry>>
+    with FilteredLeaderboardRef {
+  _FilteredLeaderboardProviderElement(super.provider);
+
+  @override
+  String get periodId => (origin as FilteredLeaderboardProvider).periodId;
+  @override
+  String? get branchId => (origin as FilteredLeaderboardProvider).branchId;
+  @override
+  String? get regionalOfficeId =>
+      (origin as FilteredLeaderboardProvider).regionalOfficeId;
+  @override
+  String? get searchQuery =>
+      (origin as FilteredLeaderboardProvider).searchQuery;
+}
+
+String _$teamSummaryHash() => r'bcca0f7ec4edfa2e5221aa5a7eb31ab5fb20d87f';
+
+/// Get team summary for branch or region.
+///
+/// Copied from [teamSummary].
+@ProviderFor(teamSummary)
+const teamSummaryProvider = TeamSummaryFamily();
+
+/// Get team summary for branch or region.
+///
+/// Copied from [teamSummary].
+class TeamSummaryFamily extends Family<AsyncValue<TeamSummary?>> {
+  /// Get team summary for branch or region.
+  ///
+  /// Copied from [teamSummary].
+  const TeamSummaryFamily();
+
+  /// Get team summary for branch or region.
+  ///
+  /// Copied from [teamSummary].
+  TeamSummaryProvider call(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+  }) {
+    return TeamSummaryProvider(
+      periodId,
+      branchId: branchId,
+      regionalOfficeId: regionalOfficeId,
+    );
+  }
+
+  @override
+  TeamSummaryProvider getProviderOverride(
+    covariant TeamSummaryProvider provider,
+  ) {
+    return call(
+      provider.periodId,
+      branchId: provider.branchId,
+      regionalOfficeId: provider.regionalOfficeId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'teamSummaryProvider';
+}
+
+/// Get team summary for branch or region.
+///
+/// Copied from [teamSummary].
+class TeamSummaryProvider extends AutoDisposeFutureProvider<TeamSummary?> {
+  /// Get team summary for branch or region.
+  ///
+  /// Copied from [teamSummary].
+  TeamSummaryProvider(
+    String periodId, {
+    String? branchId,
+    String? regionalOfficeId,
+  }) : this._internal(
+         (ref) => teamSummary(
+           ref as TeamSummaryRef,
+           periodId,
+           branchId: branchId,
+           regionalOfficeId: regionalOfficeId,
+         ),
+         from: teamSummaryProvider,
+         name: r'teamSummaryProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$teamSummaryHash,
+         dependencies: TeamSummaryFamily._dependencies,
+         allTransitiveDependencies:
+             TeamSummaryFamily._allTransitiveDependencies,
+         periodId: periodId,
+         branchId: branchId,
+         regionalOfficeId: regionalOfficeId,
+       );
+
+  TeamSummaryProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.periodId,
+    required this.branchId,
+    required this.regionalOfficeId,
+  }) : super.internal();
+
+  final String periodId;
+  final String? branchId;
+  final String? regionalOfficeId;
+
+  @override
+  Override overrideWith(
+    FutureOr<TeamSummary?> Function(TeamSummaryRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TeamSummaryProvider._internal(
+        (ref) => create(ref as TeamSummaryRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        periodId: periodId,
+        branchId: branchId,
+        regionalOfficeId: regionalOfficeId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<TeamSummary?> createElement() {
+    return _TeamSummaryProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TeamSummaryProvider &&
+        other.periodId == periodId &&
+        other.branchId == branchId &&
+        other.regionalOfficeId == regionalOfficeId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, periodId.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, regionalOfficeId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TeamSummaryRef on AutoDisposeFutureProviderRef<TeamSummary?> {
+  /// The parameter `periodId` of this provider.
+  String get periodId;
+
+  /// The parameter `branchId` of this provider.
+  String? get branchId;
+
+  /// The parameter `regionalOfficeId` of this provider.
+  String? get regionalOfficeId;
+}
+
+class _TeamSummaryProviderElement
+    extends AutoDisposeFutureProviderElement<TeamSummary?>
+    with TeamSummaryRef {
+  _TeamSummaryProviderElement(super.provider);
+
+  @override
+  String get periodId => (origin as TeamSummaryProvider).periodId;
+  @override
+  String? get branchId => (origin as TeamSummaryProvider).branchId;
+  @override
+  String? get regionalOfficeId =>
+      (origin as TeamSummaryProvider).regionalOfficeId;
+}
+
 String _$scoreboardNotifierHash() =>
     r'0c2f383bbdc8dc0a27a7fe6c229699a28f1dc48f';
 
@@ -1137,5 +1511,27 @@ final scoreboardNotifierProvider =
     );
 
 typedef _$ScoreboardNotifier = AutoDisposeAsyncNotifier<ScoreboardState>;
+String _$leaderboardFilterNotifierHash() =>
+    r'6f3695a356058861af65c953f2827827f0ea6daa';
+
+/// Notifier for managing leaderboard filter state.
+///
+/// Copied from [LeaderboardFilterNotifier].
+@ProviderFor(LeaderboardFilterNotifier)
+final leaderboardFilterNotifierProvider =
+    AutoDisposeNotifierProvider<
+      LeaderboardFilterNotifier,
+      LeaderboardFilter
+    >.internal(
+      LeaderboardFilterNotifier.new,
+      name: r'leaderboardFilterNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$leaderboardFilterNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$LeaderboardFilterNotifier = AutoDisposeNotifier<LeaderboardFilter>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

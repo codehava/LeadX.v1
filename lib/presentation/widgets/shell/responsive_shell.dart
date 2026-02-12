@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/sync_providers.dart';
+import '../../providers/team_target_providers.dart';
 import '../../screens/home/widgets/home_drawer.dart';
 import '../common/sync_status_badge.dart';
 import '../sync/sync_progress_sheet.dart';
@@ -82,6 +83,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       return 1;
     } else if (route.contains('/hvcs') || route.contains('/brokers') ||
                route.contains('/referrals') || route.contains('/scoreboard') ||
+               route.contains('/targets') || route.contains('/team-targets') ||
                route.contains('/cadence')) {
       // These are sidebar items, not main nav items
       // Set to -1 so no bottom nav item is highlighted
@@ -347,6 +349,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   Widget _buildNavigationRail(BuildContext context) {
     final theme = Theme.of(context);
     final isAdmin = ref.watch(isAdminProvider);
+    final canManageTeam = ref.watch(canManageTeamTargetsProvider);
 
     // selectedIndex now directly matches _navItems since there's no "Add" button
     // Home(0), Customer(1), Activity(2), Profile(3)
@@ -414,9 +417,18 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   context,
                   icon: Icons.track_changes,
                   label: 'Targets',
-                  isSelected: widget.currentRoute.contains('/targets'),
+                  isSelected: widget.currentRoute.contains('/targets') &&
+                      !widget.currentRoute.contains('/team-targets'),
                   onTap: () => context.push(RoutePaths.targets),
                 ),
+                if (canManageTeam)
+                  _buildRailTrailingItem(
+                    context,
+                    icon: Icons.group_work,
+                    label: 'Tim Target',
+                    isSelected: widget.currentRoute.contains('/team-targets'),
+                    onTap: () => context.push(RoutePaths.teamTargets),
+                  ),
                 _buildRailTrailingItem(
                   context,
                   icon: Icons.groups,
@@ -575,6 +587,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final theme = Theme.of(context);
     final width = context.screenWidth >= Breakpoints.widescreen ? 280.0 : 256.0;
     final isAdmin = ref.watch(isAdminProvider);
+    final canManageTeam = ref.watch(canManageTeamTargetsProvider);
 
     return Container(
       width: width,
@@ -658,6 +671,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 _buildSidebarItem(context, Icons.track_changes, 'Targets', -1,
                     routePattern: '/targets',
                     onTap: () => context.push(RoutePaths.targets)),
+                if (canManageTeam)
+                  _buildSidebarItem(context, Icons.group_work, 'Tim Target', -1,
+                      routePattern: '/team-targets',
+                      onTap: () => context.push(RoutePaths.teamTargets)),
                 _buildSidebarItem(context, Icons.groups, 'Cadence', -1,
                     routePattern: '/cadence',
                     onTap: () => context.push(RoutePaths.cadence)),
@@ -728,9 +745,13 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final theme = Theme.of(context);
     // For main nav items (index >= 0), use selectedIndex
     // For sidebar-only items (index == -1), check route pattern
-    final isSelected = index >= 0 
+    final isSelected = index >= 0
         ? _selectedIndex == index
-        : routePattern != null && widget.currentRoute.contains(routePattern);
+        : routePattern != null &&
+            widget.currentRoute.contains(routePattern) &&
+            // Avoid '/targets' matching '/team-targets'
+            !(routePattern == '/targets' &&
+                widget.currentRoute.contains('/team-targets'));
 
     return ListTile(
       leading: Icon(
@@ -871,6 +892,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       builder: (context, ref, _) {
         final userAsync = ref.watch(currentUserProvider);
         final isAdmin = ref.watch(isAdminProvider);
+        final canManageTeam = ref.watch(canManageTeamTargetsProvider);
 
         var userName = 'User Name';
         var userRole = 'Relationship Manager';
@@ -886,6 +908,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           userName: userName,
           userRole: userRole,
           isAdmin: isAdmin,
+          canManageTeamTargets: canManageTeam,
           onHvcTap: () {
             Navigator.pop(context);
             context.push(RoutePaths.hvc);
@@ -905,6 +928,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           onTargetsTap: () {
             Navigator.pop(context);
             context.push(RoutePaths.targets);
+          },
+          onTeamTargetsTap: () {
+            Navigator.pop(context);
+            context.push(RoutePaths.teamTargets);
           },
           onCadenceTap: () {
             Navigator.pop(context);

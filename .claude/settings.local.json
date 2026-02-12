@@ -19,21 +19,10 @@
       "Bash(git check-ignore:*)",
       "Bash(flutter build:*)",
       "Bash(claude mcp --help:*)",
-      "mcp__chrome-devtools__list_pages",
       "Bash(timeout:*)",
-      "mcp__chrome-devtools__navigate_page",
       "Bash(dir:*)",
       "Bash(flutter doctor:*)",
       "Bash(powershell:*)",
-      "mcp__chrome-devtools__take_snapshot",
-      "mcp__chrome-devtools__click",
-      "mcp__chrome-devtools__press_key",
-      "mcp__chrome-devtools__take_screenshot",
-      "mcp__chrome-devtools__evaluate_script",
-      "mcp__chrome-devtools__list_network_requests",
-      "mcp__chrome-devtools__list_console_messages",
-      "mcp__chrome-devtools__wait_for",
-      "mcp__chrome-devtools__resize_page",
       "Bash(flutter test:*)",
       "Bash(tasklist:*)",
       "Bash(taskkill:*)",
@@ -43,10 +32,10 @@
       "Bash(supabase db dump:*)",
       "Bash(npx supabase:*)",
       "Bash(netstat:*)",
-      "mcp__chrome-devtools__fill_form",
-      "mcp__chrome-devtools__fill",
-      "mcp__chrome-devtools__get_console_message",
-      "Bash(git add:*)"
+      "mcp__chrome-devtools__*",
+      "Bash(git add:*)",
+      "Bash(tee:*)",
+      "mcp__google__*"
     ]
   }
 }

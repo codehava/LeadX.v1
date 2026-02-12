@@ -104,8 +104,8 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 │     Score calculation tersedia tanpa internet                               │
 │                                                                              │
 │  3. GAMIFICATION                                                             │
-│     Leaderboard dengan badges                                               │
-│     Achievement unlocks                                                      │
+│     Leaderboard                                                │
+│                                                           │
 │     Competition antar tim                                                   │
 │                                                                              │
 │  4. INDONESIA-FOCUSED                                                        │

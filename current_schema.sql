@@ -13,6 +13,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 
+CREATE EXTENSION IF NOT EXISTS "pg_cron" WITH SCHEMA "pg_catalog";
+
+
+
+
+
+
 COMMENT ON SCHEMA "public" IS 'standard public schema';
 
 
@@ -59,6 +66,126 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
+CREATE OR REPLACE FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") RETURNS numeric
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $_$
+DECLARE
+  v_measure RECORD;
+  v_period RECORD;
+  v_result NUMERIC;
+  v_query TEXT;
+BEGIN
+  -- Get measure definition
+  SELECT
+    source_table,
+    source_condition,
+    data_type,
+    code
+  INTO v_measure
+  FROM measure_definitions
+  WHERE id = p_measure_id AND is_active = TRUE;
+
+  -- If measure not found or inactive, return 0
+  IF NOT FOUND THEN
+    RETURN 0;
+  END IF;
+
+  -- Get period date range
+  SELECT start_date, end_date
+  INTO v_period
+  FROM scoring_periods
+  WHERE id = p_period_id;
+
+  -- If period not found, return 0
+  IF NOT FOUND THEN
+    RETURN 0;
+  END IF;
+
+  -- Build query based on data_type
+  BEGIN
+    IF v_measure.data_type = 'COUNT' THEN
+      -- Count records matching condition
+      -- Use appropriate date column based on source table
+      IF v_measure.source_table = 'pipeline_stage_history' THEN
+        v_query := format(
+          'SELECT COUNT(*) FROM %I WHERE %s AND changed_at BETWEEN $1 AND $2',
+          v_measure.source_table,
+          replace(v_measure.source_condition, ':user_id', '$3')
+        );
+      ELSE
+        v_query := format(
+          'SELECT COUNT(*) FROM %I WHERE %s AND created_at BETWEEN $1 AND $2',
+          v_measure.source_table,
+          replace(v_measure.source_condition, ':user_id', '$3')
+        );
+      END IF;
+      EXECUTE v_query INTO v_result USING v_period.start_date, v_period.end_date, p_user_id;
+
+    ELSIF v_measure.data_type = 'SUM' THEN
+      -- Sum a specific field (e.g., final_premium)
+      IF v_measure.source_table = 'pipelines' THEN
+        -- For pipelines, sum final_premium when closed_at is in the period
+        v_query := format(
+          'SELECT COALESCE(SUM(final_premium), 0) FROM %I WHERE %s AND closed_at BETWEEN $1 AND $2',
+          v_measure.source_table,
+          replace(v_measure.source_condition, ':user_id', '$3')
+        );
+        EXECUTE v_query INTO v_result USING v_period.start_date, v_period.end_date, p_user_id;
+      ELSE
+        -- Default SUM behavior for other tables
+        v_result := 0;
+      END IF;
+
+    ELSIF v_measure.data_type = 'PERCENTAGE' THEN
+      -- Special calculation for conversion rate
+      IF v_measure.source_table = 'pipelines' THEN
+        -- Calculate (won pipelines / total closed pipelines) * 100
+        v_query := format(
+          'SELECT
+             CASE WHEN COUNT(*) > 0
+             THEN (COUNT(*) FILTER (WHERE stage_id IN (SELECT id FROM pipeline_stages WHERE is_won = true))::NUMERIC / COUNT(*)) * 100
+             ELSE 0
+             END
+           FROM %I
+           WHERE scored_to_user_id = $1 AND closed_at BETWEEN $2 AND $3',
+          v_measure.source_table
+        );
+        EXECUTE v_query INTO v_result USING p_user_id, v_period.start_date, v_period.end_date;
+      ELSE
+        v_result := 0;
+      END IF;
+
+    ELSE
+      -- Unknown data_type, return 0
+      v_result := 0;
+    END IF;
+
+    RETURN COALESCE(v_result, 0);
+
+  EXCEPTION WHEN OTHERS THEN
+    -- Log error to system_errors table
+    INSERT INTO system_errors (error_type, entity_id, error_message, created_at)
+    VALUES (
+      'MEASURE_CALC_FAILED',
+      p_measure_id,
+      format('Measure %s calculation failed for user %s: %s', v_measure.code, p_user_id, SQLERRM),
+      NOW()
+    );
+
+    -- Return 0 to avoid breaking the transaction
+    RETURN 0;
+  END;
+END;
+$_$;
+
+
+ALTER FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") IS 'Dynamically calculates measure value from source_table/source_condition. Returns raw value (count, sum, percentage).';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."can_access_customer"("p_customer_id" "uuid") RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
     AS $$
@@ -80,6 +207,38 @@ $$;
 
 
 ALTER FUNCTION "public"."can_access_customer"("p_customer_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  snapshot_time TIMESTAMPTZ := NOW();
+BEGIN
+  -- Snapshot individual scores
+  INSERT INTO user_score_snapshots (user_id, period_id, measure_id, snapshot_at,
+    target_value, actual_value, percentage, score, rank)
+  SELECT user_id, period_id, measure_id, snapshot_time,
+    target_value, actual_value, percentage, score, rank
+  FROM user_scores
+  WHERE period_id = target_period_id;
+
+  -- Snapshot aggregates
+  INSERT INTO user_score_aggregate_snapshots (user_id, period_id, snapshot_at,
+    lead_score, lag_score, bonus_points, penalty_points, total_score, rank, rank_change)
+  SELECT user_id, period_id, snapshot_time,
+    lead_score, lag_score, bonus_points, penalty_points, total_score, rank, rank_change
+  FROM user_score_aggregates
+  WHERE period_id = target_period_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") IS 'Creates point-in-time snapshots of user scores and aggregates for a given period';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."generate_pipeline_code"() RETURNS character varying
@@ -427,6 +586,368 @@ $$;
 ALTER FUNCTION "public"."log_pipeline_stage_change"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Insert user and all ancestors into dirty_users
+  INSERT INTO dirty_users (user_id, dirtied_at)
+  SELECT DISTINCT ancestor_id, NOW()
+  FROM user_hierarchy
+  WHERE descendant_id = p_user_id
+  UNION
+  SELECT p_user_id, NOW()  -- Include self
+  ON CONFLICT (user_id) DO NOTHING;  -- Avoid duplicate key errors
+END;
+$$;
+
+
+ALTER FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") IS 'Marks user and all ancestors for aggregate recalculation. Used by triggers to cascade updates up the hierarchy.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."on_activity_completed"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Only process if status changed to COMPLETED
+  IF NEW.status = 'COMPLETED' AND (OLD IS NULL OR OLD.status != 'COMPLETED') THEN
+    -- Update all measure scores for the user who completed the activity
+    PERFORM update_all_measure_scores(NEW.assigned_to);
+
+    -- Mark user and ancestors dirty for aggregate recalculation
+    PERFORM mark_user_and_ancestors_dirty(NEW.assigned_to);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_activity_completed"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."on_activity_completed"() IS 'Triggered when activity status changes to COMPLETED. Updates LEAD measure scores and marks hierarchy dirty.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."on_customer_created"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Update all measure scores for the user who created the customer
+  IF NEW.created_by IS NOT NULL THEN
+    PERFORM update_all_measure_scores(NEW.created_by);
+    PERFORM mark_user_and_ancestors_dirty(NEW.created_by);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_customer_created"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."on_customer_created"() IS 'Triggered when new customer is created. Updates NEW_CUSTOMER LEAD measure and marks hierarchy dirty.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."on_period_locked"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- When a period becomes locked, create snapshots
+  IF NEW.is_locked = true AND (OLD.is_locked IS NULL OR OLD.is_locked = false) THEN
+    PERFORM create_score_snapshots(NEW.id);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_period_locked"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."on_pipeline_closed"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Only process if closed_at was just set
+  IF NEW.closed_at IS NOT NULL AND (OLD IS NULL OR OLD.closed_at IS NULL) THEN
+    -- Update all measure scores for the user credited with this pipeline
+    IF NEW.scored_to_user_id IS NOT NULL THEN
+      PERFORM update_all_measure_scores(NEW.scored_to_user_id);
+      PERFORM mark_user_and_ancestors_dirty(NEW.scored_to_user_id);
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_pipeline_closed"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."on_pipeline_closed"() IS 'Triggered when pipeline closed_at is set. Updates CONVERSION_RATE LAG measure and marks hierarchy dirty.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."on_pipeline_stage_changed"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Update all measure scores for the user who changed the stage
+  IF NEW.changed_by IS NOT NULL THEN
+    PERFORM update_all_measure_scores(NEW.changed_by);
+    PERFORM mark_user_and_ancestors_dirty(NEW.changed_by);
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_pipeline_stage_changed"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."on_pipeline_stage_changed"() IS 'Triggered when pipeline stage changes. Updates LEAD measures tracking milestones (e.g., PROPOSAL_SENT at P2) and marks hierarchy dirty.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."on_pipeline_won"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  v_is_won BOOLEAN;
+  v_was_won BOOLEAN := FALSE;
+BEGIN
+  -- Check if NEW stage is a won stage
+  SELECT is_won INTO v_is_won
+  FROM pipeline_stages
+  WHERE id = NEW.stage_id;
+
+  -- Check if OLD stage was a won stage (for UPDATE operations)
+  IF OLD IS NOT NULL AND OLD.stage_id IS NOT NULL THEN
+    SELECT is_won INTO v_was_won
+    FROM pipeline_stages
+    WHERE id = OLD.stage_id;
+  END IF;
+
+  -- Only process if stage changed to won (and wasn't won before)
+  IF v_is_won = TRUE AND v_was_won = FALSE THEN
+    -- Update all measure scores for the user who is credited with the win
+    -- Use scored_to_user_id (the user who gets credit for this pipeline)
+    IF NEW.scored_to_user_id IS NOT NULL THEN
+      PERFORM update_all_measure_scores(NEW.scored_to_user_id);
+      PERFORM mark_user_and_ancestors_dirty(NEW.scored_to_user_id);
+    END IF;
+
+    -- Also update for referring user if this is a referral
+    IF NEW.referred_by_user_id IS NOT NULL THEN
+      PERFORM update_all_measure_scores(NEW.referred_by_user_id);
+      PERFORM mark_user_and_ancestors_dirty(NEW.referred_by_user_id);
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."on_pipeline_won"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."on_pipeline_won"() IS 'Triggered when pipeline stage changes to a won stage (is_won = true). Updates LAG measure scores (PIPELINE_WON, PREMIUM_WON, REFERRAL_PREMIUM) and marks hierarchy dirty.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  v_lead_points NUMERIC := 0;
+  v_lag_points NUMERIC := 0;
+  v_total_points NUMERIC := 0;
+  v_lead_measures_count INTEGER;
+  v_lag_measures_count INTEGER;
+  v_lead_score NUMERIC := 0;
+  v_lag_score NUMERIC := 0;
+  v_total_score NUMERIC := 0;
+  v_subordinate_ids UUID[];
+BEGIN
+  -- Get all subordinate IDs from hierarchy
+  SELECT ARRAY_AGG(DISTINCT descendant_id)
+  INTO v_subordinate_ids
+  FROM user_hierarchy
+  WHERE ancestor_id = p_user_id;
+
+  -- Include self in the array
+  IF v_subordinate_ids IS NULL THEN
+    -- No subordinates, just self
+    v_subordinate_ids := ARRAY[p_user_id];
+  ELSE
+    -- Has subordinates, add self to the array
+    v_subordinate_ids := v_subordinate_ids || p_user_id;
+  END IF;
+
+  -- Count active measures by type
+  SELECT COUNT(*) INTO v_lead_measures_count
+  FROM measure_definitions
+  WHERE measure_type = 'LEAD' AND is_active = TRUE;
+
+  SELECT COUNT(*) INTO v_lag_measures_count
+  FROM measure_definitions
+  WHERE measure_type = 'LAG' AND is_active = TRUE;
+
+  -- Calculate LEAD points (sum scores across self + subordinates)
+  -- Note: using 'score' column, not 'points'
+  SELECT COALESCE(SUM(us.score), 0)
+  INTO v_lead_points
+  FROM user_scores us
+  JOIN measure_definitions md ON us.measure_id = md.id
+  WHERE us.user_id = ANY(v_subordinate_ids)
+    AND us.period_id = p_period_id
+    AND md.measure_type = 'LEAD'
+    AND md.is_active = TRUE;
+
+  -- Calculate LAG points (sum scores across self + subordinates)
+  SELECT COALESCE(SUM(us.score), 0)
+  INTO v_lag_points
+  FROM user_scores us
+  JOIN measure_definitions md ON us.measure_id = md.id
+  WHERE us.user_id = ANY(v_subordinate_ids)
+    AND us.period_id = p_period_id
+    AND md.measure_type = 'LAG'
+    AND md.is_active = TRUE;
+
+  -- Calculate scores (0-150 scale)
+  -- Formula: (total_points / (measure_count * subordinate_count * 150)) * 150
+  IF v_lead_measures_count > 0 THEN
+    v_lead_score := (v_lead_points / (v_lead_measures_count * array_length(v_subordinate_ids, 1) * 150)) * 150;
+  END IF;
+
+  IF v_lag_measures_count > 0 THEN
+    v_lag_score := (v_lag_points / (v_lag_measures_count * array_length(v_subordinate_ids, 1) * 150)) * 150;
+  END IF;
+
+  -- Total score: weighted average (60% LEAD, 40% LAG)
+  v_total_score := (v_lead_score * 0.6) + (v_lag_score * 0.4);
+
+  -- Upsert into user_score_aggregates
+  -- Note: bonus_points and penalty_points default to 0 (will be updated by cadence system later)
+  INSERT INTO user_score_aggregates (
+    user_id, period_id,
+    lead_score, lag_score, total_score,
+    bonus_points, penalty_points,
+    calculated_at, created_at
+  ) VALUES (
+    p_user_id, p_period_id,
+    v_lead_score, v_lag_score, v_total_score,
+    0, 0,  -- bonus/penalty handled by cadence system
+    NOW(), NOW()
+  )
+  ON CONFLICT (user_id, period_id)
+  DO UPDATE SET
+    lead_score = EXCLUDED.lead_score,
+    lag_score = EXCLUDED.lag_score,
+    total_score = EXCLUDED.total_score,
+    calculated_at = NOW();
+  -- Note: NOT updating bonus_points/penalty_points here - managed by cadence system
+  -- Note: NOT updating created_at - preserve original creation time
+END;
+$$;
+
+
+ALTER FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") IS 'Recalculates user_score_aggregates with HIERARCHICAL ROLLUP (includes subordinates). Example: ROH score = ROH activities + all BMs + all BHs + all RMs.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."recalculate_all_scores"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  v_user_id UUID;
+  v_period_id UUID;
+BEGIN
+  -- Get current period
+  SELECT id INTO v_period_id
+  FROM scoring_periods
+  WHERE is_current = TRUE
+  LIMIT 1;
+
+  IF v_period_id IS NULL THEN
+    RAISE EXCEPTION 'No current scoring period found';
+  END IF;
+
+  -- Recalculate individual measures for all active users
+  FOR v_user_id IN
+    SELECT id FROM users WHERE is_active = TRUE
+  LOOP
+    PERFORM update_all_measure_scores(v_user_id);
+  END LOOP;
+
+  -- Recalculate aggregates for all active users
+  FOR v_user_id IN
+    SELECT id FROM users WHERE is_active = TRUE
+  LOOP
+    PERFORM recalculate_aggregate(v_user_id, v_period_id);
+  END LOOP;
+
+  RAISE NOTICE 'Recalculated all scores for period %', v_period_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."recalculate_all_scores"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."recalculate_all_scores"() IS 'ADMIN ONLY: Manually recalculates all user scores and aggregates for the current period. Use for debugging or after data corrections.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  v_current_period_id UUID;
+  v_measure_id UUID;
+BEGIN
+  -- Get current period
+  SELECT id INTO v_current_period_id
+  FROM scoring_periods
+  WHERE is_current = TRUE
+  LIMIT 1;
+
+  -- If no current period, nothing to do
+  IF v_current_period_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Update all active measures
+  FOR v_measure_id IN
+    SELECT id FROM measure_definitions WHERE is_active = TRUE
+  LOOP
+    PERFORM update_user_score(p_user_id, v_measure_id, v_current_period_id);
+  END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") IS 'Helper function to update all measure scores for a user in the current period.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -456,6 +977,77 @@ $$;
 
 
 ALTER FUNCTION "public"."update_user_hierarchy"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  v_actual_value NUMERIC;
+  v_target_value NUMERIC;
+  v_achievement_pct NUMERIC;
+  v_points NUMERIC;
+  v_weight NUMERIC;
+BEGIN
+  -- Calculate actual value
+  v_actual_value := calculate_measure_value(p_user_id, p_measure_id, p_period_id);
+
+  -- Get target and weight
+  SELECT target_value INTO v_target_value
+  FROM user_targets
+  WHERE user_id = p_user_id
+    AND measure_id = p_measure_id
+    AND period_id = p_period_id;
+
+  -- If no target assigned, use default target from measure_definition
+  IF v_target_value IS NULL THEN
+    SELECT default_target, weight INTO v_target_value, v_weight
+    FROM measure_definitions
+    WHERE id = p_measure_id;
+  ELSE
+    SELECT weight INTO v_weight
+    FROM measure_definitions
+    WHERE id = p_measure_id;
+  END IF;
+
+  -- Calculate achievement percentage
+  IF v_target_value > 0 THEN
+    v_achievement_pct := (v_actual_value / v_target_value) * 100;
+  ELSE
+    v_achievement_pct := 0;
+  END IF;
+
+  -- Calculate score (cap percentage at 150%, then multiply by weight)
+  v_points := LEAST(v_achievement_pct, 150) * v_weight;
+
+  -- Upsert into user_scores
+  -- Note: Using correct column names (actual_value, target_value, percentage, score, calculated_at)
+  INSERT INTO user_scores (
+    user_id, measure_id, period_id,
+    actual_value, target_value, percentage, score,
+    calculated_at, updated_at
+  ) VALUES (
+    p_user_id, p_measure_id, p_period_id,
+    v_actual_value, v_target_value, v_achievement_pct, v_points,
+    NOW(), NOW()
+  )
+  ON CONFLICT (user_id, measure_id, period_id)
+  DO UPDATE SET
+    actual_value = EXCLUDED.actual_value,
+    target_value = EXCLUDED.target_value,
+    percentage = EXCLUDED.percentage,
+    score = EXCLUDED.score,
+    calculated_at = NOW(),
+    updated_at = NOW();
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") IS 'Updates user_scores row with calculated actual_value, achievement_percentage, and points.';
+
 
 SET default_tablespace = '';
 
@@ -965,6 +1557,27 @@ CREATE TABLE IF NOT EXISTS "public"."decline_reasons" (
 ALTER TABLE "public"."decline_reasons" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."dirty_users" (
+    "user_id" "uuid" NOT NULL,
+    "dirtied_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."dirty_users" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."dirty_users" IS 'System table tracking users whose aggregate scores need recalculation. Processed by score-aggregation-cron every 10 minutes.';
+
+
+
+COMMENT ON COLUMN "public"."dirty_users"."user_id" IS 'User whose aggregate score needs recalculation (includes their own scores + subordinates)';
+
+
+
+COMMENT ON COLUMN "public"."dirty_users"."dirtied_at" IS 'Timestamp when user was marked dirty (for debugging/monitoring)';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."hvc_types" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "code" character varying(20) NOT NULL,
@@ -1092,6 +1705,8 @@ CREATE TABLE IF NOT EXISTS "public"."measure_definitions" (
     "source_condition" "text",
     "default_target" numeric(18,2),
     "period_type" character varying(20) DEFAULT 'WEEKLY'::character varying,
+    "template_type" character varying(50),
+    "template_config" "jsonb",
     CONSTRAINT "measure_definitions_data_type_check" CHECK ((("data_type")::"text" = ANY ((ARRAY['COUNT'::character varying, 'SUM'::character varying, 'PERCENTAGE'::character varying])::"text"[]))),
     CONSTRAINT "measure_definitions_measure_type_check" CHECK ((("measure_type")::"text" = ANY ((ARRAY['LEAD'::character varying, 'LAG'::character varying])::"text"[]))),
     CONSTRAINT "measure_definitions_period_type_check" CHECK ((("period_type")::"text" = ANY ((ARRAY['WEEKLY'::character varying, 'MONTHLY'::character varying, 'QUARTERLY'::character varying])::"text"[])))
@@ -1114,6 +1729,14 @@ COMMENT ON COLUMN "public"."measure_definitions"."source_table" IS 'Table to aut
 
 
 COMMENT ON COLUMN "public"."measure_definitions"."source_condition" IS 'WHERE clause for auto-calculation';
+
+
+
+COMMENT ON COLUMN "public"."measure_definitions"."template_type" IS 'Template used to create this measure (activity_count, pipeline_count, pipeline_revenue, pipeline_conversion, stage_milestone, customer_acquisition, custom)';
+
+
+
+COMMENT ON COLUMN "public"."measure_definitions"."template_config" IS 'Original template configuration (JSONB) - allows "Edit Template" to re-populate wizard with saved choices';
 
 
 
@@ -1394,6 +2017,44 @@ COMMENT ON TABLE "public"."sync_queue_items" IS 'Sync queue for debugging/admin 
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."system_errors" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "error_type" character varying(50) NOT NULL,
+    "entity_id" "uuid",
+    "error_message" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "resolved_at" timestamp with time zone,
+    "resolved_by" "uuid"
+);
+
+
+ALTER TABLE "public"."system_errors" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."system_errors" IS 'Centralized error logging for system operations (score calculation, cron jobs, etc.). Only accessible to admins.';
+
+
+
+COMMENT ON COLUMN "public"."system_errors"."error_type" IS 'Error category: MEASURE_CALC_FAILED, TRIGGER_FAILED, CRON_USER_FAILED, etc.';
+
+
+
+COMMENT ON COLUMN "public"."system_errors"."entity_id" IS 'Related entity ID (measure_id, user_id, etc.) if applicable';
+
+
+
+COMMENT ON COLUMN "public"."system_errors"."error_message" IS 'Full error message/stack trace';
+
+
+
+COMMENT ON COLUMN "public"."system_errors"."resolved_at" IS 'Timestamp when error was marked as resolved (NULL = unresolved)';
+
+
+
+COMMENT ON COLUMN "public"."system_errors"."resolved_by" IS 'Admin user who resolved the error';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."user_hierarchy" (
     "ancestor_id" "uuid" NOT NULL,
     "descendant_id" "uuid" NOT NULL,
@@ -1408,7 +2069,30 @@ COMMENT ON TABLE "public"."user_hierarchy" IS 'Closure table for user supervisor
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."user_score_snapshots" (
+CREATE TABLE IF NOT EXISTS "public"."user_score_aggregate_snapshots" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid",
+    "period_id" "uuid",
+    "snapshot_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "lead_score" numeric(10,2) DEFAULT 0,
+    "lag_score" numeric(10,2) DEFAULT 0,
+    "bonus_points" numeric(10,2) DEFAULT 0,
+    "penalty_points" numeric(10,2) DEFAULT 0,
+    "total_score" numeric(10,2) DEFAULT 0,
+    "rank" integer,
+    "rank_change" integer,
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."user_score_aggregate_snapshots" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_score_aggregate_snapshots" IS 'Historical point-in-time snapshots of user_score_aggregates';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_score_aggregates" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "user_id" "uuid",
     "period_id" "uuid",
@@ -1425,22 +2109,44 @@ CREATE TABLE IF NOT EXISTS "public"."user_score_snapshots" (
 );
 
 
+ALTER TABLE "public"."user_score_aggregates" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_score_aggregates" IS 'Real-time aggregated scores per user per period (lead, lag, total scores with ranking)';
+
+
+
+COMMENT ON COLUMN "public"."user_score_aggregates"."total_score" IS '(lead*0.6 + lag*0.4) + bonus - penalty';
+
+
+
+COMMENT ON COLUMN "public"."user_score_aggregates"."bonus_points" IS 'Cadence attendance, immediate logging, etc.';
+
+
+
+COMMENT ON COLUMN "public"."user_score_aggregates"."penalty_points" IS 'Absences, late submissions, etc.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_score_snapshots" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid",
+    "period_id" "uuid",
+    "measure_id" "uuid",
+    "snapshot_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "target_value" numeric(18,2),
+    "actual_value" numeric(18,2),
+    "percentage" numeric(5,2),
+    "score" numeric(10,2),
+    "rank" integer,
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
 ALTER TABLE "public"."user_score_snapshots" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."user_score_snapshots" IS 'Aggregated scores per user per period for historical tracking';
-
-
-
-COMMENT ON COLUMN "public"."user_score_snapshots"."total_score" IS '(lead*0.6 + lag*0.4) + bonus - penalty';
-
-
-
-COMMENT ON COLUMN "public"."user_score_snapshots"."bonus_points" IS 'Cadence attendance, immediate logging, etc.';
-
-
-
-COMMENT ON COLUMN "public"."user_score_snapshots"."penalty_points" IS 'Absences, late submissions, etc.';
+COMMENT ON TABLE "public"."user_score_snapshots" IS 'Historical point-in-time snapshots of individual user_scores';
 
 
 
@@ -1656,6 +2362,11 @@ ALTER TABLE ONLY "public"."decline_reasons"
 
 
 
+ALTER TABLE ONLY "public"."dirty_users"
+    ADD CONSTRAINT "dirty_users_pkey" PRIMARY KEY ("user_id");
+
+
+
 ALTER TABLE ONLY "public"."hvcs"
     ADD CONSTRAINT "hvc_code_key" UNIQUE ("code");
 
@@ -1801,8 +2512,23 @@ ALTER TABLE ONLY "public"."sync_queue_items"
 
 
 
+ALTER TABLE ONLY "public"."system_errors"
+    ADD CONSTRAINT "system_errors_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."user_hierarchy"
     ADD CONSTRAINT "user_hierarchy_pkey" PRIMARY KEY ("ancestor_id", "descendant_id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_aggregate_snapshots"
+    ADD CONSTRAINT "user_score_aggregate_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_aggregates"
+    ADD CONSTRAINT "user_score_aggregates_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1811,7 +2537,7 @@ ALTER TABLE ONLY "public"."user_score_snapshots"
 
 
 
-ALTER TABLE ONLY "public"."user_score_snapshots"
+ALTER TABLE ONLY "public"."user_score_aggregates"
     ADD CONSTRAINT "user_score_snapshots_user_period_key" UNIQUE ("user_id", "period_id");
 
 
@@ -1934,7 +2660,15 @@ CREATE INDEX "idx_customers_created_by" ON "public"."customers" USING "btree" ("
 
 
 
+CREATE INDEX "idx_dirty_users_dirtied_at" ON "public"."dirty_users" USING "btree" ("dirtied_at");
+
+
+
 CREATE INDEX "idx_key_persons_customer" ON "public"."key_persons" USING "btree" ("customer_id");
+
+
+
+CREATE INDEX "idx_measures_template_type" ON "public"."measure_definitions" USING "btree" ("template_type");
 
 
 
@@ -1978,11 +2712,55 @@ CREATE INDEX "idx_sync_queue_pending" ON "public"."sync_queue_items" USING "btre
 
 
 
+CREATE INDEX "idx_system_errors_entity" ON "public"."system_errors" USING "btree" ("entity_id") WHERE ("entity_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_system_errors_type" ON "public"."system_errors" USING "btree" ("error_type");
+
+
+
+CREATE INDEX "idx_system_errors_unresolved" ON "public"."system_errors" USING "btree" ("created_at") WHERE ("resolved_at" IS NULL);
+
+
+
 CREATE INDEX "idx_user_hierarchy_descendant" ON "public"."user_hierarchy" USING "btree" ("descendant_id");
 
 
 
+CREATE INDEX "idx_user_score_aggregate_snapshots_at" ON "public"."user_score_aggregate_snapshots" USING "btree" ("snapshot_at");
+
+
+
+CREATE INDEX "idx_user_score_aggregate_snapshots_period" ON "public"."user_score_aggregate_snapshots" USING "btree" ("period_id");
+
+
+
+CREATE UNIQUE INDEX "idx_user_score_aggregate_snapshots_unique" ON "public"."user_score_aggregate_snapshots" USING "btree" ("user_id", "period_id", "snapshot_at");
+
+
+
+CREATE INDEX "idx_user_score_aggregate_snapshots_user" ON "public"."user_score_aggregate_snapshots" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_score_aggregates_period" ON "public"."user_score_aggregates" USING "btree" ("period_id");
+
+
+
+CREATE INDEX "idx_user_score_aggregates_user" ON "public"."user_score_aggregates" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_score_snapshots_at" ON "public"."user_score_snapshots" USING "btree" ("snapshot_at");
+
+
+
 CREATE INDEX "idx_user_score_snapshots_period" ON "public"."user_score_snapshots" USING "btree" ("period_id");
+
+
+
+CREATE UNIQUE INDEX "idx_user_score_snapshots_unique" ON "public"."user_score_snapshots" USING "btree" ("user_id", "period_id", "measure_id", "snapshot_at");
 
 
 
@@ -2103,6 +2881,30 @@ CREATE OR REPLACE TRIGGER "pipelines_updated_at" BEFORE UPDATE ON "public"."pipe
 
 
 CREATE OR REPLACE TRIGGER "regional_offices_updated_at" BEFORE UPDATE ON "public"."regional_offices" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_activity_completed" AFTER INSERT OR UPDATE OF "status" ON "public"."activities" FOR EACH ROW EXECUTE FUNCTION "public"."on_activity_completed"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_customer_created" AFTER INSERT ON "public"."customers" FOR EACH ROW EXECUTE FUNCTION "public"."on_customer_created"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_period_locked" AFTER UPDATE ON "public"."scoring_periods" FOR EACH ROW EXECUTE FUNCTION "public"."on_period_locked"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_pipeline_closed" AFTER INSERT OR UPDATE OF "closed_at" ON "public"."pipelines" FOR EACH ROW EXECUTE FUNCTION "public"."on_pipeline_closed"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_pipeline_stage_changed" AFTER INSERT ON "public"."pipeline_stage_history" FOR EACH ROW EXECUTE FUNCTION "public"."on_pipeline_stage_changed"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_pipeline_won" AFTER INSERT OR UPDATE OF "stage_id" ON "public"."pipelines" FOR EACH ROW EXECUTE FUNCTION "public"."on_pipeline_won"();
 
 
 
@@ -2296,6 +3098,11 @@ ALTER TABLE ONLY "public"."customers"
 
 ALTER TABLE ONLY "public"."customers"
     ADD CONSTRAINT "customers_province_id_fkey" FOREIGN KEY ("province_id") REFERENCES "public"."provinces"("id");
+
+
+
+ALTER TABLE ONLY "public"."dirty_users"
+    ADD CONSTRAINT "dirty_users_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -2499,6 +3306,11 @@ ALTER TABLE ONLY "public"."pipelines"
 
 
 
+ALTER TABLE ONLY "public"."system_errors"
+    ADD CONSTRAINT "system_errors_resolved_by_fkey" FOREIGN KEY ("resolved_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "public"."user_hierarchy"
     ADD CONSTRAINT "user_hierarchy_ancestor_id_fkey" FOREIGN KEY ("ancestor_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
@@ -2509,13 +3321,38 @@ ALTER TABLE ONLY "public"."user_hierarchy"
 
 
 
+ALTER TABLE ONLY "public"."user_score_aggregate_snapshots"
+    ADD CONSTRAINT "user_score_aggregate_snapshots_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "public"."scoring_periods"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_aggregate_snapshots"
+    ADD CONSTRAINT "user_score_aggregate_snapshots_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+
+
 ALTER TABLE ONLY "public"."user_score_snapshots"
+    ADD CONSTRAINT "user_score_snapshots_measure_id_fkey" FOREIGN KEY ("measure_id") REFERENCES "public"."measure_definitions"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_aggregates"
     ADD CONSTRAINT "user_score_snapshots_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "public"."scoring_periods"("id");
 
 
 
 ALTER TABLE ONLY "public"."user_score_snapshots"
+    ADD CONSTRAINT "user_score_snapshots_period_id_fkey1" FOREIGN KEY ("period_id") REFERENCES "public"."scoring_periods"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_aggregates"
     ADD CONSTRAINT "user_score_snapshots_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_score_snapshots"
+    ADD CONSTRAINT "user_score_snapshots_user_id_fkey1" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
 
 
 
@@ -2571,6 +3408,24 @@ ALTER TABLE ONLY "public"."users"
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_regional_office_id_fkey" FOREIGN KEY ("regional_office_id") REFERENCES "public"."regional_offices"("id");
+
+
+
+CREATE POLICY "Admins can delete errors" ON "public"."system_errors" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND (("users"."role")::"text" = 'ADMIN'::"text")))));
+
+
+
+CREATE POLICY "Admins can resolve errors" ON "public"."system_errors" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND (("users"."role")::"text" = 'ADMIN'::"text")))));
+
+
+
+CREATE POLICY "Admins can view all errors" ON "public"."system_errors" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND (("users"."role")::"text" = 'ADMIN'::"text")))));
 
 
 
@@ -3051,6 +3906,9 @@ CREATE POLICY "scoring_periods_select" ON "public"."scoring_periods" FOR SELECT 
 ALTER TABLE "public"."sync_queue_items" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."system_errors" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."user_hierarchy" ENABLE ROW LEVEL SECURITY;
 
 
@@ -3062,6 +3920,40 @@ CREATE POLICY "user_hierarchy_select_own" ON "public"."user_hierarchy" FOR SELEC
 
 
 
+ALTER TABLE "public"."user_score_aggregate_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "user_score_aggregate_snapshots_admin" ON "public"."user_score_aggregate_snapshots" USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "user_score_aggregate_snapshots_select_own" ON "public"."user_score_aggregate_snapshots" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "user_score_aggregate_snapshots_select_subordinates" ON "public"."user_score_aggregate_snapshots" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."user_hierarchy"
+  WHERE (("user_hierarchy"."ancestor_id" = "auth"."uid"()) AND ("user_hierarchy"."descendant_id" = "user_score_aggregate_snapshots"."user_id")))));
+
+
+
+ALTER TABLE "public"."user_score_aggregates" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "user_score_aggregates_admin" ON "public"."user_score_aggregates" USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "user_score_aggregates_select_own" ON "public"."user_score_aggregates" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "user_score_aggregates_select_subordinates" ON "public"."user_score_aggregates" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."user_hierarchy"
+  WHERE (("user_hierarchy"."ancestor_id" = "auth"."uid"()) AND ("user_hierarchy"."descendant_id" = "user_score_aggregates"."user_id")))));
+
+
+
 ALTER TABLE "public"."user_score_snapshots" ENABLE ROW LEVEL SECURITY;
 
 
@@ -3069,13 +3961,13 @@ CREATE POLICY "user_score_snapshots_admin" ON "public"."user_score_snapshots" US
 
 
 
-CREATE POLICY "user_score_snapshots_select_own" ON "public"."user_score_snapshots" FOR SELECT USING (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
+CREATE POLICY "user_score_snapshots_select_own" ON "public"."user_score_snapshots" FOR SELECT USING (("user_id" = "auth"."uid"()));
 
 
 
 CREATE POLICY "user_score_snapshots_select_subordinates" ON "public"."user_score_snapshots" FOR SELECT USING ((EXISTS ( SELECT 1
    FROM "public"."user_hierarchy"
-  WHERE (("user_hierarchy"."ancestor_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("user_hierarchy"."descendant_id" = "user_score_snapshots"."user_id")))));
+  WHERE (("user_hierarchy"."ancestor_id" = "auth"."uid"()) AND ("user_hierarchy"."descendant_id" = "user_score_snapshots"."user_id")))));
 
 
 
@@ -3141,6 +4033,9 @@ CREATE POLICY "users_update_self" ON "public"."users" FOR UPDATE USING (("id" = 
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+
+
 
 
 GRANT USAGE ON SCHEMA "public" TO "postgres";
@@ -3650,6 +4545,27 @@ GRANT ALL ON FUNCTION "public"."geometry"("text") TO "service_role";
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 GRANT ALL ON FUNCTION "public"."_postgis_deprecate"("oldname" "text", "newname" "text", "version" "text") TO "postgres";
 GRANT ALL ON FUNCTION "public"."_postgis_deprecate"("oldname" "text", "newname" "text", "version" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."_postgis_deprecate"("oldname" "text", "newname" "text", "version" "text") TO "authenticated";
@@ -4000,6 +4916,12 @@ GRANT ALL ON FUNCTION "public"."box3dtobox"("public"."box3d") TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."calculate_measure_value"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."can_access_customer"("p_customer_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."can_access_customer"("p_customer_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."can_access_customer"("p_customer_id" "uuid") TO "service_role";
@@ -4045,6 +4967,12 @@ GRANT ALL ON FUNCTION "public"."contains_2d"("public"."geometry", "public"."box2
 GRANT ALL ON FUNCTION "public"."contains_2d"("public"."geometry", "public"."box2df") TO "anon";
 GRANT ALL ON FUNCTION "public"."contains_2d"("public"."geometry", "public"."box2df") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."contains_2d"("public"."geometry", "public"."box2df") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_score_snapshots"("target_period_id" "uuid") TO "service_role";
 
 
 
@@ -4961,6 +5889,48 @@ GRANT ALL ON FUNCTION "public"."longtransactionsenabled"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."mark_user_and_ancestors_dirty"("p_user_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_activity_completed"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_activity_completed"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_activity_completed"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_customer_created"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_customer_created"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_customer_created"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_period_locked"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_period_locked"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_period_locked"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_pipeline_closed"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_pipeline_closed"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_pipeline_closed"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_pipeline_stage_changed"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_pipeline_stage_changed"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_pipeline_stage_changed"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."on_pipeline_won"() TO "anon";
+GRANT ALL ON FUNCTION "public"."on_pipeline_won"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."on_pipeline_won"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."overlaps_2d"("public"."box2df", "public"."box2df") TO "postgres";
 GRANT ALL ON FUNCTION "public"."overlaps_2d"("public"."box2df", "public"."box2df") TO "anon";
 GRANT ALL ON FUNCTION "public"."overlaps_2d"("public"."box2df", "public"."box2df") TO "authenticated";
@@ -5476,6 +6446,18 @@ GRANT ALL ON FUNCTION "public"."postgis_wagyu_version"() TO "postgres";
 GRANT ALL ON FUNCTION "public"."postgis_wagyu_version"() TO "anon";
 GRANT ALL ON FUNCTION "public"."postgis_wagyu_version"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."postgis_wagyu_version"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."recalculate_aggregate"("p_user_id" "uuid", "p_period_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."recalculate_all_scores"() TO "anon";
+GRANT ALL ON FUNCTION "public"."recalculate_all_scores"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."recalculate_all_scores"() TO "service_role";
 
 
 
@@ -8412,6 +9394,12 @@ GRANT ALL ON FUNCTION "public"."unlockrows"("text") TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_all_measure_scores"("p_user_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "service_role";
@@ -8421,6 +9409,12 @@ GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_user_hierarchy"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_user_hierarchy"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_user_hierarchy"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_score"("p_user_id" "uuid", "p_measure_id" "uuid", "p_period_id" "uuid") TO "service_role";
 
 
 
@@ -8607,6 +9601,12 @@ GRANT ALL ON FUNCTION "public"."st_union"("public"."geometry", double precision)
 
 
 
+
+
+
+
+
+
 GRANT ALL ON TABLE "public"."_cadence_backup_meetings" TO "anon";
 GRANT ALL ON TABLE "public"."_cadence_backup_meetings" TO "authenticated";
 GRANT ALL ON TABLE "public"."_cadence_backup_meetings" TO "service_role";
@@ -8739,6 +9739,12 @@ GRANT ALL ON TABLE "public"."decline_reasons" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."dirty_users" TO "anon";
+GRANT ALL ON TABLE "public"."dirty_users" TO "authenticated";
+GRANT ALL ON TABLE "public"."dirty_users" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hvc_types" TO "anon";
 GRANT ALL ON TABLE "public"."hvc_types" TO "authenticated";
 GRANT ALL ON TABLE "public"."hvc_types" TO "service_role";
@@ -8847,9 +9853,27 @@ GRANT ALL ON TABLE "public"."sync_queue_items" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."system_errors" TO "anon";
+GRANT ALL ON TABLE "public"."system_errors" TO "authenticated";
+GRANT ALL ON TABLE "public"."system_errors" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."user_hierarchy" TO "anon";
 GRANT ALL ON TABLE "public"."user_hierarchy" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_hierarchy" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_score_aggregate_snapshots" TO "anon";
+GRANT ALL ON TABLE "public"."user_score_aggregate_snapshots" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_score_aggregate_snapshots" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_score_aggregates" TO "anon";
+GRANT ALL ON TABLE "public"."user_score_aggregates" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_score_aggregates" TO "service_role";
 
 
 

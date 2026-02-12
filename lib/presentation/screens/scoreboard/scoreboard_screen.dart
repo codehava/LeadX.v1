@@ -129,13 +129,29 @@ class ScoreboardScreen extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
 
+          // Bonuses & Penalties section
+          if (state.userSummary?.hasAdjustments ?? false) ...[
+            _buildBonusesPenaltiesSection(context, state.userSummary!),
+            const SizedBox(height: 24),
+          ],
+
           // Leaderboard section
           if (state.leaderboard.isNotEmpty) ...[
-            Text(
-              'Team Leaderboard',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Team Leaderboard',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.open_in_full, size: 16),
+                  label: const Text('View All'),
+                  onPressed: () => context.pushNamed(RouteNames.leaderboard),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             ...state.leaderboard.map((entry) {
@@ -393,6 +409,126 @@ class ScoreboardScreen extends ConsumerWidget {
                 ),
               );
             }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBonusesPenaltiesSection(
+    BuildContext context,
+    PeriodSummary summary,
+  ) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: summary.netAdjustment >= 0
+                        ? AppColors.success
+                        : AppColors.error,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Bonuses & Penalties',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Bonuses
+            if (summary.bonusPoints > 0) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.add_circle,
+                          color: AppColors.success, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Bonus Points',
+                          style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                  Text(
+                    '+${summary.bonusPoints.toStringAsFixed(1)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Penalties
+            if (summary.penaltyPoints > 0) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.remove_circle,
+                          color: AppColors.error, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Penalty Points',
+                          style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                  Text(
+                    '-${summary.penaltyPoints.toStringAsFixed(1)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Divider
+            const Divider(),
+            const SizedBox(height: 12),
+
+            // Net adjustment
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Net Adjustment',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  summary.netAdjustment >= 0
+                      ? '+${summary.netAdjustment.toStringAsFixed(1)}'
+                      : summary.netAdjustment.toStringAsFixed(1),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: summary.netAdjustment >= 0
+                        ? AppColors.success
+                        : AppColors.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

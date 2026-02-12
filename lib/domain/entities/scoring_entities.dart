@@ -136,6 +136,8 @@ class PeriodSummary with _$PeriodSummary {
     @Default(0) double totalLeadScore,
     @Default(0) double totalLagScore,
     @Default(0) double compositeScore,
+    @Default(0) double bonusPoints,
+    @Default(0) double penaltyPoints,
     int? rank,
     int? rankChange,
     DateTime? calculatedAt,
@@ -165,6 +167,12 @@ class PeriodSummary with _$PeriodSummary {
     if (compositeScore >= 40) return 'At Risk';
     return 'Critical';
   }
+
+  /// Get net adjustment (bonuses - penalties).
+  double get netAdjustment => bonusPoints - penaltyPoints;
+
+  /// Check if there are any bonuses or penalties.
+  bool get hasAdjustments => bonusPoints > 0 || penaltyPoints > 0;
 }
 
 /// Leaderboard entry for display.
@@ -238,4 +246,55 @@ class DashboardStats with _$DashboardStats {
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) =>
       _$DashboardStatsFromJson(json);
+}
+
+/// Team summary statistics for Branch Heads/Managers.
+@freezed
+class TeamSummary with _$TeamSummary {
+  const TeamSummary._();
+
+  const factory TeamSummary({
+    required String id,
+    required String periodId,
+    String? branchId,
+    String? regionalOfficeId,
+    String? branchName,
+    String? regionalOfficeName,
+    @Default(0) double averageScore,
+    @Default(0) double averageLeadScore,
+    @Default(0) double averageLagScore,
+    int? teamRank,
+    int? totalTeams,
+    @Default(0) int teamMembersCount,
+    double? scoreChange,
+    int? rankChange,
+    DateTime? calculatedAt,
+  }) = _TeamSummary;
+
+  factory TeamSummary.fromJson(Map<String, dynamic> json) =>
+      _$TeamSummaryFromJson(json);
+
+  /// Get trend indicator.
+  String get trendIndicator {
+    if (scoreChange == null) return '─';
+    if (scoreChange! > 0) return '↑';
+    if (scoreChange! < 0) return '↓';
+    return '─';
+  }
+
+  /// Get formatted score change.
+  String get scoreChangeText {
+    if (scoreChange == null) return '';
+    final change = scoreChange!.abs();
+    return scoreChange! >= 0 ? '+$change' : '-$change';
+  }
+
+  /// Get status label based on average score.
+  String get statusLabel {
+    if (averageScore >= 90) return 'Excellent';
+    if (averageScore >= 75) return 'Good';
+    if (averageScore >= 60) return 'Fair';
+    if (averageScore >= 40) return 'Needs Improvement';
+    return 'Critical';
+  }
 }

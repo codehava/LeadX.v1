@@ -86,7 +86,7 @@
 │  │  • Lead & Lag measure progress bars                                     ││
 │  │  • Team ranking & leaderboard                                           ││
 │  │  • Weekly trend visualization                                           ││
-│  │  • Achievement badges & gamification                                    ││
+│  │                                      ││
 │  │                                                                          ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                               ↓                                              │

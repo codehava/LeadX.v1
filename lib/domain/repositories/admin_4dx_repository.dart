@@ -91,4 +91,42 @@ abstract class Admin4DXRepository {
     required DateTime startDate,
     required int count,
   });
+
+  // ============================================
+  // TARGET MANAGEMENT
+  // ============================================
+
+  /// Get all targets for a specific period.
+  Future<List<UserTarget>> getTargetsForPeriod(String periodId);
+
+  /// Get targets for a specific user in a period.
+  Future<List<UserTarget>> getUserTargetsForPeriod(
+      String userId, String periodId);
+
+  /// Upsert a single user target.
+  Future<UserTarget> upsertUserTarget({
+    required String userId,
+    required String measureId,
+    required String periodId,
+    required double targetValue,
+    required String assignedBy,
+  });
+
+  /// Bulk assign targets to multiple users.
+  Future<void> bulkAssignTargets({
+    required String periodId,
+    required String assignedBy,
+    required List<String> userIds,
+    required Map<String, double> measureTargets,
+  });
+
+  /// Apply default targets from measure definitions for a user.
+  Future<void> applyDefaultTargets({
+    required String userId,
+    required String periodId,
+    required String assignedBy,
+  });
+
+  /// Delete a user target.
+  Future<void> deleteUserTarget(String targetId);
 }
