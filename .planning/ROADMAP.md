@@ -87,11 +87,12 @@ Plans:
   3. Supabase 401 auth errors during sync are mapped to AuthFailure and stop retrying immediately instead of retrying 5 times
   4. Network timeout during customer create returns NetworkFailure with user-facing message "Check your connection and try again" instead of raw TimeoutException
   5. Screens handle Result errors with pattern matching (success/failure) and show appropriate UI states (loading, success, error with retry)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Sealed Result<T> type + exception mapper + CustomerRepository migration
+- [ ] 03-02-PLAN.md -- PipelineRepository + ActivityRepository migration to Result type
+- [ ] 03-03-PLAN.md -- OfflineBanner widget + screen error display improvements
 
 ### Phase 4: Conflict Resolution
 **Goal**: Detect when local and remote data diverge, apply Last-Write-Wins policy, log conflicts for audit, and ensure sync operations are idempotent
