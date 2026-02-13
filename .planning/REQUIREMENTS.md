@@ -95,42 +95,42 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYNC-01 | — | Pending |
-| SYNC-02 | — | Pending |
-| SYNC-03 | — | Pending |
-| SYNC-04 | — | Pending |
-| SYNC-05 | — | Pending |
-| SYNC-06 | — | Pending |
-| ERR-01 | — | Pending |
-| ERR-02 | — | Pending |
-| ERR-03 | — | Pending |
-| ERR-04 | — | Pending |
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| CONF-03 | — | Pending |
-| CONF-04 | — | Pending |
-| CONF-05 | — | Pending |
-| UX-01 | — | Pending |
-| UX-02 | — | Pending |
-| UX-03 | — | Pending |
-| UX-04 | — | Pending |
-| OBS-01 | — | Pending |
-| OBS-02 | — | Pending |
-| SCORE-01 | — | Pending |
-| SCORE-02 | — | Pending |
-| FEAT-01 | — | Pending |
-| FEAT-02 | — | Pending |
-| FEAT-03 | — | Pending |
-| FEAT-04 | — | Pending |
-| FEAT-05 | — | Pending |
-| FEAT-06 | — | Pending |
-| FEAT-07 | — | Pending |
+| SYNC-01 | Phase 2 | Pending |
+| SYNC-02 | Phase 2 | Pending |
+| SYNC-03 | Phase 2 | Pending |
+| SYNC-04 | Phase 2 | Pending |
+| SYNC-05 | Phase 1 | Pending |
+| SYNC-06 | Phase 5 | Pending |
+| ERR-01 | Phase 1 | Pending |
+| ERR-02 | Phase 3 | Pending |
+| ERR-03 | Phase 3 | Pending |
+| ERR-04 | Phase 3 | Pending |
+| CONF-01 | Phase 4 | Pending |
+| CONF-02 | Phase 5 | Pending |
+| CONF-03 | Phase 4 | Pending |
+| CONF-04 | Phase 5 | Pending |
+| CONF-05 | Phase 6 | Pending |
+| UX-01 | Phase 7 | Pending |
+| UX-02 | Phase 7 | Pending |
+| UX-03 | Phase 7 | Pending |
+| UX-04 | Phase 7 | Pending |
+| OBS-01 | Phase 1 | Pending |
+| OBS-02 | Phase 1 | Pending |
+| SCORE-01 | Phase 10 | Pending |
+| SCORE-02 | Phase 10 | Pending |
+| FEAT-01 | Phase 8 | Pending |
+| FEAT-02 | Phase 8 | Pending |
+| FEAT-03 | Phase 8 | Pending |
+| FEAT-04 | Phase 8 | Pending |
+| FEAT-05 | Phase 8 | Pending |
+| FEAT-06 | Phase 9 | Pending |
+| FEAT-07 | Phase 9 | Pending |
 
 **Coverage:**
 - v1 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30
+- Mapped to phases: 30
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-13*
-*Last updated: 2026-02-13 after initial definition*
+*Last updated: 2026-02-13 after roadmap creation*

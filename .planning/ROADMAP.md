@@ -1,0 +1,208 @@
+# Roadmap: LeadX CRM Stability
+
+## Overview
+
+This roadmap transforms LeadX from a feature-complete but unreliable offline CRM into a production-ready application. We build foundation first (schema, observability, error types), stabilize the sync engine (atomic operations, delta sync, debouncing), add conflict resolution and error recovery, implement background sync, polish offline UX, complete stubbed features, and optimize scoring. Each phase delivers verifiable user value while building toward rock-solid offline-first reliability.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
+- [ ] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
+- [ ] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
+- [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
+- [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
+- [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
+- [ ] **Phase 7: Offline UX Polish** - Connectivity banner, sync status badges, staleness indicators
+- [ ] **Phase 8: Stubbed Feature Completion** - Customer actions, activity editing, phone/email launch, notification settings
+- [ ] **Phase 9: Admin & Dashboard Features** - User deletion, quick activity logging
+- [ ] **Phase 10: Scoring Optimization** - Multi-period aggregation, team ranking calculation
+
+## Phase Details
+
+### Phase 1: Foundation & Observability
+**Goal**: Establish consistent sync metadata schema, typed error foundation, and production observability before touching sync engine logic
+**Depends on**: Nothing (first phase)
+**Requirements**: SYNC-05, ERR-01, OBS-01, OBS-02
+**Success Criteria** (what must be TRUE):
+  1. All syncable tables have identical sync metadata columns (isPendingSync, lastSyncAt, updatedAt) with no entity-specific special cases
+  2. Unhandled exceptions in production are captured in Sentry with user context and breadcrumbs
+  3. All sync operations log to Talker with module prefixes (sync.queue, sync.push, sync.pull) replacing scattered debugPrint calls
+  4. Sealed SyncError hierarchy exists with retryable vs permanent classification (NetworkSyncError, TimeoutSyncError, AuthSyncError, ValidationSyncError, ConflictSyncError)
+  5. Drift schema baseline is exported and migration tested on production data copy before deployment
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD
+- [ ] 01-02: TBD
+
+### Phase 2: Sync Engine Core
+**Goal**: Prevent data loss and reduce sync duration through atomic write-queue transactions, incremental sync, intelligent coalescing, and debounced triggers
+**Depends on**: Phase 1 (requires standardized schema and error types)
+**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04
+**Success Criteria** (what must be TRUE):
+  1. User creating customer record followed by immediate edit never loses the edit during sync (create+update coalesces to create with updated payload)
+  2. App crash between local DB write and sync queue insertion never loses data (single Drift transaction wraps both)
+  3. Sync after initial full pull completes in under 5 seconds for typical field rep usage (50 customers, 200 activities) instead of 30+ seconds
+  4. Rapid successive repository writes (e.g., importing 10 customers) trigger only one sync batch after 500ms window instead of 10 thundering syncs
+  5. Incremental sync passes since timestamps to all remote data source methods and fetches only records with updated_at > last_pull_sync_at
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: TBD
+- [ ] 02-02: TBD
+
+### Phase 3: Error Classification & Recovery
+**Goal**: Replace generic exception handling with typed error propagation, enable intelligent retry decisions, and gracefully handle offline states in UI
+**Depends on**: Phase 1 (requires SyncError hierarchy), Phase 2 (requires stable sync engine to layer errors on)
+**Requirements**: ERR-02, ERR-03, ERR-04
+**Success Criteria** (what must be TRUE):
+  1. All repository methods return Result<T> instead of throwing raw exceptions (migration complete for at least CustomerRepository, PipelineRepository, ActivityRepository)
+  2. Customer list screen shows cached customer data with "Offline - data may be stale" warning when network unavailable instead of error text or crash
+  3. Supabase 401 auth errors during sync are mapped to AuthFailure and stop retrying immediately instead of retrying 5 times
+  4. Network timeout during customer create returns NetworkFailure with user-facing message "Check your connection and try again" instead of raw TimeoutException
+  5. Screens handle Result errors with pattern matching (success/failure) and show appropriate UI states (loading, success, error with retry)
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD
+- [ ] 03-02: TBD
+
+### Phase 4: Conflict Resolution
+**Goal**: Detect when local and remote data diverge, apply Last-Write-Wins policy, log conflicts for audit, and ensure sync operations are idempotent
+**Depends on**: Phase 2 (requires delta sync with updatedAt timestamps), Phase 3 (requires typed error handling)
+**Requirements**: CONF-01, CONF-03
+**Success Criteria** (what must be TRUE):
+  1. User editing customer offline while another user edits same customer results in deterministic Last-Write-Wins merge based on updatedAt comparison (higher timestamp wins)
+  2. Conflicts are logged to sync_conflicts audit table with before/after payload snapshots and timestamp metadata
+  3. Sync create operations use Supabase upsert on client-generated UUIDs so retrying same operation doesn't create duplicates
+  4. Sync update operations include updatedAt version guard so concurrent updates don't silently overwrite without detection
+  5. User can see count of recent conflicts in sync status UI (even if resolution is automatic LWW)
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+- [ ] 04-02: TBD
+
+### Phase 5: Background Sync & Dead Letter Queue
+**Goal**: Sync persists across app restarts, failed items are pruned and surfaced to users, and queue doesn't grow indefinitely
+**Depends on**: Phase 3 (requires error classification for dead letter detection), Phase 4 (requires idempotent operations for safe background retry)
+**Requirements**: SYNC-06, CONF-02, CONF-04
+**Success Criteria** (what must be TRUE):
+  1. User creating activity while app is backgrounded has sync complete via workmanager within 15 minutes (Android WorkManager, iOS BGTaskScheduler)
+  2. Sync queue items older than 7 days with status completed are pruned automatically (deleted from sync_queue table)
+  3. Items exceeding 5 retry attempts are moved to dead letter state and visible in Failed Sync Items UI with retry/discard buttons
+  4. User sees badge count of failed sync items on Settings screen and can navigate to dead letter queue list
+  5. Retrying a dead letter item resets retryCount and marks isPendingSync=true, discarding removes from queue and marks entity as sync error
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+- [ ] 05-02: TBD
+
+### Phase 6: Sync Coordination
+**Goal**: Prevent race conditions between initial sync and regular sync, serialize push/pull phases, and ensure single sync execution at a time
+**Depends on**: Phase 2 (requires delta sync), Phase 5 (requires background sync)
+**Requirements**: CONF-05
+**Success Criteria** (what must be TRUE):
+  1. User creating customer during initial sync sees sync queued but not pushed until initial sync completes (prevents pushing before reference data is pulled)
+  2. Regular sync executes push phase fully before pull phase starts (prevents pull overwriting data that hasn't pushed yet)
+  3. Triggering sync while another sync is in progress queues the request and executes after current sync completes instead of silently dropping
+  4. Multiple repositories triggering sync simultaneously results in single coordinated sync execution instead of multiple overlapping syncs
+  5. Sync lock acquisition and release is logged with phase metadata (push/pull) and duration for debugging coordination issues
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+- [ ] 06-02: TBD
+
+### Phase 7: Offline UX Polish
+**Goal**: Make offline state and sync status transparent to users through persistent banners, status badges, and staleness indicators
+**Depends on**: Phase 3 (requires stable offline error handling), Phase 5 (requires reliable sync for status accuracy)
+**Requirements**: UX-01, UX-02, UX-03, UX-04
+**Success Criteria** (what must be TRUE):
+  1. Offline connectivity banner appears at top of every screen when device has no internet access and remains visible until connection restored
+  2. Customer cards in list view show pending/synced badge icon and activity detail screen shows sync status at top
+  3. Dashboard displays "Last synced: X minutes ago" timestamp sourced from last_pull_sync_at in AppSettings
+  4. User tapping failed sync badge count navigates to dead letter queue UI showing failed items with entity type, timestamp, and error message
+  5. Sync status indicators update reactively via Drift streams (pending badge disappears immediately when isPendingSync=false after sync)
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD
+- [ ] 07-02: TBD
+
+### Phase 8: Stubbed Feature Completion
+**Goal**: Complete half-implemented features for customer actions, activity editing, and communication launchers
+**Depends on**: Phase 3 (requires typed error handling for feature robustness)
+**Requirements**: FEAT-01, FEAT-02, FEAT-03, FEAT-04, FEAT-05
+**Success Criteria** (what must be TRUE):
+  1. User tapping Share button on customer detail screen launches native share sheet with customer data (name, company, phone, email) via share_plus
+  2. User tapping Delete button on customer detail screen shows confirmation dialog, soft-deletes customer (sets deleted_at), and navigates back to list
+  3. User tapping phone number on customer detail, HVC detail, or activity detail launches phone dialer with pre-filled number via url_launcher
+  4. User tapping email address on customer detail, HVC detail, or activity detail launches email client with pre-filled recipient via url_launcher
+  5. User tapping existing activity card navigates to activity form in edit mode with pre-filled data and can update fields and save changes
+  6. Notification Settings screen exists and is navigable from Settings menu with placeholder UI for future notification preferences
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: TBD
+- [ ] 08-02: TBD
+
+### Phase 9: Admin & Dashboard Features
+**Goal**: Complete admin user management and dashboard quick actions
+**Depends on**: Phase 3 (requires typed error handling)
+**Requirements**: FEAT-06, FEAT-07
+**Success Criteria** (what must be TRUE):
+  1. Admin user deleting user from admin panel soft-deletes user (sets deleted_at), cascades to user_hierarchy/user_targets/user_scores, and removes from active user list
+  2. User tapping quick activity FAB on dashboard opens bottom sheet with activity form (customer picker, activity type, notes) and successfully creates activity
+  3. Quick activity bottom sheet validates required fields (customer, activity type) and shows error states for incomplete submissions
+  4. Activity created via quick logging appears immediately in activity list and dashboard recent activities (reactive Drift stream update)
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+- [ ] 09-02: TBD
+
+### Phase 10: Scoring Optimization
+**Goal**: Fix multi-period score aggregation and implement team ranking calculation
+**Depends on**: Phase 2 (requires stable sync for score data integrity)
+**Requirements**: SCORE-01, SCORE-02
+**Success Criteria** (what must be TRUE):
+  1. User scoreboard displays LEAD and LAG scores pulled from their respective active scoring periods and computes composite score correctly
+  2. Multi-period queries fetch scores using period.start_date and period.end_date boundaries instead of assuming single active period
+  3. Team ranking calculation runs after score updates and populates rank/rankChange fields based on composite score comparison within team
+  4. Manager viewing team scoreboard sees team members sorted by rank with correct rank values (1, 2, 3) and rank change indicators (up/down/same)
+  5. Score aggregation handles missing LEAD or LAG scores gracefully (uses 0 or null appropriately instead of crashing)
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD
+- [ ] 10-02: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation & Observability | 0/TBD | Not started | - |
+| 2. Sync Engine Core | 0/TBD | Not started | - |
+| 3. Error Classification & Recovery | 0/TBD | Not started | - |
+| 4. Conflict Resolution | 0/TBD | Not started | - |
+| 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
+| 6. Sync Coordination | 0/TBD | Not started | - |
+| 7. Offline UX Polish | 0/TBD | Not started | - |
+| 8. Stubbed Feature Completion | 0/TBD | Not started | - |
+| 9. Admin & Dashboard Features | 0/TBD | Not started | - |
+| 10. Scoring Optimization | 0/TBD | Not started | - |
+
+---
+*Created: 2026-02-13*
+*Last updated: 2026-02-13*
