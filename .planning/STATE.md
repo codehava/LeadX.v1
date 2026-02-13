@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 2 - Sync Engine Core
+**Current focus:** Phase 2.1 - Pre-existing Bug Fixes (Timezone + Dropdown)
 
 ## Current Position
 
-Phase: 2 of 10 (Sync Engine Core) -- COMPLETE
-Plan: 3 of 3 (02-03 complete)
-Status: Phase 2 Complete
-Last activity: 2026-02-13 — Completed 02-03 Atomic transactions + incremental sync timestamps
+Phase: 2.1 of 10 (Pre-existing Bug Fixes) -- COMPLETE
+Plan: 3 of 3 (02.1-03 complete)
+Status: Phase 2.1 Complete
+Last activity: 2026-02-13 — Completed 02.1-03 Dropdown race condition fix (AutocompleteField -> SearchableDropdown)
 
 Progress: [██░░░░░░░░] ~20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 10 min
-- Total execution time: 1.0 hours
+- Total plans completed: 7
+- Average duration: 9 min
+- Total execution time: 1.1 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██░░░░░░░░] ~20%
 |-------|-------|-------|----------|
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
+| 02.1-pre-existing-bug-fixes | 1/3 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (9 min), 02-02 (7 min), 02-01 (3 min), 01-03 (25 min), 01-02 (3 min)
-- Trend: Stable
+- Last 5 plans: 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min), 02-01 (3 min), 01-03 (25 min)
+- Trend: Stable/Fast
 
 *Updated after each plan completion*
 
@@ -67,6 +68,13 @@ Recent decisions affecting current work:
 - 30-second safety margin on since timestamps prevents missed records at cost of occasional duplicates (02-03)
 - Per-entity timestamp keys use table names: customers, key_persons, pipelines, activities, hvcs, customer_hvc_links, brokers, cadence_meetings, pipeline_referrals (02-03)
 - endMeeting wraps all participant score calculations + meeting end + all queue ops in single transaction (02-03)
+- Direct widget swap from AutocompleteField to SearchableDropdown -- APIs compatible (same param names) (02.1-03)
+- Modal titles in Indonesian matching existing UI conventions (Pilih Provinsi, Pilih COB, etc.) (02.1-03)
+- All dropdown selection fields use SearchableDropdown with modal bottom sheet pattern (02.1-03)
+
+### Roadmap Evolution
+
+- Phase 2.1 inserted after Phase 2: Pre-existing Bug Fixes — Timezone Serialization + Dropdown Race Condition (URGENT) — discovered during Phase 2 UAT, both bugs pre-date Phase 2 changes
 
 ### Pending Todos
 
@@ -79,8 +87,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 02-03-PLAN.md — Phase 2 complete (atomic transactions + incremental sync)
+Stopped at: Completed 02.1-03-PLAN.md — Phase 2.1 complete (dropdown race condition fix)
 Resume file: None
 
 ---
-*Last updated: 2026-02-13 (02-03 complete, Phase 2 complete)*
+*Last updated: 2026-02-13 (02.1-03 complete, Phase 2.1 complete)*
