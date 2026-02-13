@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 3.1 of 10 (Remaining Repo Result Migration)
-Plan: 4 of 5 (03.1-01, 03.1-02, 03.1-04 complete)
+Plan: 4 of 5 (03.1-01, 03.1-02, 03.1-03, 03.1-04 complete)
 Status: Executing Phase 3.1
-Last activity: 2026-02-14 — Completed 03.1-02 AdminMasterData + PipelineReferral migration
+Last activity: 2026-02-14 — Completed 03.1-03 AuthRepository migration
 
 Progress: [████░░░░░░] ~35%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 10 min
-- Total execution time: 2.0 hours
+- Total execution time: 2.6 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [████░░░░░░] ~35%
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
-| 03.1-remaining-repo-result-migration | 3/5 | 21 min | 7 min |
+| 03.1-remaining-repo-result-migration | 4/5 | 56 min | 14 min |
 
 **Recent Trend:**
-- Last 5 plans: 03.1-02 (5 min), 03.1-04 (8 min), 03.1-01 (8 min), 03-03 (5 min), 03-02 (18 min)
+- Last 5 plans: 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min), 03.1-01 (8 min), 03-03 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -93,6 +93,9 @@ Recent decisions affecting current work:
 - runCatching for simple AdminMasterData methods; explicit try/catch+mapException for validation methods with code uniqueness or dependency checks (03.1-02)
 - PipelineReferral: explicit try/catch+mapException for all 6 mutation methods since all have validation (status/auth/not-found checks) (03.1-02)
 - .isSuccess replacing .isRight() for unmounted-notifier early-return pattern in StateNotifiers (03.1-02)
+- Preserved custom _mapAuthError() with Indonesian-locale messages instead of replacing with generic mapException (03.1-03)
+- Auth test suite rewritten from mockito to mocktail with custom Fakes for Supabase Future-implementing types (03.1-03)
+- FakeSupabaseClient + FakeQueryChain + _FakeTransformBuilder pattern for testing Supabase-dependent code (03.1-03)
 
 ### Roadmap Evolution
 
@@ -110,8 +113,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 03.1-02-PLAN.md (AdminMasterData, PipelineReferral migration + key_person_form_sheet fix)
+Stopped at: Completed 03.1-03-PLAN.md (AuthRepository migration to sealed Result)
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (Phase 3.1, 03.1-02 complete)*
+*Last updated: 2026-02-14 (Phase 3.1, 03.1-03 complete)*
