@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/sync_errors.dart';
 import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/sync_queue_local_data_source.dart';
@@ -168,8 +169,17 @@ class SyncService {
           
           successCount++;
           debugPrint('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
+        } on SyncError catch (syncError) {
+          debugPrint('[SyncService] SyncError for ${item.entityType}/${item.entityId}: ${syncError.message} (retryable: ${syncError.isRetryable})');
+          if (syncError.isRetryable) {
+            await _syncQueueDataSource.incrementRetryCount(item.id);
+          } else {
+            await _syncQueueDataSource.markAsFailed(item.id, syncError.message);
+          }
+          errors.add('${item.entityType}/${item.entityId}: ${syncError.message}');
+          failedCount++;
         } catch (e) {
-          debugPrint('[SyncService] Failed to sync ${item.entityType}/${item.entityId}: $e');
+          debugPrint('[SyncService] Unexpected error syncing ${item.entityType}/${item.entityId}: $e');
           await _syncQueueDataSource.incrementRetryCount(item.id);
           await _syncQueueDataSource.markAsFailed(item.id, e.toString());
           errors.add('${item.entityType}/${item.entityId}: $e');
@@ -248,12 +258,61 @@ class SyncService {
         default:
           throw ArgumentError('Unknown operation: ${item.operation}');
       }
-    } on SocketException catch (e) {
-      // Network unreachable
-      throw Exception('Network error: Device appears to be offline. $e');
-    } on TimeoutException catch (e) {
-      // Server not responding
-      throw Exception('Network timeout: Server not responding. $e');
+    } on SocketException catch (e, st) {
+      throw NetworkSyncError(
+        message: 'Network unreachable',
+        originalError: e,
+        stackTrace: st,
+        entityType: item.entityType,
+        entityId: item.entityId,
+      );
+    } on TimeoutException catch (e, st) {
+      throw TimeoutSyncError(
+        message: 'Request timed out',
+        originalError: e,
+        stackTrace: st,
+        entityType: item.entityType,
+        entityId: item.entityId,
+      );
+    } on PostgrestException catch (e, st) {
+      final code = int.tryParse(e.code ?? '') ?? 0;
+      if (code == 401 || e.code == 'PGRST301') {
+        throw AuthSyncError(
+          message: 'Authentication failed: ${e.message}',
+          originalError: e,
+          stackTrace: st,
+          entityType: item.entityType,
+          entityId: item.entityId,
+        );
+      } else if (code == 409) {
+        throw ConflictSyncError(
+          message: 'Conflict: ${e.message}',
+          originalError: e,
+          stackTrace: st,
+          entityType: item.entityType,
+          entityId: item.entityId,
+        );
+      } else if (code >= 400 && code < 500) {
+        throw ValidationSyncError(
+          message: 'Validation error: ${e.message}',
+          details: e.details is Map<String, dynamic>
+              ? Map<String, dynamic>.from(e.details as Map<dynamic, dynamic>)
+              : null,
+          originalError: e,
+          stackTrace: st,
+          entityType: item.entityType,
+          entityId: item.entityId,
+        );
+      } else {
+        throw ServerSyncError(
+          statusCode: code,
+          message: 'Server error: ${e.message}',
+          originalError: e,
+          stackTrace: st,
+          entityType: item.entityType,
+          entityId: item.entityId,
+        );
+      }
     }
   }
 
