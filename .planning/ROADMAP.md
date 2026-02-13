@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
 - [x] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
-- [ ] **Phase 02.1: Pre-existing Bug Fixes** - Timezone serialization + dropdown race condition (INSERTED)
+- [x] **Phase 02.1: Pre-existing Bug Fixes** - Timezone serialization + dropdown race condition (INSERTED)
 - [ ] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
@@ -73,9 +73,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02.1-01-PLAN.md — UTC helper + repository sync payload timestamp fixes (88 occurrences)
-- [ ] 02.1-02-PLAN.md — Remote data source + service + provider timestamp fixes (72 occurrences)
-- [ ] 02.1-03-PLAN.md — Replace AutocompleteField with SearchableDropdown (11 fields)
+- [x] 02.1-01-PLAN.md — UTC helper + repository sync payload timestamp fixes (88 occurrences)
+- [x] 02.1-02-PLAN.md — Remote data source + service + provider timestamp fixes (72 occurrences)
+- [x] 02.1-03-PLAN.md — Replace AutocompleteField with SearchableDropdown (11 fields)
 
 ### Phase 3: Error Classification & Recovery
 **Goal**: Replace generic exception handling with typed error propagation, enable intelligent retry decisions, and gracefully handle offline states in UI
@@ -214,7 +214,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 �
 |-------|----------------|--------|-----------|
 | 1. Foundation & Observability | 3/3 | ✓ Complete | 2026-02-13 |
 | 2. Sync Engine Core | 3/3 | ✓ Complete | 2026-02-13 |
-| 02.1. Pre-existing Bug Fixes | 0/3 | Not started | - |
+| 02.1. Pre-existing Bug Fixes | 3/3 | ✓ Complete | 2026-02-13 |
 | 3. Error Classification & Recovery | 0/TBD | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
@@ -226,4 +226,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 �
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-13 — Phase 02.1 planned (3 plans)*
+*Last updated: 2026-02-13 — Phase 02.1 complete (3/3 plans)*
