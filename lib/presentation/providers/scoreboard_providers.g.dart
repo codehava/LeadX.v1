@@ -1492,7 +1492,7 @@ class _TeamSummaryProviderElement
 }
 
 String _$scoreboardNotifierHash() =>
-    r'0c2f383bbdc8dc0a27a7fe6c229699a28f1dc48f';
+    r'a285812880552fdd57fd2c044612189c5b613806';
 
 /// See also [ScoreboardNotifier].
 @ProviderFor(ScoreboardNotifier)

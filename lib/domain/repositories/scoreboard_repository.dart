@@ -19,8 +19,11 @@ abstract class ScoreboardRepository {
   /// Get all scoring periods.
   Future<List<ScoringPeriod>> getScoringPeriods();
 
-  /// Get the current scoring period.
+  /// Get the current display period (shortest granularity).
   Future<ScoringPeriod?> getCurrentPeriod();
+
+  /// Get all current periods (one per period_type).
+  Future<List<ScoringPeriod>> getAllCurrentPeriods();
 
   /// Get scoring period by ID.
   Future<ScoringPeriod?> getScoringPeriodById(String periodId);
@@ -45,6 +48,9 @@ abstract class ScoreboardRepository {
     String periodId,
     String measureType,
   );
+
+  /// Get user scores across all current periods.
+  Future<List<UserScore>> getUserScoresForCurrentPeriods(String userId);
 
   // ============================================
   // PERIOD SUMMARY & LEADERBOARD

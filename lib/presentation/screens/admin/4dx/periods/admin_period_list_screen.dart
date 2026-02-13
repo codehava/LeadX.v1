@@ -241,7 +241,8 @@ class _AdminPeriodListScreenState
         title: const Text('Set Periode Aktif?'),
         content: Text(
           'Periode "${period.name}" akan dijadikan periode aktif saat ini. '
-          'Periode aktif sebelumnya akan dinonaktifkan.',
+          'Hanya periode ${_formatPeriodTypeLabel(period.periodType)} lain yang akan dinonaktifkan. '
+          'Periode aktif dengan tipe berbeda tidak terpengaruh.',
         ),
         actions: [
           TextButton(
@@ -437,6 +438,21 @@ class _AdminPeriodListScreenState
           ),
         );
       }
+    }
+  }
+
+  String _formatPeriodTypeLabel(String periodType) {
+    switch (periodType) {
+      case 'WEEKLY':
+        return 'Mingguan';
+      case 'MONTHLY':
+        return 'Bulanan';
+      case 'QUARTERLY':
+        return 'Kuartalan';
+      case 'YEARLY':
+        return 'Tahunan';
+      default:
+        return periodType;
     }
   }
 

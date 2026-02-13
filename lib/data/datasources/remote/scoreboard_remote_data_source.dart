@@ -53,16 +53,80 @@ class ScoreboardRemoteDataSource {
         .toList();
   }
 
-  /// Fetch the current scoring period.
+  /// Fetch the current display period (shortest granularity among current periods).
   Future<ScoringPeriod?> fetchCurrentPeriod() async {
     final response = await _supabase
         .from('scoring_periods')
         .select()
-        .eq('is_current', true)
-        .maybeSingle();
+        .eq('is_current', true);
 
-    if (response == null) return null;
-    return _mapToScoringPeriod(response);
+    final periods = (response as List)
+        .map((json) => _mapToScoringPeriod(json as Map<String, dynamic>))
+        .toList();
+
+    if (periods.isEmpty) return null;
+
+    // Sort by granularity priority: WEEKLY < MONTHLY < QUARTERLY < YEARLY
+    periods.sort((a, b) =>
+        _periodTypePriority(a.periodType)
+            .compareTo(_periodTypePriority(b.periodType)));
+
+    return periods.first;
+  }
+
+  /// Fetch all current periods (one per period_type).
+  Future<List<ScoringPeriod>> fetchAllCurrentPeriods() async {
+    final response = await _supabase
+        .from('scoring_periods')
+        .select()
+        .eq('is_current', true);
+
+    return (response as List)
+        .map((json) => _mapToScoringPeriod(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Fetch user scores across all current periods.
+  ///
+  /// Returns scores where period_id matches any current period,
+  /// joined with measure_definitions for name/type/unit.
+  Future<List<UserScore>> fetchUserScoresForCurrentPeriods(
+      String userId) async {
+    // First get all current period IDs
+    final currentPeriods = await fetchAllCurrentPeriods();
+    if (currentPeriods.isEmpty) return [];
+
+    final periodIds = currentPeriods.map((p) => p.id).toList();
+
+    final response = await _supabase
+        .from('user_scores')
+        .select('''
+          *,
+          measure_definitions!inner(name, measure_type, unit, sort_order)
+        ''')
+        .eq('user_id', userId)
+        .inFilter('period_id', periodIds);
+
+    return (response as List).map((json) {
+      final jsonMap = json as Map<String, dynamic>;
+      final measure = jsonMap['measure_definitions'] as Map<String, dynamic>?;
+      return UserScore(
+        id: jsonMap['id'] as String,
+        userId: jsonMap['user_id'] as String,
+        measureId: jsonMap['measure_id'] as String,
+        periodId: jsonMap['period_id'] as String,
+        actualValue: (jsonMap['actual_value'] as num).toDouble(),
+        targetValue: (measure?['target_value'] as num?)?.toDouble() ?? 0,
+        percentage: (jsonMap['percentage'] as num?)?.toDouble(),
+        calculatedAt: jsonMap['updated_at'] != null
+            ? DateTime.parse(jsonMap['updated_at'] as String)
+            : null,
+        measureName: measure?['name'] as String?,
+        measureType: measure?['measure_type'] as String?,
+        measureUnit: measure?['unit'] as String?,
+        sortOrder: (measure?['sort_order'] as int?) ?? 0,
+      );
+    }).toList();
   }
 
   // ============================================
@@ -560,14 +624,27 @@ class ScoreboardRemoteDataSource {
   }
 
   /// Set a period as current (Admin only).
+  ///
+  /// Only unsets is_current for periods of the same period_type,
+  /// allowing multiple current periods (one per type).
   Future<void> setCurrentPeriod(String id) async {
-    // First, unset all other periods
+    // Fetch the target period's period_type
+    final targetPeriod = await _supabase
+        .from('scoring_periods')
+        .select('period_type')
+        .eq('id', id)
+        .single();
+
+    final periodType = targetPeriod['period_type'] as String;
+
+    // Unset is_current only for same period_type
     await _supabase
         .from('scoring_periods')
         .update({'is_current': false})
+        .eq('period_type', periodType)
         .neq('id', id);
 
-    // Then set the selected period as current
+    // Set the selected period as current
     await _supabase
         .from('scoring_periods')
         .update({'is_current': true})
@@ -577,6 +654,22 @@ class ScoreboardRemoteDataSource {
   // ============================================
   // MAPPERS
   // ============================================
+
+  /// Returns priority for period type sorting (lower = shorter granularity).
+  int _periodTypePriority(String periodType) {
+    switch (periodType) {
+      case 'WEEKLY':
+        return 1;
+      case 'MONTHLY':
+        return 2;
+      case 'QUARTERLY':
+        return 3;
+      case 'YEARLY':
+        return 4;
+      default:
+        return 5;
+    }
+  }
 
   MeasureDefinition _mapToMeasureDefinition(Map<String, dynamic> json) {
     return MeasureDefinition(

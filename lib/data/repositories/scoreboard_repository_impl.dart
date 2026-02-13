@@ -104,6 +104,30 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   }
 
   @override
+  Future<List<ScoringPeriod>> getAllCurrentPeriods() async {
+    // Try local first
+    final localData = await _localDataSource.getAllCurrentPeriods();
+    if (localData.isNotEmpty) {
+      return localData;
+    }
+
+    // Fallback to remote
+    if (await _connectivityService.isConnected) {
+      try {
+        final remoteData = await _remoteDataSource.fetchAllCurrentPeriods();
+        if (remoteData.isNotEmpty) {
+          await _localDataSource.upsertScoringPeriods(remoteData);
+        }
+        return remoteData;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    return [];
+  }
+
+  @override
   Future<ScoringPeriod?> getScoringPeriodById(String periodId) async {
     return _localDataSource.getScoringPeriodById(periodId);
   }
@@ -170,6 +194,31 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
     String measureType,
   ) async {
     return _localDataSource.getUserScoresByType(userId, periodId, measureType);
+  }
+
+  @override
+  Future<List<UserScore>> getUserScoresForCurrentPeriods(
+      String userId) async {
+    // Try local first
+    final localData =
+        await _localDataSource.getUserScoresForCurrentPeriods(userId);
+    if (localData.isNotEmpty) {
+      return localData;
+    }
+
+    // Fallback to remote
+    if (await _connectivityService.isConnected) {
+      try {
+        final remoteData =
+            await _remoteDataSource.fetchUserScoresForCurrentPeriods(userId);
+        await _localDataSource.upsertUserScores(remoteData);
+        return remoteData;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    return [];
   }
 
   // ============================================
@@ -377,25 +426,26 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   Future<void> syncUserScores(String userId) async {
     if (!await _connectivityService.isConnected) return;
 
-    final currentPeriod = await _remoteDataSource.fetchCurrentPeriod();
-    if (currentPeriod == null) return;
+    // Fetch all current periods (one per period_type)
+    final currentPeriods = await _remoteDataSource.fetchAllCurrentPeriods();
+    if (currentPeriods.isEmpty) return;
 
     try {
-      // Sync targets
-      final targets =
-          await _remoteDataSource.fetchUserTargets(userId, currentPeriod.id);
-      await _localDataSource.upsertUserTargets(targets);
+      // Sync targets, scores, and summary for each current period
+      for (final period in currentPeriods) {
+        final targets =
+            await _remoteDataSource.fetchUserTargets(userId, period.id);
+        await _localDataSource.upsertUserTargets(targets);
 
-      // Sync scores
-      final scores =
-          await _remoteDataSource.fetchUserScores(userId, currentPeriod.id);
-      await _localDataSource.upsertUserScores(scores);
+        final scores =
+            await _remoteDataSource.fetchUserScores(userId, period.id);
+        await _localDataSource.upsertUserScores(scores);
 
-      // Sync period summary
-      final summary = await _remoteDataSource.fetchUserPeriodSummary(
-          userId, currentPeriod.id);
-      if (summary != null) {
-        await _localDataSource.upsertPeriodSummaries([summary]);
+        final summary = await _remoteDataSource.fetchUserPeriodSummary(
+            userId, period.id);
+        if (summary != null) {
+          await _localDataSource.upsertPeriodSummaries([summary]);
+        }
       }
     } catch (e) {
       debugPrint('[ScoreboardRepo] Failed to sync user scores: $e');

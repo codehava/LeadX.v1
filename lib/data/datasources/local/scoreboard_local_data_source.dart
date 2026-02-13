@@ -87,14 +87,60 @@ class ScoreboardLocalDataSource {
     return results.map(_mapToScoringPeriod).toList();
   }
 
-  /// Get the current scoring period.
+  /// Get the current display period (shortest granularity among current periods).
   Future<ScoringPeriod?> getCurrentPeriod() async {
     final query = _db.select(_db.scoringPeriods)
-      ..where((t) => t.isCurrent.equals(true) & t.isActive.equals(true))
-      ..limit(1);
+      ..where((t) => t.isCurrent.equals(true) & t.isActive.equals(true));
 
-    final result = await query.getSingleOrNull();
-    return result != null ? _mapToScoringPeriod(result) : null;
+    final results = await query.get();
+    if (results.isEmpty) return null;
+
+    final periods = results.map(_mapToScoringPeriod).toList();
+
+    // Sort by granularity priority: WEEKLY < MONTHLY < QUARTERLY < YEARLY
+    periods.sort((a, b) =>
+        _periodTypePriority(a.periodType)
+            .compareTo(_periodTypePriority(b.periodType)));
+
+    return periods.first;
+  }
+
+  /// Get all current periods (one per period_type).
+  Future<List<ScoringPeriod>> getAllCurrentPeriods() async {
+    final query = _db.select(_db.scoringPeriods)
+      ..where((t) => t.isCurrent.equals(true) & t.isActive.equals(true));
+
+    final results = await query.get();
+    return results.map(_mapToScoringPeriod).toList();
+  }
+
+  /// Get user scores across all current periods.
+  ///
+  /// Joins user_scores with scoring_periods (is_current=true)
+  /// and measure_definitions for name/type/unit.
+  Future<List<UserScore>> getUserScoresForCurrentPeriods(
+      String userId) async {
+    final allCurrentPeriods = await getAllCurrentPeriods();
+    if (allCurrentPeriods.isEmpty) return [];
+
+    final periodIds = allCurrentPeriods.map((p) => p.id).toList();
+
+    final query = _db.select(_db.userScores).join([
+      innerJoin(
+        _db.measureDefinitions,
+        _db.measureDefinitions.id.equalsExp(_db.userScores.measureId),
+      ),
+    ])
+      ..where(_db.userScores.userId.equals(userId) &
+          _db.userScores.periodId.isIn(periodIds))
+      ..orderBy([OrderingTerm.asc(_db.measureDefinitions.sortOrder)]);
+
+    final results = await query.get();
+    return results.map((row) {
+      final score = row.readTable(_db.userScores);
+      final measure = row.readTableOrNull(_db.measureDefinitions);
+      return _mapToUserScore(score, measure);
+    }).toList();
   }
 
   /// Get scoring period by ID.
@@ -335,6 +381,22 @@ class ScoreboardLocalDataSource {
   // ============================================
   // MAPPERS
   // ============================================
+
+  /// Returns priority for period type sorting (lower = shorter granularity).
+  int _periodTypePriority(String periodType) {
+    switch (periodType) {
+      case 'WEEKLY':
+        return 1;
+      case 'MONTHLY':
+        return 2;
+      case 'QUARTERLY':
+        return 3;
+      case 'YEARLY':
+        return 4;
+      default:
+        return 5;
+    }
+  }
 
   MeasureDefinition _mapToMeasureDefinition(db.MeasureDefinition data) {
     return MeasureDefinition(

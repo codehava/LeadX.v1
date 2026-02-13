@@ -616,10 +616,10 @@ BEGIN
   -- Only process if status changed to COMPLETED
   IF NEW.status = 'COMPLETED' AND (OLD IS NULL OR OLD.status != 'COMPLETED') THEN
     -- Update all measure scores for the user who completed the activity
-    PERFORM update_all_measure_scores(NEW.assigned_to);
+    PERFORM update_all_measure_scores(NEW.user_id);
 
     -- Mark user and ancestors dirty for aggregate recalculation
-    PERFORM mark_user_and_ancestors_dirty(NEW.assigned_to);
+    PERFORM mark_user_and_ancestors_dirty(NEW.user_id);
   END IF;
 
   RETURN NEW;

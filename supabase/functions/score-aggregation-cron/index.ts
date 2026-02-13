@@ -20,23 +20,36 @@ serve(async (req) => {
 
     console.log("Starting score aggregation cron job");
 
-    // Get current period
-    const { data: currentPeriod, error: periodError } = await supabase
+    // Get all current periods (one per period_type)
+    const { data: currentPeriods, error: periodError } = await supabase
       .from("scoring_periods")
-      .select("id")
-      .eq("is_current", true)
-      .single();
+      .select("id, period_type")
+      .eq("is_current", true);
 
-    if (periodError || !currentPeriod) {
-      console.error("No current scoring period found:", periodError);
+    if (periodError || !currentPeriods || currentPeriods.length === 0) {
+      console.error("No current scoring periods found:", periodError);
       return new Response(
         JSON.stringify({ error: "No current scoring period" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    const periodId = currentPeriod.id;
-    console.log(`Current period: ${periodId}`);
+    // Find display period: shortest granularity (WEEKLY < MONTHLY < QUARTERLY < YEARLY)
+    const priorityOrder: Record<string, number> = {
+      WEEKLY: 1,
+      MONTHLY: 2,
+      QUARTERLY: 3,
+      YEARLY: 4,
+    };
+    currentPeriods.sort(
+      (a, b) =>
+        (priorityOrder[a.period_type] ?? 5) -
+        (priorityOrder[b.period_type] ?? 5)
+    );
+    const periodId = currentPeriods[0].id;
+    console.log(
+      `Found ${currentPeriods.length} current period(s). Display period: ${periodId} (${currentPeriods[0].period_type})`
+    );
 
     // Get all dirty users (no limit - process all)
     const { data: dirtyUsers, error: dirtyError } = await supabase

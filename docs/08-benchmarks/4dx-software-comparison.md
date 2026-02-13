@@ -16,11 +16,11 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 
 | Feature | 4DX App (Official) | Weekdone | Perdoo | LeadX CRM |
 |---------|-------------------|----------|--------|-----------|
-| **WIG Management** | ✅ Full | ✅ OKR-based | ✅ OKR-based | ✅ Full |
+| **WIG/Goal Focus** | ✅ Full | ✅ OKR-based | ✅ OKR-based | ✅ Via Measures |
 | **Lead Measures** | ✅ Built-in | ⚠️ Key Results | ⚠️ Key Results | ✅ Custom |
 | **Lag Measures** | ✅ Built-in | ✅ Objectives | ✅ Objectives | ✅ Custom |
 | **Scoreboard** | ✅ Visual | ✅ Dashboard | ✅ Dashboard | ✅ Gamified |
-| **Cadence Meeting** | ✅ WIG Session | ⚠️ Check-ins | ⚠️ Check-ins | ✅ Full Q1-Q4 |
+| **Cadence Meeting** | ✅ Cadence Session | ⚠️ Check-ins | ⚠️ Check-ins | ✅ Full Q1-Q4 |
 | **Mobile App** | ✅ iOS/Android | ✅ iOS/Android | ✅ iOS/Android | ✅ Flutter |
 | **Offline Support** | ❌ None | ❌ None | ❌ None | ✅ Full |
 | **CRM Integration** | ❌ Separate | ⚠️ Limited | ⚠️ Limited | ✅ Native |
@@ -43,7 +43,7 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 ### Strengths
 
 - ✅ Pure 4DX methodology implementation
-- ✅ WIG Session facilitation tools
+- ✅ Cadence session facilitation tools
 - ✅ Commitment tracking
 - ✅ Scoreboard widgets
 
@@ -58,7 +58,7 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 
 | 4DX App Feature | LeadX Implementation |
 |-----------------|----------------------|
-| WIG hierarchy | Implemented with approval workflow |
+| Goal focus | Implemented via configurable measures with target cascade |
 | Lead/Lag distinction | Native with configurable measures |
 | Scoreboard | Gamified with leaderboards |
 | Cadence | Q1-Q4 form with attendance tracking |
@@ -80,7 +80,7 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 **Focus**: OKR and KPI management
 
 **Adaptation for LeadX**:
-- Objective cascade → WIG hierarchy
+- Objective cascade → Target cascade via measures
 - Key Results → Lead/Lag measures
 - Health indicators → Scoreboard status
 
@@ -120,10 +120,10 @@ Dokumen ini membandingkan berbagai software untuk implementasi framework 4 Disci
 
 | Discipline | Standard 4DX | LeadX Implementation |
 |------------|--------------|----------------------|
-| **D1: Focus on WIG** | 2 WIGs max | Configurable max, hierarchy cascade |
+| **D1: Focus on WIG** | 2 WIGs max | Configurable Lead/Lag measures with target cascade |
 | **D2: Act on Lead Measures** | Track leading indicators | Auto-calculated from activities |
 | **D3: Compelling Scoreboard** | Visual dashboard | Gamified scoreboard with trends |
-| **D4: Cadence of Accountability** | Weekly WIG sessions | Q1-Q4 form + attendance + scoring |
+| **D4: Cadence of Accountability** | Weekly cadence sessions | Q1-Q4 form + attendance + scoring |
 
 ---
 

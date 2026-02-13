@@ -20,6 +20,11 @@ CREATE TABLE scoring_periods (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enforce one current period per period_type (allows simultaneous WEEKLY + QUARTERLY current periods)
+CREATE UNIQUE INDEX idx_scoring_periods_one_current_per_type
+  ON scoring_periods (period_type)
+  WHERE is_current = TRUE;
+
 CREATE TABLE measure_definitions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code VARCHAR(20) UNIQUE NOT NULL,

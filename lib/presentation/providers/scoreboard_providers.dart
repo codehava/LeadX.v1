@@ -324,16 +324,16 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
         currentUser.id,
         currentPeriodData.id,
       );
-      final leadScores = await repository.getUserScoresByType(
-        currentUser.id,
-        currentPeriodData.id,
-        'LEAD',
-      );
-      final lagScores = await repository.getUserScoresByType(
-        currentUser.id,
-        currentPeriodData.id,
-        'LAG',
-      );
+
+      // Use multi-period method: fetches scores from each measure's
+      // own current period, then split by measureType
+      final allScores =
+          await repository.getUserScoresForCurrentPeriods(currentUser.id);
+      final leadScores =
+          allScores.where((s) => s.measureType == 'LEAD').toList();
+      final lagScores =
+          allScores.where((s) => s.measureType == 'LAG').toList();
+
       final leaderboardData =
           await repository.getLeaderboard(currentPeriodData.id);
 
@@ -365,16 +365,33 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
         currentUser.id,
         period.id,
       );
-      final leadScores = await repository.getUserScoresByType(
-        currentUser.id,
-        period.id,
-        'LEAD',
-      );
-      final lagScores = await repository.getUserScoresByType(
-        currentUser.id,
-        period.id,
-        'LAG',
-      );
+
+      List<UserScore> leadScores;
+      List<UserScore> lagScores;
+
+      if (period.isCurrent) {
+        // For current display period, use multi-period method
+        // which pulls each measure's score from its own current period
+        final allScores =
+            await repository.getUserScoresForCurrentPeriods(currentUser.id);
+        leadScores =
+            allScores.where((s) => s.measureType == 'LEAD').toList();
+        lagScores =
+            allScores.where((s) => s.measureType == 'LAG').toList();
+      } else {
+        // For historical periods, scores are frozen in their period
+        leadScores = await repository.getUserScoresByType(
+          currentUser.id,
+          period.id,
+          'LEAD',
+        );
+        lagScores = await repository.getUserScoresByType(
+          currentUser.id,
+          period.id,
+          'LAG',
+        );
+      }
+
       final leaderboardData = await repository.getLeaderboard(period.id);
 
       state = AsyncData(ScoreboardState(

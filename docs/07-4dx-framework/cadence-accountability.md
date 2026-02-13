@@ -6,14 +6,14 @@
 
 ## 📋 Overview
 
-**Discipline 4: Create a Cadence of Accountability** - Setiap tim melakukan proses mingguan sederhana yang fokus pada WIG. Ini adalah "heartbeat" dari eksekusi 4DX.
+**Discipline 4: Create a Cadence of Accountability** - Setiap tim melakukan proses mingguan sederhana yang fokus pada target dan measures. Ini adalah "heartbeat" dari eksekusi 4DX.
 
 ### Key Principles
 
 | Principle | Description |
 |-----------|-------------|
 | **Regular Rhythm** | Meeting dilakukan pada waktu yang sama setiap minggu |
-| **Brief & Focused** | Maksimal 30 menit, fokus hanya pada WIG |
+| **Brief & Focused** | Maksimal 30 menit, fokus pada Lead/Lag measures dan komitmen |
 | **Commitment-Based** | Setiap peserta membuat komitmen spesifik |
 | **Scoreboard-Driven** | Review scoreboard sebagai basis diskusi |
 | **Peer Accountability** | Komitmen dibuat di depan rekan tim |
@@ -136,7 +136,7 @@
 │  │ 1. OPENING  │ 2 min                                                      │
 │  │─────────────│                                                            │
 │  │ • BH opens meeting                                                       │
-│  │ • Display Team WIG                                                       │
+│  │ • Display Team Scoreboard                                                 │
 │  │ • Quick energy check                                                     │
 │  └──────┬──────┘                                                            │
 │         ▼                                                                    │
@@ -145,7 +145,7 @@
 │  │─────────────│                                                            │
 │  │ • Each RM reports Q2 (what achieved)                                     │
 │  │ • ~1-2 min per RM                                                        │
-│  │ • Focus on WIG-related activities                                        │
+│  │ • Focus on Lead Measure activities                                        │
 │  │ • BH notes completion status                                             │
 │  └──────┬──────┘                                                            │
 │         ▼                                                                    │
@@ -388,7 +388,6 @@ CREATE INDEX idx_cadence_participants_form ON cadence_participants(form_submissi
 
 - [4DX Overview](4dx-overview.md) - Framework overview
 - [Lead-Lag Measures](lead-lag-measures.md) - Scoring measures
-- [WIG Management](wig-management.md) - Goal setting
 - [Scoreboard Design](scoreboard-design.md) - Visual display
 
 ---

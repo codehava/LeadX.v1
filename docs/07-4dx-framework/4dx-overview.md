@@ -38,14 +38,14 @@
 │  │  "The more you try to do, the less you actually accomplish."           ││
 │  │                                                                          ││
 │  │  Principles:                                                             ││
-│  │  • Maximum 2 WIGs at any time                                           ││
+│  │  • Focus on the few critical measures that matter most                  ││
 │  │  • Clear, measurable goals                                              ││
 │  │  • Format: "From X to Y by When"                                        ││
 │  │                                                                          ││
 │  │  LeadX Implementation:                                                   ││
-│  │  • Company WIG → Regional WIG → Branch WIG → Team WIG                   ││
-│  │  • WIGs visible on Dashboard                                            ││
-│  │  • Progress tracked automatically                                        ││
+│  │  • Admin configures Lead/Lag measure definitions in Admin Panel         ││
+│  │  • Targets cascade via user_hierarchy (manager → subordinates)          ││
+│  │  • Targets and scores visible on Scoreboard                             ││
 │  │                                                                          ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                               ↓                                              │
@@ -55,7 +55,7 @@
 │  │  "Lead measures track the critical activities that drive success."      ││
 │  │                                                                          ││
 │  │  Characteristics:                                                        ││
-│  │  • PREDICTIVE: Leads to achieving the WIG                               ││
+│  │  • PREDICTIVE: Leads to achieving targets                               ││
 │  │  • INFLUENCEABLE: Within team's direct control                          ││
 │  │                                                                          ││
 │  │  LeadX Lead Measures:                                                    ││
@@ -95,7 +95,7 @@
 │  │                                                                          ││
 │  │  "Each team engages in a simple weekly process."                        ││
 │  │                                                                          ││
-│  │  WIG Session Format (20-30 minutes):                                    ││
+│  │  Cadence Session Format (20-30 minutes):                                ││
 │  │  1. Account: Report on last week's commitments                          ││
 │  │  2. Review: Examine the scoreboard                                      ││
 │  │  3. Plan: Make commitments for next week                                ││

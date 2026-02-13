@@ -51,7 +51,7 @@ Periode scoring (weekly, monthly, quarterly).
 | period_type | VARCHAR(20) | WEEKLY, MONTHLY, QUARTERLY, YEARLY |
 | start_date | DATE | Period start |
 | end_date | DATE | Period end |
-| is_current | BOOLEAN | Current active period |
+| is_current | BOOLEAN | Current active period (one per period_type, enforced by partial unique index) |
 | is_locked | BOOLEAN | Locked prevents changes |
 | is_active | BOOLEAN | Active flag |
 
@@ -91,6 +91,7 @@ Skor aktual per user per period per measure. **Calculated server-side** - client
 - Discrimination by customer type, broker status, etc. is supported via `source_condition`
 - Stage transition tracking uses `pipeline_stage_history` as source table
 - RM scores updated immediately via triggers; manager aggregates recalculated every 10 min via cron with dirty user tracking
+- **Multi-period scoring:** Each measure scores against the current period matching its `period_type` (e.g., LEAD measures with period_type=WEEKLY score against the current WEEKLY period, LAG measures with period_type=QUARTERLY score against the current QUARTERLY period)
 
 ### user_score_aggregates
 
@@ -147,7 +148,27 @@ Historical point-in-time snapshots of aggregated scores. Created on period lock 
 
 ---
 
+## 🗂️ Indexes
+
+### idx_scoring_periods_one_current_per_type
+```sql
+CREATE UNIQUE INDEX idx_scoring_periods_one_current_per_type
+  ON scoring_periods (period_type)
+  WHERE is_current = TRUE;
+```
+Partial unique index enforcing at most one current period per `period_type`. Allows simultaneous current WEEKLY + QUARTERLY periods for multi-period scoring.
+
+---
+
 ## 📈 Score Calculation
+
+### Multi-Period Scoring
+
+Each measure is scored against the current period matching its `period_type`:
+- LEAD measures (period_type=WEEKLY) → scored against the current WEEKLY period
+- LAG measures (period_type=QUARTERLY) → scored against the current QUARTERLY period
+
+The **display period** (used for aggregates/leaderboard) is the shortest-granularity current period (WEEKLY < MONTHLY < QUARTERLY < YEARLY).
 
 ### Achievement Formula
 ```
@@ -172,4 +193,4 @@ total_score = (lead_score × 0.6) + (lag_score × 0.4) + bonus_points - penalty_
 
 ---
 
-*Scoring Tables - Updated January 2026*
+*Scoring Tables - Updated February 2026*
