@@ -56,6 +56,12 @@ void main() {
       database: mockDatabase,
     );
 
+    // Mock transaction to just execute the callback
+    when(mockDatabase.transaction(any)).thenAnswer((invocation) {
+      final callback = invocation.positionalArguments[0] as Future<dynamic> Function();
+      return callback();
+    });
+
     repository = CustomerRepositoryImpl(
       localDataSource: mockLocalDataSource,
       keyPersonLocalDataSource: mockKeyPersonLocalDataSource,
@@ -63,6 +69,7 @@ void main() {
       keyPersonRemoteDataSource: mockKeyPersonRemoteDataSource,
       syncService: syncService,
       currentUserId: testUserId,
+      database: mockDatabase,
     );
   });
 

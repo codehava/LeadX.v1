@@ -386,7 +386,8 @@ final _customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   final keyPersonRemoteDataSource = ref.watch(_keyPersonRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
-  
+  final database = ref.watch(databaseProvider);
+
   return CustomerRepositoryImpl(
     localDataSource: localDataSource,
     keyPersonLocalDataSource: keyPersonLocalDataSource,
@@ -394,6 +395,7 @@ final _customerRepositoryProvider = Provider<CustomerRepository>((ref) {
     keyPersonRemoteDataSource: keyPersonRemoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 

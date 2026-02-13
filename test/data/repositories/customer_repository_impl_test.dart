@@ -22,6 +22,7 @@ import 'package:mockito/mockito.dart';
   CustomerRemoteDataSource,
   KeyPersonRemoteDataSource,
   SyncService,
+  db.AppDatabase,
 ])
 import 'customer_repository_impl_test.mocks.dart';
 
@@ -49,6 +50,7 @@ void main() {
   late MockCustomerRemoteDataSource mockRemoteDataSource;
   late MockKeyPersonRemoteDataSource mockKeyPersonRemoteDataSource;
   late MockSyncService mockSyncService;
+  late MockAppDatabase mockDatabase;
 
   const testUserId = 'test-user-id';
   final testNow = DateTime(2026, 1, 21);
@@ -121,6 +123,13 @@ void main() {
     mockRemoteDataSource = MockCustomerRemoteDataSource();
     mockKeyPersonRemoteDataSource = MockKeyPersonRemoteDataSource();
     mockSyncService = MockSyncService();
+    mockDatabase = MockAppDatabase();
+
+    // Mock transaction to just execute the callback
+    when(mockDatabase.transaction(any)).thenAnswer((invocation) {
+      final callback = invocation.positionalArguments[0] as Future<dynamic> Function();
+      return callback();
+    });
 
     repository = CustomerRepositoryImpl(
       localDataSource: mockLocalDataSource,
@@ -129,6 +138,7 @@ void main() {
       keyPersonRemoteDataSource: mockKeyPersonRemoteDataSource,
       syncService: mockSyncService,
       currentUserId: testUserId,
+      database: mockDatabase,
     );
   });
 
