@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
+import '../../../core/utils/date_time_utils.dart';
 
 /// Remote data source for customer operations via Supabase.
 class CustomerRemoteDataSource {
@@ -18,7 +19,7 @@ class CustomerRemoteDataSource {
     var query = _client.from('customers').select();
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -34,7 +35,7 @@ class CustomerRemoteDataSource {
     var query = _client.from('customers').select().eq('assigned_rm_id', rmId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -82,7 +83,7 @@ class CustomerRemoteDataSource {
   /// Soft delete a customer on the server.
   Future<void> deleteCustomer(String id) async {
     await _client.from('customers').update({
-      'deleted_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 
@@ -121,7 +122,7 @@ class KeyPersonRemoteDataSource {
     var query = _client.from('key_persons').select();
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -200,7 +201,7 @@ class KeyPersonRemoteDataSource {
   /// Soft delete a key person.
   Future<void> deleteKeyPerson(String id) async {
     await _client.from('key_persons').update({
-      'deleted_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 

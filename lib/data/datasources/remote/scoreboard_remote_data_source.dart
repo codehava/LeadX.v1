@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
 import '../../../domain/entities/scoring_entities.dart';
 
 /// Remote data source for 4DX scoring data from Supabase.
@@ -437,7 +438,7 @@ class ScoreboardRemoteDataSource {
             'period_id': periodId,
             'target_value': targetValue,
             'assigned_by': assignedBy,
-            'assigned_at': DateTime.now().toIso8601String(),
+            'assigned_at': DateTime.now().toUtcIso8601(),
           },
           onConflict: 'user_id,measure_id,period_id',
         )
@@ -476,7 +477,7 @@ class ScoreboardRemoteDataSource {
     required String assignedBy,
     required List<Map<String, dynamic>> targets,
   }) async {
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now().toUtcIso8601();
     final rows = targets.map((t) => {
           'user_id': t['userId'],
           'measure_id': t['measureId'],

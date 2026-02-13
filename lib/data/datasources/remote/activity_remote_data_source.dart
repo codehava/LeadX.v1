@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
+import '../../../core/utils/date_time_utils.dart';
 
 /// Remote data source for activity operations via Supabase.
 class ActivityRemoteDataSource {
@@ -25,7 +26,7 @@ class ActivityRemoteDataSource {
     var query = _client.from(_tableName).select();
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -40,7 +41,7 @@ class ActivityRemoteDataSource {
     var query = _client.from(_tableName).select().eq('user_id', userId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -59,7 +60,7 @@ class ActivityRemoteDataSource {
         .eq('object_type', 'CUSTOMER');
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -78,7 +79,7 @@ class ActivityRemoteDataSource {
         .eq('object_type', 'HVC');
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -97,7 +98,7 @@ class ActivityRemoteDataSource {
         .eq('object_type', 'BROKER');
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -149,7 +150,7 @@ class ActivityRemoteDataSource {
   /// Soft delete an activity on the server.
   Future<void> deleteActivity(String id) async {
     await _client.from(_tableName).update({
-      'deleted_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 

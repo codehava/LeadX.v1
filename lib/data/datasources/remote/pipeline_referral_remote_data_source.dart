@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
+import '../../../core/utils/date_time_utils.dart';
 
 /// Remote data source for pipeline referral operations via Supabase.
 class PipelineReferralRemoteDataSource {
@@ -15,7 +16,7 @@ class PipelineReferralRemoteDataSource {
     var query = _client.from('pipeline_referrals').select();
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -33,7 +34,7 @@ class PipelineReferralRemoteDataSource {
         .eq('referrer_rm_id', userId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -51,7 +52,7 @@ class PipelineReferralRemoteDataSource {
         .eq('receiver_rm_id', userId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -68,7 +69,7 @@ class PipelineReferralRemoteDataSource {
         .eq('status', 'RECEIVER_ACCEPTED');
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('created_at', ascending: true);

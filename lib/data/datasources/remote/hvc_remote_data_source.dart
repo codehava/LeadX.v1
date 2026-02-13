@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
+
 /// Remote data source for HVC operations with Supabase.
 class HvcRemoteDataSource {
   HvcRemoteDataSource(this._supabase);
@@ -18,7 +20,7 @@ class HvcRemoteDataSource {
 
     if (since != null) {
       // Delta sync: fetch updated OR deleted since last sync
-      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      query = query.or('updated_at.gt.${since.toUtcIso8601()},deleted_at.gt.${since.toUtcIso8601()}');
     } else {
       // Full sync: only non-deleted records
       query = query.isFilter('deleted_at', null);
@@ -49,8 +51,8 @@ class HvcRemoteDataSource {
   /// Soft delete an HVC.
   Future<void> deleteHvc(String id) async {
     await _supabase.from('hvcs').update({
-      'deleted_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 
@@ -82,7 +84,7 @@ class HvcRemoteDataSource {
 
     if (since != null) {
       // Delta sync: fetch updated OR deleted since last sync
-      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      query = query.or('updated_at.gt.${since.toUtcIso8601()},deleted_at.gt.${since.toUtcIso8601()}');
     } else {
       // Full sync: only non-deleted records
       query = query.isFilter('deleted_at', null);
@@ -125,8 +127,8 @@ class HvcRemoteDataSource {
   /// Delete (soft) a customer-HVC link.
   Future<void> deleteLink(String id) async {
     await _supabase.from('customer_hvc_links').update({
-      'deleted_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 

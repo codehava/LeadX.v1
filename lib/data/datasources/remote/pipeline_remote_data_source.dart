@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
+
 /// Remote data source for pipeline operations via Supabase.
 class PipelineRemoteDataSource {
   PipelineRemoteDataSource(this._client);
@@ -12,7 +14,7 @@ class PipelineRemoteDataSource {
     var query = _client.from('pipelines').select();
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -30,7 +32,7 @@ class PipelineRemoteDataSource {
         .eq('customer_id', customerId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -48,7 +50,7 @@ class PipelineRemoteDataSource {
         .eq('assigned_rm_id', rmId);
 
     if (since != null) {
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final response = await query.order('updated_at', ascending: true);
@@ -96,7 +98,7 @@ class PipelineRemoteDataSource {
   /// Soft delete a pipeline on the server.
   Future<void> deletePipeline(String id) async {
     await _client.from('pipelines').update({
-      'deleted_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 

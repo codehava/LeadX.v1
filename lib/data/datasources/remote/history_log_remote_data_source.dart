@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
 import '../../../domain/entities/audit_log_entity.dart';
 
 /// Remote data source for fetching audit logs and history from Supabase.
@@ -35,7 +36,7 @@ class HistoryLogRemoteDataSource {
         .eq('target_id', targetId);
 
     if (since != null) {
-      query = query.gte('created_at', since.toIso8601String());
+      query = query.gte('created_at', since.toUtcIso8601());
     }
 
     final response = await query.order('created_at', ascending: false);
@@ -68,10 +69,10 @@ class HistoryLogRemoteDataSource {
       query = query.eq('user_id', userId);
     }
     if (startDate != null) {
-      query = query.gte('created_at', startDate.toIso8601String());
+      query = query.gte('created_at', startDate.toUtcIso8601());
     }
     if (endDate != null) {
-      query = query.lte('created_at', endDate.toIso8601String());
+      query = query.lte('created_at', endDate.toUtcIso8601());
     }
 
     final response = await query
@@ -152,7 +153,7 @@ class HistoryLogRemoteDataSource {
       toStatusId: json['to_status_id'] as String?,
       notes: json['notes'] as String?,
       changedBy: json['changed_by'] as String?,
-      changedAt: DateTime.parse(json['changed_at'] as String? ?? DateTime.now().toIso8601String()),
+      changedAt: DateTime.parse(json['changed_at'] as String? ?? DateTime.now().toUtcIso8601()),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       fromStageName: fromStage?['name'] as String?,

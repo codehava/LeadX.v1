@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
 import '../../dtos/master_data_dtos.dart';
 
 /// Remote data source for master data CRUD operations via Supabase.
@@ -118,8 +119,8 @@ class AdminMasterDataRemoteDataSource {
       'is_final': dto.isFinal,
       'is_won': dto.isWon,
       'is_active': dto.isActive,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'created_at': DateTime.now().toUtcIso8601(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     });
   }
 
@@ -134,7 +135,7 @@ class AdminMasterDataRemoteDataSource {
     Map<String, dynamic> data,
   ) async {
     // Convert snake_case keys if needed and add timestamp
-    final updateData = {...data, 'updated_at': DateTime.now().toIso8601String()};
+    final updateData = {...data, 'updated_at': DateTime.now().toUtcIso8601()};
     final result = await _client
         .from(tableName)
         .update(updateData)
@@ -154,7 +155,7 @@ class AdminMasterDataRemoteDataSource {
         .from(tableName)
         .update({
           'is_active': isActive,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtcIso8601(),
         })
         .inFilter('id', ids);
   }
@@ -166,8 +167,8 @@ class AdminMasterDataRemoteDataSource {
   /// Soft delete (set deleted_at timestamp).
   Future<void> softDeleteEntity(String tableName, String id) async {
     await _client.from(tableName).update({
-      'deleted_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      'deleted_at': DateTime.now().toUtcIso8601(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 
@@ -184,7 +185,7 @@ class AdminMasterDataRemoteDataSource {
   Future<void> activateEntity(String tableName, String id) async {
     await _client.from(tableName).update({
       'is_active': true,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 
@@ -192,7 +193,7 @@ class AdminMasterDataRemoteDataSource {
   Future<void> deactivateEntity(String tableName, String id) async {
     await _client.from(tableName).update({
       'is_active': false,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtcIso8601(),
     }).eq('id', id);
   }
 

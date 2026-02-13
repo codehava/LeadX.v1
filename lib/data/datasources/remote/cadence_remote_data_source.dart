@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/utils/date_time_utils.dart';
 import '../../dtos/cadence_dtos.dart';
 
 /// Remote data source for cadence meeting operations.
@@ -110,7 +111,7 @@ class CadenceRemoteDataSource {
         .from('cadence_meetings')
         .update({
           ...data,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtcIso8601(),
         })
         .eq('id', meetingId)
         .select()
@@ -134,7 +135,7 @@ class CadenceRemoteDataSource {
   Future<CadenceMeetingDto> startMeeting(String meetingId) async {
     return updateMeeting(meetingId, {
       'status': 'IN_PROGRESS',
-      'started_at': DateTime.now().toIso8601String(),
+      'started_at': DateTime.now().toUtcIso8601(),
     });
   }
 
@@ -142,7 +143,7 @@ class CadenceRemoteDataSource {
   Future<CadenceMeetingDto> endMeeting(String meetingId) async {
     return updateMeeting(meetingId, {
       'status': 'COMPLETED',
-      'completed_at': DateTime.now().toIso8601String(),
+      'completed_at': DateTime.now().toUtcIso8601(),
     });
   }
 
@@ -218,10 +219,10 @@ class CadenceRemoteDataSource {
           'q2_what_achieved': form.q2WhatAchieved,
           'q3_obstacles': form.q3Obstacles,
           'q4_next_commitment': form.q4NextCommitment,
-          'form_submitted_at': DateTime.now().toIso8601String(),
+          'form_submitted_at': DateTime.now().toUtcIso8601(),
           'form_submission_status': submissionStatus,
           'form_score_impact': scoreImpact,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtcIso8601(),
         })
         .eq('id', participantId)
         .select()
@@ -241,12 +242,12 @@ class CadenceRemoteDataSource {
         .from('cadence_participants')
         .update({
           'attendance_status': attendance.attendanceStatus,
-          'arrived_at': attendance.arrivedAt?.toIso8601String(),
+          'arrived_at': attendance.arrivedAt?.toUtcIso8601(),
           'excused_reason': attendance.excusedReason,
           'attendance_score_impact': scoreImpact,
           'marked_by': markedBy,
-          'marked_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
+          'marked_at': DateTime.now().toUtcIso8601(),
+          'updated_at': DateTime.now().toUtcIso8601(),
         })
         .eq('id', participantId)
         .select()
@@ -264,7 +265,7 @@ class CadenceRemoteDataSource {
         .from('cadence_participants')
         .update({
           'host_notes': notes,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtcIso8601(),
         })
         .eq('id', participantId)
         .select()
@@ -278,7 +279,7 @@ class CadenceRemoteDataSource {
     String participantId,
     String feedbackText,
   ) async {
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now().toUtcIso8601();
 
     // Get existing to check if this is first feedback
     final existing = await _supabase
@@ -343,7 +344,7 @@ class CadenceRemoteDataSource {
     final response = await _supabase
         .from('cadence_meetings')
         .select()
-        .gt('updated_at', since.toIso8601String())
+        .gt('updated_at', since.toUtcIso8601())
         .order('updated_at');
 
     return (response as List)
@@ -359,7 +360,7 @@ class CadenceRemoteDataSource {
     final response = await _supabase
         .from('cadence_participants')
         .select()
-        .gt('updated_at', since.toIso8601String())
+        .gt('updated_at', since.toUtcIso8601())
         .order('updated_at');
 
     return (response as List)
