@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/pipeline_referral_dtos.dart';
 import '../entities/pipeline_referral.dart';
 
@@ -13,7 +11,7 @@ abstract class PipelineReferralRepository {
   /// Create a new referral.
   /// Automatically determines the approver (BM or ROH) based on receiver's hierarchy.
   /// Saves locally first, then queues for sync.
-  Future<Either<Failure, PipelineReferral>> createReferral(
+  Future<Result<PipelineReferral>> createReferral(
     PipelineReferralCreateDto dto,
   );
 
@@ -29,14 +27,14 @@ abstract class PipelineReferralRepository {
 
   /// Accept a referral (receiver action).
   /// Changes status to RECEIVER_ACCEPTED.
-  Future<Either<Failure, PipelineReferral>> acceptReferral(
+  Future<Result<PipelineReferral>> acceptReferral(
     String id,
     String? notes,
   );
 
   /// Reject a referral (receiver action).
   /// Changes status to RECEIVER_REJECTED.
-  Future<Either<Failure, PipelineReferral>> rejectReferral(
+  Future<Result<PipelineReferral>> rejectReferral(
     String id,
     String reason,
   );
@@ -47,7 +45,7 @@ abstract class PipelineReferralRepository {
 
   /// Approve a referral (BM/ROH action).
   /// Changes status to BM_APPROVED, triggering customer/pipeline transfer.
-  Future<Either<Failure, PipelineReferral>> approveReferral(
+  Future<Result<PipelineReferral>> approveReferral(
     String id,
     String approverId,
     String? notes,
@@ -55,7 +53,7 @@ abstract class PipelineReferralRepository {
 
   /// Reject a referral as manager (BM/ROH action).
   /// Changes status to BM_REJECTED.
-  Future<Either<Failure, PipelineReferral>> rejectAsManager(
+  Future<Result<PipelineReferral>> rejectAsManager(
     String id,
     String approverId,
     String reason,
@@ -67,7 +65,7 @@ abstract class PipelineReferralRepository {
 
   /// Cancel a referral (referrer action).
   /// Only allowed before final approval.
-  Future<Either<Failure, PipelineReferral>> cancelReferral(
+  Future<Result<PipelineReferral>> cancelReferral(
     String id,
     String reason,
   );

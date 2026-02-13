@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/master_data_dtos.dart';
 
 /// Repository for master data CRUD operations (admin only).
@@ -34,25 +32,25 @@ abstract class AdminMasterDataRepository {
   // ============================================
 
   /// Create a new entity (generic).
-  Future<Either<Failure, Map<String, dynamic>>> createEntity(
+  Future<Result<Map<String, dynamic>>> createEntity(
     String tableName,
     Map<String, dynamic> data,
   );
 
   /// Create province.
-  Future<Either<Failure, ProvinceDto>> createProvince(ProvinceCreateDto dto);
+  Future<Result<ProvinceDto>> createProvince(ProvinceCreateDto dto);
 
   /// Create city.
-  Future<Either<Failure, CityDto>> createCity(CityCreateDto dto);
+  Future<Result<CityDto>> createCity(CityCreateDto dto);
 
   /// Create company type.
-  Future<Either<Failure, CompanyTypeDto>> createCompanyType(CompanyTypeCreateDto dto);
+  Future<Result<CompanyTypeDto>> createCompanyType(CompanyTypeCreateDto dto);
 
   /// Create industry.
-  Future<Either<Failure, IndustryDto>> createIndustry(IndustryCreateDto dto);
+  Future<Result<IndustryDto>> createIndustry(IndustryCreateDto dto);
 
   /// Create pipeline stage.
-  Future<Either<Failure, PipelineStageDto>> createPipelineStage(
+  Future<Result<PipelineStageDto>> createPipelineStage(
     PipelineStageCreateDto dto,
   );
 
@@ -61,14 +59,14 @@ abstract class AdminMasterDataRepository {
   // ============================================
 
   /// Update an existing entity (generic).
-  Future<Either<Failure, Map<String, dynamic>>> updateEntity(
+  Future<Result<Map<String, dynamic>>> updateEntity(
     String tableName,
     String id,
     Map<String, dynamic> data,
   );
 
   /// Bulk update activate/deactivate status.
-  Future<Either<Failure, void>> bulkToggleActive(
+  Future<Result<void>> bulkToggleActive(
     String tableName,
     List<String> ids, {
     required bool isActive,
@@ -79,28 +77,28 @@ abstract class AdminMasterDataRepository {
   // ============================================
 
   /// Soft delete an entity (sets deleted_at timestamp).
-  Future<Either<Failure, void>> softDeleteEntity(String tableName, String id);
+  Future<Result<void>> softDeleteEntity(String tableName, String id);
 
   /// Hard delete an entity (only for non-critical master data).
-  Future<Either<Failure, void>> hardDeleteEntity(String tableName, String id);
+  Future<Result<void>> hardDeleteEntity(String tableName, String id);
 
   /// Soft delete a regional office with dependency validation.
   /// Prevents deletion if active branches exist.
-  Future<Either<Failure, void>> softDeleteRegionalOffice(String id);
+  Future<Result<void>> softDeleteRegionalOffice(String id);
 
   /// Soft delete a branch with dependency validation.
   /// Prevents deletion if active users are assigned.
-  Future<Either<Failure, void>> softDeleteBranch(String id);
+  Future<Result<void>> softDeleteBranch(String id);
 
   // ============================================
   // ACTIVATION/DEACTIVATION
   // ============================================
 
   /// Activate an entity.
-  Future<Either<Failure, void>> activateEntity(String tableName, String id);
+  Future<Result<void>> activateEntity(String tableName, String id);
 
   /// Deactivate an entity.
-  Future<Either<Failure, void>> deactivateEntity(String tableName, String id);
+  Future<Result<void>> deactivateEntity(String tableName, String id);
 
   // ============================================
   // VALIDATION
@@ -110,5 +108,5 @@ abstract class AdminMasterDataRepository {
   Future<bool> codeExists(String tableName, String code, {String? excludeId});
 
   /// Validate dependencies before deletion (e.g., cities before deleting province).
-  Future<Either<Failure, void>> validateDelete(String tableName, String id);
+  Future<Result<void>> validateDelete(String tableName, String id);
 }

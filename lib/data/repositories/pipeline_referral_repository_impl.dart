@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/pipeline_referral.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/pipeline_referral_repository.dart';
@@ -142,7 +143,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> createReferral(
+  Future<Result<domain.PipelineReferral>> createReferral(
     PipelineReferralCreateDto dto,
   ) async {
     try {
@@ -157,7 +158,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       // Validate current user ID
       if (_currentUserId.isEmpty) {
         _log.error('pipeline.referral | currentUserId is empty');
-        return Left(AuthFailure(message: 'User belum login. Silakan login ulang.'));
+        return Result.failure(AuthFailure(message: 'User belum login. Silakan login ulang.'));
       }
       _log.debug('pipeline.referral | currentUserId=$_currentUserId');
 
@@ -166,12 +167,12 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final customer = await _remoteDataSource.getCustomerById(dto.customerId);
       if (customer == null) {
         _log.error('pipeline.referral | customer is null');
-        return Left(ValidationFailure(message: 'Customer tidak ditemukan.'));
+        return Result.failure(ValidationFailure(message: 'Customer tidak ditemukan.'));
       }
       final referrerRmId = customer['assigned_rm_id'] as String?;
       if (referrerRmId == null || referrerRmId.isEmpty) {
         _log.error('pipeline.referral | customer has no assigned RM');
-        return Left(ValidationFailure(message: 'Customer belum memiliki RM yang ditugaskan.'));
+        return Result.failure(ValidationFailure(message: 'Customer belum memiliki RM yang ditugaskan.'));
       }
       _log.debug('pipeline.referral | Customer assigned RM (referrer): $referrerRmId');
 
@@ -180,7 +181,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final referrerUser = await _remoteDataSource.getUserById(referrerRmId);
       if (referrerUser == null) {
         _log.error('pipeline.referral | referrerUser is null');
-        return Left(ValidationFailure(message: 'Data RM asal tidak ditemukan.'));
+        return Result.failure(ValidationFailure(message: 'Data RM asal tidak ditemukan.'));
       }
       _log.debug('pipeline.referral | referrerUser: branch_id=${referrerUser['branch_id']}, regional_office_id=${referrerUser['regional_office_id']}');
 
@@ -189,14 +190,14 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final receiverUser = await _remoteDataSource.getUserById(dto.receiverRmId);
       if (receiverUser == null) {
         _log.error('pipeline.referral | receiverUser is null');
-        return Left(ValidationFailure(message: 'Receiver user not found'));
+        return Result.failure(ValidationFailure(message: 'Receiver user not found'));
       }
       _log.debug('pipeline.referral | receiverUser: branch_id=${receiverUser['branch_id']}, regional_office_id=${receiverUser['regional_office_id']}');
 
       // Prevent referring to the same RM
       if (referrerRmId == dto.receiverRmId) {
         _log.error('pipeline.referral | referrer and receiver are the same');
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Tidak dapat mereferral ke RM yang sama dengan RM saat ini.',
         ));
       }
@@ -206,7 +207,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final approverInfo = await findApproverForUser(dto.receiverRmId);
       if (approverInfo == null) {
         _log.error('pipeline.referral | approverInfo is null');
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'No approver found for receiver. Cannot create referral.',
         ));
       }
@@ -266,11 +267,11 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       await _ensureCachesLoaded();
       final localData = await _localDataSource.getReferralById(id);
       _log.debug('pipeline.referral | === CREATE REFERRAL SUCCESS ===');
-      return Right(_mapToReferral(localData!));
+      return Result.success(_mapToReferral(localData!));
     } on SocketException catch (e, stackTrace) {
       _log.error('pipeline.referral | Socket exception: $e');
       _log.debug('pipeline.referral | StackTrace: $stackTrace');
-      return Left(NetworkFailure(
+      return Result.failure(NetworkFailure(
         message: 'Tidak ada koneksi internet. Pembuatan referral membutuhkan jaringan.',
       ));
     } catch (e, stackTrace) {
@@ -295,7 +296,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
 
       _log.debug('pipeline.referral | Returning failure with message: $message');
 
-      return Left(ServerFailure(
+      return Result.failure(ServerFailure(
         message: message,
         originalError: e,
       ));
@@ -307,25 +308,25 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> acceptReferral(
+  Future<Result<domain.PipelineReferral>> acceptReferral(
     String id,
     String? notes,
   ) async {
     try {
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Referral not found: $id'));
       }
 
       if (existing.status != 'PENDING_RECEIVER') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Referral cannot be accepted in current status: ${existing.status}',
         ));
       }
 
       // Admin can accept on behalf of receiver
       if (existing.receiverRmId != _currentUserId && !_isAdmin) {
-        return Left(AuthFailure(
+        return Result.failure(AuthFailure(
           message: 'Hanya penerima atau admin yang dapat menerima referral ini',
         ));
       }
@@ -352,35 +353,32 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       unawaited(_syncService.triggerSync());
 
       final referral = await getReferralById(id);
-      return Right(referral!);
+      return Result.success(referral!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to accept referral: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'acceptReferral'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> rejectReferral(
+  Future<Result<domain.PipelineReferral>> rejectReferral(
     String id,
     String reason,
   ) async {
     try {
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Referral not found: $id'));
       }
 
       if (existing.status != 'PENDING_RECEIVER') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Referral cannot be rejected in current status: ${existing.status}',
         ));
       }
 
       // Admin can reject on behalf of receiver
       if (existing.receiverRmId != _currentUserId && !_isAdmin) {
-        return Left(AuthFailure(
+        return Result.failure(AuthFailure(
           message: 'Hanya penerima atau admin yang dapat menolak referral ini',
         ));
       }
@@ -407,12 +405,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       unawaited(_syncService.triggerSync());
 
       final referral = await getReferralById(id);
-      return Right(referral!);
+      return Result.success(referral!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to reject referral: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'rejectReferral'));
     }
   }
 
@@ -421,7 +416,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> approveReferral(
+  Future<Result<domain.PipelineReferral>> approveReferral(
     String id,
     String approverId,
     String? notes,
@@ -431,12 +426,12 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
         _log.debug('pipeline.referral | approveReferral: Referral not found locally');
-        return Left(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
+        return Result.failure(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
       }
 
       _log.debug('pipeline.referral | approveReferral: Found referral with status=${existing.status}');
       if (existing.status != 'RECEIVER_ACCEPTED') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Referral tidak dapat disetujui karena status: ${existing.status}. Coba refresh terlebih dahulu.',
         ));
       }
@@ -475,7 +470,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       if (referral == null) {
         _log.debug('pipeline.referral | approveReferral: WARNING - referral not found after update');
         // Return success anyway since local update succeeded
-        return Right(domain.PipelineReferral(
+        return Result.success(domain.PipelineReferral(
           id: id,
           code: existing.code,
           customerId: existing.customerId,
@@ -489,18 +484,15 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
       _log.debug('pipeline.referral | approveReferral: Success');
-      return Right(referral);
+      return Result.success(referral);
     } catch (e) {
       _log.debug('pipeline.referral | approveReferral: Error - $e');
-      return Left(DatabaseFailure(
-        message: 'Gagal menyetujui referral: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'approveReferral'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> rejectAsManager(
+  Future<Result<domain.PipelineReferral>> rejectAsManager(
     String id,
     String approverId,
     String reason,
@@ -510,12 +502,12 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
         _log.debug('pipeline.referral | rejectAsManager: Referral not found locally');
-        return Left(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
+        return Result.failure(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
       }
 
       _log.debug('pipeline.referral | rejectAsManager: Found referral with status=${existing.status}');
       if (existing.status != 'RECEIVER_ACCEPTED') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Referral tidak dapat ditolak karena status: ${existing.status}. Coba refresh terlebih dahulu.',
         ));
       }
@@ -553,7 +545,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final referral = await getReferralById(id);
       if (referral == null) {
         _log.debug('pipeline.referral | rejectAsManager: WARNING - referral not found after update');
-        return Right(domain.PipelineReferral(
+        return Result.success(domain.PipelineReferral(
           id: id,
           code: existing.code,
           customerId: existing.customerId,
@@ -567,13 +559,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
       _log.debug('pipeline.referral | rejectAsManager: Success');
-      return Right(referral);
+      return Result.success(referral);
     } catch (e) {
       _log.debug('pipeline.referral | rejectAsManager: Error - $e');
-      return Left(DatabaseFailure(
-        message: 'Gagal menolak referral: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'rejectAsManager'));
     }
   }
 
@@ -582,27 +571,27 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.PipelineReferral>> cancelReferral(
+  Future<Result<domain.PipelineReferral>> cancelReferral(
     String id,
     String reason,
   ) async {
     try {
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Referral not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Referral not found: $id'));
       }
 
       // Can only cancel if not yet completed/rejected
       final cancellableStatuses = ['PENDING_RECEIVER', 'RECEIVER_ACCEPTED'];
       if (!cancellableStatuses.contains(existing.status)) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Referral cannot be cancelled in current status: ${existing.status}',
         ));
       }
 
       // Admin can cancel on behalf of referrer
       if (existing.referrerRmId != _currentUserId && !_isAdmin) {
-        return Left(AuthFailure(
+        return Result.failure(AuthFailure(
           message: 'Hanya pengirim atau admin yang dapat membatalkan referral ini',
         ));
       }
@@ -629,12 +618,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       unawaited(_syncService.triggerSync());
 
       final referral = await getReferralById(id);
-      return Right(referral!);
+      return Result.success(referral!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to cancel referral: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'cancelReferral'));
     }
   }
 

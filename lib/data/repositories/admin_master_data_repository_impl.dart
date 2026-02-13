@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
-
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/datasources/remote/admin_master_data_remote_data_source.dart';
 import '../../data/dtos/master_data_dtos.dart';
 import '../../domain/repositories/admin_master_data_repository.dart';
@@ -80,7 +80,7 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
   // ============================================
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> createEntity(
+  Future<Result<Map<String, dynamic>>> createEntity(
     String tableName,
     Map<String, dynamic> data,
   ) async {
@@ -92,28 +92,25 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
           data['code'] as String,
         );
         if (exists) {
-          return Left(ValidationFailure(
+          return Result.failure(ValidationFailure(
             message: 'Kode "${data['code']}" sudah ada',
           ));
         }
       }
 
       final result = await _remoteDataSource.createEntity(tableName, data);
-      return Right(result);
+      return Result.success(result);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat data di $tableName',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createEntity($tableName)'));
     }
   }
 
   @override
-  Future<Either<Failure, ProvinceDto>> createProvince(ProvinceCreateDto dto) async {
+  Future<Result<ProvinceDto>> createProvince(ProvinceCreateDto dto) async {
     try {
       final exists = await _remoteDataSource.codeExists('provinces', dto.code);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Kode provinsi "${dto.code}" sudah ada',
         ));
       }
@@ -125,21 +122,18 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
         name: result['name'] as String,
         isActive: (result['is_active'] as bool?) ?? true,
       );
-      return Right(province);
+      return Result.success(province);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat provinsi',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createProvince'));
     }
   }
 
   @override
-  Future<Either<Failure, CityDto>> createCity(CityCreateDto dto) async {
+  Future<Result<CityDto>> createCity(CityCreateDto dto) async {
     try {
       final exists = await _remoteDataSource.codeExists('cities', dto.code);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Kode kota "${dto.code}" sudah ada',
         ));
       }
@@ -152,23 +146,20 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
         provinceId: result['province_id'] as String,
         isActive: (result['is_active'] as bool?) ?? true,
       );
-      return Right(city);
+      return Result.success(city);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat kota',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createCity'));
     }
   }
 
   @override
-  Future<Either<Failure, CompanyTypeDto>> createCompanyType(
+  Future<Result<CompanyTypeDto>> createCompanyType(
     CompanyTypeCreateDto dto,
   ) async {
     try {
       final exists = await _remoteDataSource.codeExists('company_types', dto.code);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Kode tipe perusahaan "${dto.code}" sudah ada',
         ));
       }
@@ -181,21 +172,18 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
         sortOrder: (result['sort_order'] as int?) ?? 0,
         isActive: (result['is_active'] as bool?) ?? true,
       );
-      return Right(companyType);
+      return Result.success(companyType);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat tipe perusahaan',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createCompanyType'));
     }
   }
 
   @override
-  Future<Either<Failure, IndustryDto>> createIndustry(IndustryCreateDto dto) async {
+  Future<Result<IndustryDto>> createIndustry(IndustryCreateDto dto) async {
     try {
       final exists = await _remoteDataSource.codeExists('industries', dto.code);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Kode industri "${dto.code}" sudah ada',
         ));
       }
@@ -208,30 +196,27 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
         sortOrder: (result['sort_order'] as int?) ?? 0,
         isActive: (result['is_active'] as bool?) ?? true,
       );
-      return Right(industry);
+      return Result.success(industry);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat industri',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createIndustry'));
     }
   }
 
   @override
-  Future<Either<Failure, PipelineStageDto>> createPipelineStage(
+  Future<Result<PipelineStageDto>> createPipelineStage(
     PipelineStageCreateDto dto,
   ) async {
     try {
       // Validate probability range
       if (dto.probability < 0 || dto.probability > 100) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Probabilitas harus antara 0-100',
         ));
       }
 
       final exists = await _remoteDataSource.codeExists('pipeline_stages', dto.code);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Kode tahap "${dto.code}" sudah ada',
         ));
       }
@@ -250,12 +235,9 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
         createdAt: DateTime.parse(result['created_at'] as String),
         updatedAt: DateTime.parse(result['updated_at'] as String),
       );
-      return Right(stage);
+      return Result.success(stage);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal membuat tahap pipeline',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createPipelineStage'));
     }
   }
 
@@ -264,71 +246,45 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
   // ============================================
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> updateEntity(
+  Future<Result<Map<String, dynamic>>> updateEntity(
     String tableName,
     String id,
     Map<String, dynamic> data,
-  ) async {
-    try {
-      final result = await _remoteDataSource.updateEntity(tableName, id, data);
-      return Right(result);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal memperbarui data di $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  ) => runCatching(
+    () => _remoteDataSource.updateEntity(tableName, id, data),
+    context: 'updateEntity($tableName)',
+  );
 
   @override
-  Future<Either<Failure, void>> bulkToggleActive(
+  Future<Result<void>> bulkToggleActive(
     String tableName,
     List<String> ids, {
     required bool isActive,
-  }) async {
-    try {
-      await _remoteDataSource.bulkToggleActive(tableName, ids, isActive: isActive);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal memperbarui status di $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  }) => runCatching(
+    () => _remoteDataSource.bulkToggleActive(tableName, ids, isActive: isActive),
+    context: 'bulkToggleActive($tableName)',
+  );
 
   // ============================================
   // DELETE OPERATIONS
   // ============================================
 
   @override
-  Future<Either<Failure, void>> softDeleteEntity(String tableName, String id) async {
-    try {
-      await _remoteDataSource.softDeleteEntity(tableName, id);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal menghapus data dari $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  Future<Result<void>> softDeleteEntity(String tableName, String id) =>
+    runCatching(
+      () => _remoteDataSource.softDeleteEntity(tableName, id),
+      context: 'softDeleteEntity($tableName)',
+    );
 
   @override
-  Future<Either<Failure, void>> hardDeleteEntity(String tableName, String id) async {
-    try {
-      await _remoteDataSource.hardDeleteEntity(tableName, id);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal menghapus data dari $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  Future<Result<void>> hardDeleteEntity(String tableName, String id) =>
+    runCatching(
+      () => _remoteDataSource.hardDeleteEntity(tableName, id),
+      context: 'hardDeleteEntity($tableName)',
+    );
 
   @override
-  Future<Either<Failure, void>> softDeleteRegionalOffice(String id) async {
+  Future<Result<void>> softDeleteRegionalOffice(String id) async {
     try {
       // Check if any active branches exist under this regional office
       final supabase = _remoteDataSource.supabaseClient;
@@ -339,7 +295,7 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
           .eq('is_active', true);
 
       if ((branches as List).isNotEmpty) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Tidak dapat menghapus Kantor Wilayah yang masih memiliki ${branches.length} cabang aktif. '
               'Harap nonaktifkan atau pindahkan cabang terlebih dahulu.',
         ));
@@ -348,14 +304,12 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
       // Proceed with soft delete
       return await softDeleteEntity('regional_offices', id);
     } catch (e) {
-      return Left(ServerFailure(
-        message: 'Gagal menghapus Kantor Wilayah: ${e.toString()}',
-      ));
+      return Result.failure(mapException(e, context: 'softDeleteRegionalOffice'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> softDeleteBranch(String id) async {
+  Future<Result<void>> softDeleteBranch(String id) async {
     try {
       // Check if any active users are assigned to this branch
       final supabase = _remoteDataSource.supabaseClient;
@@ -366,7 +320,7 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
           .eq('is_active', true);
 
       if ((users as List).isNotEmpty) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Tidak dapat menghapus Kantor Cabang yang masih memiliki ${users.length} user aktif. '
               'Harap pindahkan user ke cabang lain terlebih dahulu.',
         ));
@@ -375,9 +329,7 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
       // Proceed with soft delete
       return await softDeleteEntity('branches', id);
     } catch (e) {
-      return Left(ServerFailure(
-        message: 'Gagal menghapus Kantor Cabang: ${e.toString()}',
-      ));
+      return Result.failure(mapException(e, context: 'softDeleteBranch'));
     }
   }
 
@@ -386,30 +338,18 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
   // ============================================
 
   @override
-  Future<Either<Failure, void>> activateEntity(String tableName, String id) async {
-    try {
-      await _remoteDataSource.activateEntity(tableName, id);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal mengaktifkan data di $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  Future<Result<void>> activateEntity(String tableName, String id) =>
+    runCatching(
+      () => _remoteDataSource.activateEntity(tableName, id),
+      context: 'activateEntity($tableName)',
+    );
 
   @override
-  Future<Either<Failure, void>> deactivateEntity(String tableName, String id) async {
-    try {
-      await _remoteDataSource.deactivateEntity(tableName, id);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal menonaktifkan data di $tableName',
-        originalError: e,
-      ));
-    }
-  }
+  Future<Result<void>> deactivateEntity(String tableName, String id) =>
+    runCatching(
+      () => _remoteDataSource.deactivateEntity(tableName, id),
+      context: 'deactivateEntity($tableName)',
+    );
 
   // ============================================
   // VALIDATION
@@ -425,20 +365,17 @@ class AdminMasterDataRepositoryImpl implements AdminMasterDataRepository {
   }
 
   @override
-  Future<Either<Failure, void>> validateDelete(String tableName, String id) async {
+  Future<Result<void>> validateDelete(String tableName, String id) async {
     try {
       final hasDeps = await _remoteDataSource.hasDependencies(tableName, id);
       if (hasDeps) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Tidak dapat menghapus data ini karena memiliki data terkait',
         ));
       }
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Gagal memvalidasi penghapusan',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'validateDelete($tableName)'));
     }
   }
 }
