@@ -139,7 +139,7 @@ class BrokerLocalDataSource {
     await (_db.update(_db.brokers)..where((t) => t.id.equals(id))).write(
       BrokersCompanion(
         isPendingSync: const Value(false),
-        updatedAt: Value(syncedAt),
+        lastSyncAt: Value(syncedAt),
       ),
     );
   }

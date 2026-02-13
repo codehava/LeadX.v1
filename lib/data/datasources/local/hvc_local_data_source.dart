@@ -130,7 +130,7 @@ class HvcLocalDataSource {
     await (_db.update(_db.hvcs)..where((t) => t.id.equals(id))).write(
       HvcsCompanion(
         isPendingSync: const Value(false),
-        updatedAt: Value(syncedAt),
+        lastSyncAt: Value(syncedAt),
       ),
     );
   }
@@ -254,7 +254,7 @@ class HvcLocalDataSource {
         .write(
       CustomerHvcLinksCompanion(
         isPendingSync: const Value(false),
-        updatedAt: Value(syncedAt),
+        lastSyncAt: Value(syncedAt),
       ),
     );
   }

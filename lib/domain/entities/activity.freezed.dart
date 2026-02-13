@@ -419,7 +419,7 @@ mixin _$Activity {
   DateTime? get cancelledAt => throw _privateConstructorUsedError;
   String? get cancelReason => throw _privateConstructorUsedError; // Sync status
   bool get isPendingSync => throw _privateConstructorUsedError;
-  DateTime? get syncedAt => throw _privateConstructorUsedError;
+  DateTime? get lastSyncAt => throw _privateConstructorUsedError;
   DateTime? get deletedAt =>
       throw _privateConstructorUsedError; // Lookup fields (populated from joined data)
   String? get activityTypeName => throw _privateConstructorUsedError;
@@ -475,7 +475,7 @@ abstract class $ActivityCopyWith<$Res> {
     DateTime? cancelledAt,
     String? cancelReason,
     bool isPendingSync,
-    DateTime? syncedAt,
+    DateTime? lastSyncAt,
     DateTime? deletedAt,
     String? activityTypeName,
     String? activityTypeIcon,
@@ -529,7 +529,7 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
     Object? cancelledAt = freezed,
     Object? cancelReason = freezed,
     Object? isPendingSync = null,
-    Object? syncedAt = freezed,
+    Object? lastSyncAt = freezed,
     Object? deletedAt = freezed,
     Object? activityTypeName = freezed,
     Object? activityTypeIcon = freezed,
@@ -652,9 +652,9 @@ class _$ActivityCopyWithImpl<$Res, $Val extends Activity>
                 ? _value.isPendingSync
                 : isPendingSync // ignore: cast_nullable_to_non_nullable
                       as bool,
-            syncedAt: freezed == syncedAt
-                ? _value.syncedAt
-                : syncedAt // ignore: cast_nullable_to_non_nullable
+            lastSyncAt: freezed == lastSyncAt
+                ? _value.lastSyncAt
+                : lastSyncAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
             deletedAt: freezed == deletedAt
                 ? _value.deletedAt
@@ -728,7 +728,7 @@ abstract class _$$ActivityImplCopyWith<$Res>
     DateTime? cancelledAt,
     String? cancelReason,
     bool isPendingSync,
-    DateTime? syncedAt,
+    DateTime? lastSyncAt,
     DateTime? deletedAt,
     String? activityTypeName,
     String? activityTypeIcon,
@@ -781,7 +781,7 @@ class __$$ActivityImplCopyWithImpl<$Res>
     Object? cancelledAt = freezed,
     Object? cancelReason = freezed,
     Object? isPendingSync = null,
-    Object? syncedAt = freezed,
+    Object? lastSyncAt = freezed,
     Object? deletedAt = freezed,
     Object? activityTypeName = freezed,
     Object? activityTypeIcon = freezed,
@@ -904,9 +904,9 @@ class __$$ActivityImplCopyWithImpl<$Res>
             ? _value.isPendingSync
             : isPendingSync // ignore: cast_nullable_to_non_nullable
                   as bool,
-        syncedAt: freezed == syncedAt
-            ? _value.syncedAt
-            : syncedAt // ignore: cast_nullable_to_non_nullable
+        lastSyncAt: freezed == lastSyncAt
+            ? _value.lastSyncAt
+            : lastSyncAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
         deletedAt: freezed == deletedAt
             ? _value.deletedAt
@@ -973,7 +973,7 @@ class _$ActivityImpl extends _Activity {
     this.cancelledAt,
     this.cancelReason,
     this.isPendingSync = false,
-    this.syncedAt,
+    this.lastSyncAt,
     this.deletedAt,
     this.activityTypeName,
     this.activityTypeIcon,
@@ -1052,7 +1052,7 @@ class _$ActivityImpl extends _Activity {
   @JsonKey()
   final bool isPendingSync;
   @override
-  final DateTime? syncedAt;
+  final DateTime? lastSyncAt;
   @override
   final DateTime? deletedAt;
   // Lookup fields (populated from joined data)
@@ -1073,7 +1073,7 @@ class _$ActivityImpl extends _Activity {
 
   @override
   String toString() {
-    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, syncedAt: $syncedAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, keyPersonName: $keyPersonName, userName: $userName)';
+    return 'Activity(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, isPendingSync: $isPendingSync, lastSyncAt: $lastSyncAt, deletedAt: $deletedAt, activityTypeName: $activityTypeName, activityTypeIcon: $activityTypeIcon, activityTypeColor: $activityTypeColor, objectName: $objectName, keyPersonName: $keyPersonName, userName: $userName)';
   }
 
   @override
@@ -1131,8 +1131,8 @@ class _$ActivityImpl extends _Activity {
                 other.cancelReason == cancelReason) &&
             (identical(other.isPendingSync, isPendingSync) ||
                 other.isPendingSync == isPendingSync) &&
-            (identical(other.syncedAt, syncedAt) ||
-                other.syncedAt == syncedAt) &&
+            (identical(other.lastSyncAt, lastSyncAt) ||
+                other.lastSyncAt == lastSyncAt) &&
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
             (identical(other.activityTypeName, activityTypeName) ||
@@ -1181,7 +1181,7 @@ class _$ActivityImpl extends _Activity {
     cancelledAt,
     cancelReason,
     isPendingSync,
-    syncedAt,
+    lastSyncAt,
     deletedAt,
     activityTypeName,
     activityTypeIcon,
@@ -1235,7 +1235,7 @@ abstract class _Activity extends Activity {
     final DateTime? cancelledAt,
     final String? cancelReason,
     final bool isPendingSync,
-    final DateTime? syncedAt,
+    final DateTime? lastSyncAt,
     final DateTime? deletedAt,
     final String? activityTypeName,
     final String? activityTypeIcon,
@@ -1306,7 +1306,7 @@ abstract class _Activity extends Activity {
   @override
   bool get isPendingSync;
   @override
-  DateTime? get syncedAt;
+  DateTime? get lastSyncAt;
   @override
   DateTime? get deletedAt; // Lookup fields (populated from joined data)
   @override

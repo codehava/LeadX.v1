@@ -338,7 +338,7 @@ class ActivityLocalDataSource {
     await (_db.update(_db.activities)..where((a) => a.id.equals(id))).write(
       ActivitiesCompanion(
         isPendingSync: const Value(false),
-        syncedAt: Value(syncedAt),
+        lastSyncAt: Value(syncedAt),
       ),
     );
   }
@@ -366,9 +366,9 @@ class ActivityLocalDataSource {
   /// Get the last sync timestamp for activities.
   Future<DateTime?> getLastSyncTimestamp() async {
     final query = _db.selectOnly(_db.activities)
-      ..addColumns([_db.activities.syncedAt.max()]);
+      ..addColumns([_db.activities.lastSyncAt.max()]);
     final result = await query.getSingleOrNull();
-    return result?.read(_db.activities.syncedAt.max());
+    return result?.read(_db.activities.lastSyncAt.max());
   }
 
   // ==========================================

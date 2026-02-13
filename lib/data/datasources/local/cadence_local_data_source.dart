@@ -513,7 +513,7 @@ class CadenceLocalDataSource {
       meetingId,
       CadenceMeetingsCompanion(
         isPendingSync: const Value(false),
-        updatedAt: Value(syncedAt),
+        lastSyncAt: Value(syncedAt),
       ),
     );
   }

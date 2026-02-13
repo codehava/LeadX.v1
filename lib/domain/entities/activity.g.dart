@@ -68,9 +68,9 @@ _$ActivityImpl _$$ActivityImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['cancelledAt'] as String),
       cancelReason: json['cancelReason'] as String?,
       isPendingSync: json['isPendingSync'] as bool? ?? false,
-      syncedAt: json['syncedAt'] == null
+      lastSyncAt: json['lastSyncAt'] == null
           ? null
-          : DateTime.parse(json['syncedAt'] as String),
+          : DateTime.parse(json['lastSyncAt'] as String),
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
@@ -112,7 +112,7 @@ Map<String, dynamic> _$$ActivityImplToJson(_$ActivityImpl instance) =>
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
       'cancelReason': instance.cancelReason,
       'isPendingSync': instance.isPendingSync,
-      'syncedAt': instance.syncedAt?.toIso8601String(),
+      'lastSyncAt': instance.lastSyncAt?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'activityTypeName': instance.activityTypeName,
       'activityTypeIcon': instance.activityTypeIcon,

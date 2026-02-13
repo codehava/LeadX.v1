@@ -9408,6 +9408,17 @@ class $KeyPersonsTable extends KeyPersons
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -9428,6 +9439,7 @@ class $KeyPersonsTable extends KeyPersons
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -9561,6 +9573,15 @@ class $KeyPersonsTable extends KeyPersons
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -9642,6 +9663,10 @@ class $KeyPersonsTable extends KeyPersons
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -9670,6 +9695,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final DateTime? lastSyncAt;
   const KeyPerson({
     required this.id,
     required this.ownerType,
@@ -9689,6 +9715,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -9728,6 +9755,9 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
     }
     return map;
   }
@@ -9770,6 +9800,9 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -9797,6 +9830,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -9821,6 +9855,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -9843,6 +9878,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => KeyPerson(
     id: id ?? this.id,
     ownerType: ownerType ?? this.ownerType,
@@ -9862,6 +9898,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   KeyPerson copyWithCompanion(KeyPersonsCompanion data) {
     return KeyPerson(
@@ -9889,6 +9926,9 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -9912,7 +9952,8 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -9937,6 +9978,7 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -9959,7 +10001,8 @@ class KeyPerson extends DataClass implements Insertable<KeyPerson> {
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
@@ -9981,6 +10024,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const KeyPersonsCompanion({
     this.id = const Value.absent(),
@@ -10001,6 +10045,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   KeyPersonsCompanion.insert({
@@ -10022,6 +10067,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        ownerType = Value(ownerType),
@@ -10048,6 +10094,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -10069,6 +10116,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -10092,6 +10140,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return KeyPersonsCompanion(
@@ -10113,6 +10162,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10174,6 +10224,9 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10201,6 +10254,7 @@ class KeyPersonsCompanion extends UpdateCompanion<KeyPerson> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14079,12 +14133,12 @@ class $ActivitiesTable extends Activities
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
-    'syncedAt',
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
   );
   @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
-    'synced_at',
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
@@ -14132,7 +14186,7 @@ class $ActivitiesTable extends Activities
     isPendingSync,
     createdAt,
     updatedAt,
-    syncedAt,
+    lastSyncAt,
     deletedAt,
   ];
   @override
@@ -14373,10 +14427,13 @@ class $ActivitiesTable extends Activities
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
-    if (data.containsKey('synced_at')) {
+    if (data.containsKey('last_sync_at')) {
       context.handle(
-        _syncedAtMeta,
-        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
       );
     }
     if (data.containsKey('deleted_at')) {
@@ -14510,9 +14567,9 @@ class $ActivitiesTable extends Activities
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
-      syncedAt: attachedDatabase.typeMapping.read(
+      lastSyncAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}synced_at'],
+        data['${effectivePrefix}last_sync_at'],
       ),
       deletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -14557,7 +14614,7 @@ class Activity extends DataClass implements Insertable<Activity> {
   final bool isPendingSync;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime? syncedAt;
+  final DateTime? lastSyncAt;
   final DateTime? deletedAt;
   const Activity({
     required this.id,
@@ -14589,7 +14646,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     required this.isPendingSync,
     required this.createdAt,
     required this.updatedAt,
-    this.syncedAt,
+    this.lastSyncAt,
     this.deletedAt,
   });
   @override
@@ -14658,8 +14715,8 @@ class Activity extends DataClass implements Insertable<Activity> {
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
-    if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
     }
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -14732,9 +14789,9 @@ class Activity extends DataClass implements Insertable<Activity> {
       isPendingSync: Value(isPendingSync),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
-      syncedAt: syncedAt == null && nullToAbsent
+      lastSyncAt: lastSyncAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(syncedAt),
+          : Value(lastSyncAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
@@ -14782,7 +14839,7 @@ class Activity extends DataClass implements Insertable<Activity> {
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
@@ -14819,7 +14876,7 @@ class Activity extends DataClass implements Insertable<Activity> {
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
@@ -14854,7 +14911,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     bool? isPendingSync,
     DateTime? createdAt,
     DateTime? updatedAt,
-    Value<DateTime?> syncedAt = const Value.absent(),
+    Value<DateTime?> lastSyncAt = const Value.absent(),
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => Activity(
     id: id ?? this.id,
@@ -14896,7 +14953,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     isPendingSync: isPendingSync ?? this.isPendingSync,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
-    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   Activity copyWithCompanion(ActivitiesCompanion data) {
@@ -14964,7 +15021,9 @@ class Activity extends DataClass implements Insertable<Activity> {
           : this.isPendingSync,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
@@ -15001,7 +15060,7 @@ class Activity extends DataClass implements Insertable<Activity> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('syncedAt: $syncedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
@@ -15038,7 +15097,7 @@ class Activity extends DataClass implements Insertable<Activity> {
     isPendingSync,
     createdAt,
     updatedAt,
-    syncedAt,
+    lastSyncAt,
     deletedAt,
   ]);
   @override
@@ -15074,7 +15133,7 @@ class Activity extends DataClass implements Insertable<Activity> {
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.syncedAt == this.syncedAt &&
+          other.lastSyncAt == this.lastSyncAt &&
           other.deletedAt == this.deletedAt);
 }
 
@@ -15108,7 +15167,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
   final Value<bool> isPendingSync;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime?> syncedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const ActivitiesCompanion({
@@ -15141,7 +15200,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     this.isPendingSync = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-    this.syncedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -15175,7 +15234,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     this.isPendingSync = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
-    this.syncedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -15216,7 +15275,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     Expression<bool>? isPendingSync,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
-    Expression<DateTime>? syncedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
@@ -15252,7 +15311,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
-      if (syncedAt != null) 'synced_at': syncedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -15288,7 +15347,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     Value<bool>? isPendingSync,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
-    Value<DateTime?>? syncedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
@@ -15322,7 +15381,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       isPendingSync: isPendingSync ?? this.isPendingSync,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      syncedAt: syncedAt ?? this.syncedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -15418,8 +15477,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
-    if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
@@ -15462,7 +15521,7 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('syncedAt: $syncedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -17584,6 +17643,17 @@ class $HvcsTable extends Hvcs with TableInfo<$HvcsTable, Hvc> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -17603,6 +17673,7 @@ class $HvcsTable extends Hvcs with TableInfo<$HvcsTable, Hvc> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -17741,6 +17812,15 @@ class $HvcsTable extends Hvcs with TableInfo<$HvcsTable, Hvc> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -17818,6 +17898,10 @@ class $HvcsTable extends Hvcs with TableInfo<$HvcsTable, Hvc> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -17845,6 +17929,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final DateTime? lastSyncAt;
   const Hvc({
     required this.id,
     required this.code,
@@ -17863,6 +17948,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -17897,6 +17983,9 @@ class Hvc extends DataClass implements Insertable<Hvc> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
     }
     return map;
   }
@@ -17934,6 +18023,9 @@ class Hvc extends DataClass implements Insertable<Hvc> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -17960,6 +18052,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -17983,6 +18076,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -18004,6 +18098,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => Hvc(
     id: id ?? this.id,
     code: code ?? this.code,
@@ -18024,6 +18119,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   Hvc copyWithCompanion(HvcsCompanion data) {
     return Hvc(
@@ -18052,6 +18148,9 @@ class Hvc extends DataClass implements Insertable<Hvc> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -18074,7 +18173,8 @@ class Hvc extends DataClass implements Insertable<Hvc> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -18098,6 +18198,7 @@ class Hvc extends DataClass implements Insertable<Hvc> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -18119,7 +18220,8 @@ class Hvc extends DataClass implements Insertable<Hvc> {
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class HvcsCompanion extends UpdateCompanion<Hvc> {
@@ -18140,6 +18242,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const HvcsCompanion({
     this.id = const Value.absent(),
@@ -18159,6 +18262,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HvcsCompanion.insert({
@@ -18179,6 +18283,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        code = Value(code),
@@ -18205,6 +18310,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -18225,6 +18331,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -18247,6 +18354,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return HvcsCompanion(
@@ -18267,6 +18375,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -18325,6 +18434,9 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -18351,6 +18463,7 @@ class HvcsCompanion extends UpdateCompanion<Hvc> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18483,6 +18596,17 @@ class $CustomerHvcLinksTable extends CustomerHvcLinks
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -18495,6 +18619,7 @@ class $CustomerHvcLinksTable extends CustomerHvcLinks
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -18585,6 +18710,15 @@ class $CustomerHvcLinksTable extends CustomerHvcLinks
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -18634,6 +18768,10 @@ class $CustomerHvcLinksTable extends CustomerHvcLinks
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -18654,6 +18792,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final DateTime? lastSyncAt;
   const CustomerHvcLink({
     required this.id,
     required this.customerId,
@@ -18665,6 +18804,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -18680,6 +18820,9 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
     }
     return map;
   }
@@ -18698,6 +18841,9 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -18717,6 +18863,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -18733,6 +18880,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -18747,6 +18895,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => CustomerHvcLink(
     id: id ?? this.id,
     customerId: customerId ?? this.customerId,
@@ -18758,6 +18907,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   CustomerHvcLink copyWithCompanion(CustomerHvcLinksCompanion data) {
     return CustomerHvcLink(
@@ -18777,6 +18927,9 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -18792,7 +18945,8 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -18809,6 +18963,7 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -18823,7 +18978,8 @@ class CustomerHvcLink extends DataClass implements Insertable<CustomerHvcLink> {
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
@@ -18837,6 +18993,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const CustomerHvcLinksCompanion({
     this.id = const Value.absent(),
@@ -18849,6 +19006,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CustomerHvcLinksCompanion.insert({
@@ -18862,6 +19020,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        customerId = Value(customerId),
@@ -18881,6 +19040,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -18894,6 +19054,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -18909,6 +19070,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return CustomerHvcLinksCompanion(
@@ -18922,6 +19084,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -18959,6 +19122,9 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -18978,6 +19144,7 @@ class CustomerHvcLinksCompanion extends UpdateCompanion<CustomerHvcLink> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -19221,6 +19388,17 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -19244,6 +19422,7 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -19401,6 +19580,15 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -19494,6 +19682,10 @@ class $BrokersTable extends Brokers with TableInfo<$BrokersTable, Broker> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -19525,6 +19717,7 @@ class Broker extends DataClass implements Insertable<Broker> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final DateTime? lastSyncAt;
   const Broker({
     required this.id,
     required this.code,
@@ -19547,6 +19740,7 @@ class Broker extends DataClass implements Insertable<Broker> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -19597,6 +19791,9 @@ class Broker extends DataClass implements Insertable<Broker> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
     }
     return map;
   }
@@ -19650,6 +19847,9 @@ class Broker extends DataClass implements Insertable<Broker> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -19680,6 +19880,7 @@ class Broker extends DataClass implements Insertable<Broker> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -19707,6 +19908,7 @@ class Broker extends DataClass implements Insertable<Broker> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -19732,6 +19934,7 @@ class Broker extends DataClass implements Insertable<Broker> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => Broker(
     id: id ?? this.id,
     code: code ?? this.code,
@@ -19758,6 +19961,7 @@ class Broker extends DataClass implements Insertable<Broker> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   Broker copyWithCompanion(BrokersCompanion data) {
     return Broker(
@@ -19790,6 +19994,9 @@ class Broker extends DataClass implements Insertable<Broker> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -19816,7 +20023,8 @@ class Broker extends DataClass implements Insertable<Broker> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -19844,6 +20052,7 @@ class Broker extends DataClass implements Insertable<Broker> {
     createdAt,
     updatedAt,
     deletedAt,
+    lastSyncAt,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -19869,7 +20078,8 @@ class Broker extends DataClass implements Insertable<Broker> {
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class BrokersCompanion extends UpdateCompanion<Broker> {
@@ -19894,6 +20104,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const BrokersCompanion({
     this.id = const Value.absent(),
@@ -19917,6 +20128,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BrokersCompanion.insert({
@@ -19941,6 +20153,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        code = Value(code),
@@ -19970,6 +20183,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -19994,6 +20208,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -20020,6 +20235,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return BrokersCompanion(
@@ -20044,6 +20260,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -20114,6 +20331,9 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -20144,6 +20364,7 @@ class BrokersCompanion extends UpdateCompanion<Broker> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -24953,6 +25174,17 @@ class $CadenceMeetingsTable extends CadenceMeetings
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -24972,6 +25204,7 @@ class $CadenceMeetingsTable extends CadenceMeetings
     isPendingSync,
     createdAt,
     updatedAt,
+    lastSyncAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -25120,6 +25353,15 @@ class $CadenceMeetingsTable extends CadenceMeetings
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -25197,6 +25439,10 @@ class $CadenceMeetingsTable extends CadenceMeetings
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
     );
   }
 
@@ -25224,6 +25470,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
   final bool isPendingSync;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastSyncAt;
   const CadenceMeeting({
     required this.id,
     required this.configId,
@@ -25242,6 +25489,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
     required this.isPendingSync,
     required this.createdAt,
     required this.updatedAt,
+    this.lastSyncAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -25275,6 +25523,9 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
+    }
     return map;
   }
 
@@ -25309,6 +25560,9 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
       isPendingSync: Value(isPendingSync),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
     );
   }
 
@@ -25335,6 +25589,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
     );
   }
   @override
@@ -25358,6 +25613,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
     };
   }
 
@@ -25379,6 +25635,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
     bool? isPendingSync,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> lastSyncAt = const Value.absent(),
   }) => CadenceMeeting(
     id: id ?? this.id,
     configId: configId ?? this.configId,
@@ -25397,6 +25654,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
     isPendingSync: isPendingSync ?? this.isPendingSync,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
   );
   CadenceMeeting copyWithCompanion(CadenceMeetingsCompanion data) {
     return CadenceMeeting(
@@ -25429,6 +25687,9 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
           : this.isPendingSync,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
     );
   }
 
@@ -25451,7 +25712,8 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
           ..write('createdBy: $createdBy, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastSyncAt: $lastSyncAt')
           ..write(')'))
         .toString();
   }
@@ -25475,6 +25737,7 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
     isPendingSync,
     createdAt,
     updatedAt,
+    lastSyncAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -25496,7 +25759,8 @@ class CadenceMeeting extends DataClass implements Insertable<CadenceMeeting> {
           other.createdBy == this.createdBy &&
           other.isPendingSync == this.isPendingSync &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.lastSyncAt == this.lastSyncAt);
 }
 
 class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
@@ -25517,6 +25781,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
   final Value<bool> isPendingSync;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> lastSyncAt;
   final Value<int> rowid;
   const CadenceMeetingsCompanion({
     this.id = const Value.absent(),
@@ -25536,6 +25801,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
     this.isPendingSync = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CadenceMeetingsCompanion.insert({
@@ -25556,6 +25822,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
     this.isPendingSync = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.lastSyncAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        configId = Value(configId),
@@ -25584,6 +25851,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
     Expression<bool>? isPendingSync,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? lastSyncAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -25604,6 +25872,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -25626,6 +25895,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
     Value<bool>? isPendingSync,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? lastSyncAt,
     Value<int>? rowid,
   }) {
     return CadenceMeetingsCompanion(
@@ -25646,6 +25916,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
       isPendingSync: isPendingSync ?? this.isPendingSync,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -25704,6 +25975,9 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -25730,6 +26004,7 @@ class CadenceMeetingsCompanion extends UpdateCompanion<CadenceMeeting> {
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -31346,6 +31621,28 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _lastSyncAtMeta = const VerificationMeta(
+    'lastSyncAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncAt = GeneratedColumn<DateTime>(
+    'last_sync_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -31362,6 +31659,8 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
     cachedAt,
     isPendingSync,
     createdLocally,
+    lastSyncAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -31481,6 +31780,21 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
         ),
       );
     }
+    if (data.containsKey('last_sync_at')) {
+      context.handle(
+        _lastSyncAtMeta,
+        lastSyncAt.isAcceptableOrUnknown(
+          data['last_sync_at']!,
+          _lastSyncAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -31549,6 +31863,14 @@ class $PipelineStageHistoryItemsTable extends PipelineStageHistoryItems
         DriftSqlType.bool,
         data['${effectivePrefix}created_locally'],
       )!,
+      lastSyncAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_sync_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
     );
   }
 
@@ -31574,6 +31896,8 @@ class PipelineStageHistoryItem extends DataClass
   final DateTime cachedAt;
   final bool isPendingSync;
   final bool createdLocally;
+  final DateTime? lastSyncAt;
+  final DateTime? updatedAt;
   const PipelineStageHistoryItem({
     required this.id,
     required this.pipelineId,
@@ -31589,6 +31913,8 @@ class PipelineStageHistoryItem extends DataClass
     required this.cachedAt,
     required this.isPendingSync,
     required this.createdLocally,
+    this.lastSyncAt,
+    this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -31621,6 +31947,12 @@ class PipelineStageHistoryItem extends DataClass
     map['cached_at'] = Variable<DateTime>(cachedAt);
     map['is_pending_sync'] = Variable<bool>(isPendingSync);
     map['created_locally'] = Variable<bool>(createdLocally);
+    if (!nullToAbsent || lastSyncAt != null) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     return map;
   }
 
@@ -31654,6 +31986,12 @@ class PipelineStageHistoryItem extends DataClass
       cachedAt: Value(cachedAt),
       isPendingSync: Value(isPendingSync),
       createdLocally: Value(createdLocally),
+      lastSyncAt: lastSyncAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -31677,6 +32015,8 @@ class PipelineStageHistoryItem extends DataClass
       cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
       isPendingSync: serializer.fromJson<bool>(json['isPendingSync']),
       createdLocally: serializer.fromJson<bool>(json['createdLocally']),
+      lastSyncAt: serializer.fromJson<DateTime?>(json['lastSyncAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
   @override
@@ -31697,6 +32037,8 @@ class PipelineStageHistoryItem extends DataClass
       'cachedAt': serializer.toJson<DateTime>(cachedAt),
       'isPendingSync': serializer.toJson<bool>(isPendingSync),
       'createdLocally': serializer.toJson<bool>(createdLocally),
+      'lastSyncAt': serializer.toJson<DateTime?>(lastSyncAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
 
@@ -31715,6 +32057,8 @@ class PipelineStageHistoryItem extends DataClass
     DateTime? cachedAt,
     bool? isPendingSync,
     bool? createdLocally,
+    Value<DateTime?> lastSyncAt = const Value.absent(),
+    Value<DateTime?> updatedAt = const Value.absent(),
   }) => PipelineStageHistoryItem(
     id: id ?? this.id,
     pipelineId: pipelineId ?? this.pipelineId,
@@ -31730,6 +32074,8 @@ class PipelineStageHistoryItem extends DataClass
     cachedAt: cachedAt ?? this.cachedAt,
     isPendingSync: isPendingSync ?? this.isPendingSync,
     createdLocally: createdLocally ?? this.createdLocally,
+    lastSyncAt: lastSyncAt.present ? lastSyncAt.value : this.lastSyncAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   PipelineStageHistoryItem copyWithCompanion(
     PipelineStageHistoryItemsCompanion data,
@@ -31761,6 +32107,10 @@ class PipelineStageHistoryItem extends DataClass
       createdLocally: data.createdLocally.present
           ? data.createdLocally.value
           : this.createdLocally,
+      lastSyncAt: data.lastSyncAt.present
+          ? data.lastSyncAt.value
+          : this.lastSyncAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -31780,7 +32130,9 @@ class PipelineStageHistoryItem extends DataClass
           ..write('longitude: $longitude, ')
           ..write('cachedAt: $cachedAt, ')
           ..write('isPendingSync: $isPendingSync, ')
-          ..write('createdLocally: $createdLocally')
+          ..write('createdLocally: $createdLocally, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -31801,6 +32153,8 @@ class PipelineStageHistoryItem extends DataClass
     cachedAt,
     isPendingSync,
     createdLocally,
+    lastSyncAt,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -31819,7 +32173,9 @@ class PipelineStageHistoryItem extends DataClass
           other.longitude == this.longitude &&
           other.cachedAt == this.cachedAt &&
           other.isPendingSync == this.isPendingSync &&
-          other.createdLocally == this.createdLocally);
+          other.createdLocally == this.createdLocally &&
+          other.lastSyncAt == this.lastSyncAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class PipelineStageHistoryItemsCompanion
@@ -31838,6 +32194,8 @@ class PipelineStageHistoryItemsCompanion
   final Value<DateTime> cachedAt;
   final Value<bool> isPendingSync;
   final Value<bool> createdLocally;
+  final Value<DateTime?> lastSyncAt;
+  final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const PipelineStageHistoryItemsCompanion({
     this.id = const Value.absent(),
@@ -31854,6 +32212,8 @@ class PipelineStageHistoryItemsCompanion
     this.cachedAt = const Value.absent(),
     this.isPendingSync = const Value.absent(),
     this.createdLocally = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PipelineStageHistoryItemsCompanion.insert({
@@ -31871,6 +32231,8 @@ class PipelineStageHistoryItemsCompanion
     required DateTime cachedAt,
     this.isPendingSync = const Value.absent(),
     this.createdLocally = const Value.absent(),
+    this.lastSyncAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        pipelineId = Value(pipelineId),
@@ -31892,6 +32254,8 @@ class PipelineStageHistoryItemsCompanion
     Expression<DateTime>? cachedAt,
     Expression<bool>? isPendingSync,
     Expression<bool>? createdLocally,
+    Expression<DateTime>? lastSyncAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -31909,6 +32273,8 @@ class PipelineStageHistoryItemsCompanion
       if (cachedAt != null) 'cached_at': cachedAt,
       if (isPendingSync != null) 'is_pending_sync': isPendingSync,
       if (createdLocally != null) 'created_locally': createdLocally,
+      if (lastSyncAt != null) 'last_sync_at': lastSyncAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -31928,6 +32294,8 @@ class PipelineStageHistoryItemsCompanion
     Value<DateTime>? cachedAt,
     Value<bool>? isPendingSync,
     Value<bool>? createdLocally,
+    Value<DateTime?>? lastSyncAt,
+    Value<DateTime?>? updatedAt,
     Value<int>? rowid,
   }) {
     return PipelineStageHistoryItemsCompanion(
@@ -31945,6 +32313,8 @@ class PipelineStageHistoryItemsCompanion
       cachedAt: cachedAt ?? this.cachedAt,
       isPendingSync: isPendingSync ?? this.isPendingSync,
       createdLocally: createdLocally ?? this.createdLocally,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -31994,6 +32364,12 @@ class PipelineStageHistoryItemsCompanion
     if (createdLocally.present) {
       map['created_locally'] = Variable<bool>(createdLocally.value);
     }
+    if (lastSyncAt.present) {
+      map['last_sync_at'] = Variable<DateTime>(lastSyncAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -32017,6 +32393,8 @@ class PipelineStageHistoryItemsCompanion
           ..write('cachedAt: $cachedAt, ')
           ..write('isPendingSync: $isPendingSync, ')
           ..write('createdLocally: $createdLocally, ')
+          ..write('lastSyncAt: $lastSyncAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -40788,6 +41166,7 @@ typedef $$KeyPersonsTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$KeyPersonsTableUpdateCompanionBuilder =
@@ -40810,6 +41189,7 @@ typedef $$KeyPersonsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -40927,6 +41307,11 @@ class $$KeyPersonsTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -41048,6 +41433,11 @@ class $$KeyPersonsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$UsersTableOrderingComposer get createdBy {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -41138,6 +41528,11 @@ class $$KeyPersonsTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
+
   $$UsersTableAnnotationComposer get createdBy {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -41208,6 +41603,7 @@ class $$KeyPersonsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => KeyPersonsCompanion(
                 id: id,
@@ -41228,6 +41624,7 @@ class $$KeyPersonsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -41250,6 +41647,7 @@ class $$KeyPersonsTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => KeyPersonsCompanion.insert(
                 id: id,
@@ -41270,6 +41668,7 @@ class $$KeyPersonsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -43821,7 +44220,7 @@ typedef $$ActivitiesTableCreateCompanionBuilder =
       Value<bool> isPendingSync,
       required DateTime createdAt,
       required DateTime updatedAt,
-      Value<DateTime?> syncedAt,
+      Value<DateTime?> lastSyncAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
@@ -43856,7 +44255,7 @@ typedef $$ActivitiesTableUpdateCompanionBuilder =
       Value<bool> isPendingSync,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime?> syncedAt,
+      Value<DateTime?> lastSyncAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
@@ -44119,8 +44518,8 @@ class $$ActivitiesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -44406,8 +44805,8 @@ class $$ActivitiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -44623,8 +45022,10 @@ class $$ActivitiesTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get syncedAt =>
-      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -44837,7 +45238,7 @@ class $$ActivitiesTableTableManager
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivitiesCompanion(
@@ -44870,7 +45271,7 @@ class $$ActivitiesTableTableManager
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                syncedAt: syncedAt,
+                lastSyncAt: lastSyncAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
               ),
@@ -44905,7 +45306,7 @@ class $$ActivitiesTableTableManager
                 Value<bool> isPendingSync = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ActivitiesCompanion.insert(
@@ -44938,7 +45339,7 @@ class $$ActivitiesTableTableManager
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                syncedAt: syncedAt,
+                lastSyncAt: lastSyncAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
               ),
@@ -46492,6 +46893,7 @@ typedef $$HvcsTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$HvcsTableUpdateCompanionBuilder =
@@ -46513,6 +46915,7 @@ typedef $$HvcsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -46643,6 +47046,11 @@ class $$HvcsTableFilterComposer extends Composer<_$AppDatabase, $HvcsTable> {
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -46783,6 +47191,11 @@ class $$HvcsTableOrderingComposer extends Composer<_$AppDatabase, $HvcsTable> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$HvcTypesTableOrderingComposer get typeId {
     final $$HvcTypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -46871,6 +47284,11 @@ class $$HvcsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
 
   $$HvcTypesTableAnnotationComposer get typeId {
     final $$HvcTypesTableAnnotationComposer composer = $composerBuilder(
@@ -46966,6 +47384,7 @@ class $$HvcsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HvcsCompanion(
                 id: id,
@@ -46985,6 +47404,7 @@ class $$HvcsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -47006,6 +47426,7 @@ class $$HvcsTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HvcsCompanion.insert(
                 id: id,
@@ -47025,6 +47446,7 @@ class $$HvcsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -47128,6 +47550,7 @@ typedef $$CustomerHvcLinksTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$CustomerHvcLinksTableUpdateCompanionBuilder =
@@ -47142,6 +47565,7 @@ typedef $$CustomerHvcLinksTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -47237,6 +47661,11 @@ class $$CustomerHvcLinksTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -47336,6 +47765,11 @@ class $$CustomerHvcLinksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$HvcsTableOrderingComposer get hvcId {
     final $$HvcsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -47421,6 +47855,11 @@ class $$CustomerHvcLinksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
 
   $$HvcsTableAnnotationComposer get hvcId {
     final $$HvcsTableAnnotationComposer composer = $composerBuilder(
@@ -47509,6 +47948,7 @@ class $$CustomerHvcLinksTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CustomerHvcLinksCompanion(
                 id: id,
@@ -47521,6 +47961,7 @@ class $$CustomerHvcLinksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -47535,6 +47976,7 @@ class $$CustomerHvcLinksTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CustomerHvcLinksCompanion.insert(
                 id: id,
@@ -47547,6 +47989,7 @@ class $$CustomerHvcLinksTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -47656,6 +48099,7 @@ typedef $$BrokersTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$BrokersTableUpdateCompanionBuilder =
@@ -47681,6 +48125,7 @@ typedef $$BrokersTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -47827,6 +48272,11 @@ class $$BrokersTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -47981,6 +48431,11 @@ class $$BrokersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ProvincesTableOrderingComposer get provinceId {
     final $$ProvincesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -48100,6 +48555,11 @@ class $$BrokersTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
+
   $$ProvincesTableAnnotationComposer get provinceId {
     final $$ProvincesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -48196,6 +48656,7 @@ class $$BrokersTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BrokersCompanion(
                 id: id,
@@ -48219,6 +48680,7 @@ class $$BrokersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -48244,6 +48706,7 @@ class $$BrokersTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BrokersCompanion.insert(
                 id: id,
@@ -48267,6 +48730,7 @@ class $$BrokersTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -52121,6 +52585,7 @@ typedef $$CadenceMeetingsTableCreateCompanionBuilder =
       Value<bool> isPendingSync,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 typedef $$CadenceMeetingsTableUpdateCompanionBuilder =
@@ -52142,6 +52607,7 @@ typedef $$CadenceMeetingsTableUpdateCompanionBuilder =
       Value<bool> isPendingSync,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> lastSyncAt,
       Value<int> rowid,
     });
 
@@ -52320,6 +52786,11 @@ class $$CadenceMeetingsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CadenceScheduleConfigTableFilterComposer get configId {
     final $$CadenceScheduleConfigTableFilterComposer composer =
         $composerBuilder(
@@ -52495,6 +52966,11 @@ class $$CadenceMeetingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CadenceScheduleConfigTableOrderingComposer get configId {
     final $$CadenceScheduleConfigTableOrderingComposer composer =
         $composerBuilder(
@@ -52626,6 +53102,11 @@ class $$CadenceMeetingsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
 
   $$CadenceScheduleConfigTableAnnotationComposer get configId {
     final $$CadenceScheduleConfigTableAnnotationComposer composer =
@@ -52776,6 +53257,7 @@ class $$CadenceMeetingsTableTableManager
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CadenceMeetingsCompanion(
                 id: id,
@@ -52795,6 +53277,7 @@ class $$CadenceMeetingsTableTableManager
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -52816,6 +53299,7 @@ class $$CadenceMeetingsTableTableManager
                 Value<bool> isPendingSync = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> lastSyncAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CadenceMeetingsCompanion.insert(
                 id: id,
@@ -52835,6 +53319,7 @@ class $$CadenceMeetingsTableTableManager
                 isPendingSync: isPendingSync,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                lastSyncAt: lastSyncAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -56600,6 +57085,8 @@ typedef $$PipelineStageHistoryItemsTableCreateCompanionBuilder =
       required DateTime cachedAt,
       Value<bool> isPendingSync,
       Value<bool> createdLocally,
+      Value<DateTime?> lastSyncAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 typedef $$PipelineStageHistoryItemsTableUpdateCompanionBuilder =
@@ -56618,6 +57105,8 @@ typedef $$PipelineStageHistoryItemsTableUpdateCompanionBuilder =
       Value<DateTime> cachedAt,
       Value<bool> isPendingSync,
       Value<bool> createdLocally,
+      Value<DateTime?> lastSyncAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 
@@ -56697,6 +57186,16 @@ class $$PipelineStageHistoryItemsTableFilterComposer
 
   ColumnFilters<bool> get createdLocally => $composableBuilder(
     column: $table.createdLocally,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -56779,6 +57278,16 @@ class $$PipelineStageHistoryItemsTableOrderingComposer
     column: $table.createdLocally,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PipelineStageHistoryItemsTableAnnotationComposer
@@ -56843,6 +57352,14 @@ class $$PipelineStageHistoryItemsTableAnnotationComposer
     column: $table.createdLocally,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get lastSyncAt => $composableBuilder(
+    column: $table.lastSyncAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$PipelineStageHistoryItemsTableTableManager
@@ -56905,6 +57422,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 Value<DateTime> cachedAt = const Value.absent(),
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<bool> createdLocally = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineStageHistoryItemsCompanion(
                 id: id,
@@ -56921,6 +57440,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 cachedAt: cachedAt,
                 isPendingSync: isPendingSync,
                 createdLocally: createdLocally,
+                lastSyncAt: lastSyncAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -56939,6 +57460,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 required DateTime cachedAt,
                 Value<bool> isPendingSync = const Value.absent(),
                 Value<bool> createdLocally = const Value.absent(),
+                Value<DateTime?> lastSyncAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PipelineStageHistoryItemsCompanion.insert(
                 id: id,
@@ -56955,6 +57478,8 @@ class $$PipelineStageHistoryItemsTableTableManager
                 cachedAt: cachedAt,
                 isPendingSync: isPendingSync,
                 createdLocally: createdLocally,
+                lastSyncAt: lastSyncAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -223,6 +223,7 @@ class Hvcs extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -240,6 +241,7 @@ class CustomerHvcLinks extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -269,6 +271,7 @@ class Brokers extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

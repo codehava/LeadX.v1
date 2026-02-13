@@ -35,7 +35,7 @@ class Activities extends Table {
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override

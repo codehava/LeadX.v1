@@ -329,11 +329,11 @@ class SyncService {
               lastSyncAt: Value(syncedAt),
             ));
       case 'keyPerson':
-        // KeyPersons table doesn't have lastSyncAt field
         await (_database.update(_database.keyPersons)
               ..where((k) => k.id.equals(entityId)))
-            .write(const db.KeyPersonsCompanion(
-              isPendingSync: Value(false),
+            .write(db.KeyPersonsCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'pipeline':
         await (_database.update(_database.pipelines)
@@ -343,37 +343,39 @@ class SyncService {
               lastSyncAt: Value(syncedAt),
             ));
       case 'activity':
-        // Activities table uses syncedAt instead of lastSyncAt
         await (_database.update(_database.activities)
               ..where((a) => a.id.equals(entityId)))
             .write(db.ActivitiesCompanion(
               isPendingSync: const Value(false),
-              syncedAt: Value(syncedAt),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'hvc':
-        // Hvcs table doesn't have lastSyncAt field
         await (_database.update(_database.hvcs)
               ..where((h) => h.id.equals(entityId)))
-            .write(const db.HvcsCompanion(
-              isPendingSync: Value(false),
+            .write(db.HvcsCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'customerHvcLink':
         await (_database.update(_database.customerHvcLinks)
               ..where((l) => l.id.equals(entityId)))
-            .write(const db.CustomerHvcLinksCompanion(
-              isPendingSync: Value(false),
+            .write(db.CustomerHvcLinksCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'broker':
         await (_database.update(_database.brokers)
               ..where((b) => b.id.equals(entityId)))
-            .write(const db.BrokersCompanion(
-              isPendingSync: Value(false),
+            .write(db.BrokersCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'pipelineStageHistory':
         await (_database.update(_database.pipelineStageHistoryItems)
               ..where((h) => h.id.equals(entityId)))
-            .write(const db.PipelineStageHistoryItemsCompanion(
-              isPendingSync: Value(false),
+            .write(db.PipelineStageHistoryItemsCompanion(
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'pipelineReferral':
         await (_database.update(_database.pipelineReferrals)
@@ -387,7 +389,7 @@ class SyncService {
               ..where((m) => m.id.equals(entityId)))
             .write(db.CadenceMeetingsCompanion(
               isPendingSync: const Value(false),
-              updatedAt: Value(syncedAt),
+              lastSyncAt: Value(syncedAt),
             ));
       case 'cadenceParticipant':
         await (_database.update(_database.cadenceParticipants)

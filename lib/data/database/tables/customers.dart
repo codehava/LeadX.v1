@@ -55,6 +55,7 @@ class KeyPersons extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

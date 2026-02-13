@@ -23,6 +23,8 @@ class PipelineStageHistoryItems extends Table {
   // Sync tracking for locally created entries
   BoolColumn get isPendingSync => boolean().withDefault(const Constant(false))();
   BoolColumn get createdLocally => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastSyncAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

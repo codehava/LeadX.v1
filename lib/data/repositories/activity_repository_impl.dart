@@ -755,7 +755,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
           isPendingSync: const Value(false),
           createdAt: Value(DateTime.parse(data['created_at'] as String)),
           updatedAt: Value(DateTime.parse(data['updated_at'] as String)),
-          syncedAt: Value(DateTime.now()),
+          lastSyncAt: Value(DateTime.now()),
           deletedAt: data['deleted_at'] != null
               ? Value(DateTime.parse(data['deleted_at'] as String))
               : const Value(null),
@@ -1119,7 +1119,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       cancelledAt: data.cancelledAt,
       cancelReason: data.cancelReason,
       isPendingSync: data.isPendingSync,
-      syncedAt: data.syncedAt,
+      lastSyncAt: data.lastSyncAt,
       deletedAt: data.deletedAt,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

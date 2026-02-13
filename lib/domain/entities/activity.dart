@@ -87,7 +87,7 @@ class Activity with _$Activity {
     String? cancelReason,
     // Sync status
     @Default(false) bool isPendingSync,
-    DateTime? syncedAt,
+    DateTime? lastSyncAt,
     DateTime? deletedAt,
     // Lookup fields (populated from joined data)
     String? activityTypeName,

@@ -111,7 +111,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -182,6 +182,30 @@ class AppDatabase extends _$AppDatabase {
           if (from < 9) {
             await customStatement(
                 'ALTER TABLE user_score_snapshots RENAME TO user_score_aggregates');
+          }
+          // Migration from v9 to v10: Standardize sync metadata columns
+          if (from < 10) {
+            // Disable FK during migration to prevent constraint issues
+            await customStatement('PRAGMA foreign_keys = OFF');
+
+            // Add lastSyncAt to tables missing it (Category B)
+            await m.addColumn(keyPersons, keyPersons.lastSyncAt);
+            await m.addColumn(hvcs, hvcs.lastSyncAt);
+            await m.addColumn(customerHvcLinks, customerHvcLinks.lastSyncAt);
+            await m.addColumn(brokers, brokers.lastSyncAt);
+            await m.addColumn(cadenceMeetings, cadenceMeetings.lastSyncAt);
+
+            // Add lastSyncAt and updatedAt to PipelineStageHistoryItems (Category D)
+            await m.addColumn(
+                pipelineStageHistoryItems, pipelineStageHistoryItems.lastSyncAt);
+            await m.addColumn(
+                pipelineStageHistoryItems, pipelineStageHistoryItems.updatedAt);
+
+            // Rename Activities.syncedAt -> lastSyncAt (Category C)
+            // SQLite 3.25+ supports ALTER TABLE RENAME COLUMN
+            await customStatement(
+              'ALTER TABLE activities RENAME COLUMN synced_at TO last_sync_at',
+            );
           }
         },
         beforeOpen: (details) async {
