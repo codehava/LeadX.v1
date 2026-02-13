@@ -1,10 +1,9 @@
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/routes/route_names.dart';
-import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/result.dart';
 import '../../../../presentation/providers/admin_providers.dart';
 import '../../../widgets/layout/responsive_layout.dart';
 import 'master_data_entity_type.dart';
@@ -178,7 +177,7 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
       final repository = ref.read(adminMasterDataRepositoryProvider);
 
       // Use specialized methods for entities with dependencies
-      final Either<Failure, void> result;
+      final Result<void> result;
       if (_type == MasterDataEntityType.regionalOffice) {
         result = await repository.softDeleteRegionalOffice(id);
       } else if (_type == MasterDataEntityType.branch) {
@@ -188,8 +187,13 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
       }
 
       if (!mounted) return;
-      result.fold(
-        (failure) {
+      switch (result) {
+        case Success():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Data berhasil dihapus')),
+          );
+          _loadData();
+        case ResultFailure(:final failure):
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(failure.message),
@@ -197,14 +201,7 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
               duration: const Duration(seconds: 5),
             ),
           );
-        },
-        (_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Data berhasil dihapus')),
-          );
-          _loadData();
-        },
-      );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

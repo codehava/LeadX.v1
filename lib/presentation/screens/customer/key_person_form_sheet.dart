@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/dtos/customer_dtos.dart';
 import '../../../domain/entities/key_person.dart';
@@ -315,55 +316,41 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
       if (widget.isEditing) {
         // Update existing key person
         final result = await customerRepo.updateKeyPerson(widget.keyPerson!.id, dto);
-        result.fold(
-          (failure) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error: ${failure.message}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-            return;
-          },
-          (keyPerson) {
-            if (mounted) {
-              // Invalidate the appropriate provider to refresh the list
-              _invalidateKeyPersonProviders();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Key person berhasil diupdate')),
-              );
-            }
-          },
-        );
+        if (!mounted) return;
+        switch (result) {
+          case Success():
+            _invalidateKeyPersonProviders();
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Key person berhasil diupdate')),
+            );
+          case ResultFailure(:final failure):
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+        }
       } else {
         // Create new key person
         final result = await customerRepo.addKeyPerson(dto);
-        result.fold(
-          (failure) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error: ${failure.message}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-            return;
-          },
-          (keyPerson) {
-            if (mounted) {
-              // Invalidate the appropriate provider to refresh the list
-              _invalidateKeyPersonProviders();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Key person berhasil ditambahkan')),
-              );
-            }
-          },
-        );
+        if (!mounted) return;
+        switch (result) {
+          case Success():
+            _invalidateKeyPersonProviders();
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Key person berhasil ditambahkan')),
+            );
+          case ResultFailure(:final failure):
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+        }
       }
     } catch (e) {
       if (mounted) {

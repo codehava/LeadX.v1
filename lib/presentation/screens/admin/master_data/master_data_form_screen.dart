@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/result.dart';
 import '../../../../presentation/providers/admin_providers.dart';
 import '../../../../presentation/providers/master_data_providers.dart';
 import '../../../widgets/layout/responsive_layout.dart';
@@ -284,58 +285,32 @@ class _MasterDataFormScreenState extends ConsumerState<MasterDataFormScreen> {
         // Edit
         final result =
             await repository.updateEntity(_type.tableName, widget.itemId!, data);
-        result.fold(
-          (failure) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Gagal menyimpan: ${failure.message}')),
-            );
-          },
-          (_) {
-            if (!mounted) return;
+        if (!mounted) return;
+        switch (result) {
+          case Success():
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Data berhasil disimpan')),
             );
             context.pop();
-          },
-        );
+          case ResultFailure(:final failure):
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menyimpan: ${failure.message}')),
+            );
+        }
       } else {
-        // Create - use specific method if available
-        if (_type == MasterDataEntityType.companyType) {
-          // Generic create for now
-          final result = await repository.createEntity(_type.tableName, data);
-          result.fold(
-            (failure) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal membuat: ${failure.message}')),
-              );
-            },
-            (_) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data berhasil dibuat')),
-              );
-              context.pop();
-            },
-          );
-        } else {
-          final result = await repository.createEntity(_type.tableName, data);
-          result.fold(
-            (failure) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal membuat: ${failure.message}')),
-              );
-            },
-            (_) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data berhasil dibuat')),
-              );
-              context.pop();
-            },
-          );
+        // Create
+        final result = await repository.createEntity(_type.tableName, data);
+        if (!mounted) return;
+        switch (result) {
+          case Success():
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Data berhasil dibuat')),
+            );
+            context.pop();
+          case ResultFailure(:final failure):
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal membuat: ${failure.message}')),
+            );
         }
       }
     } catch (e) {

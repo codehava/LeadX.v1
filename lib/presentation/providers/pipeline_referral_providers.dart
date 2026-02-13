@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../core/logging/app_logger.dart';
 import '../../data/datasources/local/pipeline_referral_local_data_source.dart';
 import '../../data/datasources/remote/pipeline_referral_remote_data_source.dart';
@@ -213,30 +214,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
 
     // Check if notifier is still mounted - if not, the operation still succeeded
     // but we can't update state. Return based on result, not mounted status.
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Accept a referral (receiver action).
@@ -246,30 +243,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
 
     // Check if notifier is still mounted - if not, the operation still succeeded
     // but we can't update state. Return based on result, not mounted status.
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | acceptReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | acceptReferral: Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reject a referral (receiver action).
@@ -277,30 +270,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.rejectReferral(id, reason);
 
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | rejectReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | rejectReferral: Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Approve a referral (manager action).
@@ -308,30 +297,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.approveReferral(id, _currentUserId, notes);
 
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | approveReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | approveReferral: Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reject a referral as manager.
@@ -340,30 +325,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final result =
         await _repository.rejectAsManager(id, _currentUserId, reason);
 
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | rejectAsManager: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | rejectAsManager: Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Cancel a referral (referrer action).
@@ -371,30 +352,26 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.cancelReferral(id, reason);
 
-    final isSuccess = result.isRight();
-
     if (!mounted) {
-      AppLogger.instance.debug('pipeline.referral | cancelReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
-      return isSuccess;
+      AppLogger.instance.debug('pipeline.referral | cancelReferral: Notifier unmounted, but operation ${result.isSuccess ? "succeeded" : "failed"}');
+      return result.isSuccess;
     }
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          result: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (referral) {
-        state = state.copyWith(
-          isLoading: false,
-          result: referral,
-        );
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reset the action state.
