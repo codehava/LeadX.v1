@@ -8,7 +8,9 @@ import '../../../providers/customer_providers.dart';
 import '../../../widgets/cards/customer_card.dart';
 import '../../../widgets/common/app_search_field.dart';
 import '../../../widgets/common/empty_state.dart';
+import '../../../widgets/common/error_state.dart';
 import '../../../widgets/common/loading_indicator.dart';
+import '../../../widgets/common/offline_banner.dart';
 
 /// Customers tab showing customer list with search and filter.
 /// Uses lazy loading with pagination for better performance.
@@ -81,7 +83,12 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
           ),
         ],
       ),
-      body: _buildCustomerList(),
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: _buildCustomerList()),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'customers_tab_fab',
         onPressed: () => context.push(RoutePaths.customerCreate),
@@ -113,20 +120,9 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
         return _buildCustomerListView(customers, totalCount);
       },
       loading: () => const Center(child: AppLoadingIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            Text('Error: $error'),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: _handleRefresh,
-              child: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
+      error: (error, _) => AppErrorState.general(
+        message: error.toString(),
+        onRetry: _handleRefresh,
       ),
     );
   }

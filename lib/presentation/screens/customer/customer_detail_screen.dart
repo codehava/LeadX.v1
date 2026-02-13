@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/customer.dart';
@@ -11,7 +12,9 @@ import '../../providers/activity_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/cards/pipeline_card.dart';
+import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/offline_banner.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
 import '../activity/activity_execution_sheet.dart';
 import '../activity/immediate_activity_sheet.dart';
@@ -68,7 +71,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
       ),
       error: (error, _) => Scaffold(
         appBar: AppBar(title: const Text('Customer')),
-        body: Center(child: Text('Error: $error')),
+        body: AppErrorState.general(
+          title: 'Failed to load customer details',
+          message: error.toString(),
+        ),
       ),
     );
   }
@@ -101,17 +107,24 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _InfoTab(customer: customer),
-          _KeyPersonsTab(customerId: customer.id),
-          _PipelinesTab(customerId: customer.id),
-          _ActivitiesTab(
-            customerId: customer.id,
-            customerName: customer.name,
-            customerLat: customer.latitude,
-            customerLon: customer.longitude,
+          const OfflineBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _InfoTab(customer: customer),
+                _KeyPersonsTab(customerId: customer.id),
+                _PipelinesTab(customerId: customer.id),
+                _ActivitiesTab(
+                  customerId: customer.id,
+                  customerName: customer.name,
+                  customerLat: customer.latitude,
+                  customerLon: customer.longitude,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -351,7 +364,10 @@ class _KeyPersonsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: AppLoadingIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => AppErrorState.general(
+        title: 'Failed to load key persons',
+        message: error.toString(),
+      ),
     );
   }
 
@@ -391,23 +407,21 @@ class _KeyPersonsTab extends ConsumerWidget {
       final repo = ref.read(customerRepositoryProvider);
       final result = await repo.deleteKeyPerson(keyPerson.id);
       
-      result.fold(
-        (failure) {
+      switch (result) {
+        case ResultFailure(:final failure):
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
             );
           }
-        },
-        (_) {
+        case Success():
           if (context.mounted) {
             ref.invalidate(customerKeyPersonsProvider(customerId));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Key person berhasil dihapus')),
             );
           }
-        },
-      );
+      }
     }
   }
 }
@@ -622,7 +636,10 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
           );
         },
         loading: () => const Center(child: AppLoadingIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => AppErrorState.general(
+          title: 'Failed to load pipelines',
+          message: error.toString(),
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 72),
@@ -748,7 +765,10 @@ class _ActivitiesTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: AppLoadingIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => AppErrorState.general(
+          title: 'Failed to load activities',
+          message: error.toString(),
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 72),
