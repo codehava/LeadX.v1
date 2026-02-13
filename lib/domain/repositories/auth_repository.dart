@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../entities/app_auth_state.dart';
 import '../entities/user.dart';
 
@@ -12,13 +10,13 @@ abstract class AuthRepository {
   Future<AppAuthState> getAuthState();
 
   /// Sign in with email and password.
-  Future<Either<Failure, User>> signIn({
+  Future<Result<User>> signIn({
     required String email,
     required String password,
   });
 
   /// Sign out current user.
-  Future<Either<Failure, void>> signOut();
+  Future<Result<void>> signOut();
 
   /// Get current user if authenticated.
   Future<User?> getCurrentUser();
@@ -28,13 +26,13 @@ abstract class AuthRepository {
   Future<User?> refreshCurrentUser();
 
   /// Refresh the access token.
-  Future<Either<Failure, AuthSession>> refreshSession();
+  Future<Result<AuthSession>> refreshSession();
 
   /// Request password reset email.
-  Future<Either<Failure, void>> requestPasswordReset(String email);
+  Future<Result<void>> requestPasswordReset(String email);
 
   /// Update password with reset token.
-  Future<Either<Failure, void>> updatePassword({
+  Future<Result<void>> updatePassword({
     required String newPassword,
   });
 
@@ -48,19 +46,19 @@ abstract class AuthRepository {
   AuthSession? get currentSession;
 
   /// Update user profile information.
-  Future<Either<Failure, User>> updateProfile({
+  Future<Result<User>> updateProfile({
     String? name,
     String? phone,
     String? photoUrl,
   });
 
   /// Upload profile photo and return public URL.
-  Future<Either<Failure, String>> uploadProfilePhoto({
+  Future<Result<String>> uploadProfilePhoto({
     required String userId,
     required String localPath,
     required Uint8List? bytes, // For web platform
   });
 
   /// Remove profile photo.
-  Future<Either<Failure, void>> removeProfilePhoto(String userId);
+  Future<Result<void>> removeProfilePhoto(String userId);
 }

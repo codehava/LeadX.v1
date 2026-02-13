@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -10,6 +9,7 @@ import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/app_auth_state.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -368,7 +368,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, User>> signIn({
+  Future<Result<User>> signIn({
     required String email,
     required String password,
   }) async {
@@ -379,15 +379,15 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (response.session == null) {
-        return Left(AuthFailure(message: 'Login failed: No session returned'));
+        return Result.failure(AuthFailure(message: 'Login failed: No session returned'));
       }
 
       final user = await _fetchUserProfile(response.user!.id);
-      
+
       // Check if user is active
       if (!user.isActive) {
         await _client.auth.signOut();
-        return Left(AuthFailure(message: 'Your account is inactive'));
+        return Result.failure(AuthFailure(message: 'Your account is inactive'));
       }
 
       // Update last login
@@ -406,11 +406,11 @@ class AuthRepositoryImpl implements AuthRepository {
         user: user,
       );
 
-      return Right(user);
+      return Result.success(user);
     } on supabase.AuthException catch (e) {
-      return Left(AuthFailure(message: _mapAuthError(e.message)));
+      return Result.failure(AuthFailure(message: _mapAuthError(e.message)));
     } catch (e) {
-      return Left(AuthFailure(message: 'Login failed: ${e.toString()}'));
+      return Result.failure(AuthFailure(message: 'Login failed: ${e.toString()}'));
     }
   }
 
@@ -428,14 +428,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> signOut() async {
+  Future<Result<void>> signOut() async {
     try {
       await _client.auth.signOut();
       _currentSession = null;
       _currentUser = null;
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
-      return Left(AuthFailure(message: 'Sign out failed: ${e.toString()}'));
+      return Result.failure(AuthFailure(message: 'Sign out failed: ${e.toString()}'));
     }
   }
 
@@ -474,7 +474,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, AuthSession>> refreshSession() async {
+  Future<Result<AuthSession>> refreshSession() async {
     try {
       final response = await _client.auth.refreshSession().timeout(
         _networkTimeout,
@@ -484,7 +484,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (response.session == null) {
-        return Left(AuthFailure(message: 'Session refresh failed'));
+        return Result.failure(AuthFailure(message: 'Session refresh failed'));
       }
 
       final user = await _fetchUserWithFallback(response.session!);
@@ -499,21 +499,21 @@ class AuthRepositoryImpl implements AuthRepository {
       _currentSession = session;
       _currentUser = user;
 
-      return Right(session);
+      return Result.success(session);
     } on TimeoutException {
       // If refresh times out but we have cached data, return that
       if (_currentSession != null) {
         _log.debug('auth | Session refresh timeout - returning cached session');
-        return Right(_currentSession!);
+        return Result.success(_currentSession!);
       }
-      return Left(AuthFailure(message: 'Session refresh timeout - offline'));
+      return Result.failure(AuthFailure(message: 'Session refresh timeout - offline'));
     } catch (e) {
-      return Left(AuthFailure(message: 'Session refresh failed'));
+      return Result.failure(AuthFailure(message: 'Session refresh failed'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> requestPasswordReset(String email) async {
+  Future<Result<void>> requestPasswordReset(String email) async {
     try {
       // Determine redirect URL based on platform
       final redirectUrl = kIsWeb
@@ -524,14 +524,14 @@ class AuthRepositoryImpl implements AuthRepository {
         email,
         redirectTo: redirectUrl,
       );
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
-      return Left(AuthFailure(message: 'Password reset failed'));
+      return Result.failure(AuthFailure(message: 'Password reset failed'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> updatePassword({
+  Future<Result<void>> updatePassword({
     required String newPassword,
   }) async {
     try {
@@ -543,9 +543,9 @@ class AuthRepositoryImpl implements AuthRepository {
       _inPasswordRecoveryMode = false;
       await _client.auth.signOut();
 
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
-      return Left(AuthFailure(message: 'Password update failed'));
+      return Result.failure(AuthFailure(message: 'Password update failed'));
     }
   }
 
@@ -559,7 +559,7 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthSession? get currentSession => _currentSession;
 
   @override
-  Future<Either<Failure, String>> uploadProfilePhoto({
+  Future<Result<String>> uploadProfilePhoto({
     required String userId,
     required String localPath,
     required Uint8List? bytes,
@@ -583,7 +583,7 @@ class AuthRepositoryImpl implements AuthRepository {
         // Mobile: upload file
         final file = File(localPath);
         if (!await file.exists()) {
-          return const Left(AuthFailure(message: 'File tidak ditemukan'));
+          return const Result.failure(AuthFailure(message: 'File tidak ditemukan'));
         }
 
         final fileBytes = await file.readAsBytes();
@@ -603,15 +603,15 @@ class AuthRepositoryImpl implements AuthRepository {
       // Add timestamp to bust cache
       final urlWithTimestamp = '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
 
-      return Right(urlWithTimestamp);
+      return Result.success(urlWithTimestamp);
     } catch (e) {
       _log.error('auth | Photo upload error: $e');
-      return Left(AuthFailure(message: 'Upload foto gagal: ${e.toString()}'));
+      return Result.failure(AuthFailure(message: 'Upload foto gagal: ${e.toString()}'));
     }
   }
 
   @override
-  Future<Either<Failure, User>> updateProfile({
+  Future<Result<User>> updateProfile({
     String? name,
     String? phone,
     String? photoUrl,
@@ -619,7 +619,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final session = _client.auth.currentSession;
       if (session == null) {
-        return const Left(AuthFailure(message: 'Tidak terautentikasi'));
+        return const Result.failure(AuthFailure(message: 'Tidak terautentikasi'));
       }
 
       final userId = session.user.id;
@@ -656,15 +656,15 @@ class AuthRepositoryImpl implements AuthRepository {
       // Notify listeners
       _authStateController.add(AppAuthState.authenticated(updatedUser));
 
-      return Right(updatedUser);
+      return Result.success(updatedUser);
     } catch (e) {
       _log.error('auth | Profile update error: $e');
-      return Left(AuthFailure(message: 'Update profil gagal: ${e.toString()}'));
+      return Result.failure(AuthFailure(message: 'Update profil gagal: ${e.toString()}'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> removeProfilePhoto(String userId) async {
+  Future<Result<void>> removeProfilePhoto(String userId) async {
     try {
       const bucket = 'user-photos';
       final storagePath = '$userId/profile.jpg';
@@ -692,10 +692,10 @@ class AuthRepositoryImpl implements AuthRepository {
       // Notify listeners
       _authStateController.add(AppAuthState.authenticated(updatedUser));
 
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
       _log.error('auth | Photo removal error: $e');
-      return Left(AuthFailure(message: 'Hapus foto gagal: ${e.toString()}'));
+      return Result.failure(AuthFailure(message: 'Hapus foto gagal: ${e.toString()}'));
     }
   }
 

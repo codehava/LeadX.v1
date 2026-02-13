@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:leadx_crm/core/errors/failures.dart';
+import 'package:leadx_crm/core/errors/result.dart';
 import 'package:leadx_crm/domain/entities/app_auth_state.dart';
 import 'package:leadx_crm/domain/entities/user.dart';
 import 'package:leadx_crm/domain/repositories/auth_repository.dart';
@@ -69,7 +70,7 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, User>> signIn({
+  Future<Result<User>> signIn({
     required String email,
     required String password,
   }) async {
@@ -77,26 +78,26 @@ class FakeAuthRepository implements AuthRepository {
     await Future.delayed(const Duration(milliseconds: 100));
 
     if (!shouldSignInSucceed) {
-      return Left(AuthFailure(
+      return Result.failure(AuthFailure(
         message: signInErrorMessage ?? 'Email atau password salah',
       ));
     }
 
     final user = signInUser ?? createTestUser(email: email);
     setAuthenticated(user);
-    return Right(user);
+    return Result.success(user);
   }
 
   @override
-  Future<Either<Failure, void>> signOut() async {
+  Future<Result<void>> signOut() async {
     await Future.delayed(const Duration(milliseconds: 50));
 
     if (!shouldSignOutSucceed) {
-      return const Left(AuthFailure(message: 'Sign out failed'));
+      return const Result.failure(AuthFailure(message: 'Sign out failed'));
     }
 
     setUnauthenticated();
-    return const Right(null);
+    return const Result.success(null);
   }
 
   @override
@@ -105,28 +106,59 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, AuthSession>> refreshSession() async {
+  Future<Result<AuthSession>> refreshSession() async {
     if (!shouldRefreshSucceed || _currentSession == null) {
-      return const Left(AuthFailure(message: 'Session refresh failed'));
+      return const Result.failure(AuthFailure(message: 'Session refresh failed'));
     }
-    return Right(_currentSession!);
+    return Result.success(_currentSession!);
   }
 
   @override
-  Future<Either<Failure, void>> requestPasswordReset(String email) async {
+  Future<Result<void>> requestPasswordReset(String email) async {
     await Future.delayed(const Duration(milliseconds: 100));
 
     if (!shouldPasswordResetSucceed) {
-      return const Left(AuthFailure(message: 'Password reset failed'));
+      return const Result.failure(AuthFailure(message: 'Password reset failed'));
     }
-    return const Right(null);
+    return const Result.success(null);
   }
 
   @override
-  Future<Either<Failure, void>> updatePassword({
+  Future<Result<void>> updatePassword({
     required String newPassword,
   }) async {
-    return const Right(null);
+    return const Result.success(null);
+  }
+
+  @override
+  Future<User?> refreshCurrentUser() async {
+    return _currentUser;
+  }
+
+  @override
+  Future<Result<User>> updateProfile({
+    String? name,
+    String? phone,
+    String? photoUrl,
+  }) async {
+    if (_currentUser == null) {
+      return const Result.failure(AuthFailure(message: 'Not authenticated'));
+    }
+    return Result.success(_currentUser!);
+  }
+
+  @override
+  Future<Result<String>> uploadProfilePhoto({
+    required String userId,
+    required String localPath,
+    required Uint8List? bytes,
+  }) async {
+    return const Result.success('https://example.com/photo.jpg');
+  }
+
+  @override
+  Future<Result<void>> removeProfilePhoto(String userId) async {
+    return const Result.success(null);
   }
 
   @override
