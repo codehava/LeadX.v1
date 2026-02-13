@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
 - [x] **Phase 02.1: Pre-existing Bug Fixes** - Timezone serialization + dropdown race condition (INSERTED)
 - [x] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
+- [ ] **Phase 03.1: Remaining Repo Result Migration** - Migrate 7 remaining repos from dartz Either to sealed Result, remove dartz (INSERTED)
 - [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
 - [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
@@ -93,6 +94,26 @@ Plans:
 - [x] 03-01-PLAN.md -- Sealed Result<T> type + exception mapper + CustomerRepository migration
 - [x] 03-02-PLAN.md -- PipelineRepository + ActivityRepository migration to Result type
 - [x] 03-03-PLAN.md -- OfflineBanner widget + screen error display improvements
+
+### Phase 03.1: Remaining Repo Result Migration (INSERTED)
+
+**Goal:** Migrate 7 remaining repositories (auth, admin_user, admin_master_data, broker, hvc, cadence, pipeline_referral) from dartz Either<Failure, T> to sealed Result<T>, update provider consumers from .fold() to switch pattern matching, update tests, and remove dartz from pubspec.yaml
+**Depends on:** Phase 3 (requires Result type and migration pattern)
+**Requirements:** None (consistency cleanup, not tracked requirement)
+**Success Criteria** (what must be TRUE):
+  1. All 7 remaining repository interfaces use Result<T> instead of Either<Failure, T>
+  2. All provider .fold() call sites for these repos use switch/when pattern matching
+  3. All repository tests pass with Result-based assertions
+  4. dartz removed from pubspec.yaml with no remaining imports in lib/
+  5. Either.toResult() adapter removed from result.dart
+**Plans:** 5 plans
+
+Plans:
+- [ ] 03.1-01-PLAN.md — Broker + AdminUser + HVC repository migration (17 methods)
+- [ ] 03.1-02-PLAN.md — AdminMasterData + PipelineReferral migration + key_person_form_sheet bug fix (20 methods)
+- [ ] 03.1-03-PLAN.md — AuthRepository migration with tests (11 methods, 6 consumers, 3 test files)
+- [ ] 03.1-04-PLAN.md — CadenceRepository migration with Unit-to-void conversion (18 methods)
+- [ ] 03.1-05-PLAN.md — Remove dartz dependency and EitherToResult adapter (final cleanup)
 
 ### Phase 4: Conflict Resolution
 **Goal**: Detect when local and remote data diverge, apply Last-Write-Wins policy, log conflicts for audit, and ensure sync operations are idempotent
@@ -209,7 +230,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -217,6 +238,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 �
 | 2. Sync Engine Core | 3/3 | ✓ Complete | 2026-02-13 |
 | 02.1. Pre-existing Bug Fixes | 3/3 | ✓ Complete | 2026-02-13 |
 | 3. Error Classification & Recovery | 3/3 | ✓ Complete | 2026-02-14 |
+| 03.1. Remaining Repo Result Migration | 0/5 | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
 | 6. Sync Coordination | 0/TBD | Not started | - |
@@ -227,4 +249,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 �
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-14 — Phase 3 complete (3/3 plans)*
+*Last updated: 2026-02-14 — Phase 3.1 planned (5 plans in 2 waves)*
