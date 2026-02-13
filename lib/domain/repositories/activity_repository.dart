@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/activity_dtos.dart';
 import '../entities/activity.dart';
 
@@ -65,11 +63,11 @@ abstract class ActivityRepository {
 
   /// Create a new scheduled activity.
   /// Saves locally first, then queues for sync.
-  Future<Either<Failure, Activity>> createActivity(ActivityCreateDto dto);
+  Future<Result<Activity>> createActivity(ActivityCreateDto dto);
 
   /// Create an immediate (instant) activity.
   /// The activity is created with COMPLETED status and GPS data.
-  Future<Either<Failure, Activity>> createImmediateActivity(
+  Future<Result<Activity>> createImmediateActivity(
     ImmediateActivityDto dto,
   );
 
@@ -79,20 +77,20 @@ abstract class ActivityRepository {
 
   /// Execute a planned activity.
   /// Marks the activity as COMPLETED with GPS data.
-  Future<Either<Failure, Activity>> executeActivity(
+  Future<Result<Activity>> executeActivity(
     String id,
     ActivityExecutionDto dto,
   );
 
   /// Reschedule an activity.
   /// Creates a new activity with the new datetime and links to original.
-  Future<Either<Failure, Activity>> rescheduleActivity(
+  Future<Result<Activity>> rescheduleActivity(
     String id,
     ActivityRescheduleDto dto,
   );
 
   /// Cancel an activity.
-  Future<Either<Failure, void>> cancelActivity(String id, String reason, {double? latitude, double? longitude});
+  Future<Result<void>> cancelActivity(String id, String reason, {double? latitude, double? longitude});
 
   // ==========================================
   // Photo Operations
@@ -103,7 +101,7 @@ abstract class ActivityRepository {
 
   /// Add a photo to an activity.
   /// Saves locally first, then queues for upload.
-  Future<Either<Failure, ActivityPhoto>> addPhoto(
+  Future<Result<ActivityPhoto>> addPhoto(
     String activityId,
     String localPath, {
     String? caption,
@@ -112,11 +110,11 @@ abstract class ActivityRepository {
   });
 
   /// Delete a photo.
-  Future<Either<Failure, void>> deletePhoto(String photoId);
+  Future<Result<void>> deletePhoto(String photoId);
 
   /// Add photo from URL (for web uploads that are already in cloud storage).
   /// This inserts directly with photoUrl set and isPendingUpload = false.
-  Future<Either<Failure, ActivityPhoto>> addPhotoFromUrl(
+  Future<Result<ActivityPhoto>> addPhotoFromUrl(
     String activityId,
     String photoId,
     String photoUrl, {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/errors/result.dart';
 import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 import '../../data/datasources/local/activity_local_data_source.dart';
@@ -199,96 +200,94 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
   Future<void> createActivity(ActivityCreateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.createActivity(dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (activity) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedActivity: activity,
+          savedActivity: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Create an immediate activity.
   Future<void> createImmediateActivity(ImmediateActivityDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.createImmediateActivity(dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (activity) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedActivity: activity,
+          savedActivity: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Execute a planned activity.
   Future<void> executeActivity(String id, ActivityExecutionDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.executeActivity(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (activity) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedActivity: activity,
+          savedActivity: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Reschedule an activity.
   Future<void> rescheduleActivity(String id, ActivityRescheduleDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.rescheduleActivity(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (activity) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedActivity: activity,
+          savedActivity: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Cancel an activity.
   Future<bool> cancelActivity(String id, String reason, {String? customerId, String? hvcId, String? brokerId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.cancelActivity(id, reason);
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success():
+        state = state.copyWith(isLoading: false);
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false);
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Add photos to an activity.
@@ -363,10 +362,12 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
             takenAt: photo.takenAt,
           );
           
-          localResult.fold(
-            (failure) => AppLogger.instance.error('activity.photo | Failed to insert local DB record: ${failure.message}'),
-            (savedPhoto) => AppLogger.instance.debug('activity.photo | Local DB record created with id=${savedPhoto.id}'),
-          );
+          switch (localResult) {
+            case Success(:final value):
+              AppLogger.instance.debug('activity.photo | Local DB record created with id=${value.id}');
+            case ResultFailure(:final failure):
+              AppLogger.instance.error('activity.photo | Failed to insert local DB record: ${failure.message}');
+          }
         } else {
           // Mobile: use local path and queue for sync
           AppLogger.instance.debug('activity.photo | Mobile photo - using addPhoto with localPath');

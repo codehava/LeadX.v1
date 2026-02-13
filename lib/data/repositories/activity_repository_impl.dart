@@ -1,11 +1,12 @@
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/activity.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/activity_repository.dart';
@@ -185,7 +186,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.Activity>> createActivity(
+  Future<Result<domain.Activity>> createActivity(
     ActivityCreateDto dto,
   ) async {
     try {
@@ -238,17 +239,14 @@ class ActivityRepositoryImpl implements ActivityRepository {
 
       // Return the created activity
       final activity = await getActivityById(id);
-      return Right(activity!);
+      return Result.success(activity!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create activity: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createActivity'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.Activity>> createImmediateActivity(
+  Future<Result<domain.Activity>> createImmediateActivity(
     ImmediateActivityDto dto,
   ) async {
     try {
@@ -308,12 +306,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
       _syncService.triggerSync();
 
       final activity = await getActivityById(id);
-      return Right(activity!);
+      return Result.success(activity!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create immediate activity: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createImmediateActivity'));
     }
   }
 
@@ -322,7 +317,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.Activity>> executeActivity(
+  Future<Result<domain.Activity>> executeActivity(
     String id,
     ActivityExecutionDto dto,
   ) async {
@@ -330,11 +325,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final now = DateTime.now();
       final existing = await _localDataSource.getActivityById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Activity not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Activity not found: $id'));
       }
 
       if (existing.status != 'PLANNED' && existing.status != 'OVERDUE') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Activity cannot be executed in status: ${existing.status}',
         ));
       }
@@ -387,17 +382,14 @@ class ActivityRepositoryImpl implements ActivityRepository {
       // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
-      return Right(_mapToActivity(updated));
+      return Result.success(_mapToActivity(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to execute activity: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'executeActivity'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.Activity>> rescheduleActivity(
+  Future<Result<domain.Activity>> rescheduleActivity(
     String id,
     ActivityRescheduleDto dto,
   ) async {
@@ -405,11 +397,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final now = DateTime.now();
       final existing = await _localDataSource.getActivityById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Activity not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Activity not found: $id'));
       }
 
       if (existing.status != 'PLANNED' && existing.status != 'OVERDUE') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Activity cannot be rescheduled in status: ${existing.status}',
         ));
       }
@@ -487,26 +479,23 @@ class ActivityRepositoryImpl implements ActivityRepository {
 
       // Return the new activity
       final activity = await getActivityById(newId);
-      return Right(activity!);
+      return Result.success(activity!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to reschedule activity: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'rescheduleActivity'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> cancelActivity(String id, String reason, {double? latitude, double? longitude}) async {
+  Future<Result<void>> cancelActivity(String id, String reason, {double? latitude, double? longitude}) async {
     try {
       final now = DateTime.now();
       final existing = await _localDataSource.getActivityById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Activity not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Activity not found: $id'));
       }
 
       if (existing.status != 'PLANNED' && existing.status != 'OVERDUE') {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Activity cannot be cancelled in status: ${existing.status}',
         ));
       }
@@ -552,12 +541,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
       // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
-      return const Right(null);
+      return const Result.success(null);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to cancel activity: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'cancelActivity'));
     }
   }
 
@@ -572,81 +558,69 @@ class ActivityRepositoryImpl implements ActivityRepository {
   }
 
   @override
-  Future<Either<Failure, domain.ActivityPhoto>> addPhoto(
+  Future<Result<domain.ActivityPhoto>> addPhoto(
     String activityId,
     String localPath, {
     String? caption,
     double? latitude,
     double? longitude,
-  }) async {
-    try {
-      final now = DateTime.now();
-      final id = _uuid.v4();
+  }) =>
+      runCatching(() async {
+        final now = DateTime.now();
+        final id = _uuid.v4();
 
-      final companion = db.ActivityPhotosCompanion.insert(
-        id: id,
-        activityId: activityId,
-        photoUrl: '', // Will be updated after upload
-        localPath: Value(localPath),
-        caption: Value(caption),
-        takenAt: Value(now),
-        latitude: Value(latitude),
-        longitude: Value(longitude),
-        isPendingUpload: const Value(true),
-        createdAt: now,
-      );
+        final companion = db.ActivityPhotosCompanion.insert(
+          id: id,
+          activityId: activityId,
+          photoUrl: '', // Will be updated after upload
+          localPath: Value(localPath),
+          caption: Value(caption),
+          takenAt: Value(now),
+          latitude: Value(latitude),
+          longitude: Value(longitude),
+          isPendingUpload: const Value(true),
+          createdAt: now,
+        );
 
-      await _localDataSource.insertPhoto(companion);
+        await _localDataSource.insertPhoto(companion);
 
-      // Insert audit log
-      await _insertAuditLog(
-        activityId: activityId,
-        action: 'PHOTO_ADDED',
-        notes: caption,
-        latitude: latitude,
-        longitude: longitude,
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: activityId,
+          action: 'PHOTO_ADDED',
+          notes: caption,
+          latitude: latitude,
+          longitude: longitude,
+        );
 
-      final photo = (await _localDataSource.getActivityPhotos(activityId))
-          .firstWhere((p) => p.id == id);
+        final photo = (await _localDataSource.getActivityPhotos(activityId))
+            .firstWhere((p) => p.id == id);
 
-      return Right(_mapToActivityPhoto(photo));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to add photo: $e',
-        originalError: e,
-      ));
-    }
-  }
+        return _mapToActivityPhoto(photo);
+      }, context: 'addPhoto');
 
   @override
-  Future<Either<Failure, void>> deletePhoto(String photoId) async {
-    try {
-      // Get photo first to find activityId for audit log
-      final photo = await _localDataSource.getPhotoById(photoId);
-      
-      if (photo != null) {
-        // Insert audit log BEFORE deletion
-        await _insertAuditLog(
-          activityId: photo.activityId,
-          action: 'PHOTO_REMOVED',
-          notes: 'Photo deleted: ${photo.photoUrl.isNotEmpty ? photo.photoUrl : photo.localPath ?? photoId}',
-        );
-      }
-      
-      await _localDataSource.deletePhoto(photoId);
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete photo: $e',
-        originalError: e,
-      ));
-    }
-  }
+  Future<Result<void>> deletePhoto(String photoId) =>
+      runCatching(() async {
+        // Get photo first to find activityId for audit log
+        final photo = await _localDataSource.getPhotoById(photoId);
+
+        if (photo != null) {
+          // Insert audit log BEFORE deletion
+          await _insertAuditLog(
+            activityId: photo.activityId,
+            action: 'PHOTO_REMOVED',
+            notes: 'Photo deleted: ${photo.photoUrl.isNotEmpty ? photo.photoUrl : photo.localPath ?? photoId}',
+          );
+        }
+
+        await _localDataSource.deletePhoto(photoId);
+      }, context: 'deletePhoto');
 
   /// Add photo from URL (for web uploads that are already in cloud storage).
   /// This inserts directly with photoUrl set and isPendingUpload = false.
-  Future<Either<Failure, domain.ActivityPhoto>> addPhotoFromUrl(
+  @override
+  Future<Result<domain.ActivityPhoto>> addPhotoFromUrl(
     String activityId,
     String photoId,
     String photoUrl, {
@@ -654,45 +628,39 @@ class ActivityRepositoryImpl implements ActivityRepository {
     double? latitude,
     double? longitude,
     DateTime? takenAt,
-  }) async {
-    try {
-      final now = DateTime.now();
+  }) =>
+      runCatching(() async {
+        final now = DateTime.now();
 
-      final companion = db.ActivityPhotosCompanion.insert(
-        id: photoId,
-        activityId: activityId,
-        photoUrl: photoUrl,
-        localPath: const Value(null), // No local path for web
-        caption: Value(caption),
-        takenAt: Value(takenAt ?? now),
-        latitude: Value(latitude),
-        longitude: Value(longitude),
-        isPendingUpload: const Value(false), // Already uploaded
-        createdAt: now,
-      );
+        final companion = db.ActivityPhotosCompanion.insert(
+          id: photoId,
+          activityId: activityId,
+          photoUrl: photoUrl,
+          localPath: const Value(null), // No local path for web
+          caption: Value(caption),
+          takenAt: Value(takenAt ?? now),
+          latitude: Value(latitude),
+          longitude: Value(longitude),
+          isPendingUpload: const Value(false), // Already uploaded
+          createdAt: now,
+        );
 
-      await _localDataSource.insertPhoto(companion);
+        await _localDataSource.insertPhoto(companion);
 
-      // Insert audit log
-      await _insertAuditLog(
-        activityId: activityId,
-        action: 'PHOTO_ADDED',
-        notes: caption,
-        latitude: latitude,
-        longitude: longitude,
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: activityId,
+          action: 'PHOTO_ADDED',
+          notes: caption,
+          latitude: latitude,
+          longitude: longitude,
+        );
 
-      final photo = (await _localDataSource.getActivityPhotos(activityId))
-          .firstWhere((p) => p.id == photoId);
+        final photo = (await _localDataSource.getActivityPhotos(activityId))
+            .firstWhere((p) => p.id == photoId);
 
-      return Right(_mapToActivityPhoto(photo));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to add photo from URL: $e',
-        originalError: e,
-      ));
-    }
-  }
+        return _mapToActivityPhoto(photo);
+      }, context: 'addPhotoFromUrl');
 
   // ==========================================
   // Audit Log Operations
