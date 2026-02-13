@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../core/errors/failures.dart';
+import '../../core/errors/exception_mapper.dart';
+import '../../core/errors/result.dart';
 import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/broker.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
@@ -79,9 +79,8 @@ class BrokerRepositoryImpl implements BrokerRepository {
   }
 
   @override
-  Future<Either<Failure, domain.Broker>> createBroker(
-      BrokerCreateDto dto) async {
-    try {
+  Future<Result<domain.Broker>> createBroker(
+      BrokerCreateDto dto) => runCatching(() async {
       final id = const Uuid().v4();
       final code = await _generateBrokerCode();
       final now = DateTime.now();
@@ -125,16 +124,12 @@ class BrokerRepositoryImpl implements BrokerRepository {
 
       // Get the created broker
       final created = await localDataSource.getBrokerById(id);
-      return Right(_mapToBroker(created!));
-    } catch (e) {
-      return Left(DatabaseFailure(message: 'Failed to create broker: $e'));
-    }
-  }
+      return _mapToBroker(created!);
+  }, context: 'createBroker');
 
   @override
-  Future<Either<Failure, domain.Broker>> updateBroker(
-      String id, BrokerUpdateDto dto) async {
-    try {
+  Future<Result<domain.Broker>> updateBroker(
+      String id, BrokerUpdateDto dto) => runCatching(() async {
       final now = DateTime.now();
 
       // Update locally and queue for sync atomically
@@ -177,15 +172,11 @@ class BrokerRepositoryImpl implements BrokerRepository {
       // Trigger sync in background (outside transaction)
       unawaited(syncService.triggerSync());
 
-      return Right(_mapToBroker(updated));
-    } catch (e) {
-      return Left(DatabaseFailure(message: 'Failed to update broker: $e'));
-    }
-  }
+      return _mapToBroker(updated);
+  }, context: 'updateBroker');
 
   @override
-  Future<Either<Failure, void>> deleteBroker(String id) async {
-    try {
+  Future<Result<void>> deleteBroker(String id) => runCatching(() async {
       // Soft delete and queue for sync atomically
       await _database.transaction(() async {
         await localDataSource.softDeleteBroker(id);
@@ -203,12 +194,7 @@ class BrokerRepositoryImpl implements BrokerRepository {
 
       // Trigger sync in background (outside transaction)
       unawaited(syncService.triggerSync());
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(message: 'Failed to delete broker: $e'));
-    }
-  }
+  }, context: 'deleteBroker');
 
   @override
   Future<List<domain.Broker>> searchBrokers(String query) async {
@@ -252,18 +238,18 @@ class BrokerRepositoryImpl implements BrokerRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
+  Future<Result<int>> syncFromRemote({DateTime? since}) async {
     try {
       final data = await remoteDataSource.fetchBrokers(since: since);
 
-      if (data.isEmpty) return const Right(0);
+      if (data.isEmpty) return const Result.success(0);
 
       final companions = data.map((json) => _mapJsonToCompanion(json)).toList();
       await localDataSource.upsertBrokers(companions);
 
-      return Right(companions.length);
+      return Result.success(companions.length);
     } catch (e) {
-      return Left(SyncFailure(message: 'Failed to sync brokers: $e'));
+      return Result.failure(mapException(e, context: 'syncFromRemote'));
     }
   }
 

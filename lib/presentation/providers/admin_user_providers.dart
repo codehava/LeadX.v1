@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/remote/admin_user_remote_data_source.dart';
 import '../../data/dtos/admin/user_management_dtos.dart';
 import '../../data/repositories/admin_user_repository_impl.dart';
@@ -106,13 +107,13 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.createUser(dto);
 
-    return result.fold(
-      (failure) => throw Exception(failure.message),
-      (createResult) {
+    switch (result) {
+      case Success(:final value):
         ref.invalidate(allUsersProvider);
-        return createResult;
-      },
-    );
+        return value;
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 
   /// Update an existing user.
@@ -121,10 +122,12 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.updateUser(userId, dto);
 
-    result.fold(
-      (failure) => throw Exception(failure.message),
-      (user) => ref.invalidate(allUsersProvider),
-    );
+    switch (result) {
+      case Success():
+        ref.invalidate(allUsersProvider);
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 
   /// Deactivate a user account.
@@ -133,10 +136,12 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.deactivateUser(userId);
 
-    result.fold(
-      (failure) => throw Exception(failure.message),
-      (_) => ref.invalidate(allUsersProvider),
-    );
+    switch (result) {
+      case Success():
+        ref.invalidate(allUsersProvider);
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 
   /// Activate a user account.
@@ -145,10 +150,12 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.activateUser(userId);
 
-    result.fold(
-      (failure) => throw Exception(failure.message),
-      (_) => ref.invalidate(allUsersProvider),
-    );
+    switch (result) {
+      case Success():
+        ref.invalidate(allUsersProvider);
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 
   /// Generate a new temporary password for a user.
@@ -157,10 +164,12 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.generateTemporaryPassword(userId);
 
-    return result.fold(
-      (failure) => throw Exception(failure.message),
-      (tempPassword) => tempPassword,
-    );
+    switch (result) {
+      case Success(:final value):
+        return value;
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 
   /// Update user hierarchy (supervisor assignment).
@@ -173,9 +182,8 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     final repository = ref.read(adminUserRepositoryProvider);
     final result = await repository.updateUserHierarchy(userId, newParentId);
 
-    result.fold(
-      (failure) => throw Exception(failure.message),
-      (_) {
+    switch (result) {
+      case Success():
         // Invalidate all users to refresh hierarchy data
         ref.invalidate(allUsersProvider);
         // Invalidate the specific user being updated
@@ -188,7 +196,8 @@ class AdminUserNotifier extends _$AdminUserNotifier {
         if (newParentId != null) {
           ref.invalidate(userSubordinatesProvider(newParentId));
         }
-      },
-    );
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
   }
 }

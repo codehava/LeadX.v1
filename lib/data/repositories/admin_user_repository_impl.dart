@@ -1,6 +1,5 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/exception_mapper.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/admin_user_repository.dart';
 import '../datasources/remote/admin_user_remote_data_source.dart';
@@ -70,9 +69,8 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
   // ============================================
 
   @override
-  Future<Either<Failure, UserCreateResult>> createUser(
-      UserCreateDto dto) async {
-    try {
+  Future<Result<UserCreateResult>> createUser(
+      UserCreateDto dto) => runCatching(() async {
       final result = await _remoteDataSource.createUser(
         email: dto.email,
         name: dto.name,
@@ -87,32 +85,21 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
       final user = _mapToUser(result['user'] as Map<String, dynamic>);
       final tempPassword = result['temporaryPassword'] as String;
 
-      return Right(
-        UserCreateResult(
-          user: user,
-          temporaryPassword: tempPassword,
-        ),
+      return UserCreateResult(
+        user: user,
+        temporaryPassword: tempPassword,
       );
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal membuat pengguna: $e',
-          originalError: e,
-        ),
-      );
-    }
-  }
+  }, context: 'createUser');
 
   // ============================================
   // UPDATE USER
   // ============================================
 
   @override
-  Future<Either<Failure, User>> updateUser(
+  Future<Result<User>> updateUser(
     String userId,
     UserUpdateDto dto,
-  ) async {
-    try {
+  ) => runCatching(() async {
       final updates = <String, dynamic>{};
 
       if (dto.name != null) updates['name'] = dto.name;
@@ -126,99 +113,48 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
       }
 
       final userData = await _remoteDataSource.updateUser(userId, updates);
-      final user = _mapToUser(userData);
-
-      return Right(user);
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal memperbarui pengguna',
-          originalError: e,
-        ),
-      );
-    }
-  }
+      return _mapToUser(userData);
+  }, context: 'updateUser');
 
   // ============================================
   // ACTIVATE/DEACTIVATE
   // ============================================
 
   @override
-  Future<Either<Failure, void>> deactivateUser(String userId) async {
-    try {
+  Future<Result<void>> deactivateUser(String userId) => runCatching(() async {
       await _remoteDataSource.deactivateUser(userId);
-      return const Right(null);
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal menonaktifkan pengguna',
-          originalError: e,
-        ),
-      );
-    }
-  }
+  }, context: 'deactivateUser');
 
   @override
-  Future<Either<Failure, void>> activateUser(String userId) async {
-    try {
+  Future<Result<void>> activateUser(String userId) => runCatching(() async {
       await _remoteDataSource.activateUser(userId);
-      return const Right(null);
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal mengaktifkan pengguna',
-          originalError: e,
-        ),
-      );
-    }
-  }
+  }, context: 'activateUser');
 
   // ============================================
   // PASSWORD OPERATIONS
   // ============================================
 
   @override
-  Future<Either<Failure, String>> generateTemporaryPassword(
-      String userId) async {
-    try {
-      final tempPassword =
-          await _remoteDataSource.generateTemporaryPassword(userId);
-      return Right(tempPassword);
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal membuat password sementara',
-          originalError: e,
-        ),
-      );
-    }
-  }
+  Future<Result<String>> generateTemporaryPassword(
+      String userId) => runCatching(() async {
+      return _remoteDataSource.generateTemporaryPassword(userId);
+  }, context: 'generateTemporaryPassword');
 
   // ============================================
   // HIERARCHY OPERATIONS
   // ============================================
 
   @override
-  Future<Either<Failure, void>> updateUserHierarchy(
+  Future<Result<void>> updateUserHierarchy(
     String userId,
     String? newParentId,
-  ) async {
-    try {
+  ) => runCatching(() async {
       if (newParentId == null) {
         await _remoteDataSource.removeHierarchyLink(userId);
       } else {
         await _remoteDataSource.createHierarchyLink(userId, newParentId);
       }
-      return const Right(null);
-    } catch (e) {
-      return Left(
-        DatabaseFailure(
-          message: 'Gagal memperbarui hierarki',
-          originalError: e,
-        ),
-      );
-    }
-  }
+  }, context: 'updateUserHierarchy');
 
   @override
   Future<List<User>> getSubordinates(String userId) async {

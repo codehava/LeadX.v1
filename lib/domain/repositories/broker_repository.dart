@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/broker_dtos.dart';
 import '../entities/broker.dart';
 import '../entities/key_person.dart';
@@ -35,13 +33,13 @@ abstract class BrokerRepository {
   Future<Broker?> getBrokerById(String id);
 
   /// Create a new broker (Admin only).
-  Future<Either<Failure, Broker>> createBroker(BrokerCreateDto dto);
+  Future<Result<Broker>> createBroker(BrokerCreateDto dto);
 
   /// Update an existing broker (Admin only).
-  Future<Either<Failure, Broker>> updateBroker(String id, BrokerUpdateDto dto);
+  Future<Result<Broker>> updateBroker(String id, BrokerUpdateDto dto);
 
   /// Delete a broker (Admin only, soft delete).
-  Future<Either<Failure, void>> deleteBroker(String id);
+  Future<Result<void>> deleteBroker(String id);
 
   /// Search brokers by name or code.
   Future<List<Broker>> searchBrokers(String query);
@@ -71,5 +69,5 @@ abstract class BrokerRepository {
   // ==========================================
 
   /// Sync brokers from remote.
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since});
+  Future<Result<int>> syncFromRemote({DateTime? since});
 }

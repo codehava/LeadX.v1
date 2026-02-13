@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/local/broker_local_data_source.dart';
 import '../../data/datasources/remote/broker_remote_data_source.dart';
 import '../../data/dtos/broker_dtos.dart';
@@ -161,19 +162,19 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final result = await _repository.createBroker(dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (broker) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedBroker: broker,
+          savedBroker: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update an existing broker.
@@ -181,19 +182,19 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final result = await _repository.updateBroker(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (broker) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedBroker: broker,
+          savedBroker: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Delete a broker.
@@ -201,16 +202,16 @@ class BrokerFormNotifier extends StateNotifier<BrokerFormState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final result = await _repository.deleteBroker(id);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (_) {
+    switch (result) {
+      case Success():
         state = state.copyWith(isLoading: false);
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Reset form state.

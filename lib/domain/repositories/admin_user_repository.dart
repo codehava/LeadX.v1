@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/admin/user_management_dtos.dart';
 import '../entities/user.dart';
 
@@ -35,22 +33,22 @@ abstract class AdminUserRepository {
   ///
   /// Returns [UserCreateResult] with user details and temporary password.
   /// The temporary password must be displayed to admin and communicated to user.
-  Future<Either<Failure, UserCreateResult>> createUser(UserCreateDto dto);
+  Future<Result<UserCreateResult>> createUser(UserCreateDto dto);
 
   /// Update an existing user's information.
   ///
   /// Only provided fields in [dto] will be updated.
-  Future<Either<Failure, User>> updateUser(String userId, UserUpdateDto dto);
+  Future<Result<User>> updateUser(String userId, UserUpdateDto dto);
 
   /// Deactivate a user account.
   ///
   /// Sets [isActive] to false. User cannot log in until reactivated.
-  Future<Either<Failure, void>> deactivateUser(String userId);
+  Future<Result<void>> deactivateUser(String userId);
 
   /// Activate a previously deactivated user account.
   ///
   /// Sets [isActive] to true.
-  Future<Either<Failure, void>> activateUser(String userId);
+  Future<Result<void>> activateUser(String userId);
 
   // ============================================
   // PASSWORD OPERATIONS
@@ -60,7 +58,7 @@ abstract class AdminUserRepository {
   ///
   /// Returns the temporary password. User will be forced to change on next login.
   /// Use this for password resets.
-  Future<Either<Failure, String>> generateTemporaryPassword(String userId);
+  Future<Result<String>> generateTemporaryPassword(String userId);
 
   // ============================================
   // HIERARCHY OPERATIONS
@@ -69,7 +67,7 @@ abstract class AdminUserRepository {
   /// Update a user's supervisor in the hierarchy.
   ///
   /// [newParentId] - ID of the new supervisor, or null to remove supervisor.
-  Future<Either<Failure, void>> updateUserHierarchy(
+  Future<Result<void>> updateUserHierarchy(
     String userId,
     String? newParentId,
   );
