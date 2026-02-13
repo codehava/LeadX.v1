@@ -12,7 +12,7 @@ This roadmap transforms LeadX from a feature-complete but unreliable offline CRM
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
+- [x] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
 - [ ] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
 - [ ] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
@@ -38,9 +38,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — SyncError hierarchy + schema migration v10 (ERR-01, SYNC-05)
-- [ ] 01-02-PLAN.md — Sentry crash reporting integration (OBS-01)
-- [ ] 01-03-PLAN.md — Talker structured logging replacing debugPrint (OBS-02)
+- [x] 01-01-PLAN.md — SyncError hierarchy + schema migration v10 (ERR-01, SYNC-05)
+- [x] 01-02-PLAN.md — Sentry crash reporting integration (OBS-01)
+- [x] 01-03-PLAN.md — Talker structured logging replacing debugPrint (OBS-02)
 
 ### Phase 2: Sync Engine Core
 **Goal**: Prevent data loss and reduce sync duration through atomic write-queue transactions, incremental sync, intelligent coalescing, and debounced triggers
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Observability | 0/3 | Planned | - |
+| 1. Foundation & Observability | 3/3 | ✓ Complete | 2026-02-13 |
 | 2. Sync Engine Core | 0/TBD | Not started | - |
 | 3. Error Classification & Recovery | 0/TBD | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
@@ -206,4 +206,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-13*
+*Last updated: 2026-02-13 — Phase 1 complete*
