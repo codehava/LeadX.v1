@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../core/logging/app_logger.dart';
 
 /// Service for monitoring network connectivity.
 class ConnectivityService {
+  final _log = AppLogger.instance;
+
   ConnectivityService({
     Connectivity? connectivity,
     SupabaseClient? supabaseClient,
@@ -64,19 +68,19 @@ class ConnectivityService {
     final results = await _connectivity.checkConnectivity();
     final hasInterface = _hasConnection(results);
 
-    debugPrint('[ConnectivityService] Initial connectivity check: results=$results, hasInterface=$hasInterface, kIsWeb=$kIsWeb');
+    _log.debug('connectivity | Initial check: results=$results, hasInterface=$hasInterface, kIsWeb=$kIsWeb');
 
     // On web, connectivity_plus has limited support
     // If we're on web, assume we're online (since the app is running in a browser)
     if (kIsWeb) {
       _isConnected = true;
-      debugPrint('[ConnectivityService] Web platform detected, assuming online');
+      _log.debug('connectivity | Web platform detected, assuming online');
     } else if (hasInterface) {
       // On mobile, having a network interface doesn't mean we have internet
       // Verify by actually trying to reach the server
-      debugPrint('[ConnectivityService] Verifying server reachability...');
+      _log.debug('connectivity | Verifying server reachability...');
       _isConnected = await checkServerReachability();
-      debugPrint('[ConnectivityService] Server reachable: $_isConnected');
+      _log.debug('connectivity | Server reachable: $_isConnected');
     } else {
       _isConnected = false;
     }
@@ -95,11 +99,11 @@ class ConnectivityService {
 
       // On mobile, verify actual server reachability when interface becomes available
       if (!kIsWeb && connected && !_isConnected) {
-        debugPrint('[ConnectivityService] Interface available, verifying reachability...');
+        _log.debug('connectivity | Interface available, verifying reachability...');
         connected = await checkServerReachability();
       }
 
-      debugPrint('[ConnectivityService] Connectivity changed: results=$results, connected=$connected');
+      _log.info('connectivity | Changed: results=$results, connected=$connected');
 
       if (connected != _isConnected) {
         _isConnected = connected;
@@ -127,7 +131,7 @@ class ConnectivityService {
       final connected = hasInterface && await checkServerReachability();
 
       if (connected != _isConnected) {
-        debugPrint('[ConnectivityService] Poll detected change: $connected (interface: $hasInterface)');
+        _log.info('connectivity | Poll detected change: $connected (interface: $hasInterface)');
         _isConnected = connected;
         _controller?.add(_isConnected);
       }

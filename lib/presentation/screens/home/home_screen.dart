@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../providers/sync_providers.dart';
 import '../../widgets/sync/sync_progress_sheet.dart';
 import 'tabs/activities_tab.dart';
@@ -38,7 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final appSettings = ref.read(appSettingsServiceProvider);
     final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
 
-    debugPrint('[HomeScreen] Checking initial sync: hasInitialSynced=$hasInitialSynced');
+    AppLogger.instance.debug('ui.home | Checking initial sync: hasInitialSynced=$hasInitialSynced');
 
     if (!hasInitialSynced && mounted) {
       // Double-check with a small delay to allow LoginScreen's markInitialSyncCompleted to persist
@@ -46,13 +47,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final stillNotSynced = !await appSettings.hasInitialSyncCompleted();
 
       if (stillNotSynced && mounted) {
-        debugPrint('[HomeScreen] Initial sync not completed, showing SyncProgressSheet');
+        AppLogger.instance.info('ui.home | Initial sync not completed, showing SyncProgressSheet');
         await SyncProgressSheet.show(context);
         // Only mark completed if SyncProgressSheet actually ran (not skipped due to _isShowing)
         final nowSynced = await appSettings.hasInitialSyncCompleted();
         if (!nowSynced) {
           await appSettings.markInitialSyncCompleted();
-          debugPrint('[HomeScreen] Initial sync completed and marked');
+          AppLogger.instance.info('ui.home | Initial sync completed and marked');
         }
       }
     }

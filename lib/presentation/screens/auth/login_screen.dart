@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/sync_providers.dart';
 import '../../widgets/sync/sync_progress_sheet.dart';
@@ -41,19 +42,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final appSettings = ref.read(appSettingsServiceProvider);
       final hasInitialSynced = await appSettings.hasInitialSyncCompleted();
 
-      debugPrint('[LoginScreen] Login success, hasInitialSynced=$hasInitialSynced');
+      AppLogger.instance.info('auth | Login success, hasInitialSynced=$hasInitialSynced');
 
       if (!hasInitialSynced) {
         // Show sync progress sheet
-        debugPrint('[LoginScreen] Starting initial sync...');
+        AppLogger.instance.info('auth | Starting initial sync...');
         if (mounted) {
           await SyncProgressSheet.show(context);
           // Mark as completed after sync
           await appSettings.markInitialSyncCompleted();
-          debugPrint('[LoginScreen] Initial sync completed');
+          AppLogger.instance.info('auth | Initial sync completed');
         }
       } else {
-        debugPrint('[LoginScreen] Initial sync already completed, skipping');
+        AppLogger.instance.debug('auth | Initial sync already completed, skipping');
       }
 
       if (mounted) {

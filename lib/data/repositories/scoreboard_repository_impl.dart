@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart';
-
+import '../../core/logging/app_logger.dart';
 import '../../domain/entities/scoring_entities.dart';
 import '../../domain/repositories/scoreboard_repository.dart';
 import '../datasources/local/scoreboard_local_data_source.dart';
@@ -11,6 +10,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   final ScoreboardLocalDataSource _localDataSource;
   final ScoreboardRemoteDataSource _remoteDataSource;
   final ConnectivityService _connectivityService;
+  final _log = AppLogger.instance;
 
   ScoreboardRepositoryImpl({
     required ScoreboardLocalDataSource localDataSource,
@@ -406,7 +406,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
       final remoteData = await _remoteDataSource.fetchMeasureDefinitions();
       await _localDataSource.upsertMeasureDefinitions(remoteData);
     } catch (e) {
-      debugPrint('[ScoreboardRepo] Failed to sync measure definitions: $e');
+      _log.error('scoreboard | Failed to sync measure definitions: $e');
     }
   }
 
@@ -418,7 +418,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
       final remoteData = await _remoteDataSource.fetchScoringPeriods();
       await _localDataSource.upsertScoringPeriods(remoteData);
     } catch (e) {
-      debugPrint('[ScoreboardRepo] Failed to sync scoring periods: $e');
+      _log.error('scoreboard | Failed to sync scoring periods: $e');
     }
   }
 
@@ -448,7 +448,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         }
       }
     } catch (e) {
-      debugPrint('[ScoreboardRepo] Failed to sync user scores: $e');
+      _log.error('scoreboard | Failed to sync user scores: $e');
     }
   }
 }

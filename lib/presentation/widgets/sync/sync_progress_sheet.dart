@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../data/services/initial_sync_service.dart';
 import '../../providers/sync_providers.dart';
 
@@ -16,7 +17,7 @@ class SyncProgressSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) async {
     // Prevent showing multiple times (race condition between LoginScreen and HomeScreen)
     if (_isShowing) {
-      debugPrint('[SyncProgressSheet] Already showing, skipping duplicate call');
+      AppLogger.instance.debug('ui.sync | Already showing, skipping duplicate call');
       return;
     }
 
@@ -53,12 +54,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
   }
 
   Future<void> _startSync() async {
-    debugPrint('[SyncProgressSheet] Starting initial sync...');
+    AppLogger.instance.info('ui.sync | Starting initial sync...');
     final initialSyncService = ref.read(initialSyncServiceProvider);
     
     // Listen to progress updates
     initialSyncService.progressStream.listen((progress) {
-      debugPrint('[SyncProgressSheet] Progress: ${progress.message} (${progress.percentage}%)');
+      AppLogger.instance.debug('ui.sync | Progress: ${progress.message} (${progress.percentage}%)');
       if (mounted) {
         setState(() {
           _progress = progress;
@@ -74,7 +75,7 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       },
     );
 
-    debugPrint('[SyncProgressSheet] Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
+    AppLogger.instance.info('ui.sync | Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
 
     if (!result.success && result.errors.isNotEmpty) {
       if (mounted) {
@@ -101,12 +102,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       });
     }
 
-    debugPrint('[SyncProgressSheet] Starting delta sync...');
+    AppLogger.instance.info('ui.sync | Starting delta sync...');
     try {
       final deltaResult = await initialSyncService.performDeltaSync();
-      debugPrint('[SyncProgressSheet] Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
+      AppLogger.instance.info('ui.sync | Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
     } catch (e) {
-      debugPrint('[SyncProgressSheet] Delta sync error: $e');
+      AppLogger.instance.warning('ui.sync | Delta sync error: $e');
       // Don't fail the whole sync for delta sync errors - they can retry later
     }
 
@@ -125,12 +126,12 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
       });
     }
 
-    debugPrint('[SyncProgressSheet] Starting user data pull...');
+    AppLogger.instance.info('ui.sync | Starting user data pull...');
     try {
       await ref.read(syncNotifierProvider.notifier).triggerSync();
-      debugPrint('[SyncProgressSheet] User data pull complete');
+      AppLogger.instance.info('ui.sync | User data pull complete');
     } catch (e) {
-      debugPrint('[SyncProgressSheet] User data pull error: $e');
+      AppLogger.instance.warning('ui.sync | User data pull error: $e');
       // Don't fail the whole sync for user data errors - they can retry later
     }
 

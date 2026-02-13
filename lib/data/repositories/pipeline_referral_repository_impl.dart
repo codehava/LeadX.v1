@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/pipeline_referral.dart' as domain;
@@ -42,6 +43,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   /// Check if current user is admin (can do all operations)
   bool get _isAdmin => _currentUserRole == 'ADMIN' || _currentUserRole == 'SUPERADMIN';
   final _uuid = const Uuid();
+  final _log = AppLogger.instance;
 
   // Lookup caches
   Map<String, String>? _userNameCache;
@@ -147,67 +149,67 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       final id = _uuid.v4();
       final code = _generateReferralCode();
 
-      debugPrint('[ReferralRepo] === CREATE REFERRAL START ===');
-      debugPrint('[ReferralRepo] DTO: customerId=${dto.customerId}, receiverRmId=${dto.receiverRmId}');
-      debugPrint('[ReferralRepo] Generated: id=$id, code=$code');
+      _log.debug('pipeline.referral | === CREATE REFERRAL START ===');
+      _log.debug('pipeline.referral | DTO: customerId=${dto.customerId}, receiverRmId=${dto.receiverRmId}');
+      _log.debug('pipeline.referral | Generated: id=$id, code=$code');
 
       // Validate current user ID
       if (_currentUserId.isEmpty) {
-        debugPrint('[ReferralRepo] ERROR: currentUserId is empty');
+        _log.error('pipeline.referral | currentUserId is empty');
         return Left(AuthFailure(message: 'User belum login. Silakan login ulang.'));
       }
-      debugPrint('[ReferralRepo] currentUserId=$_currentUserId');
+      _log.debug('pipeline.referral | currentUserId=$_currentUserId');
 
       // Get customer info to find the current assigned RM (the actual referrer)
-      debugPrint('[ReferralRepo] Fetching customer info...');
+      _log.debug('pipeline.referral | Fetching customer info...');
       final customer = await _remoteDataSource.getCustomerById(dto.customerId);
       if (customer == null) {
-        debugPrint('[ReferralRepo] ERROR: customer is null');
+        _log.error('pipeline.referral | customer is null');
         return Left(ValidationFailure(message: 'Customer tidak ditemukan.'));
       }
       final referrerRmId = customer['assigned_rm_id'] as String?;
       if (referrerRmId == null || referrerRmId.isEmpty) {
-        debugPrint('[ReferralRepo] ERROR: customer has no assigned RM');
+        _log.error('pipeline.referral | customer has no assigned RM');
         return Left(ValidationFailure(message: 'Customer belum memiliki RM yang ditugaskan.'));
       }
-      debugPrint('[ReferralRepo] Customer assigned RM (referrer): $referrerRmId');
+      _log.debug('pipeline.referral | Customer assigned RM (referrer): $referrerRmId');
 
       // Get referrer (customer's current RM) info from remote
-      debugPrint('[ReferralRepo] Fetching referrer user info...');
+      _log.debug('pipeline.referral | Fetching referrer user info...');
       final referrerUser = await _remoteDataSource.getUserById(referrerRmId);
       if (referrerUser == null) {
-        debugPrint('[ReferralRepo] ERROR: referrerUser is null');
+        _log.error('pipeline.referral | referrerUser is null');
         return Left(ValidationFailure(message: 'Data RM asal tidak ditemukan.'));
       }
-      debugPrint('[ReferralRepo] referrerUser: branch_id=${referrerUser['branch_id']}, regional_office_id=${referrerUser['regional_office_id']}');
+      _log.debug('pipeline.referral | referrerUser: branch_id=${referrerUser['branch_id']}, regional_office_id=${referrerUser['regional_office_id']}');
 
       // Get receiver info from remote
-      debugPrint('[ReferralRepo] Fetching receiver user info...');
+      _log.debug('pipeline.referral | Fetching receiver user info...');
       final receiverUser = await _remoteDataSource.getUserById(dto.receiverRmId);
       if (receiverUser == null) {
-        debugPrint('[ReferralRepo] ERROR: receiverUser is null');
+        _log.error('pipeline.referral | receiverUser is null');
         return Left(ValidationFailure(message: 'Receiver user not found'));
       }
-      debugPrint('[ReferralRepo] receiverUser: branch_id=${receiverUser['branch_id']}, regional_office_id=${receiverUser['regional_office_id']}');
+      _log.debug('pipeline.referral | receiverUser: branch_id=${receiverUser['branch_id']}, regional_office_id=${receiverUser['regional_office_id']}');
 
       // Prevent referring to the same RM
       if (referrerRmId == dto.receiverRmId) {
-        debugPrint('[ReferralRepo] ERROR: referrer and receiver are the same');
+        _log.error('pipeline.referral | referrer and receiver are the same');
         return Left(ValidationFailure(
           message: 'Tidak dapat mereferral ke RM yang sama dengan RM saat ini.',
         ));
       }
 
       // Determine approver based on receiver's hierarchy
-      debugPrint('[ReferralRepo] Finding approver for receiver...');
+      _log.debug('pipeline.referral | Finding approver for receiver...');
       final approverInfo = await findApproverForUser(dto.receiverRmId);
       if (approverInfo == null) {
-        debugPrint('[ReferralRepo] ERROR: approverInfo is null');
+        _log.error('pipeline.referral | approverInfo is null');
         return Left(ValidationFailure(
           message: 'No approver found for receiver. Cannot create referral.',
         ));
       }
-      debugPrint('[ReferralRepo] approverInfo: id=${approverInfo.approverId}, type=${approverInfo.approverType.value}, name=${approverInfo.approverName}');
+      _log.debug('pipeline.referral | approverInfo: id=${approverInfo.approverId}, type=${approverInfo.approverType.value}, name=${approverInfo.approverName}');
 
       // Create directly on server (online-only)
       // referrer_rm_id is the customer's current assigned RM (not the user creating the referral)
@@ -229,10 +231,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         'updated_at': now.toIso8601String(),
       };
 
-      debugPrint('[ReferralRepo] Payload: $payload');
-      debugPrint('[ReferralRepo] Calling remote createReferral...');
+      _log.debug('pipeline.referral | Payload: $payload');
+      _log.debug('pipeline.referral | Calling remote createReferral...');
       final remoteResult = await _remoteDataSource.createReferral(payload);
-      debugPrint('[ReferralRepo] Remote result: $remoteResult');
+      _log.debug('pipeline.referral | Remote result: $remoteResult');
 
       // Save to local database for offline viewing
       final companion = db.PipelineReferralsCompanion.insert(
@@ -255,27 +257,24 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         lastSyncAt: Value(DateTime.now()),
       );
 
-      debugPrint('[ReferralRepo] Saving to local database...');
+      _log.debug('pipeline.referral | Saving to local database...');
       await _localDataSource.insertReferral(companion);
-      debugPrint('[ReferralRepo] Local save successful');
+      _log.debug('pipeline.referral | Local save successful');
 
       // Return the created referral
       await _ensureCachesLoaded();
       final localData = await _localDataSource.getReferralById(id);
-      debugPrint('[ReferralRepo] === CREATE REFERRAL SUCCESS ===');
+      _log.debug('pipeline.referral | === CREATE REFERRAL SUCCESS ===');
       return Right(_mapToReferral(localData!));
     } on SocketException catch (e, stackTrace) {
-      debugPrint('[ReferralRepo] === SOCKET EXCEPTION ===');
-      debugPrint('[ReferralRepo] Error: $e');
-      debugPrint('[ReferralRepo] StackTrace: $stackTrace');
+      _log.error('pipeline.referral | Socket exception: $e');
+      _log.debug('pipeline.referral | StackTrace: $stackTrace');
       return Left(NetworkFailure(
         message: 'Tidak ada koneksi internet. Pembuatan referral membutuhkan jaringan.',
       ));
     } catch (e, stackTrace) {
-      debugPrint('[ReferralRepo] === ERROR ===');
-      debugPrint('[ReferralRepo] Error type: ${e.runtimeType}');
-      debugPrint('[ReferralRepo] Error: $e');
-      debugPrint('[ReferralRepo] StackTrace: $stackTrace');
+      _log.error('pipeline.referral | Create error (${e.runtimeType}): $e');
+      _log.debug('pipeline.referral | StackTrace: $stackTrace');
 
       // Parse PostgrestException for better error messages
       final errorStr = e.toString();
@@ -293,7 +292,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         message = 'Gagal membuat referral: $e';
       }
 
-      debugPrint('[ReferralRepo] Returning failure with message: $message');
+      _log.debug('pipeline.referral | Returning failure with message: $message');
 
       return Left(ServerFailure(
         message: message,
@@ -425,14 +424,14 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
     String? notes,
   ) async {
     try {
-      debugPrint('[ReferralRepo] approveReferral: id=$id, approverId=$approverId');
+      _log.debug('pipeline.referral | approveReferral: id=$id, approverId=$approverId');
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
-        debugPrint('[ReferralRepo] approveReferral: Referral not found locally');
+        _log.debug('pipeline.referral | approveReferral: Referral not found locally');
         return Left(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
       }
 
-      debugPrint('[ReferralRepo] approveReferral: Found referral with status=${existing.status}');
+      _log.debug('pipeline.referral | approveReferral: Found referral with status=${existing.status}');
       if (existing.status != 'RECEIVER_ACCEPTED') {
         return Left(ValidationFailure(
           message: 'Referral tidak dapat disetujui karena status: ${existing.status}. Coba refresh terlebih dahulu.',
@@ -440,12 +439,12 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       }
 
       // Update locally - this sets status to BM_APPROVED
-      debugPrint('[ReferralRepo] approveReferral: Updating local status...');
+      _log.debug('pipeline.referral | approveReferral: Updating local status...');
       await _localDataSource.markManagerApproved(id, approverId, notes);
-      debugPrint('[ReferralRepo] approveReferral: Local status updated');
+      _log.debug('pipeline.referral | approveReferral: Local status updated');
 
       // Queue for sync
-      debugPrint('[ReferralRepo] approveReferral: Queueing for sync...');
+      _log.debug('pipeline.referral | approveReferral: Queueing for sync...');
       final now = DateTime.now();
       try {
         await _syncService.queueOperation(
@@ -461,22 +460,22 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'updated_at': now.toIso8601String(),
           },
         );
-        debugPrint('[ReferralRepo] approveReferral: Queued for sync');
+        _log.debug('pipeline.referral | approveReferral: Queued for sync');
       } catch (syncError) {
-        debugPrint('[ReferralRepo] approveReferral: Sync queue error (non-fatal): $syncError');
+        _log.debug('pipeline.referral | approveReferral: Sync queue error (non-fatal): $syncError');
         // Continue - local update succeeded, sync can retry later
       }
 
       try {
         unawaited(_syncService.triggerSync());
       } catch (triggerError) {
-        debugPrint('[ReferralRepo] approveReferral: Trigger sync error (non-fatal): $triggerError');
+        _log.debug('pipeline.referral | approveReferral: Trigger sync error (non-fatal): $triggerError');
       }
 
-      debugPrint('[ReferralRepo] approveReferral: Fetching updated referral...');
+      _log.debug('pipeline.referral | approveReferral: Fetching updated referral...');
       final referral = await getReferralById(id);
       if (referral == null) {
-        debugPrint('[ReferralRepo] approveReferral: WARNING - referral not found after update');
+        _log.debug('pipeline.referral | approveReferral: WARNING - referral not found after update');
         // Return success anyway since local update succeeded
         return Right(domain.PipelineReferral(
           id: id,
@@ -491,10 +490,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           updatedAt: now,
         ));
       }
-      debugPrint('[ReferralRepo] approveReferral: Success');
+      _log.debug('pipeline.referral | approveReferral: Success');
       return Right(referral);
     } catch (e) {
-      debugPrint('[ReferralRepo] approveReferral: Error - $e');
+      _log.debug('pipeline.referral | approveReferral: Error - $e');
       return Left(DatabaseFailure(
         message: 'Gagal menyetujui referral: $e',
         originalError: e,
@@ -509,14 +508,14 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
     String reason,
   ) async {
     try {
-      debugPrint('[ReferralRepo] rejectAsManager: id=$id, approverId=$approverId');
+      _log.debug('pipeline.referral | rejectAsManager: id=$id, approverId=$approverId');
       final existing = await _localDataSource.getReferralById(id);
       if (existing == null) {
-        debugPrint('[ReferralRepo] rejectAsManager: Referral not found locally');
+        _log.debug('pipeline.referral | rejectAsManager: Referral not found locally');
         return Left(NotFoundFailure(message: 'Referral tidak ditemukan. Coba refresh terlebih dahulu.'));
       }
 
-      debugPrint('[ReferralRepo] rejectAsManager: Found referral with status=${existing.status}');
+      _log.debug('pipeline.referral | rejectAsManager: Found referral with status=${existing.status}');
       if (existing.status != 'RECEIVER_ACCEPTED') {
         return Left(ValidationFailure(
           message: 'Referral tidak dapat ditolak karena status: ${existing.status}. Coba refresh terlebih dahulu.',
@@ -524,12 +523,12 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       }
 
       // Update locally
-      debugPrint('[ReferralRepo] rejectAsManager: Updating local status...');
+      _log.debug('pipeline.referral | rejectAsManager: Updating local status...');
       await _localDataSource.markManagerRejected(id, approverId, reason);
-      debugPrint('[ReferralRepo] rejectAsManager: Local status updated');
+      _log.debug('pipeline.referral | rejectAsManager: Local status updated');
 
       // Queue for sync
-      debugPrint('[ReferralRepo] rejectAsManager: Queueing for sync...');
+      _log.debug('pipeline.referral | rejectAsManager: Queueing for sync...');
       final now = DateTime.now();
       try {
         await _syncService.queueOperation(
@@ -545,21 +544,21 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'updated_at': now.toIso8601String(),
           },
         );
-        debugPrint('[ReferralRepo] rejectAsManager: Queued for sync');
+        _log.debug('pipeline.referral | rejectAsManager: Queued for sync');
       } catch (syncError) {
-        debugPrint('[ReferralRepo] rejectAsManager: Sync queue error (non-fatal): $syncError');
+        _log.debug('pipeline.referral | rejectAsManager: Sync queue error (non-fatal): $syncError');
       }
 
       try {
         unawaited(_syncService.triggerSync());
       } catch (triggerError) {
-        debugPrint('[ReferralRepo] rejectAsManager: Trigger sync error (non-fatal): $triggerError');
+        _log.debug('pipeline.referral | rejectAsManager: Trigger sync error (non-fatal): $triggerError');
       }
 
-      debugPrint('[ReferralRepo] rejectAsManager: Fetching updated referral...');
+      _log.debug('pipeline.referral | rejectAsManager: Fetching updated referral...');
       final referral = await getReferralById(id);
       if (referral == null) {
-        debugPrint('[ReferralRepo] rejectAsManager: WARNING - referral not found after update');
+        _log.debug('pipeline.referral | rejectAsManager: WARNING - referral not found after update');
         return Right(domain.PipelineReferral(
           id: id,
           code: existing.code,
@@ -573,10 +572,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           updatedAt: now,
         ));
       }
-      debugPrint('[ReferralRepo] rejectAsManager: Success');
+      _log.debug('pipeline.referral | rejectAsManager: Success');
       return Right(referral);
     } catch (e) {
-      debugPrint('[ReferralRepo] rejectAsManager: Error - $e');
+      _log.debug('pipeline.referral | rejectAsManager: Error - $e');
       return Left(DatabaseFailure(
         message: 'Gagal menolak referral: $e',
         originalError: e,
@@ -662,7 +661,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         approverName: result['approver_name'] as String?,
       );
     } catch (e) {
-      debugPrint('[ReferralRepo] Error finding approver: $e');
+      _log.error('pipeline.referral | Error finding approver: $e');
       return null;
     }
   }
@@ -675,10 +674,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
   Future<void> syncFromRemote({DateTime? since}) async {
     try {
       final remoteData = await _remoteDataSource.fetchReferrals(since: since);
-      debugPrint('[ReferralRepo] Fetched ${remoteData.length} referrals from remote');
+      _log.debug('pipeline.referral | Fetched ${remoteData.length} referrals from remote');
       // Log statuses for debugging approval visibility
       for (final r in remoteData) {
-        debugPrint('[ReferralRepo] - ${r['code']}: status=${r['status']}, approver_type=${r['approver_type']}');
+        _log.debug('pipeline.referral | - ${r['code']}: status=${r['status']}, approver_type=${r['approver_type']}');
       }
 
       final companions = remoteData.map((data) {
@@ -718,9 +717,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
       }).toList();
 
       await _localDataSource.upsertReferrals(companions);
-      debugPrint('[ReferralRepo] Upserted ${companions.length} referrals locally');
+      _log.debug('pipeline.referral | Upserted ${companions.length} referrals locally');
     } catch (e) {
-      debugPrint('[ReferralRepo] Sync error: $e');
+      _log.error('pipeline.referral | Sync error: $e');
       rethrow;
     }
   }
@@ -738,7 +737,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
     _userNameCache = null;
     _customerNameCache = null;
     _branchNameCache = null;
-    debugPrint('[ReferralRepo] Caches invalidated');
+    _log.debug('pipeline.referral | Caches invalidated');
   }
 
   // ==========================================

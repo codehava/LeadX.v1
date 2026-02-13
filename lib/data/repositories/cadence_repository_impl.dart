@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/cadence.dart' as domain;
@@ -35,6 +36,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
   final String _currentUserId;
   final String _currentUserRole;
   final _uuid = const Uuid();
+  final _log = AppLogger.instance;
 
   // ==========================================
   // Score Constants
@@ -912,10 +914,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
   @override
   Future<void> syncFromRemote({DateTime? since}) async {
     try {
-      debugPrint('[CadenceSync] Starting sync for user: $_currentUserId');
+      _log.debug('cadence | Starting sync for user: $_currentUserId');
 
       if (_currentUserId.isEmpty) {
-        debugPrint('[CadenceSync] WARNING: currentUserId is empty, skipping sync');
+        _log.debug('cadence | WARNING: currentUserId is empty, skipping sync');
         return;
       }
 
@@ -924,18 +926,18 @@ class CadenceRepositoryImpl implements CadenceRepository {
       for (final dto in configs) {
         await _localDataSource.upsertConfig(_dtoToConfigCompanion(dto));
       }
-      debugPrint('[CadenceSync] Synced ${configs.length} configs');
+      _log.debug('cadence | Synced ${configs.length} configs');
 
       // Fetch cadences where user is a participant
       final participantCadences = since != null
           ? await _remoteDataSource.fetchMeetingsUpdatedSince(since)
           : await _remoteDataSource.fetchMeetingsForUser(_currentUserId);
-      debugPrint('[CadenceSync] Fetched ${participantCadences.length} participant cadences');
+      _log.debug('cadence | Fetched ${participantCadences.length} participant cadences');
 
       // Fetch cadences where user is the facilitator/host
       final hostedCadences =
           await _remoteDataSource.fetchHostedMeetings(_currentUserId);
-      debugPrint('[CadenceSync] Fetched ${hostedCadences.length} hosted cadences');
+      _log.debug('cadence | Fetched ${hostedCadences.length} hosted cadences');
 
       // Merge both lists, avoiding duplicates by ID
       final allCadenceIds = <String>{};
@@ -955,7 +957,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       final participants = since != null
           ? await _remoteDataSource.fetchParticipantsUpdatedSince(since)
           : await _remoteDataSource.fetchParticipantsForUser(_currentUserId);
-      debugPrint('[CadenceSync] Fetched ${participants.length} participant records for user');
+      _log.debug('cadence | Fetched ${participants.length} participant records for user');
 
       for (final dto in participants) {
         await _localDataSource.upsertParticipant(_dtoToParticipantCompanion(dto));
@@ -972,9 +974,9 @@ class CadenceRepositoryImpl implements CadenceRepository {
               .upsertParticipant(_dtoToParticipantCompanion(dto));
         }
       }
-      debugPrint('[CadenceSync] Sync complete. Total cadences: ${allCadences.length}');
+      _log.debug('cadence | Sync complete. Total cadences: ${allCadences.length}');
     } catch (e) {
-      debugPrint('[CadenceSync] ERROR: $e');
+      _log.error('cadence | Sync error: $e');
       rethrow;
     }
   }

@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../data/datasources/local/pipeline_referral_local_data_source.dart';
 import '../../data/datasources/remote/pipeline_referral_remote_data_source.dart';
 import '../../data/dtos/pipeline_referral_dtos.dart';
@@ -216,7 +216,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 
@@ -249,7 +249,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] acceptReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | acceptReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 
@@ -280,7 +280,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] rejectReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | rejectReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 
@@ -311,7 +311,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] approveReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | approveReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 
@@ -343,7 +343,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] rejectAsManager: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | rejectAsManager: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 
@@ -374,7 +374,7 @@ class ReferralActionNotifier extends StateNotifier<ReferralActionState> {
     final isSuccess = result.isRight();
 
     if (!mounted) {
-      debugPrint('[ReferralNotifier] cancelReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
+      AppLogger.instance.debug('pipeline.referral | cancelReferral: Notifier unmounted, but operation ${isSuccess ? "succeeded" : "failed"}');
       return isSuccess;
     }
 

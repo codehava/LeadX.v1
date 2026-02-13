@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../domain/entities/cadence.dart';
 import '../../providers/cadence_providers.dart';
 import 'widgets/meeting_card.dart';
@@ -32,7 +33,7 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
       ref.invalidate(hostedMeetingsProvider);
       ref.invalidate(myFacilitatorConfigProvider);
     } catch (e) {
-      debugPrint('[HostDashboardScreen] Sync error: $e');
+      AppLogger.instance.warning('cadence | HostDashboard sync error: $e');
     }
   }
 

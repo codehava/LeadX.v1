@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 import '../../widgets/password_strength_indicator.dart';
 
@@ -78,11 +79,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     if (!kIsWeb) return;
 
     try {
-      debugPrint('[ResetPassword] Attempting to get session from URL...');
+      AppLogger.instance.debug('auth | ResetPassword: Attempting to get session from URL...');
       await Supabase.instance.client.auth.getSessionFromUrl(Uri.base);
-      debugPrint('[ResetPassword] Session retrieved from URL successfully');
+      AppLogger.instance.info('auth | ResetPassword: Session retrieved from URL successfully');
     } catch (e) {
-      debugPrint('[ResetPassword] Failed to get session from URL: $e');
+      AppLogger.instance.warning('auth | ResetPassword: Failed to get session from URL: $e');
     }
   }
 

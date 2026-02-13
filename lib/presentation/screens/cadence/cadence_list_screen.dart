@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/cadence_providers.dart';
 import 'widgets/meeting_card.dart';
@@ -37,7 +38,7 @@ class _CadenceListScreenState extends ConsumerState<CadenceListScreen>
       ref.invalidate(upcomingMeetingsProvider);
       ref.invalidate(pastMeetingsProvider);
     } catch (e) {
-      debugPrint('[CadenceListScreen] Sync error: $e');
+      AppLogger.instance.warning('cadence | CadenceList sync error: $e');
     }
   }
 

@@ -1,7 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/activity.dart' as domain;
@@ -33,6 +34,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
   final String _currentUserId;
   final db.AppDatabase _database;
   final _uuid = const Uuid();
+  final _log = AppLogger.instance;
 
   // Lookup caches for efficient name resolution
   Map<String, String>? _activityTypeNameCache;
@@ -146,9 +148,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
     final logs = await _localDataSource.getAuditLogs(id);
     
     // Debug logging for photos
-    debugPrint('[ActivityRepo] getActivityWithDetails($id): Found ${photos.length} photos');
+    _log.debug('activity | getActivityWithDetails($id): Found ${photos.length} photos');
     for (final p in photos) {
-      debugPrint('[ActivityRepo] Photo id=${p.id}, photoUrl=${p.photoUrl}, localPath=${p.localPath}');
+      _log.debug('activity | Photo id=${p.id}, photoUrl=${p.photoUrl}, localPath=${p.localPath}');
     }
 
     return domain.ActivityWithDetails(
@@ -715,11 +717,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final remoteData = await _remoteDataSource.fetchActivities(since: since);
 
       if (remoteData.isEmpty) {
-        debugPrint('[ActivityRepo] No activities to sync from remote');
+        _log.debug('activity | No activities to sync from remote');
         return;
       }
 
-      debugPrint('[ActivityRepo] Syncing ${remoteData.length} activities from remote');
+      _log.debug('activity | Syncing ${remoteData.length} activities from remote');
 
       final companions = remoteData.map((data) {
         // Handle potentially null fields with defaults
@@ -763,9 +765,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
       }).toList();
 
       await _localDataSource.upsertActivities(companions);
-      debugPrint('[ActivityRepo] Successfully synced ${companions.length} activities');
+      _log.debug('activity | Successfully synced ${companions.length} activities');
     } catch (e) {
-      debugPrint('[ActivityRepo] Error syncing from remote: $e');
+      _log.error('activity | Error syncing from remote: $e');
       rethrow;
     }
   }
@@ -773,7 +775,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
   @override
   Future<void> syncPhotosFromRemote() async {
     try {
-      debugPrint('[ActivityRepo] Starting photo sync from remote');
+      _log.debug('activity | Starting photo sync from remote');
 
       // Get all activity IDs from local database
       final activities = await _localDataSource.getAllActivities();
@@ -807,14 +809,14 @@ class ActivityRepositoryImpl implements ActivityRepository {
             photoCount++;
           }
         } catch (e) {
-          debugPrint('[ActivityRepo] Error syncing photos for activity ${activity.id}: $e');
+          _log.error('activity | Error syncing photos for activity ${activity.id}: $e');
           // Continue with next activity
         }
       }
 
-      debugPrint('[ActivityRepo] Synced $photoCount photos from remote');
+      _log.debug('activity | Synced $photoCount photos from remote');
     } catch (e) {
-      debugPrint('[ActivityRepo] Error syncing photos from remote: $e');
+      _log.error('activity | Error syncing photos from remote: $e');
       rethrow;
     }
   }
@@ -836,17 +838,17 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final pendingPhotos = await _localDataSource.getPendingUploadPhotos();
       
       if (pendingPhotos.isEmpty) {
-        debugPrint('[ActivityRepo] No pending photos to upload');
+        _log.debug('activity | No pending photos to upload');
         return;
       }
 
-      debugPrint('[ActivityRepo] Uploading ${pendingPhotos.length} pending photos');
+      _log.debug('activity | Uploading ${pendingPhotos.length} pending photos');
 
       for (final photo in pendingPhotos) {
         try {
           // Skip if no local path
           if (photo.localPath == null || photo.localPath!.isEmpty) {
-            debugPrint('[ActivityRepo] Skipping photo ${photo.id}: no local path');
+            _log.debug('activity | Skipping photo ${photo.id}: no local path');
             continue;
           }
 
@@ -872,16 +874,16 @@ class ActivityRepositoryImpl implements ActivityRepository {
           // Mark as uploaded locally
           await _localDataSource.markPhotoAsUploaded(photo.id, photoUrl);
 
-          debugPrint('[ActivityRepo] Uploaded photo ${photo.id} -> $photoUrl');
+          _log.debug('activity | Uploaded photo ${photo.id} -> $photoUrl');
         } catch (e) {
-          debugPrint('[ActivityRepo] Failed to upload photo ${photo.id}: $e');
+          _log.error('activity | Failed to upload photo ${photo.id}: $e');
           // Continue with next photo, don't fail entire batch
         }
       }
 
-      debugPrint('[ActivityRepo] Photo sync completed');
+      _log.debug('activity | Photo sync completed');
     } catch (e) {
-      debugPrint('[ActivityRepo] Error syncing photos: $e');
+      _log.error('activity | Error syncing photos: $e');
       rethrow;
     }
   }
@@ -908,7 +910,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final pendingLogs = await _localDataSource.getPendingSyncAuditLogs();
       if (pendingLogs.isEmpty) return;
       
-      debugPrint('[ActivityRepo] Found ${pendingLogs.length} pending audit logs to sync');
+      _log.debug('activity | Found ${pendingLogs.length} pending audit logs to sync');
       
       // Get list of synced activities (not pending sync)
       final syncedActivities = <String>{};
@@ -922,11 +924,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       // Filter logs to only include those for synced activities
       final logsToSync = pendingLogs.where((l) => syncedActivities.contains(l.activityId)).toList();
       if (logsToSync.isEmpty) {
-        debugPrint('[ActivityRepo] No audit logs ready to sync (activities not yet synced)');
+        _log.debug('activity | No audit logs ready to sync (activities not yet synced)');
         return;
       }
       
-      debugPrint('[ActivityRepo] Syncing ${logsToSync.length} audit logs');
+      _log.debug('activity | Syncing ${logsToSync.length} audit logs');
       
       final syncedIds = <String>[];
       for (final log in logsToSync) {
@@ -946,7 +948,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
           });
           syncedIds.add(log.id);
         } catch (e) {
-          debugPrint('[ActivityRepo] Failed to sync audit log ${log.id}: $e');
+          _log.error('activity | Failed to sync audit log ${log.id}: $e');
           // Continue with other logs
         }
       }
@@ -954,10 +956,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
       // Mark synced logs
       if (syncedIds.isNotEmpty) {
         await _localDataSource.markAuditLogsAsSynced(syncedIds);
-        debugPrint('[ActivityRepo] Marked ${syncedIds.length} audit logs as synced');
+        _log.debug('activity | Marked ${syncedIds.length} audit logs as synced');
       }
     } catch (e) {
-      debugPrint('[ActivityRepo] Error syncing audit logs: $e');
+      _log.error('activity | Error syncing audit logs: $e');
     }
   }
 
@@ -968,9 +970,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
   Future<void> _ensureCachesLoaded() async {
     if (_activityTypeNameCache == null) {
       final types = await _localDataSource.getActivityTypes();
-      debugPrint('[ActivityRepo] Loading activity type cache: found ${types.length} types');
+      _log.debug('activity | Loading activity type cache: found ${types.length} types');
       for (final t in types) {
-        debugPrint('[ActivityRepo] Type: ${t.id} -> ${t.name}');
+        _log.debug('activity | Type: ${t.id} -> ${t.name}');
       }
       _activityTypeNameCache = {for (final t in types) t.id: t.name};
       _activityTypeIconCache = {for (final t in types) t.id: t.icon ?? ''};
@@ -982,7 +984,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final customers = await (_database.select(_database.customers)
         ..where((c) => c.deletedAt.isNull())).get();
       _customerNameCache = {for (final c in customers) c.id: c.name};
-      debugPrint('[ActivityRepo] Loaded ${_customerNameCache!.length} customer names');
+      _log.debug('activity | Loaded ${_customerNameCache!.length} customer names');
     }
 
     // Load HVC name cache
@@ -990,7 +992,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final hvcs = await (_database.select(_database.hvcs)
         ..where((h) => h.deletedAt.isNull())).get();
       _hvcNameCache = {for (final h in hvcs) h.id: h.name};
-      debugPrint('[ActivityRepo] Loaded ${_hvcNameCache!.length} HVC names');
+      _log.debug('activity | Loaded ${_hvcNameCache!.length} HVC names');
     }
 
     // Load broker name cache
@@ -998,7 +1000,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final brokers = await (_database.select(_database.brokers)
         ..where((b) => b.deletedAt.isNull())).get();
       _brokerNameCache = {for (final b in brokers) b.id: b.name};
-      debugPrint('[ActivityRepo] Loaded ${_brokerNameCache!.length} broker names');
+      _log.debug('activity | Loaded ${_brokerNameCache!.length} broker names');
     }
 
     // Load key person name cache
@@ -1006,7 +1008,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final keyPersons = await (_database.select(_database.keyPersons)
         ..where((k) => k.deletedAt.isNull())).get();
       _keyPersonNameCache = {for (final k in keyPersons) k.id: k.name};
-      debugPrint('[ActivityRepo] Loaded ${_keyPersonNameCache!.length} key person names');
+      _log.debug('activity | Loaded ${_keyPersonNameCache!.length} key person names');
     }
   }
 
@@ -1019,7 +1021,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
     _hvcNameCache = null;
     _brokerNameCache = null;
     _keyPersonNameCache = null;
-    debugPrint('[ActivityRepo] Activity caches invalidated');
+    _log.debug('activity | Activity caches invalidated');
   }
 
   Future<void> _insertAuditLog({
@@ -1067,10 +1069,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
           'notes': notes,
           'created_at': now.toIso8601String(),
         });
-        debugPrint('[ActivityRepo] Audit log synced to remote: $action');
+        _log.debug('activity | Audit log synced to remote: $action');
       } catch (e) {
         // Remote sync failed - log locally is still valid
-        debugPrint('[ActivityRepo] Failed to sync audit log to remote: $e');
+        _log.error('activity | Failed to sync audit log to remote: $e');
       }
     }
   }

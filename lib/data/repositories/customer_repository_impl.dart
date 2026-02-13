@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,6 +13,7 @@ import '../database/app_database.dart' as db;
 import '../datasources/local/customer_local_data_source.dart';
 import '../datasources/local/key_person_local_data_source.dart';
 import '../datasources/remote/customer_remote_data_source.dart';
+import '../../core/logging/app_logger.dart';
 import '../dtos/customer_dtos.dart';
 import '../services/sync_service.dart';
 
@@ -39,6 +39,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
   final KeyPersonRemoteDataSource _keyPersonRemoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
+  final _log = AppLogger.instance;
 
   static const _uuid = Uuid();
 
@@ -114,18 +115,18 @@ class CustomerRepositoryImpl implements CustomerRepository {
       );
 
       // Save locally first
-      debugPrint('[CustomerRepo] Inserting customer locally: $id');
+      _log.debug('customer | Inserting customer locally: $id');
       await _localDataSource.insertCustomer(companion);
 
       // Queue for sync
-      debugPrint('[CustomerRepo] Queueing customer for sync: $id');
+      _log.debug('customer | Queueing customer for sync: $id');
       await _syncService.queueOperation(
         entityType: SyncEntityType.customer,
         entityId: id,
         operation: SyncOperation.create,
         payload: _createSyncPayload(id, code, dto, now),
       );
-      debugPrint('[CustomerRepo] Customer queued successfully');
+      _log.debug('customer | Customer queued successfully');
 
       // Trigger sync to upload immediately
       unawaited(_syncService.triggerSync());
@@ -438,12 +439,12 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
     try {
-      debugPrint('[CustomerRepo] syncFromRemote called, currentUserId=$_currentUserId, since=$since');
+      _log.debug('customer | syncFromRemote called, currentUserId=$_currentUserId, since=$since');
       final remoteData = await _remoteDataSource.fetchCustomers(since: since);
-      debugPrint('[CustomerRepo] fetchCustomers returned ${remoteData.length} records');
+      _log.debug('customer | fetchCustomers returned ${remoteData.length} records');
 
       if (remoteData.isEmpty) {
-        debugPrint('[CustomerRepo] No customers returned from remote - check RLS policies if unexpected');
+        _log.debug('customer | No customers returned from remote - check RLS policies if unexpected');
         return const Right(0);
       }
 
@@ -502,7 +503,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
         return const Right(0);
       }
 
-      debugPrint('[CustomerRepo] Syncing ${remoteData.length} key persons from remote');
+      _log.debug('customer | Syncing ${remoteData.length} key persons from remote');
 
       final companions = remoteData.map((data) {
         return db.KeyPersonsCompanion(

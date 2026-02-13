@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+
+import '../../core/logging/app_logger.dart';
 
 /// Service for GPS/location operations.
 /// Handles location permissions, position fetching, and distance calculations.
 class GpsService {
+  final _log = AppLogger.instance;
+
   /// Location settings for high accuracy.
   static const LocationSettings _locationSettings = LocationSettings(
     accuracy: LocationAccuracy.high,
@@ -49,7 +52,7 @@ class GpsService {
     try {
       final permissionStatus = await checkAndRequestPermission();
       if (permissionStatus != LocationPermissionStatus.granted) {
-        debugPrint('GPS: Permission not granted: $permissionStatus');
+        _log.warning('gps | Permission not granted: $permissionStatus');
         return null;
       }
 
@@ -64,7 +67,7 @@ class GpsService {
         timestamp: position.timestamp,
       );
     } catch (e) {
-      debugPrint('GPS: Error getting position: $e');
+      _log.error('gps | Error getting position: $e');
       return null;
     }
   }
@@ -82,7 +85,7 @@ class GpsService {
         timestamp: position.timestamp,
       );
     } catch (e) {
-      debugPrint('GPS: Error getting last known position: $e');
+      _log.error('gps | Error getting last known position: $e');
       return null;
     }
   }
@@ -207,7 +210,7 @@ class GpsService {
             : 'You are ${distance.toInt()}m from the target (max ${radiusMeters.toInt()}m)',
       );
     } catch (e) {
-      debugPrint('GPS: Error validating proximity: $e');
+      _log.error('gps | Error validating proximity: $e');
       return ProximityValidationResult(
         isWithinRadius: false,
         distanceMeters: 0,

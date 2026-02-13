@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import '../../data/datasources/local/activity_local_data_source.dart';
 import '../../data/datasources/local/customer_local_data_source.dart';
@@ -145,28 +146,28 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     state = const AsyncValue.loading();
     try {
       // Step 1: Push - upload local changes to Supabase
-      debugPrint('[SyncNotifier] Starting push sync...');
+      AppLogger.instance.debug('sync.queue | Starting push sync...');
       final pushResult = await _syncService.triggerSync();
-      debugPrint('[SyncNotifier] Push sync complete: ${pushResult.successCount} uploaded');
+      AppLogger.instance.debug('sync.queue | Push sync complete: ${pushResult.successCount} uploaded');
 
       // Step 2: Sync pending photos to Supabase Storage
-      debugPrint('[SyncNotifier] Starting photo sync...');
+      AppLogger.instance.debug('sync.queue | Starting photo sync...');
       await _syncPhotos();
-      debugPrint('[SyncNotifier] Photo sync complete');
+      AppLogger.instance.debug('sync.queue | Photo sync complete');
 
       // Step 3: Sync pending audit logs (after activities are synced)
-      debugPrint('[SyncNotifier] Starting audit log sync...');
+      AppLogger.instance.debug('sync.queue | Starting audit log sync...');
       await _syncAuditLogs();
-      debugPrint('[SyncNotifier] Audit log sync complete');
+      AppLogger.instance.debug('sync.queue | Audit log sync complete');
 
       // Step 4: Pull - download changes from Supabase
-      debugPrint('[SyncNotifier] Starting pull sync...');
+      AppLogger.instance.debug('sync.queue | Starting pull sync...');
       await _pullFromRemote();
-      debugPrint('[SyncNotifier] Pull sync complete');
+      AppLogger.instance.debug('sync.queue | Pull sync complete');
 
       state = AsyncValue.data(pushResult);
     } catch (e, st) {
-      debugPrint('[SyncNotifier] Sync error: $e');
+      AppLogger.instance.error('sync.queue | Sync error: $e');
       state = AsyncValue.error(e, st);
     }
   }
@@ -176,7 +177,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     try {
       await _activityRepository.syncPendingPhotos();
     } catch (e) {
-      debugPrint('[SyncNotifier] Photo sync error: $e');
+      AppLogger.instance.error('sync.queue | Photo sync error: $e');
     }
   }
 
@@ -185,36 +186,36 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     try {
       await _activityRepository.syncPendingAuditLogs();
     } catch (e) {
-      debugPrint('[SyncNotifier] Audit log sync error: $e');
+      AppLogger.instance.error('sync.queue | Audit log sync error: $e');
     }
   }
 
   /// Pull data from Supabase to local database.
   Future<void> _pullFromRemote() async {
-    debugPrint('[SyncNotifier] Starting _pullFromRemote...');
+    AppLogger.instance.debug('sync.queue | Starting _pullFromRemote...');
 
     // Pull customers
     try {
-      debugPrint('[SyncNotifier] Calling customerRepository.syncFromRemote...');
+      AppLogger.instance.debug('sync.queue | Calling customerRepository.syncFromRemote...');
       final customerResult = await _customerRepository.syncFromRemote();
       customerResult.fold(
-        (failure) => debugPrint('[SyncNotifier] Customer pull failed: ${failure.message}'),
-        (count) => debugPrint('[SyncNotifier] Pulled $count customers'),
+        (failure) => AppLogger.instance.warning('sync.pull | Customer pull failed: ${failure.message}'),
+        (count) => AppLogger.instance.debug('sync.pull | Pulled $count customers'),
       );
     } catch (e, st) {
-      debugPrint('[SyncNotifier] Customer pull error: $e');
-      debugPrint('[SyncNotifier] Stack trace: $st');
+      AppLogger.instance.error('sync.pull | Customer pull error: $e');
+      AppLogger.instance.debug('sync.queue | Stack trace: $st');
     }
 
     // Pull key persons
     try {
       final keyPersonResult = await _customerRepository.syncKeyPersonsFromRemote();
       keyPersonResult.fold(
-        (failure) => debugPrint('[SyncNotifier] Key person pull failed: ${failure.message}'),
-        (count) => debugPrint('[SyncNotifier] Pulled $count key persons'),
+        (failure) => AppLogger.instance.warning('sync.pull | Key person pull failed: ${failure.message}'),
+        (count) => AppLogger.instance.debug('sync.pull | Pulled $count key persons'),
       );
     } catch (e) {
-      debugPrint('[SyncNotifier] Key person pull error: $e');
+      AppLogger.instance.error('sync.pull | Key person pull error: $e');
     }
 
     // Pull pipelines
@@ -226,7 +227,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       }
       await _pipelineRepository.syncFromRemote();
     } catch (e) {
-      debugPrint('[SyncNotifier] Pipeline pull error: $e');
+      AppLogger.instance.error('sync.pull | Pipeline pull error: $e');
     }
 
     // Pull activities
@@ -238,48 +239,48 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       // Sync activity photos from remote
       await _activityRepository.syncPhotosFromRemote();
     } catch (e) {
-      debugPrint('[SyncNotifier] Activity pull error: $e');
+      AppLogger.instance.error('sync.pull | Activity pull error: $e');
     }
 
     // Pull HVCs
     try {
       final hvcResult = await _hvcRepository.syncFromRemote();
       hvcResult.fold(
-        (failure) => debugPrint('[SyncNotifier] HVC pull failed: ${failure.message}'),
-        (count) => debugPrint('[SyncNotifier] Pulled $count HVCs'),
+        (failure) => AppLogger.instance.warning('sync.pull | HVC pull failed: ${failure.message}'),
+        (count) => AppLogger.instance.debug('sync.pull | Pulled $count HVCs'),
       );
     } catch (e) {
-      debugPrint('[SyncNotifier] HVC pull error: $e');
+      AppLogger.instance.error('sync.pull | HVC pull error: $e');
     }
 
     // Pull HVC-Customer links
     try {
       final hvcLinkResult = await _hvcRepository.syncLinksFromRemote();
       hvcLinkResult.fold(
-        (failure) => debugPrint('[SyncNotifier] HVC link pull failed: ${failure.message}'),
-        (count) => debugPrint('[SyncNotifier] Pulled $count HVC-Customer links'),
+        (failure) => AppLogger.instance.warning('sync.pull | HVC link pull failed: ${failure.message}'),
+        (count) => AppLogger.instance.debug('sync.pull | Pulled $count HVC-Customer links'),
       );
     } catch (e) {
-      debugPrint('[SyncNotifier] HVC link pull error: $e');
+      AppLogger.instance.error('sync.pull | HVC link pull error: $e');
     }
 
     // Pull Brokers
     try {
       final brokerResult = await _brokerRepository.syncFromRemote();
       brokerResult.fold(
-        (failure) => debugPrint('[SyncNotifier] Broker pull failed: ${failure.message}'),
-        (count) => debugPrint('[SyncNotifier] Pulled $count brokers'),
+        (failure) => AppLogger.instance.warning('sync.pull | Broker pull failed: ${failure.message}'),
+        (count) => AppLogger.instance.debug('sync.pull | Pulled $count brokers'),
       );
     } catch (e) {
-      debugPrint('[SyncNotifier] Broker pull error: $e');
+      AppLogger.instance.error('sync.pull | Broker pull error: $e');
     }
 
     // Pull Cadence configs and meetings
     try {
       await _cadenceRepository.syncFromRemote();
-      debugPrint('[SyncNotifier] Pulled cadence data');
+      AppLogger.instance.debug('sync.queue | Pulled cadence data');
     } catch (e) {
-      debugPrint('[SyncNotifier] Cadence pull error: $e');
+      AppLogger.instance.error('sync.pull | Cadence pull error: $e');
     }
 
     // Pull Pipeline Referrals
@@ -287,9 +288,9 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
       _pipelineReferralRepository.invalidateCaches();
       await _pipelineReferralRepository.syncFromRemote();
-      debugPrint('[SyncNotifier] Pulled pipeline referral data');
+      AppLogger.instance.debug('sync.queue | Pulled pipeline referral data');
     } catch (e) {
-      debugPrint('[SyncNotifier] Pipeline referral pull error: $e');
+      AppLogger.instance.error('sync.pull | Pipeline referral pull error: $e');
     }
 
     // Step 5: Invalidate all data providers to refresh UI
@@ -299,7 +300,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   /// Refresh auth data after sync completion.
   /// Note: List/detail providers no longer need invalidation - Drift streams auto-update.
   Future<void> _invalidateDataProviders() async {
-    debugPrint('[SyncNotifier] Refreshing auth data after sync...');
+    AppLogger.instance.debug('sync.queue | Refreshing auth data after sync...');
 
     // Refresh current user to pick up any profile changes from sync
     // This is the only invalidation needed - all other providers are StreamProviders
@@ -309,10 +310,10 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       await authRepo.refreshCurrentUser();
       _ref.invalidate(currentUserProvider);
     } catch (e) {
-      debugPrint('[SyncNotifier] Error refreshing current user: $e');
+      AppLogger.instance.error('sync.pull | Error refreshing current user: $e');
     }
 
-    debugPrint('[SyncNotifier] Auth data refreshed');
+    AppLogger.instance.debug('sync.queue | Auth data refreshed');
   }
 
   /// Check if sync is currently in progress.

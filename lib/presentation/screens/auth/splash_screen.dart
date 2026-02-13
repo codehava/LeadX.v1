@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 
 /// Splash screen shown on app launch.
@@ -34,29 +35,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     if (!mounted) return;
 
+    final _log = AppLogger.instance;
     authState.when(
       initial: () {
-        debugPrint('[Splash] Initial state - redirecting to login');
+        _log.debug('auth | Splash: Initial state - redirecting to login');
         context.go(RoutePaths.login);
       },
       loading: () {
-        debugPrint('[Splash] Still loading - keeping splash visible');
+        _log.debug('auth | Splash: Still loading - keeping splash visible');
         // Keep showing splash
       },
       authenticated: (user) {
-        debugPrint('[Splash] Authenticated - redirecting to home (user: ${user.email})');
+        _log.info('auth | Splash: Authenticated - redirecting to home (user: ${user.email})');
         context.go(RoutePaths.home);
       },
       unauthenticated: () {
-        debugPrint('[Splash] Unauthenticated - redirecting to login');
+        _log.debug('auth | Splash: Unauthenticated - redirecting to login');
         context.go(RoutePaths.login);
       },
       passwordRecovery: () {
-        debugPrint('[Splash] Password recovery flow - redirecting to reset password');
+        _log.info('auth | Splash: Password recovery flow - redirecting to reset password');
         context.go(RoutePaths.resetPassword);
       },
       error: (message) {
-        debugPrint('[Splash] Auth error: $message - redirecting to login');
+        _log.error('auth | Splash: Auth error: $message - redirecting to login');
         context.go(RoutePaths.login);
       },
     );

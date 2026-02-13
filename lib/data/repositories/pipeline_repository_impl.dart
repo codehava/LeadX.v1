@@ -1,7 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/pipeline.dart' as domain;
@@ -46,6 +47,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
   final String _currentUserId;
   final db.AppDatabase _database;
   final _uuid = const Uuid();
+  final _log = AppLogger.instance;
 
   // Lookup caches for efficient name resolution
   Map<String, String>? _stageNameCache;
@@ -608,11 +610,11 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final remoteData = await _remoteDataSource.fetchPipelines(since: since);
       
       if (remoteData.isEmpty) {
-        debugPrint('[PipelineRepo] No pipelines to sync from remote');
+        _log.debug('pipeline | No pipelines to sync from remote');
         return;
       }
 
-      debugPrint('[PipelineRepo] Syncing ${remoteData.length} pipelines from remote');
+      _log.debug('pipeline | Syncing ${remoteData.length} pipelines from remote');
 
       final companions = remoteData.map((data) {
         return db.PipelinesCompanion(
@@ -657,9 +659,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
       }).toList();
 
       await _localDataSource.upsertPipelines(companions);
-      debugPrint('[PipelineRepo] Successfully synced ${companions.length} pipelines');
+      _log.debug('pipeline | Successfully synced ${companions.length} pipelines');
     } catch (e) {
-      debugPrint('[PipelineRepo] Error syncing from remote: $e');
+      _log.error('pipeline | Error syncing from remote: $e');
       rethrow;
     }
   }
@@ -688,43 +690,43 @@ class PipelineRepositoryImpl implements PipelineRepository {
       _stageProbabilityCache = {for (final s in stages) s.id: s.probability};
       _stageIsFinalCache = {for (final s in stages) s.id: s.isFinal};
       _stageIsWonCache = {for (final s in stages) s.id: s.isWon};
-      debugPrint('[PipelineRepo] Loaded ${stages.length} stages');
+      _log.debug('pipeline | Loaded ${stages.length} stages');
     }
     if (_statusNameCache == null) {
       final statuses = await _localDataSource.getPipelineStatuses();
       _statusNameCache = {for (final s in statuses) s.id: s.name};
-      debugPrint('[PipelineRepo] Loaded ${statuses.length} statuses');
+      _log.debug('pipeline | Loaded ${statuses.length} statuses');
     }
     if (_cobNameCache == null) {
       final cobs = await _masterDataSource.getCobs();
       _cobNameCache = {for (final c in cobs) c.id: c.name};
-      debugPrint('[PipelineRepo] Loaded ${cobs.length} COBs');
+      _log.debug('pipeline | Loaded ${cobs.length} COBs');
     }
     if (_lobNameCache == null) {
       // Get all LOBs by not filtering by COB
       final allLobs = await _getAllLobs();
       _lobNameCache = {for (final l in allLobs) l.id: l.name};
-      debugPrint('[PipelineRepo] Loaded ${allLobs.length} LOBs');
+      _log.debug('pipeline | Loaded ${allLobs.length} LOBs');
     }
     if (_leadSourceNameCache == null) {
       final sources = await _masterDataSource.getLeadSources();
       _leadSourceNameCache = {for (final s in sources) s.id: s.name};
-      debugPrint('[PipelineRepo] Loaded ${sources.length} lead sources');
+      _log.debug('pipeline | Loaded ${sources.length} lead sources');
     }
     if (_brokerNameCache == null) {
       final brokers = await _masterDataSource.getBrokers();
       _brokerNameCache = {for (final b in brokers) b.id: b.name};
-      debugPrint('[PipelineRepo] Loaded ${brokers.length} brokers');
+      _log.debug('pipeline | Loaded ${brokers.length} brokers');
     }
     if (_customerNameCache == null) {
       final customers = await _customerDataSource.getAllCustomers();
       _customerNameCache = {for (final c in customers) c.id: c.name};
-      debugPrint('[PipelineRepo] Loaded ${customers.length} customers');
+      _log.debug('pipeline | Loaded ${customers.length} customers');
     }
     if (_userNameCache == null) {
       final users = await _database.select(_database.users).get();
       _userNameCache = {for (final u in users) u.id: u.name};
-      debugPrint('[PipelineRepo] Loaded ${users.length} users');
+      _log.debug('pipeline | Loaded ${users.length} users');
     }
   }
 
@@ -742,7 +744,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
     _brokerNameCache = null;
     _customerNameCache = null;
     _userNameCache = null;
-    debugPrint('[PipelineRepo] Caches invalidated');
+    _log.debug('pipeline | Caches invalidated');
   }
 
   /// Get all LOBs from database.

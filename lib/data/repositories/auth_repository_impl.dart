@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+import '../../core/logging/app_logger.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/app_auth_state.dart';
@@ -16,6 +18,7 @@ import '../database/app_database.dart' as db;
 class AuthRepositoryImpl implements AuthRepository {
   final supabase.SupabaseClient _client;
   final db.AppDatabase? _database;
+  final _log = AppLogger.instance;
 
   /// Timeout duration for network requests.
   static const Duration _networkTimeout = Duration(seconds: 5);
@@ -48,14 +51,14 @@ class AuthRepositoryImpl implements AuthRepository {
     final session = _client.auth.currentSession;
 
     if (session != null) {
-      debugPrint('[Auth] Found persisted session, attempting to restore...');
+      _log.debug('auth | Found persisted session, attempting to restore...');
       // Emit loading state immediately so router doesn't hang
       _authStateController.add(const AppAuthState.loading());
       // Session exists, but wait briefly for potential passwordRecovery event
       // This handles the case where user clicks a reset link and the app loads
       _restoreSessionWithRecoveryCheck(session);
     } else {
-      debugPrint('[Auth] No persisted session found');
+      _log.debug('auth | No persisted session found');
       _authStateController.add(const AppAuthState.unauthenticated());
       _initialized = true;
     }
@@ -69,7 +72,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     // If passwordRecovery event fired, don't restore as authenticated
     if (_inPasswordRecoveryMode) {
-      debugPrint('[Auth] Password recovery mode detected, not restoring as authenticated');
+      _log.debug('auth | Password recovery mode detected, not restoring as authenticated');
       _initialized = true;
       return;
     }
@@ -82,9 +85,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> _restoreSessionAsync(supabase.Session session) async {
     try {
       await _fetchUserAndNotify(session);
-      debugPrint('[Auth] Session restored successfully');
+      _log.debug('auth | Session restored successfully');
     } catch (e) {
-      debugPrint('[Auth] Failed to restore session: $e');
+      _log.error('auth | Failed to restore session: $e');
       _authStateController.add(const AppAuthState.unauthenticated());
     } finally {
       _initialized = true;
@@ -102,7 +105,7 @@ class AuthRepositoryImpl implements AuthRepository {
         // The signedIn event fires after passwordRecovery when clicking reset link,
         // which would otherwise overwrite the passwordRecovery state.
         if (_inPasswordRecoveryMode) {
-          debugPrint('[Auth] signedIn ignored - in password recovery mode');
+          _log.debug('auth | signedIn ignored - in password recovery mode');
           return;
         }
         _fetchUserAndNotify(data.session);
@@ -232,7 +235,7 @@ class AuthRepositoryImpl implements AuthRepository {
         updatedAt: localUser.updatedAt,
       );
     } catch (e) {
-      debugPrint('[Auth] Failed to fetch local user: $e');
+      _log.error('auth | Failed to fetch local user: $e');
       return null;
     }
   }
@@ -273,17 +276,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return user;
     } catch (e) {
-      debugPrint('[Auth] Remote fetch failed: $e - trying local database');
+      _log.warning('auth | Remote fetch failed: $e - trying local database');
 
       // Try local database
       final localUser = await _fetchLocalUser(userId);
       if (localUser != null) {
-        debugPrint('[Auth] Found user in local database');
+        _log.debug('auth | Found user in local database');
         return localUser;
       }
 
       // Fall back to minimal user from session
-      debugPrint('[Auth] Using minimal user from session');
+      _log.debug('auth | Using minimal user from session');
       final minimalUser = _createMinimalUserFromSession(session);
 
       // Also insert minimal user to satisfy FK constraints
@@ -309,9 +312,9 @@ class AuthRepositoryImpl implements AuthRepository {
           updatedAt: user.updatedAt,
         ),
       );
-      debugPrint('[Auth] Upserted current user to local DB: ${user.id}');
+      _log.debug('auth | Upserted current user to local DB: ${user.id}');
     } catch (e) {
-      debugPrint('[Auth] Failed to upsert user locally: $e');
+      _log.error('auth | Failed to upsert user locally: $e');
       // Don't throw - this is a best-effort optimization
     }
   }
@@ -326,7 +329,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     if (!_initialized) {
-      debugPrint('[Auth] Initialization timeout, returning current state');
+      _log.debug('auth | Initialization timeout, returning current state');
     }
 
     // If in password recovery mode, return that state regardless of session
@@ -358,7 +361,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       return AppAuthState.authenticated(user);
     } catch (e) {
-      debugPrint('[Auth] Failed to get auth state: $e');
+      _log.error('auth | Failed to get auth state: $e');
       return AppAuthState.error(e.toString());
     }
   }
@@ -446,7 +449,7 @@ class AuthRepositoryImpl implements AuthRepository {
       _currentUser = await _fetchUserWithFallback(session);
       return _currentUser;
     } catch (e) {
-      debugPrint('[Auth] getCurrentUser error: $e');
+      _log.debug('auth | getCurrentUser error: $e');
       return null;
     }
   }
@@ -461,10 +464,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       _currentUser = await _fetchUserWithFallback(session);
-      debugPrint('[Auth] Current user refreshed: ${_currentUser?.name}');
+      _log.debug('auth | Current user refreshed: ${_currentUser?.name}');
       return _currentUser;
     } catch (e) {
-      debugPrint('[Auth] refreshCurrentUser error: $e');
+      _log.debug('auth | refreshCurrentUser error: $e');
       return null;
     }
   }
@@ -499,7 +502,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on TimeoutException {
       // If refresh times out but we have cached data, return that
       if (_currentSession != null) {
-        debugPrint('[Auth] Session refresh timeout - returning cached session');
+        _log.debug('auth | Session refresh timeout - returning cached session');
         return Right(_currentSession!);
       }
       return Left(AuthFailure(message: 'Session refresh timeout - offline'));
@@ -601,7 +604,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Right(urlWithTimestamp);
     } catch (e) {
-      debugPrint('Photo upload error: $e');
+      _log.error('auth | Photo upload error: $e');
       return Left(AuthFailure(message: 'Upload foto gagal: ${e.toString()}'));
     }
   }
@@ -654,7 +657,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Right(updatedUser);
     } catch (e) {
-      debugPrint('Profile update error: $e');
+      _log.error('auth | Profile update error: $e');
       return Left(AuthFailure(message: 'Update profil gagal: ${e.toString()}'));
     }
   }
@@ -669,7 +672,7 @@ class AuthRepositoryImpl implements AuthRepository {
       try {
         await _client.storage.from(bucket).remove([storagePath]);
       } catch (e) {
-        debugPrint('Photo removal warning: $e');
+        _log.warning('auth | Photo removal warning: $e');
       }
 
       // Update database to remove URL
@@ -690,7 +693,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return const Right(null);
     } catch (e) {
-      debugPrint('Photo removal error: $e');
+      _log.error('auth | Photo removal error: $e');
       return Left(AuthFailure(message: 'Hapus foto gagal: ${e.toString()}'));
     }
   }

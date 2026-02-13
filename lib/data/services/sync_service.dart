@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/errors/sync_errors.dart';
+import '../../core/logging/app_logger.dart';
 import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/sync_queue_local_data_source.dart';
@@ -15,6 +15,8 @@ import 'connectivity_service.dart';
 /// Service for managing offline-first sync operations.
 /// Handles the sync queue processing with retry logic and conflict resolution.
 class SyncService {
+  final _log = AppLogger.instance;
+
   SyncService({
     required SyncQueueLocalDataSource syncQueueDataSource,
     required ConnectivityService connectivityService,
@@ -72,10 +74,10 @@ class SyncService {
     // Ensure connectivity service is initialized (important for mobile)
     await _connectivityService.ensureInitialized();
 
-    debugPrint('[SyncService] processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
+    _log.info('sync.queue | processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
 
     if (_isSyncing) {
-      debugPrint('[SyncService] Sync already in progress, returning');
+      _log.debug('sync.queue | Sync already in progress, returning');
       return SyncResult(
         success: false,
         processedCount: 0,
@@ -88,7 +90,7 @@ class SyncService {
 
     // Check connectivity - first the cached state
     if (!_connectivityService.isConnected) {
-      debugPrint('[SyncService] Device is offline (cached state), returning');
+      _log.debug('sync.queue | Device is offline (cached state), returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -103,7 +105,7 @@ class SyncService {
     // Verify server is actually reachable before attempting sync
     final isReachable = await _connectivityService.checkServerReachability();
     if (!isReachable) {
-      debugPrint('[SyncService] Server is unreachable, returning');
+      _log.debug('sync.queue | Server is unreachable, returning');
       _updateState(const SyncState.offline());
       return SyncResult(
         success: false,
@@ -127,7 +129,7 @@ class SyncService {
       );
 
       // Debug: Log pending items
-      debugPrint('[SyncService] Found ${pendingItems.length} pending items to sync');
+      _log.info('sync.queue | Found ${pendingItems.length} pending items to sync');
       if (pendingItems.isEmpty) {
         _updateState(const SyncState.idle());
         return SyncResult(
@@ -155,7 +157,7 @@ class SyncService {
         ));
 
         try {
-          debugPrint('[SyncService] Processing item: ${item.entityType}/${item.entityId} (${item.operation})');
+          _log.debug('sync.push | Processing: ${item.entityType}/${item.entityId} (${item.operation})');
           await _processItem(item);
           await _syncQueueDataSource.markAsCompleted(item.id);
           
@@ -168,9 +170,9 @@ class SyncService {
           }
           
           successCount++;
-          debugPrint('[SyncService] Successfully synced: ${item.entityType}/${item.entityId}');
+          _log.debug('sync.push | Synced: ${item.entityType}/${item.entityId}');
         } on SyncError catch (syncError) {
-          debugPrint('[SyncService] SyncError for ${item.entityType}/${item.entityId}: ${syncError.message} (retryable: ${syncError.isRetryable})');
+          _log.error('sync.push | SyncError: ${item.entityType}/${item.entityId}: ${syncError.message} (retryable: ${syncError.isRetryable})', syncError);
           if (syncError.isRetryable) {
             await _syncQueueDataSource.incrementRetryCount(item.id);
           } else {
@@ -179,7 +181,7 @@ class SyncService {
           errors.add('${item.entityType}/${item.entityId}: ${syncError.message}');
           failedCount++;
         } catch (e) {
-          debugPrint('[SyncService] Unexpected error syncing ${item.entityType}/${item.entityId}: $e');
+          _log.error('sync.push | Unexpected error: ${item.entityType}/${item.entityId}', e);
           await _syncQueueDataSource.incrementRetryCount(item.id);
           await _syncQueueDataSource.markAsFailed(item.id, e.toString());
           errors.add('${item.entityType}/${item.entityId}: $e');
@@ -401,9 +403,9 @@ class SyncService {
       case 'cadenceConfig':
         // CadenceScheduleConfig doesn't have isPendingSync column
         // Just log success - the sync queue completion handles the tracking
-        debugPrint('[SyncService] Synced cadenceConfig: $entityId');
+        _log.debug('sync.push | Synced cadenceConfig: $entityId');
       default:
-        debugPrint('[SyncService] Unknown entity type for marking synced: $entityType');
+        _log.warning('sync.push | Unknown entity type for marking synced: $entityType');
     }
   }
 
@@ -415,9 +417,9 @@ class SyncService {
         await (_database.delete(_database.customerHvcLinks)
               ..where((l) => l.id.equals(entityId)))
             .go();
-        debugPrint('[SyncService] Hard deleted customerHvcLink locally: $entityId');
+        _log.debug('sync.push | Hard deleted customerHvcLink locally: $entityId');
       default:
-        debugPrint('[SyncService] Unknown entity type for hard delete: $entityType');
+        _log.warning('sync.push | Unknown entity type for hard delete: $entityType');
     }
   }
 

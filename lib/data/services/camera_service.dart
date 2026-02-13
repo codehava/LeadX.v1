@@ -1,14 +1,18 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
+
+import '../../core/logging/app_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 /// Service for camera and photo operations.
 /// Handles photo capture, gallery picking, and image processing.
 class CameraService {
+  final _log = AppLogger.instance;
+
   CameraService() : _picker = ImagePicker();
 
   final ImagePicker _picker;
@@ -40,7 +44,7 @@ class CameraService {
         originalPath: image.path,
       );
     } catch (e) {
-      debugPrint('CameraService: Error capturing photo: $e');
+      _log.error('camera | Error capturing photo: $e');
       return null;
     }
   }
@@ -66,7 +70,7 @@ class CameraService {
       if (kIsWeb) {
         // Read bytes for later upload
         final bytes = await image.readAsBytes();
-        debugPrint('CameraService: Web photo picked, ${bytes.length} bytes');
+        _log.debug('camera | Web photo picked, ${bytes.length} bytes');
         return CapturedPhoto(
           localPath: image.path, // Blob URL on web
           takenAt: DateTime.now(),
@@ -85,7 +89,7 @@ class CameraService {
         originalPath: image.path,
       );
     } catch (e) {
-      debugPrint('CameraService: Error picking from gallery: $e');
+      _log.error('camera | Error picking from gallery: $e');
       return null;
     }
   }
@@ -117,7 +121,7 @@ class CameraService {
 
       return results;
     } catch (e) {
-      debugPrint('CameraService: Error picking multiple: $e');
+      _log.error('camera | Error picking multiple: $e');
       return [];
     }
   }
@@ -151,7 +155,7 @@ class CameraService {
       }
       return false;
     } catch (e) {
-      debugPrint('CameraService: Error deleting photo: $e');
+      _log.error('camera | Error deleting photo: $e');
       return false;
     }
   }

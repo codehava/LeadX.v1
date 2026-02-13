@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:flutter/foundation.dart';
+
+import '../../core/logging/app_logger.dart';
 
 import 'tables/activities.dart';
 import 'tables/cadence.dart';
@@ -231,8 +232,7 @@ QueryExecutor _openConnection() {
       driftWorker: Uri.parse('drift_worker.js'),
       onResult: (result) {
         if (result.missingFeatures.isNotEmpty) {
-          // ignore: avoid_print
-          debugPrint('Using ${result.chosenImplementation} due to '
+          AppLogger.instance.warning('db | Using ${result.chosenImplementation} due to '
               'missing features: ${result.missingFeatures}');
         }
       },

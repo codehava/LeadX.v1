@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../core/logging/app_logger.dart';
 
 /// Remote data source for activity operations via Supabase.
 class ActivityRemoteDataSource {
   ActivityRemoteDataSource(this._client);
 
   final SupabaseClient _client;
+  final _log = AppLogger.instance;
 
   static const String _tableName = 'activities';
   static const String _photosTableName = 'activity_photos';
@@ -231,7 +233,7 @@ class ActivityRemoteDataSource {
         );
 
     final publicUrl = _client.storage.from(_storageBucket).getPublicUrl(storagePath);
-    debugPrint('ActivityRemoteDataSource: Uploaded photo bytes -> $publicUrl');
+    _log.debug('activity.remote | Uploaded photo bytes -> $publicUrl');
     return publicUrl;
   }
 
@@ -260,7 +262,7 @@ class ActivityRemoteDataSource {
         await _client.storage.from(_storageBucket).remove([storagePath]);
       }
     } catch (e) {
-      debugPrint('Error deleting photo from storage: $e');
+      _log.error('activity.remote | Error deleting photo from storage: $e');
     }
 
     // Delete database record
@@ -310,7 +312,7 @@ class ActivityRemoteDataSource {
         .insert(data)
         .select()
         .single();
-    debugPrint('ActivityRemoteDataSource: Created audit log ${data['id']}');
+    _log.debug('activity.remote | Created audit log ${data['id']}');
     return response;
   }
 
@@ -319,7 +321,7 @@ class ActivityRemoteDataSource {
     if (logs.isEmpty) return;
     
     await _client.from(_auditLogsTableName).upsert(logs);
-    debugPrint('ActivityRemoteDataSource: Synced ${logs.length} audit logs');
+    _log.debug('activity.remote | Synced ${logs.length} audit logs');
   }
 
   /// Fetch audit logs for an activity from remote.

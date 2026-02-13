@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../data/datasources/local/activity_local_data_source.dart';
 import '../../data/datasources/remote/activity_remote_data_source.dart';
 import '../../data/dtos/activity_dtos.dart';
@@ -316,7 +316,7 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
     double? latitude,
     double? longitude,
   }) async {
-    debugPrint('[ActivityFormNotifier] addPhotosWithBytes called with ${photos.length} photos for activity $activityId');
+    AppLogger.instance.debug('activity.photo | addPhotosWithBytes called with ${photos.length} photos for activity $activityId');
     
     for (final photo in photos) {
       try {
@@ -324,20 +324,20 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         const uuid = Uuid();
         final fileId = uuid.v4();
         
-        debugPrint('[ActivityFormNotifier] Processing photo: bytes=${photo.bytes != null}, localPath=${photo.localPath}');
+        AppLogger.instance.debug('activity.photo | Processing photo: bytes=${photo.bytes != null}, localPath=${photo.localPath}');
         
         if (photo.bytes != null) {
           // Web: upload bytes directly
-          debugPrint('[ActivityFormNotifier] Uploading photo bytes to Supabase Storage...');
+          AppLogger.instance.debug('activity.photo | Uploading photo bytes to Supabase Storage...');
           final photoUrl = await _remoteDataSource.uploadPhotoBytes(
             activityId,
             photo.bytes!,
             fileId,
           );
-          debugPrint('[ActivityFormNotifier] Upload successful, URL: $photoUrl');
+          AppLogger.instance.debug('activity.photo | Upload successful, URL: $photoUrl');
           
           // Create photo record in remote database
-          debugPrint('[ActivityFormNotifier] Creating remote photo record...');
+          AppLogger.instance.debug('activity.photo | Creating remote photo record...');
           await _remoteDataSource.createPhotoRecord({
             'id': fileId,
             'activity_id': activityId,
@@ -349,10 +349,10 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
             'longitude': longitude,
             'created_at': DateTime.now().toIso8601String(),
           });
-          debugPrint('[ActivityFormNotifier] Remote record created');
+          AppLogger.instance.debug('activity.photo | Remote record created');
           
           // Also insert into local database so it shows in detail view
-          debugPrint('[ActivityFormNotifier] Inserting into local database...');
+          AppLogger.instance.debug('activity.photo | Inserting into local database...');
           final localResult = await _repository.addPhotoFromUrl(
             activityId,
             fileId,
@@ -363,12 +363,12 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
           );
           
           localResult.fold(
-            (failure) => debugPrint('[ActivityFormNotifier] ERROR: Failed to insert local DB record: ${failure.message}'),
-            (savedPhoto) => debugPrint('[ActivityFormNotifier] SUCCESS: Local DB record created with id=${savedPhoto.id}'),
+            (failure) => AppLogger.instance.error('activity.photo | Failed to insert local DB record: ${failure.message}'),
+            (savedPhoto) => AppLogger.instance.debug('activity.photo | Local DB record created with id=${savedPhoto.id}'),
           );
         } else {
           // Mobile: use local path and queue for sync
-          debugPrint('[ActivityFormNotifier] Mobile photo - using addPhoto with localPath');
+          AppLogger.instance.debug('activity.photo | Mobile photo - using addPhoto with localPath');
           await _repository.addPhoto(
             activityId,
             photo.localPath,
@@ -378,12 +378,11 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
         }
       } catch (e, stackTrace) {
         // Log but don't fail - photo upload is non-critical
-        debugPrint('[ActivityFormNotifier] ERROR uploading photo: $e');
-        debugPrint('[ActivityFormNotifier] Stack trace: $stackTrace');
+        AppLogger.instance.error('activity.photo | Error uploading photo: $e\n$stackTrace');
       }
     }
     
-    debugPrint('[ActivityFormNotifier] addPhotosWithBytes completed');
+    AppLogger.instance.debug('activity.photo | addPhotosWithBytes completed');
   }
 
   /// Reset form state.

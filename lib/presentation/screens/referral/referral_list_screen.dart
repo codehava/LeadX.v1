@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/pipeline_referral_providers.dart';
 import '../../widgets/common/empty_state.dart';
@@ -233,7 +234,7 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
       final repository = ref.read(pipelineReferralRepositoryProvider);
       await repository.syncFromRemote();
     } catch (e) {
-      debugPrint('[ReferralList] Sync error: $e');
+      AppLogger.instance.warning('ui.referral | Sync error: $e');
     }
   }
 
