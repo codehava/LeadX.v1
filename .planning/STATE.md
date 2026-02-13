@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 Phase: 2.1 of 10 (Pre-existing Bug Fixes) -- COMPLETE
 Plan: 3 of 3 (02.1-03 complete)
 Status: Phase 2.1 Complete
-Last activity: 2026-02-13 — Completed 02.1-03 Dropdown race condition fix (AutocompleteField -> SearchableDropdown)
+Last activity: 2026-02-13 — Completed 02.1-02 UTC timestamp chain fix (remote DS + services + sync providers)
 
 Progress: [██░░░░░░░░] ~20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 9 min
-- Total execution time: 1.2 hours
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██░░░░░░░░] ~20%
 |-------|-------|-------|----------|
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
-| 02.1-pre-existing-bug-fixes | 2/3 | 9 min | 5 min |
+| 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min), 02-01 (3 min)
+- Last 5 plans: 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min)
 - Trend: Stable/Fast
 
 *Updated after each plan completion*
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - Direct widget swap from AutocompleteField to SearchableDropdown -- APIs compatible (same param names) (02.1-03)
 - Modal titles in Indonesian matching existing UI conventions (Pilih Provinsi, Pilih COB, etc.) (02.1-03)
 - All dropdown selection fields use SearchableDropdown with modal bottom sheet pattern (02.1-03)
+- [Phase 02.1]: admin_user_remote_data_source.dart left unchanged -- already uses .toUtc().toIso8601String() correctly (02.1-02)
 
 ### Roadmap Evolution
 
@@ -89,8 +90,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 02.1-01-PLAN.md — Timezone serialization fix (activity_providers Task 2 was missing)
+Stopped at: Completed 02.1-02-PLAN.md -- UTC timestamp chain fix for remote DS, services, and sync providers
 Resume file: None
 
 ---
-*Last updated: 2026-02-13 (02.1-01 complete, 02.1-01 SUMMARY created)*
+*Last updated: 2026-02-13 (02.1-02 complete, all Phase 2.1 plans have summaries)*
