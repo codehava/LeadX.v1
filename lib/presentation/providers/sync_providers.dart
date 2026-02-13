@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../core/logging/app_logger.dart';
 
 import '../../data/datasources/local/activity_local_data_source.dart';
@@ -208,13 +209,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final customerSince = await _getSafeSince('customers');
       AppLogger.instance.debug('sync.pull | Pulling customers (since: $customerSince)...');
       final customerResult = await _customerRepository.syncFromRemote(since: customerSince);
-      customerResult.fold(
-        (failure) => AppLogger.instance.warning('sync.pull | Customer pull failed: ${failure.message}'),
-        (count) {
-          AppLogger.instance.debug('sync.pull | Pulled $count customers');
+      switch (customerResult) {
+        case Success(:final value):
+          AppLogger.instance.debug('sync.pull | Pulled $value customers');
           _appSettingsService.setTableLastSyncAt('customers', DateTime.now().toUtc());
-        },
-      );
+        case ResultFailure(:final failure):
+          AppLogger.instance.warning('sync.pull | Customer pull failed: ${failure.message}');
+      }
     } catch (e, st) {
       AppLogger.instance.error('sync.pull | Customer pull error: $e');
       AppLogger.instance.debug('sync.pull | Stack trace: $st');
@@ -225,13 +226,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final keyPersonSince = await _getSafeSince('key_persons');
       AppLogger.instance.debug('sync.pull | Pulling key persons (since: $keyPersonSince)...');
       final keyPersonResult = await _customerRepository.syncKeyPersonsFromRemote(since: keyPersonSince);
-      keyPersonResult.fold(
-        (failure) => AppLogger.instance.warning('sync.pull | Key person pull failed: ${failure.message}'),
-        (count) {
-          AppLogger.instance.debug('sync.pull | Pulled $count key persons');
+      switch (keyPersonResult) {
+        case Success(:final value):
+          AppLogger.instance.debug('sync.pull | Pulled $value key persons');
           _appSettingsService.setTableLastSyncAt('key_persons', DateTime.now().toUtc());
-        },
-      );
+        case ResultFailure(:final failure):
+          AppLogger.instance.warning('sync.pull | Key person pull failed: ${failure.message}');
+      }
     } catch (e) {
       AppLogger.instance.error('sync.pull | Key person pull error: $e');
     }

@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 // Hide drift's isNull/isNotNull to avoid conflict with flutter_test matchers
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leadx_crm/core/errors/failures.dart';
+import 'package:leadx_crm/core/errors/result.dart';
+import 'package:leadx_crm/core/logging/app_logger.dart';
 import 'package:leadx_crm/data/database/app_database.dart' as db;
 import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/key_person_local_data_source.dart';
@@ -117,6 +118,11 @@ void main() {
     );
   }
 
+  setUpAll(() {
+    // Initialize logger singleton for tests
+    AppLogger.init();
+  });
+
   setUp(() {
     mockLocalDataSource = MockCustomerLocalDataSource();
     mockKeyPersonLocalDataSource = MockKeyPersonLocalDataSource();
@@ -201,14 +207,11 @@ void main() {
         final result = await repository.createCustomer(dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (customer) {
-            expect(customer.name, 'Test Company');
-            expect(customer.address, '123 Test Street');
-          },
-        );
+        expect(result.isSuccess, true);
+        expect(result, isA<Success<dynamic>>());
+        final customer = (result as Success).value;
+        expect(customer.name, 'Test Company');
+        expect(customer.address, '123 Test Street');
         verify(mockLocalDataSource.insertCustomer(any)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.customer,
@@ -219,7 +222,7 @@ void main() {
         verify(mockSyncService.triggerSync()).called(1);
       });
 
-      test('returns DatabaseFailure when insert fails', () async {
+      test('returns UnexpectedFailure when insert fails', () async {
         // Arrange
         final dto = createTestDto();
         when(mockLocalDataSource.insertCustomer(any))
@@ -229,14 +232,10 @@ void main() {
         final result = await repository.createCustomer(dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<DatabaseFailure>());
-            expect(failure.message, contains('Failed to create customer'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result.isFailure, true);
+        final failure = result.failureOrNull!;
+        expect(failure, isA<UnexpectedFailure>());
+        expect(failure.message, contains('Database error'));
       });
     });
 
@@ -267,13 +266,9 @@ void main() {
         final result = await repository.updateCustomer(id, dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (customer) {
-            expect(customer.name, 'Updated Company');
-          },
-        );
+        expect(result.isSuccess, true);
+        final customer = (result as Success).value;
+        expect(customer.name, 'Updated Company');
         verify(mockLocalDataSource.updateCustomer(id, any)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.customer,
@@ -297,19 +292,15 @@ void main() {
         final result = await repository.updateCustomer(id, dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<NotFoundFailure>());
-            expect(failure.message, contains('Customer not found'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result.isFailure, true);
+        final failure = result.failureOrNull!;
+        expect(failure, isA<NotFoundFailure>());
+        expect(failure.message, contains('Customer not found'));
       });
     });
 
     group('deleteCustomer', () {
-      test('returns Right(null) on successful soft delete', () async {
+      test('returns Success on successful soft delete', () async {
         // Arrange
         const id = 'customer-1';
         when(mockLocalDataSource.softDeleteCustomer(id))
@@ -327,7 +318,7 @@ void main() {
         final result = await repository.deleteCustomer(id);
 
         // Assert
-        expect(result.isRight(), true);
+        expect(result.isSuccess, true);
         verify(mockLocalDataSource.softDeleteCustomer(id)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.customer,
@@ -337,7 +328,7 @@ void main() {
         )).called(1);
       });
 
-      test('returns DatabaseFailure when delete fails', () async {
+      test('returns UnexpectedFailure when delete fails', () async {
         // Arrange
         const id = 'customer-1';
         when(mockLocalDataSource.softDeleteCustomer(id))
@@ -347,14 +338,10 @@ void main() {
         final result = await repository.deleteCustomer(id);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<DatabaseFailure>());
-            expect(failure.message, contains('Failed to delete customer'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result.isFailure, true);
+        final failure = result.failureOrNull!;
+        expect(failure, isA<UnexpectedFailure>());
+        expect(failure.message, contains('Delete error'));
       });
     });
 
@@ -503,11 +490,8 @@ void main() {
         final result = await repository.syncFromRemote();
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (count) => expect(count, 1),
-        );
+        expect(result.isSuccess, true);
+        expect((result as Success).value, 1);
         verify(mockRemoteDataSource.fetchCustomers(since: anyNamed('since')))
             .called(1);
         verify(mockLocalDataSource.upsertCustomers(any)).called(1);
@@ -522,15 +506,12 @@ void main() {
         final result = await repository.syncFromRemote();
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right'),
-          (count) => expect(count, 0),
-        );
+        expect(result.isSuccess, true);
+        expect((result as Success).value, 0);
         verifyNever(mockLocalDataSource.upsertCustomers(any));
       });
 
-      test('returns SyncFailure when fetch fails', () async {
+      test('returns failure when fetch fails', () async {
         // Arrange
         when(mockRemoteDataSource.fetchCustomers(since: anyNamed('since')))
             .thenThrow(Exception('Network error'));
@@ -539,15 +520,10 @@ void main() {
         final result = await repository.syncFromRemote();
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<SyncFailure>());
-            expect(
-                failure.message, contains('Failed to sync customers from remote'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result.isFailure, true);
+        final failure = result.failureOrNull!;
+        expect(failure, isA<UnexpectedFailure>());
+        expect(failure.message, contains('Network error'));
       });
     });
 

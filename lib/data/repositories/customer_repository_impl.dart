@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/customer.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/entities/sync_models.dart';
@@ -84,71 +85,65 @@ class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, domain.Customer>> createCustomer(
+  Future<Result<domain.Customer>> createCustomer(
     CustomerCreateDto dto,
-  ) async {
-    try {
-      final now = DateTime.now();
-      final id = _uuid.v4();
-      final code = _generateCustomerCode();
+  ) =>
+      runCatching(() async {
+        final now = DateTime.now();
+        final id = _uuid.v4();
+        final code = _generateCustomerCode();
 
-      final companion = db.CustomersCompanion.insert(
-        id: id,
-        code: code,
-        name: dto.name,
-        address: dto.address ?? '',
-        provinceId: dto.provinceId,
-        cityId: dto.cityId,
-        postalCode: Value(dto.postalCode),
-        latitude: Value(dto.latitude),
-        longitude: Value(dto.longitude),
-        phone: Value(dto.phone),
-        email: Value(dto.email),
-        website: Value(dto.website),
-        companyTypeId: dto.companyTypeId,
-        ownershipTypeId: dto.ownershipTypeId,
-        industryId: dto.industryId,
-        npwp: Value(dto.npwp),
-        assignedRmId: dto.assignedRmId.isNotEmpty ? dto.assignedRmId : _currentUserId,
-        imageUrl: Value(dto.imageUrl),
-        notes: Value(dto.notes),
-        createdBy: _currentUserId,
-        isPendingSync: const Value(true),
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      // Save locally and queue for sync atomically
-      _log.debug('customer | Inserting customer locally: $id');
-      await _database.transaction(() async {
-        await _localDataSource.insertCustomer(companion);
-
-        _log.debug('customer | Queueing customer for sync: $id');
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.customer,
-          entityId: id,
-          operation: SyncOperation.create,
-          payload: _createSyncPayload(id, code, dto, now),
+        final companion = db.CustomersCompanion.insert(
+          id: id,
+          code: code,
+          name: dto.name,
+          address: dto.address ?? '',
+          provinceId: dto.provinceId,
+          cityId: dto.cityId,
+          postalCode: Value(dto.postalCode),
+          latitude: Value(dto.latitude),
+          longitude: Value(dto.longitude),
+          phone: Value(dto.phone),
+          email: Value(dto.email),
+          website: Value(dto.website),
+          companyTypeId: dto.companyTypeId,
+          ownershipTypeId: dto.ownershipTypeId,
+          industryId: dto.industryId,
+          npwp: Value(dto.npwp),
+          assignedRmId: dto.assignedRmId.isNotEmpty ? dto.assignedRmId : _currentUserId,
+          imageUrl: Value(dto.imageUrl),
+          notes: Value(dto.notes),
+          createdBy: _currentUserId,
+          isPendingSync: const Value(true),
+          createdAt: now,
+          updatedAt: now,
         );
-      });
-      _log.debug('customer | Customer queued successfully');
 
-      // Trigger sync to upload immediately (outside transaction)
-      unawaited(_syncService.triggerSync());
+        // Save locally and queue for sync atomically
+        _log.debug('customer | Inserting customer locally: $id');
+        await _database.transaction(() async {
+          await _localDataSource.insertCustomer(companion);
 
-      // Return the created customer
-      final customer = await getCustomerById(id);
-      return Right(customer!);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create customer: $e',
-        originalError: e,
-      ));
-    }
-  }
+          _log.debug('customer | Queueing customer for sync: $id');
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.customer,
+            entityId: id,
+            operation: SyncOperation.create,
+            payload: _createSyncPayload(id, code, dto, now),
+          );
+        });
+        _log.debug('customer | Customer queued successfully');
+
+        // Trigger sync to upload immediately (outside transaction)
+        unawaited(_syncService.triggerSync());
+
+        // Return the created customer
+        final customer = await getCustomerById(id);
+        return customer!;
+      }, context: 'createCustomer');
 
   @override
-  Future<Either<Failure, domain.Customer>> updateCustomer(
+  Future<Result<domain.Customer>> updateCustomer(
     String id,
     CustomerUpdateDto dto,
   ) async {
@@ -197,14 +192,13 @@ class CustomerRepositoryImpl implements CustomerRepository {
       );
 
       // Update locally and queue for sync atomically
+      // Transaction returns null if customer not found
       final updated = await _database.transaction(() async {
         await _localDataSource.updateCustomer(id, companion);
 
         // Get updated data for sync payload (inside transaction to see just-written data)
         final data = await _localDataSource.getCustomerById(id);
-        if (data == null) {
-          throw Exception('Customer not found: $id');
-        }
+        if (data == null) return null;
 
         await _syncService.queueOperation(
           entityType: SyncEntityType.customer,
@@ -216,44 +210,38 @@ class CustomerRepositoryImpl implements CustomerRepository {
         return data;
       });
 
+      // Check for not-found case (transaction returned null)
+      if (updated == null) {
+        return Result.failure(NotFoundFailure(message: 'Customer not found: $id'));
+      }
+
       // Trigger sync to upload immediately (outside transaction)
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToCustomer(updated));
+      return Result.success(_mapToCustomer(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update customer: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updateCustomer'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteCustomer(String id) async {
-    try {
-      // Soft delete locally and queue for sync atomically
-      await _database.transaction(() async {
-        await _localDataSource.softDeleteCustomer(id);
+  Future<Result<void>> deleteCustomer(String id) =>
+      runCatching(() async {
+        // Soft delete locally and queue for sync atomically
+        await _database.transaction(() async {
+          await _localDataSource.softDeleteCustomer(id);
 
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.customer,
-          entityId: id,
-          operation: SyncOperation.delete,
-          payload: {'id': id},
-        );
-      });
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.customer,
+            entityId: id,
+            operation: SyncOperation.delete,
+            payload: {'id': id},
+          );
+        });
 
-      // Trigger sync to upload immediately (outside transaction)
-      unawaited(_syncService.triggerSync());
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete customer: $e',
-        originalError: e,
-      ));
-    }
-  }
+        // Trigger sync to upload immediately (outside transaction)
+        unawaited(_syncService.triggerSync());
+      }, context: 'deleteCustomer');
 
   // ==========================================
   // Search & Filter
@@ -303,64 +291,58 @@ class CustomerRepositoryImpl implements CustomerRepository {
           );
 
   @override
-  Future<Either<Failure, domain.KeyPerson>> addKeyPerson(
+  Future<Result<domain.KeyPerson>> addKeyPerson(
     KeyPersonDto dto,
-  ) async {
-    try {
-      final now = DateTime.now();
-      final id = _uuid.v4();
+  ) =>
+      runCatching(() async {
+        final now = DateTime.now();
+        final id = _uuid.v4();
 
-      final companion = db.KeyPersonsCompanion.insert(
-        id: id,
-        ownerType: dto.ownerType,
-        customerId: Value(dto.customerId),
-        brokerId: Value(dto.brokerId),
-        hvcId: Value(dto.hvcId),
-        name: dto.name,
-        position: Value(dto.position),
-        department: Value(dto.department),
-        phone: Value(dto.phone),
-        email: Value(dto.email),
-        isPrimary: Value(dto.isPrimary),
-        notes: Value(dto.notes),
-        createdBy: _currentUserId,
-        isPendingSync: const Value(true),
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      // Save locally and queue for sync atomically
-      await _database.transaction(() async {
-        // If setting as primary, clear other primaries first
-        if (dto.isPrimary && dto.customerId != null) {
-          await _keyPersonLocalDataSource.clearPrimaryForCustomer(dto.customerId!);
-        }
-
-        await _keyPersonLocalDataSource.insertKeyPerson(companion);
-
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.keyPerson,
-          entityId: id,
-          operation: SyncOperation.create,
-          payload: _createKeyPersonSyncPayload(id, dto, now),
+        final companion = db.KeyPersonsCompanion.insert(
+          id: id,
+          ownerType: dto.ownerType,
+          customerId: Value(dto.customerId),
+          brokerId: Value(dto.brokerId),
+          hvcId: Value(dto.hvcId),
+          name: dto.name,
+          position: Value(dto.position),
+          department: Value(dto.department),
+          phone: Value(dto.phone),
+          email: Value(dto.email),
+          isPrimary: Value(dto.isPrimary),
+          notes: Value(dto.notes),
+          createdBy: _currentUserId,
+          isPendingSync: const Value(true),
+          createdAt: now,
+          updatedAt: now,
         );
-      });
 
-      // Trigger sync to upload immediately (outside transaction)
-      unawaited(_syncService.triggerSync());
+        // Save locally and queue for sync atomically
+        await _database.transaction(() async {
+          // If setting as primary, clear other primaries first
+          if (dto.isPrimary && dto.customerId != null) {
+            await _keyPersonLocalDataSource.clearPrimaryForCustomer(dto.customerId!);
+          }
 
-      final keyPerson = await _keyPersonLocalDataSource.getKeyPersonById(id);
-      return Right(_mapToKeyPerson(keyPerson!));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to add key person: $e',
-        originalError: e,
-      ));
-    }
-  }
+          await _keyPersonLocalDataSource.insertKeyPerson(companion);
+
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.keyPerson,
+            entityId: id,
+            operation: SyncOperation.create,
+            payload: _createKeyPersonSyncPayload(id, dto, now),
+          );
+        });
+
+        // Trigger sync to upload immediately (outside transaction)
+        unawaited(_syncService.triggerSync());
+
+        final keyPerson = await _keyPersonLocalDataSource.getKeyPersonById(id);
+        return _mapToKeyPerson(keyPerson!);
+      }, context: 'addKeyPerson');
 
   @override
-  Future<Either<Failure, domain.KeyPerson>> updateKeyPerson(
+  Future<Result<domain.KeyPerson>> updateKeyPerson(
     String id,
     KeyPersonDto dto,
   ) async {
@@ -407,41 +389,30 @@ class CustomerRepositoryImpl implements CustomerRepository {
       // Trigger sync to upload immediately (outside transaction)
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToKeyPerson(updated));
+      return Result.success(_mapToKeyPerson(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update key person: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updateKeyPerson'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteKeyPerson(String id) async {
-    try {
-      // Soft delete locally and queue for sync atomically
-      await _database.transaction(() async {
-        await _keyPersonLocalDataSource.softDeleteKeyPerson(id);
+  Future<Result<void>> deleteKeyPerson(String id) =>
+      runCatching(() async {
+        // Soft delete locally and queue for sync atomically
+        await _database.transaction(() async {
+          await _keyPersonLocalDataSource.softDeleteKeyPerson(id);
 
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.keyPerson,
-          entityId: id,
-          operation: SyncOperation.delete,
-          payload: {'id': id},
-        );
-      });
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.keyPerson,
+            entityId: id,
+            operation: SyncOperation.delete,
+            payload: {'id': id},
+          );
+        });
 
-      // Trigger sync to upload immediately (outside transaction)
-      unawaited(_syncService.triggerSync());
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete key person: $e',
-        originalError: e,
-      ));
-    }
-  }
+        // Trigger sync to upload immediately (outside transaction)
+        unawaited(_syncService.triggerSync());
+      }, context: 'deleteKeyPerson');
 
   @override
   Future<domain.KeyPerson?> getPrimaryKeyPerson(String customerId) async {
@@ -455,7 +426,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
+  Future<Result<int>> syncFromRemote({DateTime? since}) async {
     try {
       _log.debug('customer | syncFromRemote called, currentUserId=$_currentUserId, since=$since');
       final remoteData = await _remoteDataSource.fetchCustomers(since: since);
@@ -463,7 +434,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
       if (remoteData.isEmpty) {
         _log.debug('customer | No customers returned from remote - check RLS policies if unexpected');
-        return const Right(0);
+        return Result.success(0);
       }
 
       final companions = remoteData.map((data) {
@@ -503,22 +474,19 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
       await _localDataSource.upsertCustomers(companions);
 
-      return Right(companions.length);
+      return Result.success(companions.length);
     } catch (e) {
-      return Left(SyncFailure(
-        message: 'Failed to sync customers from remote: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'syncFromRemote'));
     }
   }
 
   @override
-  Future<Either<Failure, int>> syncKeyPersonsFromRemote({DateTime? since}) async {
+  Future<Result<int>> syncKeyPersonsFromRemote({DateTime? since}) async {
     try {
       final remoteData = await _keyPersonRemoteDataSource.fetchKeyPersons(since: since);
 
       if (remoteData.isEmpty) {
-        return const Right(0);
+        return Result.success(0);
       }
 
       _log.debug('customer | Syncing ${remoteData.length} key persons from remote');
@@ -550,12 +518,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
       await _keyPersonLocalDataSource.upsertKeyPersons(companions);
 
-      return Right(companions.length);
+      return Result.success(companions.length);
     } catch (e) {
-      return Left(SyncFailure(
-        message: 'Failed to sync key persons from remote: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'syncKeyPersonsFromRemote'));
     }
   }
 

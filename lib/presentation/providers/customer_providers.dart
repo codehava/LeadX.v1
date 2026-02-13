@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/local/customer_local_data_source.dart';
 import '../../data/datasources/local/key_person_local_data_source.dart';
 import '../../data/datasources/remote/customer_remote_data_source.dart';
@@ -183,19 +184,19 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
 
     final result = await _repository.createCustomer(dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (customer) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedCustomer: customer,
+          savedCustomer: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update an existing customer.
@@ -205,19 +206,19 @@ class CustomerFormNotifier extends StateNotifier<CustomerFormState> {
 
     final result = await _repository.updateCustomer(id, dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (customer) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedCustomer: customer,
+          savedCustomer: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Reset form state.
@@ -274,19 +275,19 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
 
     final result = await _repository.addKeyPerson(dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (keyPerson) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedKeyPerson: keyPerson,
+          savedKeyPerson: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update an existing key person.
@@ -295,19 +296,19 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
 
     final result = await _repository.updateKeyPerson(id, dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (keyPerson) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedKeyPerson: keyPerson,
+          savedKeyPerson: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Delete a key person.
@@ -316,16 +317,16 @@ class KeyPersonFormNotifier extends StateNotifier<KeyPersonFormState> {
 
     final result = await _repository.deleteKeyPerson(id);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (_) {
+    switch (result) {
+      case Success():
         state = state.copyWith(isLoading: false);
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Reset form state.

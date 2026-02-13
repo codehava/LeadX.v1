@@ -3,19 +3,21 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i6;
 
-import 'package:leadx_crm/data/database/app_database.dart' as _i5;
+import 'package:drift/drift.dart' as _i3;
+import 'package:drift/src/runtime/executor/stream_queries.dart' as _i5;
+import 'package:leadx_crm/data/database/app_database.dart' as _i4;
 import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart'
-    as _i3;
-import 'package:leadx_crm/data/datasources/local/key_person_local_data_source.dart'
-    as _i6;
-import 'package:leadx_crm/data/datasources/remote/customer_remote_data_source.dart'
     as _i7;
-import 'package:leadx_crm/data/services/sync_service.dart' as _i8;
+import 'package:leadx_crm/data/datasources/local/key_person_local_data_source.dart'
+    as _i8;
+import 'package:leadx_crm/data/datasources/remote/customer_remote_data_source.dart'
+    as _i9;
+import 'package:leadx_crm/data/services/sync_service.dart' as _i10;
 import 'package:leadx_crm/domain/entities/sync_models.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i11;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -36,25 +38,399 @@ class _FakeSyncResult_0 extends _i1.SmartFake implements _i2.SyncResult {
     : super(parent, parentInvocation);
 }
 
+class _FakeMigrationStrategy_1 extends _i1.SmartFake
+    implements _i3.MigrationStrategy {
+  _FakeMigrationStrategy_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$RegionalOfficesTable_2 extends _i1.SmartFake
+    implements _i4.$RegionalOfficesTable {
+  _Fake$RegionalOfficesTable_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$BranchesTable_3 extends _i1.SmartFake
+    implements _i4.$BranchesTable {
+  _Fake$BranchesTable_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$UsersTable_4 extends _i1.SmartFake implements _i4.$UsersTable {
+  _Fake$UsersTable_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$UserHierarchyTable_5 extends _i1.SmartFake
+    implements _i4.$UserHierarchyTable {
+  _Fake$UserHierarchyTable_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ProvincesTable_6 extends _i1.SmartFake
+    implements _i4.$ProvincesTable {
+  _Fake$ProvincesTable_6(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CitiesTable_7 extends _i1.SmartFake implements _i4.$CitiesTable {
+  _Fake$CitiesTable_7(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CompanyTypesTable_8 extends _i1.SmartFake
+    implements _i4.$CompanyTypesTable {
+  _Fake$CompanyTypesTable_8(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$OwnershipTypesTable_9 extends _i1.SmartFake
+    implements _i4.$OwnershipTypesTable {
+  _Fake$OwnershipTypesTable_9(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$IndustriesTable_10 extends _i1.SmartFake
+    implements _i4.$IndustriesTable {
+  _Fake$IndustriesTable_10(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CobsTable_11 extends _i1.SmartFake implements _i4.$CobsTable {
+  _Fake$CobsTable_11(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$LobsTable_12 extends _i1.SmartFake implements _i4.$LobsTable {
+  _Fake$LobsTable_12(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$PipelineStagesTable_13 extends _i1.SmartFake
+    implements _i4.$PipelineStagesTable {
+  _Fake$PipelineStagesTable_13(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$PipelineStatusesTable_14 extends _i1.SmartFake
+    implements _i4.$PipelineStatusesTable {
+  _Fake$PipelineStatusesTable_14(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ActivityTypesTable_15 extends _i1.SmartFake
+    implements _i4.$ActivityTypesTable {
+  _Fake$ActivityTypesTable_15(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$LeadSourcesTable_16 extends _i1.SmartFake
+    implements _i4.$LeadSourcesTable {
+  _Fake$LeadSourcesTable_16(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$DeclineReasonsTable_17 extends _i1.SmartFake
+    implements _i4.$DeclineReasonsTable {
+  _Fake$DeclineReasonsTable_17(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CustomersTable_18 extends _i1.SmartFake
+    implements _i4.$CustomersTable {
+  _Fake$CustomersTable_18(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$KeyPersonsTable_19 extends _i1.SmartFake
+    implements _i4.$KeyPersonsTable {
+  _Fake$KeyPersonsTable_19(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$PipelinesTable_20 extends _i1.SmartFake
+    implements _i4.$PipelinesTable {
+  _Fake$PipelinesTable_20(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$PipelineReferralsTable_21 extends _i1.SmartFake
+    implements _i4.$PipelineReferralsTable {
+  _Fake$PipelineReferralsTable_21(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ActivitiesTable_22 extends _i1.SmartFake
+    implements _i4.$ActivitiesTable {
+  _Fake$ActivitiesTable_22(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ActivityPhotosTable_23 extends _i1.SmartFake
+    implements _i4.$ActivityPhotosTable {
+  _Fake$ActivityPhotosTable_23(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ActivityAuditLogsTable_24 extends _i1.SmartFake
+    implements _i4.$ActivityAuditLogsTable {
+  _Fake$ActivityAuditLogsTable_24(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$HvcTypesTable_25 extends _i1.SmartFake
+    implements _i4.$HvcTypesTable {
+  _Fake$HvcTypesTable_25(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$HvcsTable_26 extends _i1.SmartFake implements _i4.$HvcsTable {
+  _Fake$HvcsTable_26(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CustomerHvcLinksTable_27 extends _i1.SmartFake
+    implements _i4.$CustomerHvcLinksTable {
+  _Fake$CustomerHvcLinksTable_27(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$BrokersTable_28 extends _i1.SmartFake implements _i4.$BrokersTable {
+  _Fake$BrokersTable_28(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$MeasureDefinitionsTable_29 extends _i1.SmartFake
+    implements _i4.$MeasureDefinitionsTable {
+  _Fake$MeasureDefinitionsTable_29(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$ScoringPeriodsTable_30 extends _i1.SmartFake
+    implements _i4.$ScoringPeriodsTable {
+  _Fake$ScoringPeriodsTable_30(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$UserTargetsTable_31 extends _i1.SmartFake
+    implements _i4.$UserTargetsTable {
+  _Fake$UserTargetsTable_31(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$UserScoresTable_32 extends _i1.SmartFake
+    implements _i4.$UserScoresTable {
+  _Fake$UserScoresTable_32(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$UserScoreAggregatesTable_33 extends _i1.SmartFake
+    implements _i4.$UserScoreAggregatesTable {
+  _Fake$UserScoreAggregatesTable_33(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CadenceScheduleConfigTable_34 extends _i1.SmartFake
+    implements _i4.$CadenceScheduleConfigTable {
+  _Fake$CadenceScheduleConfigTable_34(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(parent, parentInvocation);
+}
+
+class _Fake$CadenceMeetingsTable_35 extends _i1.SmartFake
+    implements _i4.$CadenceMeetingsTable {
+  _Fake$CadenceMeetingsTable_35(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$CadenceParticipantsTable_36 extends _i1.SmartFake
+    implements _i4.$CadenceParticipantsTable {
+  _Fake$CadenceParticipantsTable_36(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$NotificationsTable_37 extends _i1.SmartFake
+    implements _i4.$NotificationsTable {
+  _Fake$NotificationsTable_37(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$NotificationSettingsTable_38 extends _i1.SmartFake
+    implements _i4.$NotificationSettingsTable {
+  _Fake$NotificationSettingsTable_38(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$AnnouncementsTable_39 extends _i1.SmartFake
+    implements _i4.$AnnouncementsTable {
+  _Fake$AnnouncementsTable_39(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$AnnouncementReadsTable_40 extends _i1.SmartFake
+    implements _i4.$AnnouncementReadsTable {
+  _Fake$AnnouncementReadsTable_40(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$SyncQueueItemsTable_41 extends _i1.SmartFake
+    implements _i4.$SyncQueueItemsTable {
+  _Fake$SyncQueueItemsTable_41(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$AuditLogsTable_42 extends _i1.SmartFake
+    implements _i4.$AuditLogsTable {
+  _Fake$AuditLogsTable_42(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$AppSettingsTable_43 extends _i1.SmartFake
+    implements _i4.$AppSettingsTable {
+  _Fake$AppSettingsTable_43(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$PipelineStageHistoryItemsTable_44 extends _i1.SmartFake
+    implements _i4.$PipelineStageHistoryItemsTable {
+  _Fake$PipelineStageHistoryItemsTable_44(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(parent, parentInvocation);
+}
+
+class _Fake$AuditLogCacheTable_45 extends _i1.SmartFake
+    implements _i4.$AuditLogCacheTable {
+  _Fake$AuditLogCacheTable_45(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _Fake$AppDatabaseManager_46 extends _i1.SmartFake
+    implements _i4.$AppDatabaseManager {
+  _Fake$AppDatabaseManager_46(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeGeneratedDatabase_47 extends _i1.SmartFake
+    implements _i3.GeneratedDatabase {
+  _FakeGeneratedDatabase_47(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeDriftDatabaseOptions_48 extends _i1.SmartFake
+    implements _i3.DriftDatabaseOptions {
+  _FakeDriftDatabaseOptions_48(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeStreamQueryUpdateRules_49 extends _i1.SmartFake
+    implements _i3.StreamQueryUpdateRules {
+  _FakeStreamQueryUpdateRules_49(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeDatabaseConnection_50 extends _i1.SmartFake
+    implements _i3.DatabaseConnection {
+  _FakeDatabaseConnection_50(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeQueryExecutor_51 extends _i1.SmartFake implements _i3.QueryExecutor {
+  _FakeQueryExecutor_51(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeStreamQueryStore_52 extends _i1.SmartFake
+    implements _i5.StreamQueryStore {
+  _FakeStreamQueryStore_52(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeDatabaseConnectionUser_53 extends _i1.SmartFake
+    implements _i3.DatabaseConnectionUser {
+  _FakeDatabaseConnectionUser_53(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeMigrator_54 extends _i1.SmartFake implements _i3.Migrator {
+  _FakeMigrator_54(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeFuture_55<T1> extends _i1.SmartFake implements _i6.Future<T1> {
+  _FakeFuture_55(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeInsertStatement_56<T1 extends _i3.Table, D1> extends _i1.SmartFake
+    implements _i3.InsertStatement<T1, D1> {
+  _FakeInsertStatement_56(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeUpdateStatement_57<T extends _i3.Table, D> extends _i1.SmartFake
+    implements _i3.UpdateStatement<T, D> {
+  _FakeUpdateStatement_57(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeSimpleSelectStatement_58<T1 extends _i3.HasResultSet, D>
+    extends _i1.SmartFake
+    implements _i3.SimpleSelectStatement<T1, D> {
+  _FakeSimpleSelectStatement_58(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeJoinedSelectStatement_59<FirstT extends _i3.HasResultSet, FirstD>
+    extends _i1.SmartFake
+    implements _i3.JoinedSelectStatement<FirstT, FirstD> {
+  _FakeJoinedSelectStatement_59(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeBaseSelectStatement_60<Row> extends _i1.SmartFake
+    implements _i3.BaseSelectStatement<Row> {
+  _FakeBaseSelectStatement_60(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeDeleteStatement_61<T1 extends _i3.Table, D1> extends _i1.SmartFake
+    implements _i3.DeleteStatement<T1, D1> {
+  _FakeDeleteStatement_61(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeSelectable_62<T> extends _i1.SmartFake implements _i3.Selectable<T> {
+  _FakeSelectable_62(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeGenerationContext_63 extends _i1.SmartFake
+    implements _i3.GenerationContext {
+  _FakeGenerationContext_63(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [CustomerLocalDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCustomerLocalDataSource extends _i1.Mock
-    implements _i3.CustomerLocalDataSource {
+    implements _i7.CustomerLocalDataSource {
   MockCustomerLocalDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Stream<List<_i5.Customer>> watchAllCustomers() =>
+  _i6.Stream<List<_i4.Customer>> watchAllCustomers() =>
       (super.noSuchMethod(
             Invocation.method(#watchAllCustomers, []),
-            returnValue: _i4.Stream<List<_i5.Customer>>.empty(),
+            returnValue: _i6.Stream<List<_i4.Customer>>.empty(),
           )
-          as _i4.Stream<List<_i5.Customer>>);
+          as _i6.Stream<List<_i4.Customer>>);
 
   @override
-  _i4.Stream<List<_i5.Customer>> watchCustomersPaginated({
+  _i6.Stream<List<_i4.Customer>> watchCustomersPaginated({
     required int? limit,
     String? searchQuery,
   }) =>
@@ -63,552 +439,552 @@ class MockCustomerLocalDataSource extends _i1.Mock
               #limit: limit,
               #searchQuery: searchQuery,
             }),
-            returnValue: _i4.Stream<List<_i5.Customer>>.empty(),
+            returnValue: _i6.Stream<List<_i4.Customer>>.empty(),
           )
-          as _i4.Stream<List<_i5.Customer>>);
+          as _i6.Stream<List<_i4.Customer>>);
 
   @override
-  _i4.Stream<List<_i5.Customer>> watchCustomersByRm(String? rmId) =>
+  _i6.Stream<List<_i4.Customer>> watchCustomersByRm(String? rmId) =>
       (super.noSuchMethod(
             Invocation.method(#watchCustomersByRm, [rmId]),
-            returnValue: _i4.Stream<List<_i5.Customer>>.empty(),
+            returnValue: _i6.Stream<List<_i4.Customer>>.empty(),
           )
-          as _i4.Stream<List<_i5.Customer>>);
+          as _i6.Stream<List<_i4.Customer>>);
 
   @override
-  _i4.Stream<_i5.Customer?> watchCustomerById(String? id) =>
+  _i6.Stream<_i4.Customer?> watchCustomerById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#watchCustomerById, [id]),
-            returnValue: _i4.Stream<_i5.Customer?>.empty(),
+            returnValue: _i6.Stream<_i4.Customer?>.empty(),
           )
-          as _i4.Stream<_i5.Customer?>);
+          as _i6.Stream<_i4.Customer?>);
 
   @override
-  _i4.Future<List<_i5.Customer>> getAllCustomers() =>
+  _i6.Future<List<_i4.Customer>> getAllCustomers() =>
       (super.noSuchMethod(
             Invocation.method(#getAllCustomers, []),
-            returnValue: _i4.Future<List<_i5.Customer>>.value(<_i5.Customer>[]),
+            returnValue: _i6.Future<List<_i4.Customer>>.value(<_i4.Customer>[]),
           )
-          as _i4.Future<List<_i5.Customer>>);
+          as _i6.Future<List<_i4.Customer>>);
 
   @override
-  _i4.Future<_i5.Customer?> getCustomerById(String? id) =>
+  _i6.Future<_i4.Customer?> getCustomerById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getCustomerById, [id]),
-            returnValue: _i4.Future<_i5.Customer?>.value(),
+            returnValue: _i6.Future<_i4.Customer?>.value(),
           )
-          as _i4.Future<_i5.Customer?>);
+          as _i6.Future<_i4.Customer?>);
 
   @override
-  _i4.Future<_i5.Customer?> getCustomerByCode(String? code) =>
+  _i6.Future<_i4.Customer?> getCustomerByCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getCustomerByCode, [code]),
-            returnValue: _i4.Future<_i5.Customer?>.value(),
+            returnValue: _i6.Future<_i4.Customer?>.value(),
           )
-          as _i4.Future<_i5.Customer?>);
+          as _i6.Future<_i4.Customer?>);
 
   @override
-  _i4.Future<void> insertCustomer(_i5.CustomersCompanion? customer) =>
+  _i6.Future<void> insertCustomer(_i4.CustomersCompanion? customer) =>
       (super.noSuchMethod(
             Invocation.method(#insertCustomer, [customer]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> updateCustomer(
+  _i6.Future<void> updateCustomer(
     String? id,
-    _i5.CustomersCompanion? customer,
+    _i4.CustomersCompanion? customer,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateCustomer, [id, customer]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> softDeleteCustomer(String? id) =>
+  _i6.Future<void> softDeleteCustomer(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#softDeleteCustomer, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<int> hardDeleteCustomer(String? id) =>
+  _i6.Future<int> hardDeleteCustomer(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hardDeleteCustomer, [id]),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Future<List<_i5.Customer>> searchCustomers(String? query) =>
+  _i6.Future<List<_i4.Customer>> searchCustomers(String? query) =>
       (super.noSuchMethod(
             Invocation.method(#searchCustomers, [query]),
-            returnValue: _i4.Future<List<_i5.Customer>>.value(<_i5.Customer>[]),
+            returnValue: _i6.Future<List<_i4.Customer>>.value(<_i4.Customer>[]),
           )
-          as _i4.Future<List<_i5.Customer>>);
+          as _i6.Future<List<_i4.Customer>>);
 
   @override
-  _i4.Future<List<_i5.Customer>> getCustomersByAssignedRm(String? rmId) =>
+  _i6.Future<List<_i4.Customer>> getCustomersByAssignedRm(String? rmId) =>
       (super.noSuchMethod(
             Invocation.method(#getCustomersByAssignedRm, [rmId]),
-            returnValue: _i4.Future<List<_i5.Customer>>.value(<_i5.Customer>[]),
+            returnValue: _i6.Future<List<_i4.Customer>>.value(<_i4.Customer>[]),
           )
-          as _i4.Future<List<_i5.Customer>>);
+          as _i6.Future<List<_i4.Customer>>);
 
   @override
-  _i4.Future<List<_i5.Customer>> getPendingSyncCustomers() =>
+  _i6.Future<List<_i4.Customer>> getPendingSyncCustomers() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingSyncCustomers, []),
-            returnValue: _i4.Future<List<_i5.Customer>>.value(<_i5.Customer>[]),
+            returnValue: _i6.Future<List<_i4.Customer>>.value(<_i4.Customer>[]),
           )
-          as _i4.Future<List<_i5.Customer>>);
+          as _i6.Future<List<_i4.Customer>>);
 
   @override
-  _i4.Future<List<_i5.Customer>> getActiveCustomers() =>
+  _i6.Future<List<_i4.Customer>> getActiveCustomers() =>
       (super.noSuchMethod(
             Invocation.method(#getActiveCustomers, []),
-            returnValue: _i4.Future<List<_i5.Customer>>.value(<_i5.Customer>[]),
+            returnValue: _i6.Future<List<_i4.Customer>>.value(<_i4.Customer>[]),
           )
-          as _i4.Future<List<_i5.Customer>>);
+          as _i6.Future<List<_i4.Customer>>);
 
   @override
-  _i4.Future<void> markAsSynced(String? id, DateTime? syncedAt) =>
+  _i6.Future<void> markAsSynced(String? id, DateTime? syncedAt) =>
       (super.noSuchMethod(
             Invocation.method(#markAsSynced, [id, syncedAt]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> upsertCustomers(List<_i5.CustomersCompanion>? customers) =>
+  _i6.Future<void> upsertCustomers(List<_i4.CustomersCompanion>? customers) =>
       (super.noSuchMethod(
             Invocation.method(#upsertCustomers, [customers]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<int> getPendingSyncCount() =>
+  _i6.Future<int> getPendingSyncCount() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingSyncCount, []),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Future<DateTime?> getLastSyncTimestamp() =>
+  _i6.Future<DateTime?> getLastSyncTimestamp() =>
       (super.noSuchMethod(
             Invocation.method(#getLastSyncTimestamp, []),
-            returnValue: _i4.Future<DateTime?>.value(),
+            returnValue: _i6.Future<DateTime?>.value(),
           )
-          as _i4.Future<DateTime?>);
+          as _i6.Future<DateTime?>);
 
   @override
-  _i4.Future<int> getTotalCount() =>
+  _i6.Future<int> getTotalCount() =>
       (super.noSuchMethod(
             Invocation.method(#getTotalCount, []),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Future<int> getCustomerCount({String? searchQuery}) =>
+  _i6.Future<int> getCustomerCount({String? searchQuery}) =>
       (super.noSuchMethod(
             Invocation.method(#getCustomerCount, [], {
               #searchQuery: searchQuery,
             }),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Future<int> getActiveCount() =>
+  _i6.Future<int> getActiveCount() =>
       (super.noSuchMethod(
             Invocation.method(#getActiveCount, []),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 }
 
 /// A class which mocks [KeyPersonLocalDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockKeyPersonLocalDataSource extends _i1.Mock
-    implements _i6.KeyPersonLocalDataSource {
+    implements _i8.KeyPersonLocalDataSource {
   MockKeyPersonLocalDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<List<_i5.KeyPerson>> getKeyPersonsByCustomer(String? customerId) =>
+  _i6.Future<List<_i4.KeyPerson>> getKeyPersonsByCustomer(String? customerId) =>
       (super.noSuchMethod(
             Invocation.method(#getKeyPersonsByCustomer, [customerId]),
-            returnValue: _i4.Future<List<_i5.KeyPerson>>.value(
-              <_i5.KeyPerson>[],
+            returnValue: _i6.Future<List<_i4.KeyPerson>>.value(
+              <_i4.KeyPerson>[],
             ),
           )
-          as _i4.Future<List<_i5.KeyPerson>>);
+          as _i6.Future<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Stream<List<_i5.KeyPerson>> watchKeyPersonsByCustomer(
+  _i6.Stream<List<_i4.KeyPerson>> watchKeyPersonsByCustomer(
     String? customerId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#watchKeyPersonsByCustomer, [customerId]),
-            returnValue: _i4.Stream<List<_i5.KeyPerson>>.empty(),
+            returnValue: _i6.Stream<List<_i4.KeyPerson>>.empty(),
           )
-          as _i4.Stream<List<_i5.KeyPerson>>);
+          as _i6.Stream<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Future<List<_i5.KeyPerson>> getKeyPersonsByHvc(String? hvcId) =>
+  _i6.Future<List<_i4.KeyPerson>> getKeyPersonsByHvc(String? hvcId) =>
       (super.noSuchMethod(
             Invocation.method(#getKeyPersonsByHvc, [hvcId]),
-            returnValue: _i4.Future<List<_i5.KeyPerson>>.value(
-              <_i5.KeyPerson>[],
+            returnValue: _i6.Future<List<_i4.KeyPerson>>.value(
+              <_i4.KeyPerson>[],
             ),
           )
-          as _i4.Future<List<_i5.KeyPerson>>);
+          as _i6.Future<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Stream<List<_i5.KeyPerson>> watchKeyPersonsByHvc(String? hvcId) =>
+  _i6.Stream<List<_i4.KeyPerson>> watchKeyPersonsByHvc(String? hvcId) =>
       (super.noSuchMethod(
             Invocation.method(#watchKeyPersonsByHvc, [hvcId]),
-            returnValue: _i4.Stream<List<_i5.KeyPerson>>.empty(),
+            returnValue: _i6.Stream<List<_i4.KeyPerson>>.empty(),
           )
-          as _i4.Stream<List<_i5.KeyPerson>>);
+          as _i6.Stream<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Future<List<_i5.KeyPerson>> getKeyPersonsByBroker(String? brokerId) =>
+  _i6.Future<List<_i4.KeyPerson>> getKeyPersonsByBroker(String? brokerId) =>
       (super.noSuchMethod(
             Invocation.method(#getKeyPersonsByBroker, [brokerId]),
-            returnValue: _i4.Future<List<_i5.KeyPerson>>.value(
-              <_i5.KeyPerson>[],
+            returnValue: _i6.Future<List<_i4.KeyPerson>>.value(
+              <_i4.KeyPerson>[],
             ),
           )
-          as _i4.Future<List<_i5.KeyPerson>>);
+          as _i6.Future<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Future<_i5.KeyPerson?> getKeyPersonById(String? id) =>
+  _i6.Future<_i4.KeyPerson?> getKeyPersonById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getKeyPersonById, [id]),
-            returnValue: _i4.Future<_i5.KeyPerson?>.value(),
+            returnValue: _i6.Future<_i4.KeyPerson?>.value(),
           )
-          as _i4.Future<_i5.KeyPerson?>);
+          as _i6.Future<_i4.KeyPerson?>);
 
   @override
-  _i4.Future<_i5.KeyPerson?> getPrimaryKeyPerson(String? customerId) =>
+  _i6.Future<_i4.KeyPerson?> getPrimaryKeyPerson(String? customerId) =>
       (super.noSuchMethod(
             Invocation.method(#getPrimaryKeyPerson, [customerId]),
-            returnValue: _i4.Future<_i5.KeyPerson?>.value(),
+            returnValue: _i6.Future<_i4.KeyPerson?>.value(),
           )
-          as _i4.Future<_i5.KeyPerson?>);
+          as _i6.Future<_i4.KeyPerson?>);
 
   @override
-  _i4.Stream<_i5.KeyPerson?> watchPrimaryKeyPerson(String? customerId) =>
+  _i6.Stream<_i4.KeyPerson?> watchPrimaryKeyPerson(String? customerId) =>
       (super.noSuchMethod(
             Invocation.method(#watchPrimaryKeyPerson, [customerId]),
-            returnValue: _i4.Stream<_i5.KeyPerson?>.empty(),
+            returnValue: _i6.Stream<_i4.KeyPerson?>.empty(),
           )
-          as _i4.Stream<_i5.KeyPerson?>);
+          as _i6.Stream<_i4.KeyPerson?>);
 
   @override
-  _i4.Future<void> insertKeyPerson(_i5.KeyPersonsCompanion? keyPerson) =>
+  _i6.Future<void> insertKeyPerson(_i4.KeyPersonsCompanion? keyPerson) =>
       (super.noSuchMethod(
             Invocation.method(#insertKeyPerson, [keyPerson]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> updateKeyPerson(
+  _i6.Future<void> updateKeyPerson(
     String? id,
-    _i5.KeyPersonsCompanion? keyPerson,
+    _i4.KeyPersonsCompanion? keyPerson,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateKeyPerson, [id, keyPerson]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> softDeleteKeyPerson(String? id) =>
+  _i6.Future<void> softDeleteKeyPerson(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#softDeleteKeyPerson, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<int> hardDeleteKeyPerson(String? id) =>
+  _i6.Future<int> hardDeleteKeyPerson(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hardDeleteKeyPerson, [id]),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Future<void> clearPrimaryForCustomer(String? customerId) =>
+  _i6.Future<void> clearPrimaryForCustomer(String? customerId) =>
       (super.noSuchMethod(
             Invocation.method(#clearPrimaryForCustomer, [customerId]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<List<_i5.KeyPerson>> getPendingSyncKeyPersons() =>
+  _i6.Future<List<_i4.KeyPerson>> getPendingSyncKeyPersons() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingSyncKeyPersons, []),
-            returnValue: _i4.Future<List<_i5.KeyPerson>>.value(
-              <_i5.KeyPerson>[],
+            returnValue: _i6.Future<List<_i4.KeyPerson>>.value(
+              <_i4.KeyPerson>[],
             ),
           )
-          as _i4.Future<List<_i5.KeyPerson>>);
+          as _i6.Future<List<_i4.KeyPerson>>);
 
   @override
-  _i4.Future<void> markAsSynced(String? id) =>
+  _i6.Future<void> markAsSynced(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#markAsSynced, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<void> upsertKeyPersons(
-    List<_i5.KeyPersonsCompanion>? keyPersons,
+  _i6.Future<void> upsertKeyPersons(
+    List<_i4.KeyPersonsCompanion>? keyPersons,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#upsertKeyPersons, [keyPersons]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 }
 
 /// A class which mocks [CustomerRemoteDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCustomerRemoteDataSource extends _i1.Mock
-    implements _i7.CustomerRemoteDataSource {
+    implements _i9.CustomerRemoteDataSource {
   MockCustomerRemoteDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchCustomers({DateTime? since}) =>
+  _i6.Future<List<Map<String, dynamic>>> fetchCustomers({DateTime? since}) =>
       (super.noSuchMethod(
             Invocation.method(#fetchCustomers, [], {#since: since}),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchCustomersByRm(
+  _i6.Future<List<Map<String, dynamic>>> fetchCustomersByRm(
     String? rmId, {
     DateTime? since,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#fetchCustomersByRm, [rmId], {#since: since}),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<Map<String, dynamic>?> fetchCustomerById(String? id) =>
+  _i6.Future<Map<String, dynamic>?> fetchCustomerById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#fetchCustomerById, [id]),
-            returnValue: _i4.Future<Map<String, dynamic>?>.value(),
+            returnValue: _i6.Future<Map<String, dynamic>?>.value(),
           )
-          as _i4.Future<Map<String, dynamic>?>);
+          as _i6.Future<Map<String, dynamic>?>);
 
   @override
-  _i4.Future<Map<String, dynamic>> createCustomer(Map<String, dynamic>? data) =>
+  _i6.Future<Map<String, dynamic>> createCustomer(Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#createCustomer, [data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<Map<String, dynamic>> updateCustomer(
+  _i6.Future<Map<String, dynamic>> updateCustomer(
     String? id,
     Map<String, dynamic>? data,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateCustomer, [id, data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<void> deleteCustomer(String? id) =>
+  _i6.Future<void> deleteCustomer(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteCustomer, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<Map<String, dynamic>> upsertCustomer(Map<String, dynamic>? data) =>
+  _i6.Future<Map<String, dynamic>> upsertCustomer(Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#upsertCustomer, [data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<int> getCustomerCountByRm(String? rmId) =>
+  _i6.Future<int> getCustomerCountByRm(String? rmId) =>
       (super.noSuchMethod(
             Invocation.method(#getCustomerCountByRm, [rmId]),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 }
 
 /// A class which mocks [KeyPersonRemoteDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockKeyPersonRemoteDataSource extends _i1.Mock
-    implements _i7.KeyPersonRemoteDataSource {
+    implements _i9.KeyPersonRemoteDataSource {
   MockKeyPersonRemoteDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchKeyPersons({DateTime? since}) =>
+  _i6.Future<List<Map<String, dynamic>>> fetchKeyPersons({DateTime? since}) =>
       (super.noSuchMethod(
             Invocation.method(#fetchKeyPersons, [], {#since: since}),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchKeyPersonsByCustomer(
+  _i6.Future<List<Map<String, dynamic>>> fetchKeyPersonsByCustomer(
     String? customerId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#fetchKeyPersonsByCustomer, [customerId]),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchKeyPersonsByHvc(String? hvcId) =>
+  _i6.Future<List<Map<String, dynamic>>> fetchKeyPersonsByHvc(String? hvcId) =>
       (super.noSuchMethod(
             Invocation.method(#fetchKeyPersonsByHvc, [hvcId]),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<List<Map<String, dynamic>>> fetchKeyPersonsByBroker(
+  _i6.Future<List<Map<String, dynamic>>> fetchKeyPersonsByBroker(
     String? brokerId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#fetchKeyPersonsByBroker, [brokerId]),
-            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i4.Future<List<Map<String, dynamic>>>);
+          as _i6.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i4.Future<Map<String, dynamic>> createKeyPerson(
+  _i6.Future<Map<String, dynamic>> createKeyPerson(
     Map<String, dynamic>? data,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#createKeyPerson, [data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<Map<String, dynamic>> updateKeyPerson(
+  _i6.Future<Map<String, dynamic>> updateKeyPerson(
     String? id,
     Map<String, dynamic>? data,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateKeyPerson, [id, data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<void> deleteKeyPerson(String? id) =>
+  _i6.Future<void> deleteKeyPerson(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteKeyPerson, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i6.Future<void>);
 
   @override
-  _i4.Future<Map<String, dynamic>> upsertKeyPerson(
+  _i6.Future<Map<String, dynamic>> upsertKeyPerson(
     Map<String, dynamic>? data,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#upsertKeyPerson, [data]),
-            returnValue: _i4.Future<Map<String, dynamic>>.value(
+            returnValue: _i6.Future<Map<String, dynamic>>.value(
               <String, dynamic>{},
             ),
           )
-          as _i4.Future<Map<String, dynamic>>);
+          as _i6.Future<Map<String, dynamic>>);
 }
 
 /// A class which mocks [SyncService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncService extends _i1.Mock implements _i8.SyncService {
+class MockSyncService extends _i1.Mock implements _i10.SyncService {
   MockSyncService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Stream<_i2.SyncState> get syncStateStream =>
+  _i6.Stream<_i2.SyncState> get syncStateStream =>
       (super.noSuchMethod(
             Invocation.getter(#syncStateStream),
-            returnValue: _i4.Stream<_i2.SyncState>.empty(),
+            returnValue: _i6.Stream<_i2.SyncState>.empty(),
           )
-          as _i4.Stream<_i2.SyncState>);
+          as _i6.Stream<_i2.SyncState>);
 
   @override
   _i2.SyncState get currentState =>
       (super.noSuchMethod(
             Invocation.getter(#currentState),
-            returnValue: _i9.dummyValue<_i2.SyncState>(
+            returnValue: _i11.dummyValue<_i2.SyncState>(
               this,
               Invocation.getter(#currentState),
             ),
@@ -621,24 +997,24 @@ class MockSyncService extends _i1.Mock implements _i8.SyncService {
           as bool);
 
   @override
-  _i4.Future<_i2.SyncResult> processQueue() =>
+  _i6.Future<_i2.SyncResult> processQueue() =>
       (super.noSuchMethod(
             Invocation.method(#processQueue, []),
-            returnValue: _i4.Future<_i2.SyncResult>.value(
+            returnValue: _i6.Future<_i2.SyncResult>.value(
               _FakeSyncResult_0(this, Invocation.method(#processQueue, [])),
             ),
           )
-          as _i4.Future<_i2.SyncResult>);
+          as _i6.Future<_i2.SyncResult>);
 
   @override
-  _i4.Future<_i2.SyncResult> triggerSync() =>
+  _i6.Future<_i2.SyncResult> triggerSync() =>
       (super.noSuchMethod(
             Invocation.method(#triggerSync, []),
-            returnValue: _i4.Future<_i2.SyncResult>.value(
+            returnValue: _i6.Future<_i2.SyncResult>.value(
               _FakeSyncResult_0(this, Invocation.method(#triggerSync, [])),
             ),
           )
-          as _i4.Future<_i2.SyncResult>);
+          as _i6.Future<_i2.SyncResult>);
 
   @override
   void startBackgroundSync({Duration? interval = const Duration(minutes: 5)}) =>
@@ -654,7 +1030,7 @@ class MockSyncService extends _i1.Mock implements _i8.SyncService {
   );
 
   @override
-  _i4.Future<int> queueOperation({
+  _i6.Future<int> queueOperation({
     required _i2.SyncEntityType? entityType,
     required String? entityId,
     required _i2.SyncOperation? operation,
@@ -667,29 +1043,1081 @@ class MockSyncService extends _i1.Mock implements _i8.SyncService {
               #operation: operation,
               #payload: payload,
             }),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
-  _i4.Stream<int> watchPendingCount() =>
+  _i6.Stream<int> watchPendingCount() =>
       (super.noSuchMethod(
             Invocation.method(#watchPendingCount, []),
-            returnValue: _i4.Stream<int>.empty(),
+            returnValue: _i6.Stream<int>.empty(),
           )
-          as _i4.Stream<int>);
+          as _i6.Stream<int>);
 
   @override
-  _i4.Future<int> getPendingCount() =>
+  _i6.Future<int> getPendingCount() =>
       (super.noSuchMethod(
             Invocation.method(#getPendingCount, []),
-            returnValue: _i4.Future<int>.value(0),
+            returnValue: _i6.Future<int>.value(0),
           )
-          as _i4.Future<int>);
+          as _i6.Future<int>);
 
   @override
   void dispose() => super.noSuchMethod(
     Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
   );
+}
+
+/// A class which mocks [AppDatabase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAppDatabase extends _i1.Mock implements _i4.AppDatabase {
+  MockAppDatabase() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  int get schemaVersion =>
+      (super.noSuchMethod(Invocation.getter(#schemaVersion), returnValue: 0)
+          as int);
+
+  @override
+  _i3.MigrationStrategy get migration =>
+      (super.noSuchMethod(
+            Invocation.getter(#migration),
+            returnValue: _FakeMigrationStrategy_1(
+              this,
+              Invocation.getter(#migration),
+            ),
+          )
+          as _i3.MigrationStrategy);
+
+  @override
+  _i4.$RegionalOfficesTable get regionalOffices =>
+      (super.noSuchMethod(
+            Invocation.getter(#regionalOffices),
+            returnValue: _Fake$RegionalOfficesTable_2(
+              this,
+              Invocation.getter(#regionalOffices),
+            ),
+          )
+          as _i4.$RegionalOfficesTable);
+
+  @override
+  _i4.$BranchesTable get branches =>
+      (super.noSuchMethod(
+            Invocation.getter(#branches),
+            returnValue: _Fake$BranchesTable_3(
+              this,
+              Invocation.getter(#branches),
+            ),
+          )
+          as _i4.$BranchesTable);
+
+  @override
+  _i4.$UsersTable get users =>
+      (super.noSuchMethod(
+            Invocation.getter(#users),
+            returnValue: _Fake$UsersTable_4(this, Invocation.getter(#users)),
+          )
+          as _i4.$UsersTable);
+
+  @override
+  _i4.$UserHierarchyTable get userHierarchy =>
+      (super.noSuchMethod(
+            Invocation.getter(#userHierarchy),
+            returnValue: _Fake$UserHierarchyTable_5(
+              this,
+              Invocation.getter(#userHierarchy),
+            ),
+          )
+          as _i4.$UserHierarchyTable);
+
+  @override
+  _i4.$ProvincesTable get provinces =>
+      (super.noSuchMethod(
+            Invocation.getter(#provinces),
+            returnValue: _Fake$ProvincesTable_6(
+              this,
+              Invocation.getter(#provinces),
+            ),
+          )
+          as _i4.$ProvincesTable);
+
+  @override
+  _i4.$CitiesTable get cities =>
+      (super.noSuchMethod(
+            Invocation.getter(#cities),
+            returnValue: _Fake$CitiesTable_7(this, Invocation.getter(#cities)),
+          )
+          as _i4.$CitiesTable);
+
+  @override
+  _i4.$CompanyTypesTable get companyTypes =>
+      (super.noSuchMethod(
+            Invocation.getter(#companyTypes),
+            returnValue: _Fake$CompanyTypesTable_8(
+              this,
+              Invocation.getter(#companyTypes),
+            ),
+          )
+          as _i4.$CompanyTypesTable);
+
+  @override
+  _i4.$OwnershipTypesTable get ownershipTypes =>
+      (super.noSuchMethod(
+            Invocation.getter(#ownershipTypes),
+            returnValue: _Fake$OwnershipTypesTable_9(
+              this,
+              Invocation.getter(#ownershipTypes),
+            ),
+          )
+          as _i4.$OwnershipTypesTable);
+
+  @override
+  _i4.$IndustriesTable get industries =>
+      (super.noSuchMethod(
+            Invocation.getter(#industries),
+            returnValue: _Fake$IndustriesTable_10(
+              this,
+              Invocation.getter(#industries),
+            ),
+          )
+          as _i4.$IndustriesTable);
+
+  @override
+  _i4.$CobsTable get cobs =>
+      (super.noSuchMethod(
+            Invocation.getter(#cobs),
+            returnValue: _Fake$CobsTable_11(this, Invocation.getter(#cobs)),
+          )
+          as _i4.$CobsTable);
+
+  @override
+  _i4.$LobsTable get lobs =>
+      (super.noSuchMethod(
+            Invocation.getter(#lobs),
+            returnValue: _Fake$LobsTable_12(this, Invocation.getter(#lobs)),
+          )
+          as _i4.$LobsTable);
+
+  @override
+  _i4.$PipelineStagesTable get pipelineStages =>
+      (super.noSuchMethod(
+            Invocation.getter(#pipelineStages),
+            returnValue: _Fake$PipelineStagesTable_13(
+              this,
+              Invocation.getter(#pipelineStages),
+            ),
+          )
+          as _i4.$PipelineStagesTable);
+
+  @override
+  _i4.$PipelineStatusesTable get pipelineStatuses =>
+      (super.noSuchMethod(
+            Invocation.getter(#pipelineStatuses),
+            returnValue: _Fake$PipelineStatusesTable_14(
+              this,
+              Invocation.getter(#pipelineStatuses),
+            ),
+          )
+          as _i4.$PipelineStatusesTable);
+
+  @override
+  _i4.$ActivityTypesTable get activityTypes =>
+      (super.noSuchMethod(
+            Invocation.getter(#activityTypes),
+            returnValue: _Fake$ActivityTypesTable_15(
+              this,
+              Invocation.getter(#activityTypes),
+            ),
+          )
+          as _i4.$ActivityTypesTable);
+
+  @override
+  _i4.$LeadSourcesTable get leadSources =>
+      (super.noSuchMethod(
+            Invocation.getter(#leadSources),
+            returnValue: _Fake$LeadSourcesTable_16(
+              this,
+              Invocation.getter(#leadSources),
+            ),
+          )
+          as _i4.$LeadSourcesTable);
+
+  @override
+  _i4.$DeclineReasonsTable get declineReasons =>
+      (super.noSuchMethod(
+            Invocation.getter(#declineReasons),
+            returnValue: _Fake$DeclineReasonsTable_17(
+              this,
+              Invocation.getter(#declineReasons),
+            ),
+          )
+          as _i4.$DeclineReasonsTable);
+
+  @override
+  _i4.$CustomersTable get customers =>
+      (super.noSuchMethod(
+            Invocation.getter(#customers),
+            returnValue: _Fake$CustomersTable_18(
+              this,
+              Invocation.getter(#customers),
+            ),
+          )
+          as _i4.$CustomersTable);
+
+  @override
+  _i4.$KeyPersonsTable get keyPersons =>
+      (super.noSuchMethod(
+            Invocation.getter(#keyPersons),
+            returnValue: _Fake$KeyPersonsTable_19(
+              this,
+              Invocation.getter(#keyPersons),
+            ),
+          )
+          as _i4.$KeyPersonsTable);
+
+  @override
+  _i4.$PipelinesTable get pipelines =>
+      (super.noSuchMethod(
+            Invocation.getter(#pipelines),
+            returnValue: _Fake$PipelinesTable_20(
+              this,
+              Invocation.getter(#pipelines),
+            ),
+          )
+          as _i4.$PipelinesTable);
+
+  @override
+  _i4.$PipelineReferralsTable get pipelineReferrals =>
+      (super.noSuchMethod(
+            Invocation.getter(#pipelineReferrals),
+            returnValue: _Fake$PipelineReferralsTable_21(
+              this,
+              Invocation.getter(#pipelineReferrals),
+            ),
+          )
+          as _i4.$PipelineReferralsTable);
+
+  @override
+  _i4.$ActivitiesTable get activities =>
+      (super.noSuchMethod(
+            Invocation.getter(#activities),
+            returnValue: _Fake$ActivitiesTable_22(
+              this,
+              Invocation.getter(#activities),
+            ),
+          )
+          as _i4.$ActivitiesTable);
+
+  @override
+  _i4.$ActivityPhotosTable get activityPhotos =>
+      (super.noSuchMethod(
+            Invocation.getter(#activityPhotos),
+            returnValue: _Fake$ActivityPhotosTable_23(
+              this,
+              Invocation.getter(#activityPhotos),
+            ),
+          )
+          as _i4.$ActivityPhotosTable);
+
+  @override
+  _i4.$ActivityAuditLogsTable get activityAuditLogs =>
+      (super.noSuchMethod(
+            Invocation.getter(#activityAuditLogs),
+            returnValue: _Fake$ActivityAuditLogsTable_24(
+              this,
+              Invocation.getter(#activityAuditLogs),
+            ),
+          )
+          as _i4.$ActivityAuditLogsTable);
+
+  @override
+  _i4.$HvcTypesTable get hvcTypes =>
+      (super.noSuchMethod(
+            Invocation.getter(#hvcTypes),
+            returnValue: _Fake$HvcTypesTable_25(
+              this,
+              Invocation.getter(#hvcTypes),
+            ),
+          )
+          as _i4.$HvcTypesTable);
+
+  @override
+  _i4.$HvcsTable get hvcs =>
+      (super.noSuchMethod(
+            Invocation.getter(#hvcs),
+            returnValue: _Fake$HvcsTable_26(this, Invocation.getter(#hvcs)),
+          )
+          as _i4.$HvcsTable);
+
+  @override
+  _i4.$CustomerHvcLinksTable get customerHvcLinks =>
+      (super.noSuchMethod(
+            Invocation.getter(#customerHvcLinks),
+            returnValue: _Fake$CustomerHvcLinksTable_27(
+              this,
+              Invocation.getter(#customerHvcLinks),
+            ),
+          )
+          as _i4.$CustomerHvcLinksTable);
+
+  @override
+  _i4.$BrokersTable get brokers =>
+      (super.noSuchMethod(
+            Invocation.getter(#brokers),
+            returnValue: _Fake$BrokersTable_28(
+              this,
+              Invocation.getter(#brokers),
+            ),
+          )
+          as _i4.$BrokersTable);
+
+  @override
+  _i4.$MeasureDefinitionsTable get measureDefinitions =>
+      (super.noSuchMethod(
+            Invocation.getter(#measureDefinitions),
+            returnValue: _Fake$MeasureDefinitionsTable_29(
+              this,
+              Invocation.getter(#measureDefinitions),
+            ),
+          )
+          as _i4.$MeasureDefinitionsTable);
+
+  @override
+  _i4.$ScoringPeriodsTable get scoringPeriods =>
+      (super.noSuchMethod(
+            Invocation.getter(#scoringPeriods),
+            returnValue: _Fake$ScoringPeriodsTable_30(
+              this,
+              Invocation.getter(#scoringPeriods),
+            ),
+          )
+          as _i4.$ScoringPeriodsTable);
+
+  @override
+  _i4.$UserTargetsTable get userTargets =>
+      (super.noSuchMethod(
+            Invocation.getter(#userTargets),
+            returnValue: _Fake$UserTargetsTable_31(
+              this,
+              Invocation.getter(#userTargets),
+            ),
+          )
+          as _i4.$UserTargetsTable);
+
+  @override
+  _i4.$UserScoresTable get userScores =>
+      (super.noSuchMethod(
+            Invocation.getter(#userScores),
+            returnValue: _Fake$UserScoresTable_32(
+              this,
+              Invocation.getter(#userScores),
+            ),
+          )
+          as _i4.$UserScoresTable);
+
+  @override
+  _i4.$UserScoreAggregatesTable get userScoreAggregates =>
+      (super.noSuchMethod(
+            Invocation.getter(#userScoreAggregates),
+            returnValue: _Fake$UserScoreAggregatesTable_33(
+              this,
+              Invocation.getter(#userScoreAggregates),
+            ),
+          )
+          as _i4.$UserScoreAggregatesTable);
+
+  @override
+  _i4.$CadenceScheduleConfigTable get cadenceScheduleConfig =>
+      (super.noSuchMethod(
+            Invocation.getter(#cadenceScheduleConfig),
+            returnValue: _Fake$CadenceScheduleConfigTable_34(
+              this,
+              Invocation.getter(#cadenceScheduleConfig),
+            ),
+          )
+          as _i4.$CadenceScheduleConfigTable);
+
+  @override
+  _i4.$CadenceMeetingsTable get cadenceMeetings =>
+      (super.noSuchMethod(
+            Invocation.getter(#cadenceMeetings),
+            returnValue: _Fake$CadenceMeetingsTable_35(
+              this,
+              Invocation.getter(#cadenceMeetings),
+            ),
+          )
+          as _i4.$CadenceMeetingsTable);
+
+  @override
+  _i4.$CadenceParticipantsTable get cadenceParticipants =>
+      (super.noSuchMethod(
+            Invocation.getter(#cadenceParticipants),
+            returnValue: _Fake$CadenceParticipantsTable_36(
+              this,
+              Invocation.getter(#cadenceParticipants),
+            ),
+          )
+          as _i4.$CadenceParticipantsTable);
+
+  @override
+  _i4.$NotificationsTable get notifications =>
+      (super.noSuchMethod(
+            Invocation.getter(#notifications),
+            returnValue: _Fake$NotificationsTable_37(
+              this,
+              Invocation.getter(#notifications),
+            ),
+          )
+          as _i4.$NotificationsTable);
+
+  @override
+  _i4.$NotificationSettingsTable get notificationSettings =>
+      (super.noSuchMethod(
+            Invocation.getter(#notificationSettings),
+            returnValue: _Fake$NotificationSettingsTable_38(
+              this,
+              Invocation.getter(#notificationSettings),
+            ),
+          )
+          as _i4.$NotificationSettingsTable);
+
+  @override
+  _i4.$AnnouncementsTable get announcements =>
+      (super.noSuchMethod(
+            Invocation.getter(#announcements),
+            returnValue: _Fake$AnnouncementsTable_39(
+              this,
+              Invocation.getter(#announcements),
+            ),
+          )
+          as _i4.$AnnouncementsTable);
+
+  @override
+  _i4.$AnnouncementReadsTable get announcementReads =>
+      (super.noSuchMethod(
+            Invocation.getter(#announcementReads),
+            returnValue: _Fake$AnnouncementReadsTable_40(
+              this,
+              Invocation.getter(#announcementReads),
+            ),
+          )
+          as _i4.$AnnouncementReadsTable);
+
+  @override
+  _i4.$SyncQueueItemsTable get syncQueueItems =>
+      (super.noSuchMethod(
+            Invocation.getter(#syncQueueItems),
+            returnValue: _Fake$SyncQueueItemsTable_41(
+              this,
+              Invocation.getter(#syncQueueItems),
+            ),
+          )
+          as _i4.$SyncQueueItemsTable);
+
+  @override
+  _i4.$AuditLogsTable get auditLogs =>
+      (super.noSuchMethod(
+            Invocation.getter(#auditLogs),
+            returnValue: _Fake$AuditLogsTable_42(
+              this,
+              Invocation.getter(#auditLogs),
+            ),
+          )
+          as _i4.$AuditLogsTable);
+
+  @override
+  _i4.$AppSettingsTable get appSettings =>
+      (super.noSuchMethod(
+            Invocation.getter(#appSettings),
+            returnValue: _Fake$AppSettingsTable_43(
+              this,
+              Invocation.getter(#appSettings),
+            ),
+          )
+          as _i4.$AppSettingsTable);
+
+  @override
+  _i4.$PipelineStageHistoryItemsTable get pipelineStageHistoryItems =>
+      (super.noSuchMethod(
+            Invocation.getter(#pipelineStageHistoryItems),
+            returnValue: _Fake$PipelineStageHistoryItemsTable_44(
+              this,
+              Invocation.getter(#pipelineStageHistoryItems),
+            ),
+          )
+          as _i4.$PipelineStageHistoryItemsTable);
+
+  @override
+  _i4.$AuditLogCacheTable get auditLogCache =>
+      (super.noSuchMethod(
+            Invocation.getter(#auditLogCache),
+            returnValue: _Fake$AuditLogCacheTable_45(
+              this,
+              Invocation.getter(#auditLogCache),
+            ),
+          )
+          as _i4.$AuditLogCacheTable);
+
+  @override
+  _i4.$AppDatabaseManager get managers =>
+      (super.noSuchMethod(
+            Invocation.getter(#managers),
+            returnValue: _Fake$AppDatabaseManager_46(
+              this,
+              Invocation.getter(#managers),
+            ),
+          )
+          as _i4.$AppDatabaseManager);
+
+  @override
+  Iterable<_i3.TableInfo<_i3.Table, Object?>> get allTables =>
+      (super.noSuchMethod(
+            Invocation.getter(#allTables),
+            returnValue: <_i3.TableInfo<_i3.Table, Object?>>[],
+          )
+          as Iterable<_i3.TableInfo<_i3.Table, Object?>>);
+
+  @override
+  List<_i3.DatabaseSchemaEntity> get allSchemaEntities =>
+      (super.noSuchMethod(
+            Invocation.getter(#allSchemaEntities),
+            returnValue: <_i3.DatabaseSchemaEntity>[],
+          )
+          as List<_i3.DatabaseSchemaEntity>);
+
+  @override
+  _i3.GeneratedDatabase get attachedDatabase =>
+      (super.noSuchMethod(
+            Invocation.getter(#attachedDatabase),
+            returnValue: _FakeGeneratedDatabase_47(
+              this,
+              Invocation.getter(#attachedDatabase),
+            ),
+          )
+          as _i3.GeneratedDatabase);
+
+  @override
+  _i3.DriftDatabaseOptions get options =>
+      (super.noSuchMethod(
+            Invocation.getter(#options),
+            returnValue: _FakeDriftDatabaseOptions_48(
+              this,
+              Invocation.getter(#options),
+            ),
+          )
+          as _i3.DriftDatabaseOptions);
+
+  @override
+  _i3.StreamQueryUpdateRules get streamUpdateRules =>
+      (super.noSuchMethod(
+            Invocation.getter(#streamUpdateRules),
+            returnValue: _FakeStreamQueryUpdateRules_49(
+              this,
+              Invocation.getter(#streamUpdateRules),
+            ),
+          )
+          as _i3.StreamQueryUpdateRules);
+
+  @override
+  _i3.DatabaseConnection get connection =>
+      (super.noSuchMethod(
+            Invocation.getter(#connection),
+            returnValue: _FakeDatabaseConnection_50(
+              this,
+              Invocation.getter(#connection),
+            ),
+          )
+          as _i3.DatabaseConnection);
+
+  @override
+  _i3.SqlTypes get typeMapping =>
+      (super.noSuchMethod(
+            Invocation.getter(#typeMapping),
+            returnValue: _i11.dummyValue<_i3.SqlTypes>(
+              this,
+              Invocation.getter(#typeMapping),
+            ),
+          )
+          as _i3.SqlTypes);
+
+  @override
+  _i3.QueryExecutor get executor =>
+      (super.noSuchMethod(
+            Invocation.getter(#executor),
+            returnValue: _FakeQueryExecutor_51(
+              this,
+              Invocation.getter(#executor),
+            ),
+          )
+          as _i3.QueryExecutor);
+
+  @override
+  _i5.StreamQueryStore get streamQueries =>
+      (super.noSuchMethod(
+            Invocation.getter(#streamQueries),
+            returnValue: _FakeStreamQueryStore_52(
+              this,
+              Invocation.getter(#streamQueries),
+            ),
+          )
+          as _i5.StreamQueryStore);
+
+  @override
+  _i3.DatabaseConnectionUser get resolvedEngine =>
+      (super.noSuchMethod(
+            Invocation.getter(#resolvedEngine),
+            returnValue: _FakeDatabaseConnectionUser_53(
+              this,
+              Invocation.getter(#resolvedEngine),
+            ),
+          )
+          as _i3.DatabaseConnectionUser);
+
+  @override
+  _i3.Migrator createMigrator() =>
+      (super.noSuchMethod(
+            Invocation.method(#createMigrator, []),
+            returnValue: _FakeMigrator_54(
+              this,
+              Invocation.method(#createMigrator, []),
+            ),
+          )
+          as _i3.Migrator);
+
+  @override
+  _i6.Future<void> beforeOpen(
+    _i3.QueryExecutor? executor,
+    _i3.OpeningDetails? details,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#beforeOpen, [executor, details]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> close() =>
+      (super.noSuchMethod(
+            Invocation.method(#close, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Stream<T> createStream<T extends Object>(
+    _i5.QueryStreamFetcher<T>? stmt,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createStream, [stmt]),
+            returnValue: _i6.Stream<T>.empty(),
+          )
+          as _i6.Stream<T>);
+
+  @override
+  T alias<T, D>(_i3.ResultSetImplementation<T, D>? table, String? alias) =>
+      (super.noSuchMethod(
+            Invocation.method(#alias, [table, alias]),
+            returnValue: _i11.dummyValue<T>(
+              this,
+              Invocation.method(#alias, [table, alias]),
+            ),
+          )
+          as T);
+
+  @override
+  void markTablesUpdated(Iterable<_i3.TableInfo<_i3.Table, dynamic>>? tables) =>
+      super.noSuchMethod(
+        Invocation.method(#markTablesUpdated, [tables]),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyUpdates(Set<_i3.TableUpdate>? updates) => super.noSuchMethod(
+    Invocation.method(#notifyUpdates, [updates]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i6.Stream<Set<_i3.TableUpdate>> tableUpdates([
+    _i3.TableUpdateQuery? query = const _i3.TableUpdateQuery.any(),
+  ]) =>
+      (super.noSuchMethod(
+            Invocation.method(#tableUpdates, [query]),
+            returnValue: _i6.Stream<Set<_i3.TableUpdate>>.empty(),
+          )
+          as _i6.Stream<Set<_i3.TableUpdate>>);
+
+  @override
+  _i6.Future<T> doWhenOpened<T>(
+    _i6.FutureOr<T> Function(_i3.QueryExecutor)? fn,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#doWhenOpened, [fn]),
+            returnValue:
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#doWhenOpened, [fn]),
+                  ),
+                  (T v) => _i6.Future<T>.value(v),
+                ) ??
+                _FakeFuture_55<T>(this, Invocation.method(#doWhenOpened, [fn])),
+          )
+          as _i6.Future<T>);
+
+  @override
+  _i3.InsertStatement<T, D> into<T extends _i3.Table, D>(
+    _i3.TableInfo<T, D>? table,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#into, [table]),
+            returnValue: _FakeInsertStatement_56<T, D>(
+              this,
+              Invocation.method(#into, [table]),
+            ),
+          )
+          as _i3.InsertStatement<T, D>);
+
+  @override
+  _i3.UpdateStatement<Tbl, R> update<Tbl extends _i3.Table, R>(
+    _i3.TableInfo<Tbl, R>? table,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [table]),
+            returnValue: _FakeUpdateStatement_57<Tbl, R>(
+              this,
+              Invocation.method(#update, [table]),
+            ),
+          )
+          as _i3.UpdateStatement<Tbl, R>);
+
+  @override
+  _i3.SimpleSelectStatement<T, R> select<T extends _i3.HasResultSet, R>(
+    _i3.ResultSetImplementation<T, R>? table, {
+    bool? distinct = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#select, [table], {#distinct: distinct}),
+            returnValue: _FakeSimpleSelectStatement_58<T, R>(
+              this,
+              Invocation.method(#select, [table], {#distinct: distinct}),
+            ),
+          )
+          as _i3.SimpleSelectStatement<T, R>);
+
+  @override
+  _i3.JoinedSelectStatement<T, R> selectOnly<T extends _i3.HasResultSet, R>(
+    _i3.ResultSetImplementation<T, R>? table, {
+    bool? distinct = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#selectOnly, [table], {#distinct: distinct}),
+            returnValue: _FakeJoinedSelectStatement_59<T, R>(
+              this,
+              Invocation.method(#selectOnly, [table], {#distinct: distinct}),
+            ),
+          )
+          as _i3.JoinedSelectStatement<T, R>);
+
+  @override
+  _i3.BaseSelectStatement<_i3.TypedResult> selectExpressions(
+    Iterable<_i3.Expression<Object>>? columns,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#selectExpressions, [columns]),
+            returnValue: _FakeBaseSelectStatement_60<_i3.TypedResult>(
+              this,
+              Invocation.method(#selectExpressions, [columns]),
+            ),
+          )
+          as _i3.BaseSelectStatement<_i3.TypedResult>);
+
+  @override
+  _i3.DeleteStatement<T, D> delete<T extends _i3.Table, D>(
+    _i3.TableInfo<T, D>? table,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [table]),
+            returnValue: _FakeDeleteStatement_61<T, D>(
+              this,
+              Invocation.method(#delete, [table]),
+            ),
+          )
+          as _i3.DeleteStatement<T, D>);
+
+  @override
+  _i6.Future<int> customUpdate(
+    String? query, {
+    List<_i3.Variable<Object>>? variables = const [],
+    Set<_i3.ResultSetImplementation<dynamic, dynamic>>? updates,
+    _i3.UpdateKind? updateKind,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #customUpdate,
+              [query],
+              {
+                #variables: variables,
+                #updates: updates,
+                #updateKind: updateKind,
+              },
+            ),
+            returnValue: _i6.Future<int>.value(0),
+          )
+          as _i6.Future<int>);
+
+  @override
+  _i6.Future<int> customInsert(
+    String? query, {
+    List<_i3.Variable<Object>>? variables = const [],
+    Set<_i3.ResultSetImplementation<dynamic, dynamic>>? updates,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #customInsert,
+              [query],
+              {#variables: variables, #updates: updates},
+            ),
+            returnValue: _i6.Future<int>.value(0),
+          )
+          as _i6.Future<int>);
+
+  @override
+  _i6.Future<List<_i3.QueryRow>> customWriteReturning(
+    String? query, {
+    List<_i3.Variable<Object>>? variables = const [],
+    Set<_i3.ResultSetImplementation<dynamic, dynamic>>? updates,
+    _i3.UpdateKind? updateKind,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #customWriteReturning,
+              [query],
+              {
+                #variables: variables,
+                #updates: updates,
+                #updateKind: updateKind,
+              },
+            ),
+            returnValue: _i6.Future<List<_i3.QueryRow>>.value(<_i3.QueryRow>[]),
+          )
+          as _i6.Future<List<_i3.QueryRow>>);
+
+  @override
+  _i3.Selectable<_i3.QueryRow> customSelect(
+    String? query, {
+    List<_i3.Variable<Object>>? variables = const [],
+    Set<_i3.ResultSetImplementation<dynamic, dynamic>>? readsFrom = const {},
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #customSelect,
+              [query],
+              {#variables: variables, #readsFrom: readsFrom},
+            ),
+            returnValue: _FakeSelectable_62<_i3.QueryRow>(
+              this,
+              Invocation.method(
+                #customSelect,
+                [query],
+                {#variables: variables, #readsFrom: readsFrom},
+              ),
+            ),
+          )
+          as _i3.Selectable<_i3.QueryRow>);
+
+  @override
+  _i3.Selectable<_i3.QueryRow> customSelectQuery(
+    String? query, {
+    List<_i3.Variable<Object>>? variables = const [],
+    Set<_i3.ResultSetImplementation<dynamic, dynamic>>? readsFrom = const {},
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #customSelectQuery,
+              [query],
+              {#variables: variables, #readsFrom: readsFrom},
+            ),
+            returnValue: _FakeSelectable_62<_i3.QueryRow>(
+              this,
+              Invocation.method(
+                #customSelectQuery,
+                [query],
+                {#variables: variables, #readsFrom: readsFrom},
+              ),
+            ),
+          )
+          as _i3.Selectable<_i3.QueryRow>);
+
+  @override
+  _i6.Future<void> customStatement(String? statement, [List<dynamic>? args]) =>
+      (super.noSuchMethod(
+            Invocation.method(#customStatement, [statement, args]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<T> transaction<T>(
+    _i6.Future<T> Function()? action, {
+    bool? requireNew = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #transaction,
+              [action],
+              {#requireNew: requireNew},
+            ),
+            returnValue:
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #transaction,
+                      [action],
+                      {#requireNew: requireNew},
+                    ),
+                  ),
+                  (T v) => _i6.Future<T>.value(v),
+                ) ??
+                _FakeFuture_55<T>(
+                  this,
+                  Invocation.method(
+                    #transaction,
+                    [action],
+                    {#requireNew: requireNew},
+                  ),
+                ),
+          )
+          as _i6.Future<T>);
+
+  @override
+  _i6.Future<T> exclusively<T>(_i6.Future<T> Function()? action) =>
+      (super.noSuchMethod(
+            Invocation.method(#exclusively, [action]),
+            returnValue:
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#exclusively, [action]),
+                  ),
+                  (T v) => _i6.Future<T>.value(v),
+                ) ??
+                _FakeFuture_55<T>(
+                  this,
+                  Invocation.method(#exclusively, [action]),
+                ),
+          )
+          as _i6.Future<T>);
+
+  @override
+  _i6.Future<void> batch(_i6.FutureOr<void> Function(_i3.Batch)? runInBatch) =>
+      (super.noSuchMethod(
+            Invocation.method(#batch, [runInBatch]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<T> runWithInterceptor<T>(
+    _i6.Future<T> Function()? action, {
+    required _i3.QueryInterceptor? interceptor,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #runWithInterceptor,
+              [action],
+              {#interceptor: interceptor},
+            ),
+            returnValue:
+                _i11.ifNotNull(
+                  _i11.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(
+                      #runWithInterceptor,
+                      [action],
+                      {#interceptor: interceptor},
+                    ),
+                  ),
+                  (T v) => _i6.Future<T>.value(v),
+                ) ??
+                _FakeFuture_55<T>(
+                  this,
+                  Invocation.method(
+                    #runWithInterceptor,
+                    [action],
+                    {#interceptor: interceptor},
+                  ),
+                ),
+          )
+          as _i6.Future<T>);
+
+  @override
+  _i3.GenerationContext $write(
+    _i3.Component? component, {
+    bool? hasMultipleTables,
+    int? startIndex,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #$write,
+              [component],
+              {#hasMultipleTables: hasMultipleTables, #startIndex: startIndex},
+            ),
+            returnValue: _FakeGenerationContext_63(
+              this,
+              Invocation.method(
+                #$write,
+                [component],
+                {
+                  #hasMultipleTables: hasMultipleTables,
+                  #startIndex: startIndex,
+                },
+              ),
+            ),
+          )
+          as _i3.GenerationContext);
+
+  @override
+  _i3.GenerationContext $writeInsertable(
+    _i3.TableInfo<_i3.Table, dynamic>? table,
+    _i3.Insertable<dynamic>? insertable, {
+    int? startIndex,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #$writeInsertable,
+              [table, insertable],
+              {#startIndex: startIndex},
+            ),
+            returnValue: _FakeGenerationContext_63(
+              this,
+              Invocation.method(
+                #$writeInsertable,
+                [table, insertable],
+                {#startIndex: startIndex},
+              ),
+            ),
+          )
+          as _i3.GenerationContext);
+
+  @override
+  String $expandVar(int? start, int? amount) =>
+      (super.noSuchMethod(
+            Invocation.method(#$expandVar, [start, amount]),
+            returnValue: _i11.dummyValue<String>(
+              this,
+              Invocation.method(#$expandVar, [start, amount]),
+            ),
+          )
+          as String);
 }

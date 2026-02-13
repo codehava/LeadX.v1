@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/hvc.dart';
@@ -567,23 +568,21 @@ class _KeyPersonsTab extends ConsumerWidget {
       final repo = ref.read(customerRepositoryProvider);
       final result = await repo.deleteKeyPerson(keyPerson.id);
       
-      result.fold(
-        (failure) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
-            );
-          }
-        },
-        (_) {
+      switch (result) {
+        case Success():
           if (context.mounted) {
             ref.invalidate(hvcKeyPersonsProvider(hvcId));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Key person berhasil dihapus')),
             );
           }
-        },
-      );
+        case ResultFailure(:final failure):
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menghapus: ${failure.message}')),
+            );
+          }
+      }
     }
   }
 }

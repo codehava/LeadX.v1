@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../entities/customer.dart';
 import '../entities/key_person.dart';
 import '../../data/dtos/customer_dtos.dart';
@@ -34,18 +32,18 @@ abstract class CustomerRepository {
 
   /// Create a new customer.
   /// Saves locally first, then queues for sync.
-  Future<Either<Failure, Customer>> createCustomer(CustomerCreateDto dto);
+  Future<Result<Customer>> createCustomer(CustomerCreateDto dto);
 
   /// Update an existing customer.
   /// Updates locally first, then queues for sync.
-  Future<Either<Failure, Customer>> updateCustomer(
+  Future<Result<Customer>> updateCustomer(
     String id,
     CustomerUpdateDto dto,
   );
 
   /// Soft delete a customer.
   /// Marks as deleted locally, then queues for sync.
-  Future<Either<Failure, void>> deleteCustomer(String id);
+  Future<Result<void>> deleteCustomer(String id);
 
   // ==========================================
   // Search & Filter
@@ -74,16 +72,16 @@ abstract class CustomerRepository {
   Stream<KeyPerson?> watchPrimaryKeyPerson(String customerId);
 
   /// Add a key person to a customer.
-  Future<Either<Failure, KeyPerson>> addKeyPerson(KeyPersonDto dto);
+  Future<Result<KeyPerson>> addKeyPerson(KeyPersonDto dto);
 
   /// Update an existing key person.
-  Future<Either<Failure, KeyPerson>> updateKeyPerson(
+  Future<Result<KeyPerson>> updateKeyPerson(
     String id,
     KeyPersonDto dto,
   );
 
   /// Delete a key person.
-  Future<Either<Failure, void>> deleteKeyPerson(String id);
+  Future<Result<void>> deleteKeyPerson(String id);
 
   /// Get the primary key person for a customer.
   Future<KeyPerson?> getPrimaryKeyPerson(String customerId);
@@ -94,10 +92,10 @@ abstract class CustomerRepository {
 
   /// Sync customers from remote to local.
   /// Uses incremental sync based on updatedAt timestamp.
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since});
+  Future<Result<int>> syncFromRemote({DateTime? since});
 
   /// Sync key persons from remote to local.
-  Future<Either<Failure, int>> syncKeyPersonsFromRemote({DateTime? since});
+  Future<Result<int>> syncKeyPersonsFromRemote({DateTime? since});
 
   /// Mark a customer as synced.
   Future<void> markAsSynced(String id, DateTime syncedAt);
