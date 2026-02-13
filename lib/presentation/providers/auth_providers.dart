@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/repositories/auth_repository_impl.dart';
@@ -81,6 +82,13 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       },
       (user) {
+        // Set Sentry user context for crash reporting
+        Sentry.configureScope((scope) {
+          scope.setUser(SentryUser(
+            id: user.id,
+            email: user.email,
+          ));
+        });
         state = const AsyncValue.data(null);
         return true;
       },
@@ -90,6 +98,8 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await _repository.signOut();
+    // Clear Sentry user context
+    Sentry.configureScope((scope) => scope.setUser(null));
     state = const AsyncValue.data(null);
   }
 
