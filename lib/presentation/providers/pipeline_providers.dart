@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/local/pipeline_local_data_source.dart';
 import '../../data/datasources/remote/pipeline_remote_data_source.dart';
 import '../../data/dtos/pipeline_dtos.dart';
@@ -179,96 +180,94 @@ class PipelineFormNotifier extends StateNotifier<PipelineFormState> {
   Future<void> createPipeline(PipelineCreateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.createPipeline(dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (pipeline) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedPipeline: pipeline,
+          savedPipeline: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update an existing pipeline.
   Future<void> updatePipeline(String id, PipelineUpdateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.updatePipeline(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (pipeline) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedPipeline: pipeline,
+          savedPipeline: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update pipeline stage.
   Future<void> updateStage(String id, PipelineStageUpdateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.updatePipelineStage(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (pipeline) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedPipeline: pipeline,
+          savedPipeline: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update pipeline status within the current stage.
   Future<void> updateStatus(String id, PipelineStatusUpdateDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.updatePipelineStatus(id, dto);
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (pipeline) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedPipeline: pipeline,
+          savedPipeline: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Delete a pipeline.
   Future<bool> deletePipeline(String id, {String? customerId, String? brokerId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final result = await _repository.deletePipeline(id);
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success():
+        state = state.copyWith(isLoading: false);
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false);
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reset form state.

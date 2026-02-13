@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:leadx_crm/core/errors/failures.dart';
+import 'package:leadx_crm/core/errors/result.dart';
+import 'package:leadx_crm/core/logging/app_logger.dart';
 import 'package:leadx_crm/data/database/app_database.dart' as db;
 import 'package:leadx_crm/data/datasources/local/customer_local_data_source.dart';
 import 'package:leadx_crm/data/datasources/local/history_log_local_data_source.dart';
@@ -33,6 +34,10 @@ import 'package:mockito/mockito.dart';
 import 'pipeline_repository_impl_test.mocks.dart';
 
 void main() {
+  setUpAll(() {
+    AppLogger.init();
+  });
+
   late PipelineRepositoryImpl repository;
   late MockPipelineLocalDataSource mockLocalDataSource;
   late MockMasterDataLocalDataSource mockMasterDataSource;
@@ -183,6 +188,19 @@ void main() {
     when(mockMasterDataSource.getBrokers()).thenAnswer((_) async => []);
     when(mockCustomerDataSource.getAllCustomers()).thenAnswer((_) async => []);
 
+    // Default stubs for methods called during CRUD operations
+    when(mockCustomerDataSource.getCustomerById(any))
+        .thenAnswer((_) async => null);
+    when(mockLocalDataSource.getStageById(any))
+        .thenAnswer((_) async => createTestDbStage());
+    when(mockSyncService.triggerSync())
+        .thenAnswer((_) async => createDefaultSyncResult());
+    // Mock transaction to just execute the callback
+    when(mockDatabase.transaction(any)).thenAnswer((invocation) {
+      final callback = invocation.positionalArguments[0] as Future<dynamic> Function();
+      return callback();
+    });
+
     repository = PipelineRepositoryImpl(
       localDataSource: mockLocalDataSource,
       masterDataSource: mockMasterDataSource,
@@ -259,14 +277,10 @@ void main() {
         final result = await repository.createPipeline(dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (pipeline) {
-            expect(pipeline.code, 'PIP12345678');
-            expect(pipeline.stageId, 'stage-new');
-          },
-        );
+        expect(result, isA<Success<domain.Pipeline>>());
+        final pipeline = (result as Success<domain.Pipeline>).value;
+        expect(pipeline.code, 'PIP12345678');
+        expect(pipeline.stageId, 'stage-new');
         verify(mockLocalDataSource.insertPipeline(any)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.pipeline,
@@ -277,7 +291,7 @@ void main() {
         verify(mockSyncService.triggerSync()).called(1);
       });
 
-      test('returns DatabaseFailure when insert fails', () async {
+      test('returns failure when insert fails', () async {
         // Arrange
         final dto = createTestPipelineDto();
         final newStage = createTestDbStage();
@@ -294,14 +308,9 @@ void main() {
         final result = await repository.createPipeline(dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<DatabaseFailure>());
-            expect(failure.message, contains('Failed to create pipeline'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result, isA<ResultFailure<domain.Pipeline>>());
+        final failure = (result as ResultFailure<domain.Pipeline>).failure;
+        expect(failure, isA<UnexpectedFailure>());
       });
     });
 
@@ -340,13 +349,9 @@ void main() {
         final result = await repository.updatePipeline(id, dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (pipeline) {
-            expect(pipeline.potentialPremium, 200000000);
-          },
-        );
+        expect(result, isA<Success<domain.Pipeline>>());
+        final pipeline = (result as Success<domain.Pipeline>).value;
+        expect(pipeline.potentialPremium, 200000000);
         verify(mockLocalDataSource.updatePipeline(id, any)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.pipeline,
@@ -368,14 +373,10 @@ void main() {
         final result = await repository.updatePipeline(id, dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<NotFoundFailure>());
-            expect(failure.message, contains('Pipeline not found'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result, isA<ResultFailure<domain.Pipeline>>());
+        final failure = (result as ResultFailure<domain.Pipeline>).failure;
+        expect(failure, isA<NotFoundFailure>());
+        expect(failure.message, contains('Pipeline not found'));
       });
     });
 
@@ -426,13 +427,9 @@ void main() {
         final result = await repository.updatePipelineStage(id, dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (pipeline) {
-            expect(pipeline.stageId, 'stage-p3');
-          },
-        );
+        expect(result, isA<Success<domain.Pipeline>>());
+        final pipeline = (result as Success<domain.Pipeline>).value;
+        expect(pipeline.stageId, 'stage-p3');
         verify(mockLocalDataSource.getDefaultStatus('stage-p3')).called(1);
         verify(mockSyncService.triggerSync()).called(1);
       });
@@ -452,14 +449,10 @@ void main() {
         final result = await repository.updatePipelineStage(id, dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<ValidationFailure>());
-            expect(failure.message, contains('Invalid stage'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result, isA<ResultFailure<domain.Pipeline>>());
+        final failure = (result as ResultFailure<domain.Pipeline>).failure;
+        expect(failure, isA<ValidationFailure>());
+        expect(failure.message, contains('Invalid stage'));
       });
 
       test('sets closedAt when moving to final stage', () async {
@@ -468,6 +461,7 @@ void main() {
         final dto = const PipelineStageUpdateDto(
           stageId: 'stage-won',
           policyNumber: 'POL-001',
+          finalPremium: 50000000,
         );
         final existingPipeline = createTestDbPipeline();
         final wonStage = createTestDbStage(
@@ -487,8 +481,13 @@ void main() {
           isPendingSync: true,
         );
 
+        // First call returns existing (not-closed) pipeline, subsequent calls return closed
+        var callCount = 0;
         when(mockLocalDataSource.getPipelineById(id))
-            .thenAnswer((_) async => existingPipeline);
+            .thenAnswer((_) async {
+          callCount++;
+          return callCount == 1 ? existingPipeline : closedPipeline;
+        });
         when(mockLocalDataSource.getStageById('stage-won'))
             .thenAnswer((_) async => wonStage);
         when(mockLocalDataSource.getDefaultStatus('stage-won'))
@@ -503,14 +502,12 @@ void main() {
         )).thenAnswer((_) async => 1);
         when(mockSyncService.triggerSync())
             .thenAnswer((_) async => createDefaultSyncResult());
-        when(mockLocalDataSource.getPipelineById(id))
-            .thenAnswer((_) async => closedPipeline);
 
         // Act
         final result = await repository.updatePipelineStage(id, dto);
 
         // Assert
-        expect(result.isRight(), true);
+        expect(result, isA<Success<domain.Pipeline>>());
         // Verify that updatePipeline was called with closedAt value
         verify(mockLocalDataSource.updatePipeline(
           id,
@@ -551,15 +548,11 @@ void main() {
         final result = await repository.updatePipelineStatus(id, dto);
 
         // Assert
-        expect(result.isRight(), true);
-        result.fold(
-          (failure) => fail('Expected Right but got Left: $failure'),
-          (pipeline) {
-            expect(pipeline.statusId, 'status-2');
-            // Stage should remain unchanged
-            expect(pipeline.stageId, 'stage-new');
-          },
-        );
+        expect(result, isA<Success<domain.Pipeline>>());
+        final pipeline = (result as Success<domain.Pipeline>).value;
+        expect(pipeline.statusId, 'status-2');
+        // Stage should remain unchanged
+        expect(pipeline.stageId, 'stage-new');
         verify(mockSyncService.triggerSync()).called(1);
       });
 
@@ -575,19 +568,15 @@ void main() {
         final result = await repository.updatePipelineStatus(id, dto);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<NotFoundFailure>());
-            expect(failure.message, contains('Pipeline not found'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result, isA<ResultFailure<domain.Pipeline>>());
+        final failure = (result as ResultFailure<domain.Pipeline>).failure;
+        expect(failure, isA<NotFoundFailure>());
+        expect(failure.message, contains('Pipeline not found'));
       });
     });
 
     group('deletePipeline', () {
-      test('returns Right(null) on successful soft delete', () async {
+      test('returns Success on successful soft delete', () async {
         // Arrange
         const id = 'pipeline-1';
         when(mockLocalDataSource.softDeletePipeline(id))
@@ -603,7 +592,7 @@ void main() {
         final result = await repository.deletePipeline(id);
 
         // Assert
-        expect(result.isRight(), true);
+        expect(result, isA<Success<void>>());
         verify(mockLocalDataSource.softDeletePipeline(id)).called(1);
         verify(mockSyncService.queueOperation(
           entityType: SyncEntityType.pipeline,
@@ -613,7 +602,7 @@ void main() {
         )).called(1);
       });
 
-      test('returns DatabaseFailure when delete fails', () async {
+      test('returns failure when delete fails', () async {
         // Arrange
         const id = 'pipeline-1';
         when(mockLocalDataSource.softDeletePipeline(id))
@@ -623,14 +612,9 @@ void main() {
         final result = await repository.deletePipeline(id);
 
         // Assert
-        expect(result.isLeft(), true);
-        result.fold(
-          (failure) {
-            expect(failure, isA<DatabaseFailure>());
-            expect(failure.message, contains('Failed to delete pipeline'));
-          },
-          (_) => fail('Expected Left but got Right'),
-        );
+        expect(result, isA<ResultFailure<void>>());
+        final failure = (result as ResultFailure<void>).failure;
+        expect(failure, isA<UnexpectedFailure>());
       });
     });
 

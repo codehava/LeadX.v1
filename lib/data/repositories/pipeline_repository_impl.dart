@@ -1,11 +1,12 @@
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/pipeline.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/pipeline_repository.dart';
@@ -172,7 +173,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
 
   /// Create a new pipeline.
   @override
-  Future<Either<Failure, domain.Pipeline>> createPipeline(
+  Future<Result<domain.Pipeline>> createPipeline(
     PipelineCreateDto dto,
   ) async {
     try {
@@ -248,12 +249,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
 
       // Return the created pipeline
       final pipeline = await getPipelineById(id);
-      return Right(pipeline!);
+      return Result.success(pipeline!);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create pipeline: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createPipeline'));
     }
   }
 
@@ -263,7 +261,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
 
   /// Update an existing pipeline.
   @override
-  Future<Either<Failure, domain.Pipeline>> updatePipeline(
+  Future<Result<domain.Pipeline>> updatePipeline(
     String id,
     PipelineUpdateDto dto,
   ) async {
@@ -271,13 +269,13 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final now = DateTime.now();
       final existing = await _localDataSource.getPipelineById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Pipeline not found: $id'));
       }
 
       // Check if pipeline is already closed
       final currentStage = await _localDataSource.getStageById(existing.stageId);
       if (currentStage != null && currentStage.isFinal) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Pipeline sudah ditutup dan tidak dapat diubah',
         ));
       }
@@ -342,12 +340,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
       // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
-      return Right(_mapToPipeline(updated));
+      return Result.success(_mapToPipeline(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update pipeline: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updatePipeline'));
     }
   }
 
@@ -355,7 +350,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
   /// Automatically assigns the default status for the new stage.
   /// Creates a local history entry for offline stage changes.
   @override
-  Future<Either<Failure, domain.Pipeline>> updatePipelineStage(
+  Future<Result<domain.Pipeline>> updatePipelineStage(
     String id,
     PipelineStageUpdateDto dto,
   ) async {
@@ -363,13 +358,13 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final now = DateTime.now();
       final existing = await _localDataSource.getPipelineById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Pipeline not found: $id'));
       }
 
       // Check if pipeline is already closed
       final currentStage = await _localDataSource.getStageById(existing.stageId);
       if (currentStage != null && currentStage.isFinal) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Pipeline sudah ditutup dan tidak dapat diubah',
         ));
       }
@@ -377,25 +372,25 @@ class PipelineRepositoryImpl implements PipelineRepository {
       // Get stage info to check if it's final
       final stage = await _localDataSource.getStageById(dto.stageId);
       if (stage == null) {
-        return Left(ValidationFailure(message: 'Invalid stage: ${dto.stageId}'));
+        return Result.failure(ValidationFailure(message: 'Invalid stage: ${dto.stageId}'));
       }
 
       // Validate required fields for final stages
       if (stage.isFinal && stage.isWon) {
         if (dto.policyNumber == null || dto.policyNumber!.isEmpty) {
-          return Left(ValidationFailure(
+          return Result.failure(ValidationFailure(
             message: 'Nomor polis wajib diisi untuk stage ini',
           ));
         }
         if (dto.finalPremium == null || dto.finalPremium! <= 0) {
-          return Left(ValidationFailure(
+          return Result.failure(ValidationFailure(
             message: 'Premi final wajib diisi untuk stage ini',
           ));
         }
       }
       if (stage.isFinal && !stage.isWon) {
         if (dto.declineReason == null || dto.declineReason!.isEmpty) {
-          return Left(ValidationFailure(
+          return Result.failure(ValidationFailure(
             message: 'Alasan penolakan wajib diisi untuk stage ini',
           ));
         }
@@ -496,19 +491,16 @@ class PipelineRepositoryImpl implements PipelineRepository {
       // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
-      return Right(_mapToPipeline(updated));
+      return Result.success(_mapToPipeline(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update pipeline stage: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updatePipelineStage'));
     }
   }
 
   /// Update pipeline status within the current stage.
   /// Does not change the stage, only the status.
   @override
-  Future<Either<Failure, domain.Pipeline>> updatePipelineStatus(
+  Future<Result<domain.Pipeline>> updatePipelineStatus(
     String id,
     PipelineStatusUpdateDto dto,
   ) async {
@@ -516,13 +508,13 @@ class PipelineRepositoryImpl implements PipelineRepository {
       final now = DateTime.now();
       final existing = await _localDataSource.getPipelineById(id);
       if (existing == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
+        return Result.failure(NotFoundFailure(message: 'Pipeline not found: $id'));
       }
 
       // Check if pipeline is already closed
       final currentStage = await _localDataSource.getStageById(existing.stageId);
       if (currentStage != null && currentStage.isFinal) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
           message: 'Pipeline sudah ditutup dan tidak dapat diubah',
         ));
       }
@@ -557,12 +549,9 @@ class PipelineRepositoryImpl implements PipelineRepository {
       // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
-      return Right(_mapToPipeline(updated));
+      return Result.success(_mapToPipeline(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update pipeline status: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updatePipelineStatus'));
     }
   }
 
@@ -572,31 +561,23 @@ class PipelineRepositoryImpl implements PipelineRepository {
 
   /// Soft delete a pipeline.
   @override
-  Future<Either<Failure, void>> deletePipeline(String id) async {
-    try {
-      // Soft delete locally and queue for sync atomically
-      await _database.transaction(() async {
-        await _localDataSource.softDeletePipeline(id);
+  Future<Result<void>> deletePipeline(String id) =>
+      runCatching(() async {
+        // Soft delete locally and queue for sync atomically
+        await _database.transaction(() async {
+          await _localDataSource.softDeletePipeline(id);
 
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.pipeline,
-          entityId: id,
-          operation: SyncOperation.delete,
-          payload: {'id': id},
-        );
-      });
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.pipeline,
+            entityId: id,
+            operation: SyncOperation.delete,
+            payload: {'id': id},
+          );
+        });
 
-      // Trigger sync if online (non-blocking, outside transaction)
-      _syncService.triggerSync();
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete pipeline: $e',
-        originalError: e,
-      ));
-    }
-  }
+        // Trigger sync if online (non-blocking, outside transaction)
+        _syncService.triggerSync();
+      }, context: 'deletePipeline');
 
   // ==========================================
   // Master Data Operations

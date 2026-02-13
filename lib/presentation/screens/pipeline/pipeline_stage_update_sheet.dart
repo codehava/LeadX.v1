@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../data/dtos/pipeline_dtos.dart';
 import '../../../data/dtos/master_data_dtos.dart';
 import '../../../domain/entities/pipeline.dart';
@@ -446,18 +447,8 @@ class _PipelineStageUpdateSheetState
 
       final result = await repo.updatePipelineStage(widget.pipeline.id, dto);
 
-      result.fold(
-        (failure) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error: ${failure.message}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        (pipeline) {
+      switch (result) {
+        case Success():
           if (mounted) {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
@@ -466,8 +457,16 @@ class _PipelineStageUpdateSheetState
               ),
             );
           }
-        },
-      );
+        case ResultFailure(:final failure):
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

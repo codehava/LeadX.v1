@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/pipeline_dtos.dart';
 import '../entities/pipeline.dart';
 
@@ -39,11 +37,11 @@ abstract class PipelineRepository {
 
   /// Create a new pipeline.
   /// Saves locally first, then queues for sync.
-  Future<Either<Failure, Pipeline>> createPipeline(PipelineCreateDto dto);
+  Future<Result<Pipeline>> createPipeline(PipelineCreateDto dto);
 
   /// Update an existing pipeline.
   /// Updates locally first, then queues for sync.
-  Future<Either<Failure, Pipeline>> updatePipeline(
+  Future<Result<Pipeline>> updatePipeline(
     String id,
     PipelineUpdateDto dto,
   );
@@ -51,21 +49,21 @@ abstract class PipelineRepository {
   /// Update pipeline stage (stage transition).
   /// Handles weighted value calculation and final stage logic.
   /// Automatically assigns the default status for the new stage.
-  Future<Either<Failure, Pipeline>> updatePipelineStage(
+  Future<Result<Pipeline>> updatePipelineStage(
     String id,
     PipelineStageUpdateDto dto,
   );
 
   /// Update pipeline status within the current stage.
   /// Does not change the stage, only the status.
-  Future<Either<Failure, Pipeline>> updatePipelineStatus(
+  Future<Result<Pipeline>> updatePipelineStatus(
     String id,
     PipelineStatusUpdateDto dto,
   );
 
   /// Soft delete a pipeline.
   /// Marks as deleted locally, then queues for sync.
-  Future<Either<Failure, void>> deletePipeline(String id);
+  Future<Result<void>> deletePipeline(String id);
 
   // ==========================================
   // Search & Filter
