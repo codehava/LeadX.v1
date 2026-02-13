@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 3 - Error Classification & Recovery -- COMPLETE
+**Current focus:** Phase 3.1 - Remaining Repo Result Migration
 
 ## Current Position
 
-Phase: 3 of 10 (Error Classification & Recovery) -- COMPLETE
-Plan: 3 of 3 (03-03 complete)
-Status: Phase 3 Complete
-Last activity: 2026-02-14 — Completed Phase 3 execution (all 3 plans)
+Phase: 3.1 of 10 (Remaining Repo Result Migration)
+Plan: 4 of 5 (03.1-04 complete)
+Status: Executing Phase 3.1
+Last activity: 2026-02-14 — Completed 03.1-04 CadenceRepository migration
 
-Progress: [███░░░░░░░] ~30%
+Progress: [████░░░░░░] ~35%
 
 ## Performance Metrics
 
@@ -85,10 +85,13 @@ Recent decisions affecting current work:
 - runCatching for simple CRUD (deletePipeline, addPhoto, deletePhoto, addPhotoFromUrl); explicit try/catch+mapException for complex methods (03-02)
 - Pipeline screen sheets (stage_update, status_update) updated as blocking deviation -- direct .fold() callers must migrate too (03-02)
 - Pre-existing test bug fixed: closedAt test missing finalPremium and mock override ordering issue (03-02)
+- NotFoundFailure for not-found cases in CadenceRepository submitPreMeetingForm (replacing generic DatabaseFailure) (03.1-04)
+- runCatching for simple CRUD in CadenceRepository (8 methods), explicit try/catch+mapException for complex multi-step (7 methods) (03.1-04)
 
 ### Roadmap Evolution
 
 - Phase 2.1 inserted after Phase 2: Pre-existing Bug Fixes — Timezone Serialization + Dropdown Race Condition (URGENT) — discovered during Phase 2 UAT, both bugs pre-date Phase 2 changes
+- Phase 3.1 inserted after Phase 3: Remaining Repo Result Migration — migrate 7 remaining repos from dartz Either to sealed Result, remove dartz dependency
 
 ### Pending Todos
 
@@ -101,8 +104,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed Phase 3 -- all 3 plans executed (Result type, repo migration, offline UI)
+Stopped at: Completed 03.1-04-PLAN.md (CadenceRepository migration)
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (Phase 3 complete, 3/3 plans)*
+*Last updated: 2026-02-14 (Phase 3.1, plan 4/5 complete)*
