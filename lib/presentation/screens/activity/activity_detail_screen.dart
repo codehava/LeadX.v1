@@ -13,6 +13,8 @@ import '../../providers/activity_providers.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/hvc_providers.dart';
+import '../../widgets/common/error_state.dart';
+import '../../widgets/common/offline_banner.dart';
 import 'activity_execution_sheet.dart';
 import 'activity_reschedule_sheet.dart';
 
@@ -42,7 +44,11 @@ class ActivityDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: activityAsync.when(
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(
+            child: activityAsync.when(
         data: (details) {
           if (details == null) {
             return const Center(child: Text('Aktivitas tidak ditemukan'));
@@ -451,16 +457,13 @@ class ActivityDetailScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-            ],
-          ),
+        error: (error, _) => AppErrorState.general(
+          title: 'Failed to load activity details',
+          message: error.toString(),
         ),
+      ),
+          ),
+        ],
       ),
     );
   }

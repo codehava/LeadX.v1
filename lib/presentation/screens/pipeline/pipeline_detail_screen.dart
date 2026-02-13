@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/pipeline.dart';
 import '../../providers/pipeline_providers.dart';
+import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/offline_banner.dart';
 import 'pipeline_stage_update_sheet.dart';
 import 'pipeline_status_update_sheet.dart';
 
@@ -40,7 +42,10 @@ class PipelineDetailScreen extends ConsumerWidget {
       ),
       error: (error, _) => Scaffold(
         appBar: AppBar(title: const Text('Pipeline')),
-        body: Center(child: Text('Error: $error')),
+        body: AppErrorState.general(
+          title: 'Failed to load pipeline details',
+          message: error.toString(),
+        ),
       ),
     );
   }
@@ -75,13 +80,17 @@ class PipelineDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stage Badge
-            _buildStageCard(pipeline, theme),
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stage Badge
+                  _buildStageCard(pipeline, theme),
             
             const SizedBox(height: 24),
             
@@ -180,8 +189,11 @@ class PipelineDetailScreen extends ConsumerWidget {
                 _InfoRow(label: 'Diupdate', value: _formatDateTime(pipeline.updatedAt)),
               ],
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+          ),
+        ],
       ),
       // Quick action buttons
       bottomNavigationBar: _buildQuickActions(context, pipeline, theme),

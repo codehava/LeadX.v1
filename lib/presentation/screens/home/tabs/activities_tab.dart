@@ -9,6 +9,8 @@ import '../../../providers/activity_providers.dart';
 import '../../../providers/broker_providers.dart';
 import '../../../providers/customer_providers.dart';
 import '../../../providers/hvc_providers.dart';
+import '../../../widgets/common/error_state.dart';
+import '../../../widgets/common/offline_banner.dart';
 import '../../activity/activity_execution_sheet.dart';
 
 /// Activities tab showing activity calendar and list.
@@ -37,6 +39,7 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
     return Scaffold(
       body: Column(
         children: [
+          const OfflineBanner(),
           // Month selector
           Container(
             padding: const EdgeInsets.all(16),
@@ -152,22 +155,11 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline,
-                        size: 48, color: theme.colorScheme.error),
-                    const SizedBox(height: 16),
-                    Text('Error: $e'),
-                    const SizedBox(height: 16),
-                    FilledButton.tonal(
-                      onPressed: () => ref.invalidate(userActivitiesProvider(
-                          (startDate: startOfMonth, endDate: endOfMonth))),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
+              error: (e, _) => AppErrorState.general(
+                title: 'Failed to load activities',
+                message: e.toString(),
+                onRetry: () => ref.invalidate(userActivitiesProvider(
+                    (startDate: startOfMonth, endDate: endOfMonth))),
               ),
             ),
           ),
