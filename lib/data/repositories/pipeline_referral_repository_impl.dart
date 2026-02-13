@@ -329,23 +329,24 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
-      // Update locally
-      await _localDataSource.markReceiverAccepted(id, notes);
-
-      // Queue for sync
+      // Update locally and queue for sync atomically
       final now = DateTime.now();
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipelineReferral,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: {
-          'id': id,
-          'status': 'RECEIVER_ACCEPTED',
-          'receiver_accepted_at': now.toIso8601String(),
-          'receiver_notes': notes,
-          'updated_at': now.toIso8601String(),
-        },
-      );
+      await _database.transaction(() async {
+        await _localDataSource.markReceiverAccepted(id, notes);
+
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipelineReferral,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: {
+            'id': id,
+            'status': 'RECEIVER_ACCEPTED',
+            'receiver_accepted_at': now.toIso8601String(),
+            'receiver_notes': notes,
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -383,23 +384,24 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
-      // Update locally
-      await _localDataSource.markReceiverRejected(id, reason);
-
-      // Queue for sync
+      // Update locally and queue for sync atomically
       final now = DateTime.now();
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipelineReferral,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: {
-          'id': id,
-          'status': 'RECEIVER_REJECTED',
-          'receiver_rejected_at': now.toIso8601String(),
-          'receiver_reject_reason': reason,
-          'updated_at': now.toIso8601String(),
-        },
-      );
+      await _database.transaction(() async {
+        await _localDataSource.markReceiverRejected(id, reason);
+
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipelineReferral,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: {
+            'id': id,
+            'status': 'RECEIVER_REJECTED',
+            'receiver_rejected_at': now.toIso8601String(),
+            'receiver_reject_reason': reason,
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -438,15 +440,13 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
-      // Update locally - this sets status to BM_APPROVED
+      // Update locally and queue for sync atomically
       _log.debug('pipeline.referral | approveReferral: Updating local status...');
-      await _localDataSource.markManagerApproved(id, approverId, notes);
-      _log.debug('pipeline.referral | approveReferral: Local status updated');
-
-      // Queue for sync
-      _log.debug('pipeline.referral | approveReferral: Queueing for sync...');
       final now = DateTime.now();
-      try {
+      await _database.transaction(() async {
+        await _localDataSource.markManagerApproved(id, approverId, notes);
+        _log.debug('pipeline.referral | approveReferral: Local status updated');
+
         await _syncService.queueOperation(
           entityType: SyncEntityType.pipelineReferral,
           entityId: id,
@@ -461,10 +461,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           },
         );
         _log.debug('pipeline.referral | approveReferral: Queued for sync');
-      } catch (syncError) {
-        _log.debug('pipeline.referral | approveReferral: Sync queue error (non-fatal): $syncError');
-        // Continue - local update succeeded, sync can retry later
-      }
+      });
 
       try {
         unawaited(_syncService.triggerSync());
@@ -522,15 +519,13 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
-      // Update locally
+      // Update locally and queue for sync atomically
       _log.debug('pipeline.referral | rejectAsManager: Updating local status...');
-      await _localDataSource.markManagerRejected(id, approverId, reason);
-      _log.debug('pipeline.referral | rejectAsManager: Local status updated');
-
-      // Queue for sync
-      _log.debug('pipeline.referral | rejectAsManager: Queueing for sync...');
       final now = DateTime.now();
-      try {
+      await _database.transaction(() async {
+        await _localDataSource.markManagerRejected(id, approverId, reason);
+        _log.debug('pipeline.referral | rejectAsManager: Local status updated');
+
         await _syncService.queueOperation(
           entityType: SyncEntityType.pipelineReferral,
           entityId: id,
@@ -545,9 +540,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           },
         );
         _log.debug('pipeline.referral | rejectAsManager: Queued for sync');
-      } catch (syncError) {
-        _log.debug('pipeline.referral | rejectAsManager: Sync queue error (non-fatal): $syncError');
-      }
+      });
 
       try {
         unawaited(_syncService.triggerSync());
@@ -613,23 +606,24 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
-      // Update locally
-      await _localDataSource.markCancelled(id, reason);
-
-      // Queue for sync
+      // Update locally and queue for sync atomically
       final now = DateTime.now();
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipelineReferral,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: {
-          'id': id,
-          'status': 'CANCELLED',
-          'cancelled_at': now.toIso8601String(),
-          'cancel_reason': reason,
-          'updated_at': now.toIso8601String(),
-        },
-      );
+      await _database.transaction(() async {
+        await _localDataSource.markCancelled(id, reason);
+
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipelineReferral,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: {
+            'id': id,
+            'status': 'CANCELLED',
+            'cancelled_at': now.toIso8601String(),
+            'cancel_reason': reason,
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 

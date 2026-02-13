@@ -26,12 +26,14 @@ class HvcRepositoryImpl implements HvcRepository {
     required CustomerLocalDataSource customerLocalDataSource,
     required SyncService syncService,
     required String currentUserId,
+    required db.AppDatabase database,
   })  : _localDataSource = localDataSource,
         _remoteDataSource = remoteDataSource,
         _keyPersonLocalDataSource = keyPersonLocalDataSource,
         _customerLocalDataSource = customerLocalDataSource,
         _syncService = syncService,
-        _currentUserId = currentUserId;
+        _currentUserId = currentUserId,
+        _database = database;
 
   final HvcLocalDataSource _localDataSource;
   final HvcRemoteDataSource _remoteDataSource;
@@ -39,6 +41,7 @@ class HvcRepositoryImpl implements HvcRepository {
   final CustomerLocalDataSource _customerLocalDataSource;
   final SyncService _syncService;
   final String _currentUserId;
+  final db.AppDatabase _database;
 
   static const _uuid = Uuid();
 
@@ -114,18 +117,19 @@ class HvcRepositoryImpl implements HvcRepository {
         updatedAt: now,
       );
 
-      // Save locally first
-      await _localDataSource.insertHvc(companion);
+      // Save locally and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertHvc(companion);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.hvc,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createHvcSyncPayload(id, code, dto, now),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.hvc,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createHvcSyncPayload(id, code, dto, now),
+        );
+      });
 
-      // Trigger sync in background
+      // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
       // Return created HVC
@@ -171,24 +175,26 @@ class HvcRepositoryImpl implements HvcRepository {
         updatedAt: Value(now),
       );
 
-      // Update locally first
-      await _localDataSource.updateHvc(id, companion);
+      // Update locally and queue for sync atomically
+      late final db.Hvc updated;
+      await _database.transaction(() async {
+        await _localDataSource.updateHvc(id, companion);
 
-      // Get updated data for sync
-      final updated = await _localDataSource.getHvcById(id);
-      if (updated == null) {
-        return Left(NotFoundFailure(message: 'HVC not found: $id'));
-      }
+        final result = await _localDataSource.getHvcById(id);
+        if (result == null) {
+          throw Exception('HVC not found: $id');
+        }
+        updated = result;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.hvc,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createHvcUpdateSyncPayload(updated),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.hvc,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createHvcUpdateSyncPayload(updated),
+        );
+      });
 
-      // Trigger sync in background
+      // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
       return Right(_mapToHvc(updated));
@@ -203,18 +209,19 @@ class HvcRepositoryImpl implements HvcRepository {
   @override
   Future<Either<Failure, void>> deleteHvc(String id) async {
     try {
-      // Soft delete locally
-      await _localDataSource.softDeleteHvc(id);
+      // Soft delete and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.softDeleteHvc(id);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.hvc,
-        entityId: id,
-        operation: SyncOperation.delete,
-        payload: {'id': id},
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.hvc,
+          entityId: id,
+          operation: SyncOperation.delete,
+          payload: {'id': id},
+        );
+      });
 
-      // Trigger sync in background
+      // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
       return const Right(null);
@@ -338,18 +345,19 @@ class HvcRepositoryImpl implements HvcRepository {
         updatedAt: now,
       );
 
-      // Save locally first
-      await _localDataSource.insertCustomerHvcLink(companion);
+      // Save locally and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertCustomerHvcLink(companion);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.customerHvcLink,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createLinkSyncPayload(id, dto, now),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.customerHvcLink,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createLinkSyncPayload(id, dto, now),
+        );
+      });
 
-      // Trigger sync in background
+      // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
       // Return created link
@@ -366,18 +374,19 @@ class HvcRepositoryImpl implements HvcRepository {
   @override
   Future<Either<Failure, void>> unlinkCustomerFromHvc(String linkId) async {
     try {
-      // Soft delete locally
-      await _localDataSource.deleteCustomerHvcLink(linkId);
+      // Soft delete and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.deleteCustomerHvcLink(linkId);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.customerHvcLink,
-        entityId: linkId,
-        operation: SyncOperation.delete,
-        payload: {'id': linkId},
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.customerHvcLink,
+          entityId: linkId,
+          operation: SyncOperation.delete,
+          payload: {'id': linkId},
+        );
+      });
 
-      // Trigger sync in background
+      // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
       return const Right(null);

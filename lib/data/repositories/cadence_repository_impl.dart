@@ -24,17 +24,20 @@ class CadenceRepositoryImpl implements CadenceRepository {
     required SyncService syncService,
     required String currentUserId,
     required String currentUserRole,
+    required db.AppDatabase database,
   })  : _localDataSource = localDataSource,
         _remoteDataSource = remoteDataSource,
         _syncService = syncService,
         _currentUserId = currentUserId,
-        _currentUserRole = currentUserRole;
+        _currentUserRole = currentUserRole,
+        _database = database;
 
   final CadenceLocalDataSource _localDataSource;
   final CadenceRemoteDataSource _remoteDataSource;
   final SyncService _syncService;
   final String _currentUserId;
   final String _currentUserRole;
+  final db.AppDatabase _database;
   final _uuid = const Uuid();
   final _log = AppLogger.instance;
 
@@ -130,52 +133,56 @@ class CadenceRepositoryImpl implements CadenceRepository {
       final configId = _uuid.v4();
       final now = DateTime.now();
 
-      await _localDataSource.insertConfig(
-        db.CadenceScheduleConfigCompanion.insert(
-          id: configId,
-          name: name,
-          description: Value(description),
-          targetRole: targetRole,
-          facilitatorRole: facilitatorRole,
-          frequency: frequency,
-          dayOfWeek: Value(dayOfWeek),
-          dayOfMonth: Value(dayOfMonth),
-          defaultTime: Value(defaultTime),
-          durationMinutes: Value(durationMinutes),
-          preMeetingHours: Value(preMeetingHours),
-          isActive: Value(isActive),
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      // Insert and queue for sync atomically
+      late final db.CadenceScheduleConfigData config;
+      await _database.transaction(() async {
+        await _localDataSource.insertConfig(
+          db.CadenceScheduleConfigCompanion.insert(
+            id: configId,
+            name: name,
+            description: Value(description),
+            targetRole: targetRole,
+            facilitatorRole: facilitatorRole,
+            frequency: frequency,
+            dayOfWeek: Value(dayOfWeek),
+            dayOfMonth: Value(dayOfMonth),
+            defaultTime: Value(defaultTime),
+            durationMinutes: Value(durationMinutes),
+            preMeetingHours: Value(preMeetingHours),
+            isActive: Value(isActive),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
 
-      final config = await _localDataSource.getConfigById(configId);
-      if (config == null) {
-        return Left(DatabaseFailure(message: 'Failed to create config'));
-      }
+        final result = await _localDataSource.getConfigById(configId);
+        if (result == null) {
+          throw Exception('Failed to create config');
+        }
+        config = result;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceConfig,
-        entityId: configId,
-        operation: SyncOperation.create,
-        payload: {
-          'id': configId,
-          'name': name,
-          'description': description,
-          'target_role': targetRole,
-          'facilitator_role': facilitatorRole,
-          'frequency': frequency,
-          'day_of_week': dayOfWeek,
-          'day_of_month': dayOfMonth,
-          'default_time': defaultTime,
-          'duration_minutes': durationMinutes,
-          'pre_meeting_hours': preMeetingHours,
-          'is_active': isActive,
-          'created_at': now.toIso8601String(),
-          'updated_at': now.toIso8601String(),
-        },
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceConfig,
+          entityId: configId,
+          operation: SyncOperation.create,
+          payload: {
+            'id': configId,
+            'name': name,
+            'description': description,
+            'target_role': targetRole,
+            'facilitator_role': facilitatorRole,
+            'frequency': frequency,
+            'day_of_week': dayOfWeek,
+            'day_of_month': dayOfMonth,
+            'default_time': defaultTime,
+            'duration_minutes': durationMinutes,
+            'pre_meeting_hours': preMeetingHours,
+            'is_active': isActive,
+            'created_at': now.toIso8601String(),
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -206,50 +213,54 @@ class CadenceRepositoryImpl implements CadenceRepository {
     try {
       final now = DateTime.now();
 
-      await _localDataSource.updateConfig(
-        configId,
-        db.CadenceScheduleConfigCompanion(
-          name: name != null ? Value(name) : const Value.absent(),
-          description: description != null ? Value(description) : const Value.absent(),
-          targetRole: targetRole != null ? Value(targetRole) : const Value.absent(),
-          facilitatorRole: facilitatorRole != null ? Value(facilitatorRole) : const Value.absent(),
-          frequency: frequency != null ? Value(frequency) : const Value.absent(),
-          dayOfWeek: dayOfWeek != null ? Value(dayOfWeek) : const Value.absent(),
-          dayOfMonth: dayOfMonth != null ? Value(dayOfMonth) : const Value.absent(),
-          defaultTime: defaultTime != null ? Value(defaultTime) : const Value.absent(),
-          durationMinutes: durationMinutes != null ? Value(durationMinutes) : const Value.absent(),
-          preMeetingHours: preMeetingHours != null ? Value(preMeetingHours) : const Value.absent(),
-          isActive: isActive != null ? Value(isActive) : const Value.absent(),
-          updatedAt: Value(now),
-        ),
-      );
+      // Update and queue for sync atomically
+      late final db.CadenceScheduleConfigData config;
+      await _database.transaction(() async {
+        await _localDataSource.updateConfig(
+          configId,
+          db.CadenceScheduleConfigCompanion(
+            name: name != null ? Value(name) : const Value.absent(),
+            description: description != null ? Value(description) : const Value.absent(),
+            targetRole: targetRole != null ? Value(targetRole) : const Value.absent(),
+            facilitatorRole: facilitatorRole != null ? Value(facilitatorRole) : const Value.absent(),
+            frequency: frequency != null ? Value(frequency) : const Value.absent(),
+            dayOfWeek: dayOfWeek != null ? Value(dayOfWeek) : const Value.absent(),
+            dayOfMonth: dayOfMonth != null ? Value(dayOfMonth) : const Value.absent(),
+            defaultTime: defaultTime != null ? Value(defaultTime) : const Value.absent(),
+            durationMinutes: durationMinutes != null ? Value(durationMinutes) : const Value.absent(),
+            preMeetingHours: preMeetingHours != null ? Value(preMeetingHours) : const Value.absent(),
+            isActive: isActive != null ? Value(isActive) : const Value.absent(),
+            updatedAt: Value(now),
+          ),
+        );
 
-      final config = await _localDataSource.getConfigById(configId);
-      if (config == null) {
-        return Left(DatabaseFailure(message: 'Config not found after update'));
-      }
+        final result = await _localDataSource.getConfigById(configId);
+        if (result == null) {
+          throw Exception('Config not found after update');
+        }
+        config = result;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceConfig,
-        entityId: configId,
-        operation: SyncOperation.update,
-        payload: {
-          'id': configId,
-          'name': config.name,
-          'description': config.description,
-          'target_role': config.targetRole,
-          'facilitator_role': config.facilitatorRole,
-          'frequency': config.frequency,
-          'day_of_week': config.dayOfWeek,
-          'day_of_month': config.dayOfMonth,
-          'default_time': config.defaultTime,
-          'duration_minutes': config.durationMinutes,
-          'pre_meeting_hours': config.preMeetingHours,
-          'is_active': config.isActive,
-          'updated_at': now.toIso8601String(),
-        },
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceConfig,
+          entityId: configId,
+          operation: SyncOperation.update,
+          payload: {
+            'id': configId,
+            'name': config.name,
+            'description': config.description,
+            'target_role': config.targetRole,
+            'facilitator_role': config.facilitatorRole,
+            'frequency': config.frequency,
+            'day_of_week': config.dayOfWeek,
+            'day_of_month': config.dayOfMonth,
+            'default_time': config.defaultTime,
+            'duration_minutes': config.durationMinutes,
+            'pre_meeting_hours': config.preMeetingHours,
+            'is_active': config.isActive,
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -273,19 +284,21 @@ class CadenceRepositoryImpl implements CadenceRepository {
   @override
   Future<Either<Failure, Unit>> deleteConfig(String configId) async {
     try {
-      await _localDataSource.softDeleteConfig(configId);
+      // Soft delete and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.softDeleteConfig(configId);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceConfig,
-        entityId: configId,
-        operation: SyncOperation.update,
-        payload: {
-          'id': configId,
-          'is_active': false,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceConfig,
+          entityId: configId,
+          operation: SyncOperation.update,
+          payload: {
+            'id': configId,
+            'is_active': false,
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -362,20 +375,24 @@ class CadenceRepositoryImpl implements CadenceRepository {
     String meetingId,
   ) async {
     try {
-      await _localDataSource.startMeeting(meetingId);
+      // Start meeting and queue for sync atomically
+      late final db.CadenceMeeting meeting;
+      await _database.transaction(() async {
+        await _localDataSource.startMeeting(meetingId);
 
-      final meeting = await _localDataSource.getMeetingById(meetingId);
-      if (meeting == null) {
-        return Left(DatabaseFailure(message: 'Meeting not found'));
-      }
+        final result = await _localDataSource.getMeetingById(meetingId);
+        if (result == null) {
+          throw Exception('Meeting not found');
+        }
+        meeting = result;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceMeeting,
-        entityId: meetingId,
-        operation: SyncOperation.update,
-        payload: _createMeetingSyncPayload(meeting),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceMeeting,
+          entityId: meetingId,
+          operation: SyncOperation.update,
+          payload: _createMeetingSyncPayload(meeting),
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -393,58 +410,58 @@ class CadenceRepositoryImpl implements CadenceRepository {
     String meetingId,
   ) async {
     try {
-      // Calculate scores for participants without attendance marked
-      final participants = await _localDataSource.getMeetingParticipants(meetingId);
-      for (final p in participants) {
-        if (p.attendanceStatus == 'PENDING') {
-          // Mark as absent if not marked
-          await _localDataSource.markAttendance(
-            p.id,
-            status: 'ABSENT',
-            scoreImpact: _scoreAbsent,
-            markedBy: _currentUserId,
-          );
+      // End meeting: update participants, end meeting, and queue all for sync atomically
+      late final db.CadenceMeeting meeting;
+      await _database.transaction(() async {
+        final participants = await _localDataSource.getMeetingParticipants(meetingId);
+        for (final p in participants) {
+          if (p.attendanceStatus == 'PENDING') {
+            await _localDataSource.markAttendance(
+              p.id,
+              status: 'ABSENT',
+              scoreImpact: _scoreAbsent,
+              markedBy: _currentUserId,
+            );
+          }
+
+          if (!p.preMeetingSubmitted && p.formSubmissionStatus == null) {
+            await _localDataSource.updateParticipant(
+              p.id,
+              db.CadenceParticipantsCompanion(
+                formSubmissionStatus: const Value('NOT_SUBMITTED'),
+                formScoreImpact: const Value(_scoreFormNotSubmitted),
+                isPendingSync: const Value(true),
+                updatedAt: Value(DateTime.now()),
+              ),
+            );
+          }
+
+          final updatedParticipant = await _localDataSource.getParticipant(p.id);
+          if (updatedParticipant != null) {
+            await _syncService.queueOperation(
+              entityType: SyncEntityType.cadenceParticipant,
+              entityId: p.id,
+              operation: SyncOperation.update,
+              payload: _createParticipantSyncPayload(updatedParticipant),
+            );
+          }
         }
 
-        // Calculate form score if not submitted
-        if (!p.preMeetingSubmitted && p.formSubmissionStatus == null) {
-          await _localDataSource.updateParticipant(
-            p.id,
-            db.CadenceParticipantsCompanion(
-              formSubmissionStatus: const Value('NOT_SUBMITTED'),
-              formScoreImpact: const Value(_scoreFormNotSubmitted),
-              isPendingSync: const Value(true),
-              updatedAt: Value(DateTime.now()),
-            ),
-          );
+        await _localDataSource.endMeeting(meetingId);
+
+        final result = await _localDataSource.getMeetingById(meetingId);
+        if (result == null) {
+          throw Exception('Meeting not found');
         }
+        meeting = result;
 
-        // Queue participant for sync
-        final updatedParticipant = await _localDataSource.getParticipant(p.id);
-        if (updatedParticipant != null) {
-          await _syncService.queueOperation(
-            entityType: SyncEntityType.cadenceParticipant,
-            entityId: p.id,
-            operation: SyncOperation.update,
-            payload: _createParticipantSyncPayload(updatedParticipant),
-          );
-        }
-      }
-
-      await _localDataSource.endMeeting(meetingId);
-
-      final meeting = await _localDataSource.getMeetingById(meetingId);
-      if (meeting == null) {
-        return Left(DatabaseFailure(message: 'Meeting not found'));
-      }
-
-      // Queue meeting for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceMeeting,
-        entityId: meetingId,
-        operation: SyncOperation.update,
-        payload: _createMeetingSyncPayload(meeting),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceMeeting,
+          entityId: meetingId,
+          operation: SyncOperation.update,
+          payload: _createMeetingSyncPayload(meeting),
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -463,28 +480,32 @@ class CadenceRepositoryImpl implements CadenceRepository {
     String reason,
   ) async {
     try {
-      await _localDataSource.updateMeeting(
-        meetingId,
-        db.CadenceMeetingsCompanion(
-          status: const Value('CANCELLED'),
-          notes: Value(reason),
-          isPendingSync: const Value(true),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      // Cancel meeting and queue for sync atomically
+      late final db.CadenceMeeting meeting;
+      await _database.transaction(() async {
+        await _localDataSource.updateMeeting(
+          meetingId,
+          db.CadenceMeetingsCompanion(
+            status: const Value('CANCELLED'),
+            notes: Value(reason),
+            isPendingSync: const Value(true),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
 
-      final meeting = await _localDataSource.getMeetingById(meetingId);
-      if (meeting == null) {
-        return Left(DatabaseFailure(message: 'Meeting not found'));
-      }
+        final result = await _localDataSource.getMeetingById(meetingId);
+        if (result == null) {
+          throw Exception('Meeting not found');
+        }
+        meeting = result;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceMeeting,
-        entityId: meetingId,
-        operation: SyncOperation.update,
-        payload: _createMeetingSyncPayload(meeting),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceMeeting,
+          entityId: meetingId,
+          operation: SyncOperation.update,
+          payload: _createMeetingSyncPayload(meeting),
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -503,24 +524,27 @@ class CadenceRepositoryImpl implements CadenceRepository {
     String notes,
   ) async {
     try {
-      await _localDataSource.updateMeeting(
-        meetingId,
-        db.CadenceMeetingsCompanion(
-          notes: Value(notes),
-          isPendingSync: const Value(true),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-
-      final meeting = await _localDataSource.getMeetingById(meetingId);
-      if (meeting != null) {
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.cadenceMeeting,
-          entityId: meetingId,
-          operation: SyncOperation.update,
-          payload: _createMeetingSyncPayload(meeting),
+      // Update notes and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.updateMeeting(
+          meetingId,
+          db.CadenceMeetingsCompanion(
+            notes: Value(notes),
+            isPendingSync: const Value(true),
+            updatedAt: Value(DateTime.now()),
+          ),
         );
-      }
+
+        final meeting = await _localDataSource.getMeetingById(meetingId);
+        if (meeting != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.cadenceMeeting,
+            entityId: meetingId,
+            operation: SyncOperation.update,
+            payload: _createMeetingSyncPayload(meeting),
+          );
+        }
+      });
 
       unawaited(_syncService.triggerSync());
       return const Right(unit);
@@ -538,24 +562,27 @@ class CadenceRepositoryImpl implements CadenceRepository {
     String agenda,
   ) async {
     try {
-      await _localDataSource.updateMeeting(
-        meetingId,
-        db.CadenceMeetingsCompanion(
-          agenda: Value(agenda),
-          isPendingSync: const Value(true),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-
-      final meeting = await _localDataSource.getMeetingById(meetingId);
-      if (meeting != null) {
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.cadenceMeeting,
-          entityId: meetingId,
-          operation: SyncOperation.update,
-          payload: _createMeetingSyncPayload(meeting),
+      // Update agenda and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.updateMeeting(
+          meetingId,
+          db.CadenceMeetingsCompanion(
+            agenda: Value(agenda),
+            isPendingSync: const Value(true),
+            updatedAt: Value(DateTime.now()),
+          ),
         );
-      }
+
+        final meeting = await _localDataSource.getMeetingById(meetingId);
+        if (meeting != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.cadenceMeeting,
+            entityId: meetingId,
+            operation: SyncOperation.update,
+            payload: _createMeetingSyncPayload(meeting),
+          );
+        }
+      });
 
       unawaited(_syncService.triggerSync());
       return const Right(unit);
@@ -608,25 +635,28 @@ class CadenceRepositoryImpl implements CadenceRepository {
         scoreImpact = _scoreFormVeryLate;
       }
 
-      await _localDataSource.submitForm(
-        submission.participantId,
-        q1CompletionStatus: submission.q1CompletionStatus?.name.toUpperCase(),
-        q2WhatAchieved: submission.q2WhatAchieved,
-        q3Obstacles: submission.q3Obstacles,
-        q4NextCommitment: submission.q4NextCommitment,
-        formSubmissionStatus: submissionStatus,
-        formScoreImpact: scoreImpact,
-      );
+      // Submit form and queue for sync atomically
+      late final db.CadenceParticipant updated;
+      await _database.transaction(() async {
+        await _localDataSource.submitForm(
+          submission.participantId,
+          q1CompletionStatus: submission.q1CompletionStatus?.name.toUpperCase(),
+          q2WhatAchieved: submission.q2WhatAchieved,
+          q3Obstacles: submission.q3Obstacles,
+          q4NextCommitment: submission.q4NextCommitment,
+          formSubmissionStatus: submissionStatus,
+          formScoreImpact: scoreImpact,
+        );
 
-      final updated = await _localDataSource.getParticipant(submission.participantId);
+        updated = (await _localDataSource.getParticipant(submission.participantId))!;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceParticipant,
-        entityId: submission.participantId,
-        operation: SyncOperation.update,
-        payload: _createParticipantSyncPayload(updated!),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceParticipant,
+          entityId: submission.participantId,
+          operation: SyncOperation.update,
+          payload: _createParticipantSyncPayload(updated),
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -686,23 +716,26 @@ class CadenceRepositoryImpl implements CadenceRepository {
     try {
       final scoreImpact = _getAttendanceScore(status);
 
-      await _localDataSource.markAttendance(
-        participantId,
-        status: status.name.toUpperCase(),
-        scoreImpact: scoreImpact,
-        excusedReason: excusedReason,
-        markedBy: _currentUserId,
-      );
+      // Mark attendance and queue for sync atomically
+      late final db.CadenceParticipant updated;
+      await _database.transaction(() async {
+        await _localDataSource.markAttendance(
+          participantId,
+          status: status.name.toUpperCase(),
+          scoreImpact: scoreImpact,
+          excusedReason: excusedReason,
+          markedBy: _currentUserId,
+        );
 
-      final updated = await _localDataSource.getParticipant(participantId);
+        updated = (await _localDataSource.getParticipant(participantId))!;
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.cadenceParticipant,
-        entityId: participantId,
-        operation: SyncOperation.update,
-        payload: _createParticipantSyncPayload(updated!),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.cadenceParticipant,
+          entityId: participantId,
+          operation: SyncOperation.update,
+          payload: _createParticipantSyncPayload(updated),
+        );
+      });
 
       unawaited(_syncService.triggerSync());
 
@@ -754,17 +787,20 @@ class CadenceRepositoryImpl implements CadenceRepository {
     required String notes,
   }) async {
     try {
-      await _localDataSource.saveHostNotes(participantId, notes);
+      // Save host notes and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.saveHostNotes(participantId, notes);
 
-      final updated = await _localDataSource.getParticipant(participantId);
-      if (updated != null) {
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.cadenceParticipant,
-          entityId: participantId,
-          operation: SyncOperation.update,
-          payload: _createParticipantSyncPayload(updated),
-        );
-      }
+        final updated = await _localDataSource.getParticipant(participantId);
+        if (updated != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.cadenceParticipant,
+            entityId: participantId,
+            operation: SyncOperation.update,
+            payload: _createParticipantSyncPayload(updated),
+          );
+        }
+      });
 
       unawaited(_syncService.triggerSync());
       return const Right(unit);
@@ -782,17 +818,20 @@ class CadenceRepositoryImpl implements CadenceRepository {
     required String feedbackText,
   }) async {
     try {
-      await _localDataSource.saveFeedback(participantId, feedbackText);
+      // Save feedback and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.saveFeedback(participantId, feedbackText);
 
-      final updated = await _localDataSource.getParticipant(participantId);
-      if (updated != null) {
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.cadenceParticipant,
-          entityId: participantId,
-          operation: SyncOperation.update,
-          payload: _createParticipantSyncPayload(updated),
-        );
-      }
+        final updated = await _localDataSource.getParticipant(participantId);
+        if (updated != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.cadenceParticipant,
+            entityId: participantId,
+            operation: SyncOperation.update,
+            payload: _createParticipantSyncPayload(updated),
+          );
+        }
+      });
 
       unawaited(_syncService.triggerSync());
       return const Right(unit);
@@ -1070,60 +1109,61 @@ class CadenceRepositoryImpl implements CadenceRepository {
     final meetingId = _uuid.v4();
     final now = DateTime.now();
 
-    // Create meeting
-    await _localDataSource.insertMeeting(db.CadenceMeetingsCompanion.insert(
-      id: meetingId,
-      configId: config.id,
-      title: '${config.name} - ${_formatDate(scheduledAt)}',
-      scheduledAt: scheduledAt,
-      durationMinutes: config.durationMinutes,
-      facilitatorId: _currentUserId,
-      status: const Value('SCHEDULED'),
-      createdBy: _currentUserId,
-      isPendingSync: const Value(true),
-      createdAt: now,
-      updatedAt: now,
-    ));
-
-    // Queue meeting for sync
-    final meeting = await _localDataSource.getMeetingById(meetingId);
-    await _syncService.queueOperation(
-      entityType: SyncEntityType.cadenceMeeting,
-      entityId: meetingId,
-      operation: SyncOperation.create,
-      payload: _createMeetingSyncPayload(meeting!),
-    );
-
-    // Get team members and create participants
-    final teamMemberIds = await getTeamMemberIds();
-    for (final userId in teamMemberIds) {
-      final participantId = _uuid.v4();
-      final previousCommitment = await _localDataSource.getPreviousCommitment(
-        userId,
-        _currentUserId,
-      );
-
-      await _localDataSource.insertParticipant(db.CadenceParticipantsCompanion.insert(
-        id: participantId,
-        meetingId: meetingId,
-        userId: userId,
-        q1PreviousCommitment: Value(previousCommitment),
+    // Create meeting + participants and queue all for sync atomically
+    late final db.CadenceMeeting meeting;
+    await _database.transaction(() async {
+      await _localDataSource.insertMeeting(db.CadenceMeetingsCompanion.insert(
+        id: meetingId,
+        configId: config.id,
+        title: '${config.name} - ${_formatDate(scheduledAt)}',
+        scheduledAt: scheduledAt,
+        durationMinutes: config.durationMinutes,
+        facilitatorId: _currentUserId,
+        status: const Value('SCHEDULED'),
+        createdBy: _currentUserId,
         isPendingSync: const Value(true),
         createdAt: now,
         updatedAt: now,
       ));
 
-      // Queue participant for sync
-      final participant = await _localDataSource.getParticipant(participantId);
-      if (participant != null) {
-        await _syncService.queueOperation(
-          entityType: SyncEntityType.cadenceParticipant,
-          entityId: participantId,
-          operation: SyncOperation.create,
-          payload: _createParticipantSyncPayload(participant),
+      meeting = (await _localDataSource.getMeetingById(meetingId))!;
+      await _syncService.queueOperation(
+        entityType: SyncEntityType.cadenceMeeting,
+        entityId: meetingId,
+        operation: SyncOperation.create,
+        payload: _createMeetingSyncPayload(meeting),
+      );
+
+      // Get team members and create participants
+      final teamMemberIds = await getTeamMemberIds();
+      for (final userId in teamMemberIds) {
+        final participantId = _uuid.v4();
+        final previousCommitment = await _localDataSource.getPreviousCommitment(
+          userId,
+          _currentUserId,
         );
+
+        await _localDataSource.insertParticipant(db.CadenceParticipantsCompanion.insert(
+          id: participantId,
+          meetingId: meetingId,
+          userId: userId,
+          q1PreviousCommitment: Value(previousCommitment),
+          isPendingSync: const Value(true),
+          createdAt: now,
+          updatedAt: now,
+        ));
+
+        final participant = await _localDataSource.getParticipant(participantId);
+        if (participant != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.cadenceParticipant,
+            entityId: participantId,
+            operation: SyncOperation.create,
+            payload: _createParticipantSyncPayload(participant),
+          );
+        }
       }
-    }
+    });
 
     unawaited(_syncService.triggerSync());
 

@@ -41,6 +41,8 @@ final hvcRepositoryProvider = Provider<HvcRepository>((ref) {
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).value;
 
+  final database = ref.watch(databaseProvider);
+
   return HvcRepositoryImpl(
     localDataSource: localDataSource,
     remoteDataSource: remoteDataSource,
@@ -48,6 +50,7 @@ final hvcRepositoryProvider = Provider<HvcRepository>((ref) {
     customerLocalDataSource: customerLocalDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 

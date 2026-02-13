@@ -22,12 +22,14 @@ class BrokerRepositoryImpl implements BrokerRepository {
     required this.remoteDataSource,
     required this.syncService,
     required this.currentUserId,
-  });
+    required db.AppDatabase database,
+  }) : _database = database;
 
   final BrokerLocalDataSource localDataSource;
   final BrokerRemoteDataSource remoteDataSource;
   final SyncService syncService;
   final String currentUserId;
+  final db.AppDatabase _database;
 
   // ==========================================
   // Broker CRUD Operations
@@ -83,38 +85,42 @@ class BrokerRepositoryImpl implements BrokerRepository {
       final code = await _generateBrokerCode();
       final now = DateTime.now();
 
-      // Insert to local database
-      await localDataSource.insertBroker(
-        db.BrokersCompanion(
-          id: Value(id),
-          code: Value(code),
-          name: Value(dto.name),
-          licenseNumber: Value(dto.licenseNumber),
-          address: Value(dto.address),
-          provinceId: Value(dto.provinceId),
-          cityId: Value(dto.cityId),
-          latitude: Value(dto.latitude),
-          longitude: Value(dto.longitude),
-          phone: Value(dto.phone),
-          email: Value(dto.email),
-          website: Value(dto.website),
-          commissionRate: Value(dto.commissionRate),
-          notes: Value(dto.notes),
-          isActive: const Value(true),
-          isPendingSync: const Value(true),
-          createdBy: Value(currentUserId),
-          createdAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
+      // Insert locally and queue for sync atomically
+      await _database.transaction(() async {
+        await localDataSource.insertBroker(
+          db.BrokersCompanion(
+            id: Value(id),
+            code: Value(code),
+            name: Value(dto.name),
+            licenseNumber: Value(dto.licenseNumber),
+            address: Value(dto.address),
+            provinceId: Value(dto.provinceId),
+            cityId: Value(dto.cityId),
+            latitude: Value(dto.latitude),
+            longitude: Value(dto.longitude),
+            phone: Value(dto.phone),
+            email: Value(dto.email),
+            website: Value(dto.website),
+            commissionRate: Value(dto.commissionRate),
+            notes: Value(dto.notes),
+            isActive: const Value(true),
+            isPendingSync: const Value(true),
+            createdBy: Value(currentUserId),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
 
-      // Add to sync queue
-      await syncService.queueOperation(
-        entityType: SyncEntityType.broker,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createBrokerSyncPayload(id, code, dto, now),
-      );
+        await syncService.queueOperation(
+          entityType: SyncEntityType.broker,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createBrokerSyncPayload(id, code, dto, now),
+        );
+      });
+
+      // Trigger sync in background (outside transaction)
+      unawaited(syncService.triggerSync());
 
       // Get the created broker
       final created = await localDataSource.getBrokerById(id);
@@ -130,40 +136,45 @@ class BrokerRepositoryImpl implements BrokerRepository {
     try {
       final now = DateTime.now();
 
-      // Update local database
-      await localDataSource.updateBroker(
-        id,
-        db.BrokersCompanion(
-          name: dto.name != null ? Value(dto.name!) : const Value.absent(),
-          licenseNumber: Value(dto.licenseNumber),
-          address: Value(dto.address),
-          provinceId: Value(dto.provinceId),
-          cityId: Value(dto.cityId),
-          latitude: Value(dto.latitude),
-          longitude: Value(dto.longitude),
-          phone: Value(dto.phone),
-          email: Value(dto.email),
-          website: Value(dto.website),
-          commissionRate: Value(dto.commissionRate),
-          notes: Value(dto.notes),
-          isPendingSync: const Value(true),
-          updatedAt: Value(now),
-        ),
-      );
+      // Update locally and queue for sync atomically
+      late final db.Broker updated;
+      await _database.transaction(() async {
+        await localDataSource.updateBroker(
+          id,
+          db.BrokersCompanion(
+            name: dto.name != null ? Value(dto.name!) : const Value.absent(),
+            licenseNumber: Value(dto.licenseNumber),
+            address: Value(dto.address),
+            provinceId: Value(dto.provinceId),
+            cityId: Value(dto.cityId),
+            latitude: Value(dto.latitude),
+            longitude: Value(dto.longitude),
+            phone: Value(dto.phone),
+            email: Value(dto.email),
+            website: Value(dto.website),
+            commissionRate: Value(dto.commissionRate),
+            notes: Value(dto.notes),
+            isPendingSync: const Value(true),
+            updatedAt: Value(now),
+          ),
+        );
 
-      // Get updated data for sync payload
-      final updated = await localDataSource.getBrokerById(id);
-      if (updated == null) {
-        return Left(DatabaseFailure(message: 'Broker not found after update'));
-      }
+        final result = await localDataSource.getBrokerById(id);
+        if (result == null) {
+          throw Exception('Broker not found after update');
+        }
+        updated = result;
 
-      // Add to sync queue
-      await syncService.queueOperation(
-        entityType: SyncEntityType.broker,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createBrokerUpdateSyncPayload(updated),
-      );
+        await syncService.queueOperation(
+          entityType: SyncEntityType.broker,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createBrokerUpdateSyncPayload(updated),
+        );
+      });
+
+      // Trigger sync in background (outside transaction)
+      unawaited(syncService.triggerSync());
 
       return Right(_mapToBroker(updated));
     } catch (e) {
@@ -174,18 +185,23 @@ class BrokerRepositoryImpl implements BrokerRepository {
   @override
   Future<Either<Failure, void>> deleteBroker(String id) async {
     try {
-      await localDataSource.softDeleteBroker(id);
+      // Soft delete and queue for sync atomically
+      await _database.transaction(() async {
+        await localDataSource.softDeleteBroker(id);
 
-      // Add to sync queue
-      await syncService.queueOperation(
-        entityType: SyncEntityType.broker,
-        entityId: id,
-        operation: SyncOperation.delete,
-        payload: {
-          'id': id,
-          'deleted_at': DateTime.now().toIso8601String(),
-        },
-      );
+        await syncService.queueOperation(
+          entityType: SyncEntityType.broker,
+          entityId: id,
+          operation: SyncOperation.delete,
+          payload: {
+            'id': id,
+            'deleted_at': DateTime.now().toIso8601String(),
+          },
+        );
+      });
+
+      // Trigger sync in background (outside transaction)
+      unawaited(syncService.triggerSync());
 
       return const Right(null);
     } catch (e) {

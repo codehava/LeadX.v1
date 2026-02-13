@@ -38,11 +38,14 @@ final brokerRepositoryProvider = Provider<BrokerRepository>((ref) {
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
 
+  final database = ref.watch(databaseProvider);
+
   return BrokerRepositoryImpl(
     localDataSource: localDataSource,
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
+    database: database,
   );
 });
 

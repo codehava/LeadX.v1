@@ -37,12 +37,15 @@ final cadenceRepositoryProvider = Provider<CadenceRepository>((ref) {
   final syncService = ref.watch(syncServiceProvider);
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
 
+  final database = ref.watch(databaseProvider);
+
   return CadenceRepositoryImpl(
     localDataSource: localDataSource,
     remoteDataSource: remoteDataSource,
     syncService: syncService,
     currentUserId: currentUser?.id ?? '',
     currentUserRole: currentUser?.role.name.toUpperCase() ?? '',
+    database: database,
   );
 });
 
