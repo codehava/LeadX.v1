@@ -14,6 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
 - [x] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
+- [ ] **Phase 02.1: Pre-existing Bug Fixes** - Timezone serialization + dropdown race condition (INSERTED)
 - [ ] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
@@ -58,6 +59,23 @@ Plans:
 - [x] 02-01-PLAN.md — Queue coalescing + debounced sync triggers (SYNC-03, SYNC-04)
 - [x] 02-02-PLAN.md — Atomic transactions for Customer, Pipeline, Activity repos (SYNC-01 part 1)
 - [x] 02-03-PLAN.md — Atomic transactions for remaining repos + incremental sync (SYNC-01 part 2, SYNC-02)
+
+### Phase 02.1: Pre-existing Bug Fixes — Timezone Serialization + Dropdown Race Condition (INSERTED)
+
+**Goal:** Fix two pre-existing bugs discovered during Phase 2 UAT: (1) timezone serialization — all `.toIso8601String()` calls in sync payloads omit UTC indicator, causing Supabase to misinterpret local timestamps as UTC (86 occurrences across 9 repos), (2) AutocompleteField dropdown race condition — 200ms overlay removal window causes selection loss on tap
+**Depends on:** Phase 2
+**Requirements:** None (pre-existing bugs, not tracked requirements)
+**Success Criteria** (what must be TRUE):
+  1. Activity created at 9 PM WIB appears as 9 PM WIB on the server (not 4 AM next day)
+  2. All `.toIso8601String()` in sync payloads use `.toUtc().toIso8601String()` producing timestamps with `Z` suffix
+  3. Selecting a dropdown value in customer and pipeline forms consistently populates the form field
+  4. AutocompleteField overlay race condition eliminated or mitigated
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02.1-01-PLAN.md — UTC helper + repository sync payload timestamp fixes (88 occurrences)
+- [ ] 02.1-02-PLAN.md — Remote data source + service + provider timestamp fixes (72 occurrences)
+- [ ] 02.1-03-PLAN.md — Replace AutocompleteField with SearchableDropdown (11 fields)
 
 ### Phase 3: Error Classification & Recovery
 **Goal**: Replace generic exception handling with typed error propagation, enable intelligent retry decisions, and gracefully handle offline states in UI
@@ -190,12 +208,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Observability | 3/3 | ✓ Complete | 2026-02-13 |
 | 2. Sync Engine Core | 3/3 | ✓ Complete | 2026-02-13 |
+| 02.1. Pre-existing Bug Fixes | 0/3 | Not started | - |
 | 3. Error Classification & Recovery | 0/TBD | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
@@ -207,4 +226,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-13 — Phase 2 complete*
+*Last updated: 2026-02-13 — Phase 02.1 planned (3 plans)*
