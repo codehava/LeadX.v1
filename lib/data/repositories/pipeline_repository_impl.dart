@@ -221,27 +221,28 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: now,
       );
 
-      // Save locally first
-      await _localDataSource.insertPipeline(companion);
+      // Save locally and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertPipeline(companion);
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipeline,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createSyncPayload(
-          id: id,
-          code: code,
-          dto: dto,
-          stageId: newStage.id,
-          statusId: defaultStatus?.id ?? '',
-          weightedValue: weightedValue,
-          now: now,
-          assignedRmId: assignedRmId,
-        ),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipeline,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createSyncPayload(
+            id: id,
+            code: code,
+            dto: dto,
+            stageId: newStage.id,
+            statusId: defaultStatus?.id ?? '',
+            weightedValue: weightedValue,
+            now: now,
+            assignedRmId: assignedRmId,
+          ),
+        );
+      });
 
-      // Trigger sync if online (non-blocking)
+      // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
       // Return the created pipeline
@@ -317,24 +318,27 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
-      // Update locally first
-      await _localDataSource.updatePipeline(id, companion);
+      // Update locally and queue for sync atomically
+      final updated = await _database.transaction(() async {
+        await _localDataSource.updatePipeline(id, companion);
 
-      // Get updated data for sync payload
-      final updated = await _localDataSource.getPipelineById(id);
-      if (updated == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
-      }
+        // Get updated data for sync payload (inside transaction)
+        final data = await _localDataSource.getPipelineById(id);
+        if (data == null) {
+          throw Exception('Pipeline not found: $id');
+        }
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipeline,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createUpdateSyncPayload(updated),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipeline,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createUpdateSyncPayload(data),
+        );
 
-      // Trigger sync if online (non-blocking)
+        return data;
+      });
+
+      // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
       return Right(_mapToPipeline(updated));
@@ -432,59 +436,63 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
-      // Update locally first
-      await _localDataSource.updatePipeline(id, companion);
+      // Update locally, create history, and queue for sync atomically
+      final updated = await _database.transaction(() async {
+        await _localDataSource.updatePipeline(id, companion);
 
-      // Get updated data for sync payload
-      final updated = await _localDataSource.getPipelineById(id);
-      if (updated == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
-      }
+        // Get updated data for sync payload (inside transaction)
+        final data = await _localDataSource.getPipelineById(id);
+        if (data == null) {
+          throw Exception('Pipeline not found: $id');
+        }
 
-      // Create local history entry if stage changed
-      // Each history entry has its own unique ID, so they won't be coalesced
-      if (stageChanged) {
-        final historyId = _uuid.v4();
-        await _historyLogDataSource.insertLocalHistoryEntry(
-          id: historyId,
-          pipelineId: id,
-          fromStageId: existing.stageId,
-          toStageId: dto.stageId,
-          fromStatusId: existing.statusId,
-          toStatusId: statusId,
-          notes: dto.notes,
-          changedBy: _currentUserId,
-          changedAt: now,
-        );
+        // Create local history entry if stage changed
+        // Each history entry has its own unique ID, so they won't be coalesced
+        if (stageChanged) {
+          final historyId = _uuid.v4();
+          await _historyLogDataSource.insertLocalHistoryEntry(
+            id: historyId,
+            pipelineId: id,
+            fromStageId: existing.stageId,
+            toStageId: dto.stageId,
+            fromStatusId: existing.statusId,
+            toStatusId: statusId,
+            notes: dto.notes,
+            changedBy: _currentUserId,
+            changedAt: now,
+          );
 
-        // Queue history entry for sync (CREATE operation with unique ID)
+          // Queue history entry for sync (CREATE operation with unique ID)
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.pipelineStageHistory,
+            entityId: historyId,
+            operation: SyncOperation.create,
+            payload: {
+              'id': historyId,
+              'pipeline_id': id,
+              'from_stage_id': _sanitizeUuid(existing.stageId),
+              'to_stage_id': dto.stageId,
+              'from_status_id': _sanitizeUuid(existing.statusId),
+              'to_status_id': _sanitizeUuid(statusId),
+              'notes': dto.notes,
+              'changed_by': _currentUserId,
+              'changed_at': now.toIso8601String(),
+            },
+          );
+        }
+
+        // Queue pipeline update for sync
         await _syncService.queueOperation(
-          entityType: SyncEntityType.pipelineStageHistory,
-          entityId: historyId,
-          operation: SyncOperation.create,
-          payload: {
-            'id': historyId,
-            'pipeline_id': id,
-            'from_stage_id': _sanitizeUuid(existing.stageId),
-            'to_stage_id': dto.stageId,
-            'from_status_id': _sanitizeUuid(existing.statusId),
-            'to_status_id': _sanitizeUuid(statusId),
-            'notes': dto.notes,
-            'changed_by': _currentUserId,
-            'changed_at': now.toIso8601String(),
-          },
+          entityType: SyncEntityType.pipeline,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createUpdateSyncPayload(data),
         );
-      }
 
-      // Queue pipeline update for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipeline,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createUpdateSyncPayload(updated),
-      );
+        return data;
+      });
 
-      // Trigger sync if online (non-blocking)
+      // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
       return Right(_mapToPipeline(updated));
@@ -525,24 +533,27 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
-      // Update locally first
-      await _localDataSource.updatePipeline(id, companion);
+      // Update locally and queue for sync atomically
+      final updated = await _database.transaction(() async {
+        await _localDataSource.updatePipeline(id, companion);
 
-      // Get updated data for sync payload
-      final updated = await _localDataSource.getPipelineById(id);
-      if (updated == null) {
-        return Left(NotFoundFailure(message: 'Pipeline not found: $id'));
-      }
+        // Get updated data for sync payload (inside transaction)
+        final data = await _localDataSource.getPipelineById(id);
+        if (data == null) {
+          throw Exception('Pipeline not found: $id');
+        }
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipeline,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createUpdateSyncPayload(updated),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipeline,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createUpdateSyncPayload(data),
+        );
 
-      // Trigger sync if online (non-blocking)
+        return data;
+      });
+
+      // Trigger sync if online (non-blocking, outside transaction)
       _syncService.triggerSync();
 
       return Right(_mapToPipeline(updated));
@@ -562,14 +573,20 @@ class PipelineRepositoryImpl implements PipelineRepository {
   @override
   Future<Either<Failure, void>> deletePipeline(String id) async {
     try {
-      await _localDataSource.softDeletePipeline(id);
+      // Soft delete locally and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.softDeletePipeline(id);
 
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.pipeline,
-        entityId: id,
-        operation: SyncOperation.delete,
-        payload: {'id': id},
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.pipeline,
+          entityId: id,
+          operation: SyncOperation.delete,
+          payload: {'id': id},
+        );
+      });
+
+      // Trigger sync if online (non-blocking, outside transaction)
+      _syncService.triggerSync();
 
       return const Right(null);
     } catch (e) {

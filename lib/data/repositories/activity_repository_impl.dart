@@ -210,27 +210,29 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: now,
       );
 
-      // Save locally first
-      await _localDataSource.insertActivity(companion);
+      // Save locally, create audit log, and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertActivity(companion);
 
-      // Insert audit log for creation
-      await _insertAuditLog(
-        activityId: id,
-        action: 'CREATED',
-        newStatus: 'PLANNED',
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-      );
+        // Insert audit log for creation
+        await _insertAuditLog(
+          activityId: id,
+          action: 'CREATED',
+          newStatus: 'PLANNED',
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+        );
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.activity,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createSyncPayload(id, dto, now),
-      );
+        // Queue for sync
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createSyncPayload(id, dto, now),
+        );
+      });
 
-      // Trigger sync if online
+      // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
       // Return the created activity
@@ -278,28 +280,30 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: now,
       );
 
-      // Save locally first
-      await _localDataSource.insertActivity(companion);
+      // Save locally, create audit log, and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertActivity(companion);
 
-      // Insert audit log
-      await _insertAuditLog(
-        activityId: id,
-        action: 'CREATED',
-        newStatus: 'COMPLETED',
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        notes: 'Immediate activity',
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: id,
+          action: 'CREATED',
+          newStatus: 'COMPLETED',
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+          notes: 'Immediate activity',
+        );
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.activity,
-        entityId: id,
-        operation: SyncOperation.create,
-        payload: _createImmediateSyncPayload(id, dto, now),
-      );
+        // Queue for sync
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: id,
+          operation: SyncOperation.create,
+          payload: _createImmediateSyncPayload(id, dto, now),
+        );
+      });
 
-      // Trigger sync if online
+      // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
       final activity = await getActivityById(id);
@@ -348,35 +352,38 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
-      // Update locally first
-      await _localDataSource.updateActivity(id, companion);
+      // Update locally, create audit log, and queue for sync atomically
+      final updated = await _database.transaction(() async {
+        await _localDataSource.updateActivity(id, companion);
 
-      // Insert audit log
-      await _insertAuditLog(
-        activityId: id,
-        action: dto.isLocationOverride ? 'GPS_OVERRIDE' : 'EXECUTED',
-        oldStatus: existing.status,
-        newStatus: 'COMPLETED',
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        notes: dto.overrideReason,
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: id,
+          action: dto.isLocationOverride ? 'GPS_OVERRIDE' : 'EXECUTED',
+          oldStatus: existing.status,
+          newStatus: 'COMPLETED',
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+          notes: dto.overrideReason,
+        );
 
-      // Get updated data for sync payload
-      final updated = await _localDataSource.getActivityById(id);
-      if (updated == null) {
-        return Left(NotFoundFailure(message: 'Activity not found: $id'));
-      }
+        // Get updated data for sync payload (inside transaction)
+        final data = await _localDataSource.getActivityById(id);
+        if (data == null) {
+          throw Exception('Activity not found: $id');
+        }
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.activity,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createUpdateSyncPayload(updated),
-      );
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createUpdateSyncPayload(data),
+        );
 
-      // Trigger sync if online
+        return data;
+      });
+
+      // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
       return Right(_mapToActivity(updated));
@@ -428,8 +435,6 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: now,
       );
 
-      await _localDataSource.insertActivity(newCompanion);
-
       // Update original activity to RESCHEDULED
       final updateCompanion = db.ActivitiesCompanion(
         status: const Value('RESCHEDULED'),
@@ -439,40 +444,44 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
-      await _localDataSource.updateActivity(id, updateCompanion);
+      // Create new activity, update original, audit log, and queue all atomically
+      await _database.transaction(() async {
+        await _localDataSource.insertActivity(newCompanion);
+        await _localDataSource.updateActivity(id, updateCompanion);
 
-      // Insert audit logs
-      await _insertAuditLog(
-        activityId: id,
-        action: 'RESCHEDULED',
-        oldStatus: existing.status,
-        newStatus: 'RESCHEDULED',
-        notes: dto.reason,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: id,
+          action: 'RESCHEDULED',
+          oldStatus: existing.status,
+          newStatus: 'RESCHEDULED',
+          notes: dto.reason,
+          latitude: dto.latitude,
+          longitude: dto.longitude,
+        );
 
-      // Queue CREATE for the NEW rescheduled activity FIRST
-      // This ensures the new activity exists on remote before we reference it
-      final newActivity = await _localDataSource.getActivityById(newId);
-      if (newActivity != null) {
+        // Queue CREATE for the NEW rescheduled activity FIRST
+        // This ensures the new activity exists on remote before we reference it
+        final newActivity = await _localDataSource.getActivityById(newId);
+        if (newActivity != null) {
+          await _syncService.queueOperation(
+            entityType: SyncEntityType.activity,
+            entityId: newId,
+            operation: SyncOperation.create,
+            payload: _createUpdateSyncPayload(newActivity),
+          );
+        }
+
+        // Then queue UPDATE for original activity with rescheduled_to_id
         await _syncService.queueOperation(
           entityType: SyncEntityType.activity,
-          entityId: newId,
-          operation: SyncOperation.create,
-          payload: _createUpdateSyncPayload(newActivity),
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: _createRescheduleSyncPayload(id, newId, 'RESCHEDULED', dto.reason, now),
         );
-      }
+      });
 
-      // Then queue UPDATE for original activity with rescheduled_to_id
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.activity,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: _createRescheduleSyncPayload(id, newId, 'RESCHEDULED', dto.reason, now),
-      );
-
-      // Trigger sync if online
+      // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
       // Return the new activity
@@ -509,34 +518,37 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
-      await _localDataSource.updateActivity(id, companion);
+      // Update locally, create audit log, and queue for sync atomically
+      await _database.transaction(() async {
+        await _localDataSource.updateActivity(id, companion);
 
-      // Insert audit log
-      await _insertAuditLog(
-        activityId: id,
-        action: 'CANCELLED',
-        oldStatus: existing.status,
-        newStatus: 'CANCELLED',
-        notes: reason,
-        latitude: latitude,
-        longitude: longitude,
-      );
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: id,
+          action: 'CANCELLED',
+          oldStatus: existing.status,
+          newStatus: 'CANCELLED',
+          notes: reason,
+          latitude: latitude,
+          longitude: longitude,
+        );
 
-      // Queue for sync
-      await _syncService.queueOperation(
-        entityType: SyncEntityType.activity,
-        entityId: id,
-        operation: SyncOperation.update,
-        payload: {
-          'id': id,
-          'status': 'CANCELLED',
-          'cancelled_at': now.toIso8601String(),
-          'cancel_reason': reason,
-          'updated_at': now.toIso8601String(),
-        },
-      );
+        // Queue for sync
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: {
+            'id': id,
+            'status': 'CANCELLED',
+            'cancelled_at': now.toIso8601String(),
+            'cancel_reason': reason,
+            'updated_at': now.toIso8601String(),
+          },
+        );
+      });
 
-      // Trigger sync if online
+      // Trigger sync if online (outside transaction)
       _syncService.triggerSync();
 
       return const Right(null);
