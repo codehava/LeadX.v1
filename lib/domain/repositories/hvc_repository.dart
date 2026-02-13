@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../data/dtos/hvc_dtos.dart';
 import '../entities/hvc.dart';
 import '../entities/key_person.dart';
@@ -35,13 +33,13 @@ abstract class HvcRepository {
   Future<Hvc?> getHvcById(String id);
 
   /// Create a new HVC (Admin only).
-  Future<Either<Failure, Hvc>> createHvc(HvcCreateDto dto);
+  Future<Result<Hvc>> createHvc(HvcCreateDto dto);
 
   /// Update an existing HVC (Admin only).
-  Future<Either<Failure, Hvc>> updateHvc(String id, HvcUpdateDto dto);
+  Future<Result<Hvc>> updateHvc(String id, HvcUpdateDto dto);
 
   /// Delete an HVC (Admin only, soft delete).
-  Future<Either<Failure, void>> deleteHvc(String id);
+  Future<Result<void>> deleteHvc(String id);
 
   /// Search HVCs by name or code.
   Future<List<Hvc>> searchHvcs(String query);
@@ -80,19 +78,19 @@ abstract class HvcRepository {
   Future<List<CustomerHvcLink>> getCustomerHvcs(String customerId);
 
   /// Link a customer to an HVC.
-  Future<Either<Failure, CustomerHvcLink>> linkCustomerToHvc(
+  Future<Result<CustomerHvcLink>> linkCustomerToHvc(
       CustomerHvcLinkDto dto);
 
   /// Unlink a customer from an HVC.
-  Future<Either<Failure, void>> unlinkCustomerFromHvc(String linkId);
+  Future<Result<void>> unlinkCustomerFromHvc(String linkId);
 
   // ==========================================
   // Sync Operations
   // ==========================================
 
   /// Sync HVCs from remote.
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since});
+  Future<Result<int>> syncFromRemote({DateTime? since});
 
   /// Sync customer-HVC links from remote.
-  Future<Either<Failure, int>> syncLinksFromRemote({DateTime? since});
+  Future<Result<int>> syncLinksFromRemote({DateTime? since});
 }

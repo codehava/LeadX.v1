@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/local/hvc_local_data_source.dart';
 import '../../data/datasources/remote/hvc_remote_data_source.dart';
 import '../../data/dtos/hvc_dtos.dart';
@@ -191,19 +192,19 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
 
     final result = await _repository.createHvc(dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (hvc) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedHvc: hvc,
+          savedHvc: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Update an existing HVC.
@@ -212,19 +213,19 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
 
     final result = await _repository.updateHvc(id, dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (hvc) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedHvc: hvc,
+          savedHvc: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Delete an HVC.
@@ -233,20 +234,18 @@ class HvcFormNotifier extends StateNotifier<HvcFormState> {
 
     final result = await _repository.deleteHvc(id);
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success():
+        state = state.copyWith(isLoading: false);
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false);
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reset form state.
@@ -302,19 +301,19 @@ class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
 
     final result = await _repository.linkCustomerToHvc(dto);
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (link) {
+    switch (result) {
+      case Success(:final value):
         state = state.copyWith(
           isLoading: false,
-          savedLink: link,
+          savedLink: value,
         );
         // No invalidation needed - StreamProviders auto-update from Drift
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
   }
 
   /// Unlink customer from HVC.
@@ -323,20 +322,18 @@ class CustomerHvcLinkNotifier extends StateNotifier<CustomerHvcLinkState> {
 
     final result = await _repository.unlinkCustomerFromHvc(linkId);
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success():
+        state = state.copyWith(isLoading: false);
+        // No invalidation needed - StreamProviders auto-update from Drift
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false);
-        // No invalidation needed - StreamProviders auto-update from Drift
-        return true;
-      },
-    );
+    }
   }
 
   /// Reset state.

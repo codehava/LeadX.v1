@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/hvc.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
@@ -94,8 +95,7 @@ class HvcRepositoryImpl implements HvcRepository {
   }
 
   @override
-  Future<Either<Failure, domain.Hvc>> createHvc(HvcCreateDto dto) async {
-    try {
+  Future<Result<domain.Hvc>> createHvc(HvcCreateDto dto) => runCatching(() async {
       final now = DateTime.now();
       final id = _uuid.v4();
       final code = _generateHvcCode();
@@ -135,19 +135,12 @@ class HvcRepositoryImpl implements HvcRepository {
 
       // Return created HVC
       final hvc = await getHvcById(id);
-      return Right(hvc!);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create HVC: $e',
-        originalError: e,
-      ));
-    }
-  }
+      return hvc!;
+  }, context: 'createHvc');
 
   @override
-  Future<Either<Failure, domain.Hvc>> updateHvc(
-      String id, HvcUpdateDto dto) async {
-    try {
+  Future<Result<domain.Hvc>> updateHvc(
+      String id, HvcUpdateDto dto) => runCatching(() async {
       final now = DateTime.now();
 
       final companion = db.HvcsCompanion(
@@ -198,18 +191,11 @@ class HvcRepositoryImpl implements HvcRepository {
       // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToHvc(updated));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update HVC: $e',
-        originalError: e,
-      ));
-    }
-  }
+      return _mapToHvc(updated);
+  }, context: 'updateHvc');
 
   @override
-  Future<Either<Failure, void>> deleteHvc(String id) async {
-    try {
+  Future<Result<void>> deleteHvc(String id) => runCatching(() async {
       // Soft delete and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.softDeleteHvc(id);
@@ -224,15 +210,7 @@ class HvcRepositoryImpl implements HvcRepository {
 
       // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete HVC: $e',
-        originalError: e,
-      ));
-    }
-  }
+  }, context: 'deleteHvc');
 
   @override
   Future<List<domain.Hvc>> searchHvcs(String query) async {
@@ -321,14 +299,14 @@ class HvcRepositoryImpl implements HvcRepository {
   }
 
   @override
-  Future<Either<Failure, domain.CustomerHvcLink>> linkCustomerToHvc(
+  Future<Result<domain.CustomerHvcLink>> linkCustomerToHvc(
       CustomerHvcLinkDto dto) async {
     try {
       // Check if link already exists
       final exists =
           await _localDataSource.linkExists(dto.customerId, dto.hvcId);
       if (exists) {
-        return Left(ValidationFailure(
+        return Result.failure(ValidationFailure(
             message: 'Customer is already linked to this HVC'));
       }
 
@@ -363,18 +341,14 @@ class HvcRepositoryImpl implements HvcRepository {
 
       // Return created link
       final link = await _localDataSource.getCustomerHvcLinkById(id);
-      return Right(_mapToCustomerHvcLink(link!));
+      return Result.success(_mapToCustomerHvcLink(link!));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to link customer to HVC: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'linkCustomerToHvc'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> unlinkCustomerFromHvc(String linkId) async {
-    try {
+  Future<Result<void>> unlinkCustomerFromHvc(String linkId) => runCatching(() async {
       // Soft delete and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.deleteCustomerHvcLink(linkId);
@@ -389,27 +363,19 @@ class HvcRepositoryImpl implements HvcRepository {
 
       // Trigger sync in background (outside transaction)
       unawaited(_syncService.triggerSync());
-
-      return const Right(null);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to unlink customer from HVC: $e',
-        originalError: e,
-      ));
-    }
-  }
+  }, context: 'unlinkCustomerFromHvc');
 
   // ==========================================
   // Sync Operations
   // ==========================================
 
   @override
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
+  Future<Result<int>> syncFromRemote({DateTime? since}) async {
     try {
       final remoteData = await _remoteDataSource.fetchHvcs(since: since);
 
       if (remoteData.isEmpty) {
-        return const Right(0);
+        return const Result.success(0);
       }
 
       final companions = remoteData.map((data) {
@@ -438,23 +404,20 @@ class HvcRepositoryImpl implements HvcRepository {
 
       await _localDataSource.upsertHvcs(companions);
 
-      return Right(companions.length);
+      return Result.success(companions.length);
     } catch (e) {
-      return Left(SyncFailure(
-        message: 'Failed to sync HVCs from remote: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'syncFromRemote'));
     }
   }
 
   @override
-  Future<Either<Failure, int>> syncLinksFromRemote({DateTime? since}) async {
+  Future<Result<int>> syncLinksFromRemote({DateTime? since}) async {
     try {
       final remoteData =
           await _remoteDataSource.fetchCustomerHvcLinks(since: since);
 
       if (remoteData.isEmpty) {
-        return const Right(0);
+        return const Result.success(0);
       }
 
       final companions = remoteData.map((data) {
@@ -480,12 +443,9 @@ class HvcRepositoryImpl implements HvcRepository {
 
       await _localDataSource.upsertCustomerHvcLinks(companions);
 
-      return Right(companions.length);
+      return Result.success(companions.length);
     } catch (e) {
-      return Left(SyncFailure(
-        message: 'Failed to sync customer-HVC links from remote: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'syncLinksFromRemote'));
     }
   }
 

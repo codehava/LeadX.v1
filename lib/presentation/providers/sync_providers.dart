@@ -272,13 +272,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final hvcSince = await _getSafeSince('hvcs');
       AppLogger.instance.debug('sync.pull | Pulling HVCs (since: $hvcSince)...');
       final hvcResult = await _hvcRepository.syncFromRemote(since: hvcSince);
-      hvcResult.fold(
-        (failure) => AppLogger.instance.warning('sync.pull | HVC pull failed: ${failure.message}'),
-        (count) {
-          AppLogger.instance.debug('sync.pull | Pulled $count HVCs');
+      switch (hvcResult) {
+        case Success(:final value):
+          AppLogger.instance.debug('sync.pull | Pulled $value HVCs');
           _appSettingsService.setTableLastSyncAt('hvcs', DateTime.now().toUtc());
-        },
-      );
+        case ResultFailure(:final failure):
+          AppLogger.instance.warning('sync.pull | HVC pull failed: ${failure.message}');
+      }
     } catch (e) {
       AppLogger.instance.error('sync.pull | HVC pull error: $e');
     }
@@ -288,13 +288,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final hvcLinkSince = await _getSafeSince('customer_hvc_links');
       AppLogger.instance.debug('sync.pull | Pulling HVC links (since: $hvcLinkSince)...');
       final hvcLinkResult = await _hvcRepository.syncLinksFromRemote(since: hvcLinkSince);
-      hvcLinkResult.fold(
-        (failure) => AppLogger.instance.warning('sync.pull | HVC link pull failed: ${failure.message}'),
-        (count) {
-          AppLogger.instance.debug('sync.pull | Pulled $count HVC-Customer links');
+      switch (hvcLinkResult) {
+        case Success(:final value):
+          AppLogger.instance.debug('sync.pull | Pulled $value HVC-Customer links');
           _appSettingsService.setTableLastSyncAt('customer_hvc_links', DateTime.now().toUtc());
-        },
-      );
+        case ResultFailure(:final failure):
+          AppLogger.instance.warning('sync.pull | HVC link pull failed: ${failure.message}');
+      }
     } catch (e) {
       AppLogger.instance.error('sync.pull | HVC link pull error: $e');
     }
@@ -304,13 +304,13 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final brokerSince = await _getSafeSince('brokers');
       AppLogger.instance.debug('sync.pull | Pulling brokers (since: $brokerSince)...');
       final brokerResult = await _brokerRepository.syncFromRemote(since: brokerSince);
-      brokerResult.fold(
-        (failure) => AppLogger.instance.warning('sync.pull | Broker pull failed: ${failure.message}'),
-        (count) {
-          AppLogger.instance.debug('sync.pull | Pulled $count brokers');
+      switch (brokerResult) {
+        case Success(:final value):
+          AppLogger.instance.debug('sync.pull | Pulled $value brokers');
           _appSettingsService.setTableLastSyncAt('brokers', DateTime.now().toUtc());
-        },
-      );
+        case ResultFailure(:final failure):
+          AppLogger.instance.warning('sync.pull | Broker pull failed: ${failure.message}');
+      }
     } catch (e) {
       AppLogger.instance.error('sync.pull | Broker pull error: $e');
     }
