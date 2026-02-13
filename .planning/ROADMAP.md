@@ -125,11 +125,11 @@ Plans:
   3. Sync create operations use Supabase upsert on client-generated UUIDs so retrying same operation doesn't create duplicates
   4. Sync update operations include updatedAt version guard so concurrent updates don't silently overwrite without detection
   5. User can see count of recent conflicts in sync status UI (even if resolution is automatic LWW)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — SyncConflicts table + SyncService conflict detection and LWW resolution (CONF-01, CONF-03)
+- [ ] 04-02-PLAN.md — Repository version guard metadata + coalescing update + pull sync guard + conflict count UI
 
 ### Phase 5: Background Sync & Dead Letter Queue
 **Goal**: Sync persists across app restarts, failed items are pruned and surfaced to users, and queue doesn't grow indefinitely
@@ -239,7 +239,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 02.1. Pre-existing Bug Fixes | 3/3 | ✓ Complete | 2026-02-13 |
 | 3. Error Classification & Recovery | 3/3 | ✓ Complete | 2026-02-14 |
 | 03.1. Remaining Repo Result Migration | 5/5 | ✓ Complete | 2026-02-14 |
-| 4. Conflict Resolution | 0/TBD | Not started | - |
+| 4. Conflict Resolution | 0/2 | Not started | - |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
 | 6. Sync Coordination | 0/TBD | Not started | - |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
@@ -249,4 +249,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-14 — Phase 3.1 complete (all 7 repos migrated, dartz removed)*
+*Last updated: 2026-02-14 — Phase 4 planned (2 plans, conflict resolution)*
