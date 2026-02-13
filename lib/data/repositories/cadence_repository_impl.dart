@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/cadence.dart' as domain;
@@ -178,8 +179,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
             'duration_minutes': durationMinutes,
             'pre_meeting_hours': preMeetingHours,
             'is_active': isActive,
-            'created_at': now.toIso8601String(),
-            'updated_at': now.toIso8601String(),
+            'created_at': now.toUtcIso8601(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
@@ -257,7 +258,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
             'duration_minutes': config.durationMinutes,
             'pre_meeting_hours': config.preMeetingHours,
             'is_active': config.isActive,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
@@ -295,7 +296,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
           payload: {
             'id': configId,
             'is_active': false,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtcIso8601(),
           },
         );
       });
@@ -1378,7 +1379,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       'id': meeting.id,
       'config_id': meeting.configId,
       'title': meeting.title,
-      'scheduled_at': meeting.scheduledAt.toIso8601String(),
+      'scheduled_at': meeting.scheduledAt.toUtcIso8601(),
       'duration_minutes': meeting.durationMinutes,
       'facilitator_id': meeting.facilitatorId,
       'status': meeting.status,
@@ -1386,11 +1387,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
       'meeting_link': meeting.meetingLink,
       'agenda': meeting.agenda,
       'notes': meeting.notes,
-      'started_at': meeting.startedAt?.toIso8601String(),
-      'completed_at': meeting.completedAt?.toIso8601String(),
+      'started_at': meeting.startedAt?.toUtcIso8601(),
+      'completed_at': meeting.completedAt?.toUtcIso8601(),
       'created_by': meeting.createdBy,
-      'created_at': meeting.createdAt.toIso8601String(),
-      'updated_at': meeting.updatedAt.toIso8601String(),
+      'created_at': meeting.createdAt.toUtcIso8601(),
+      'updated_at': meeting.updatedAt.toUtcIso8601(),
     };
   }
 
@@ -1400,26 +1401,26 @@ class CadenceRepositoryImpl implements CadenceRepository {
       'meeting_id': p.meetingId,
       'user_id': p.userId,
       'attendance_status': p.attendanceStatus,
-      'arrived_at': p.arrivedAt?.toIso8601String(),
+      'arrived_at': p.arrivedAt?.toUtcIso8601(),
       'excused_reason': p.excusedReason,
       'attendance_score_impact': p.attendanceScoreImpact,
       'marked_by': p.markedBy,
-      'marked_at': p.markedAt?.toIso8601String(),
+      'marked_at': p.markedAt?.toUtcIso8601(),
       'pre_meeting_submitted': p.preMeetingSubmitted,
       'q1_previous_commitment': p.q1PreviousCommitment,
       'q1_completion_status': p.q1CompletionStatus,
       'q2_what_achieved': p.q2WhatAchieved,
       'q3_obstacles': p.q3Obstacles,
       'q4_next_commitment': p.q4NextCommitment,
-      'form_submitted_at': p.formSubmittedAt?.toIso8601String(),
+      'form_submitted_at': p.formSubmittedAt?.toUtcIso8601(),
       'form_submission_status': p.formSubmissionStatus,
       'form_score_impact': p.formScoreImpact,
       'host_notes': p.hostNotes,
       'feedback_text': p.feedbackText,
-      'feedback_given_at': p.feedbackGivenAt?.toIso8601String(),
-      'feedback_updated_at': p.feedbackUpdatedAt?.toIso8601String(),
-      'created_at': p.createdAt.toIso8601String(),
-      'updated_at': p.updatedAt.toIso8601String(),
+      'feedback_given_at': p.feedbackGivenAt?.toUtcIso8601(),
+      'feedback_updated_at': p.feedbackUpdatedAt?.toUtcIso8601(),
+      'created_at': p.createdAt.toUtcIso8601(),
+      'updated_at': p.updatedAt.toUtcIso8601(),
     };
   }
 

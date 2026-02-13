@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/failures.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/hvc.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/entities/sync_models.dart';
@@ -584,8 +585,8 @@ class HvcRepositoryImpl implements HvcRepository {
         'image_url': dto.imageUrl,
         'is_active': true,
         'created_by': _currentUserId,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'created_at': now.toUtcIso8601(),
+        'updated_at': now.toUtcIso8601(),
       };
 
   /// Create sync payload for updated HVC.
@@ -603,9 +604,9 @@ class HvcRepositoryImpl implements HvcRepository {
         'image_url': data.imageUrl,
         'is_active': data.isActive,
         'created_by': data.createdBy,
-        'created_at': data.createdAt.toIso8601String(),
-        'updated_at': data.updatedAt.toIso8601String(),
-        'deleted_at': data.deletedAt?.toIso8601String(),
+        'created_at': data.createdAt.toUtcIso8601(),
+        'updated_at': data.updatedAt.toUtcIso8601(),
+        'deleted_at': data.deletedAt?.toUtcIso8601(),
       };
 
   /// Create sync payload for customer-HVC link.
@@ -621,6 +622,6 @@ class HvcRepositoryImpl implements HvcRepository {
         'hvc_id': dto.hvcId,
         'relationship_type': dto.relationshipType,
         'linked_by': _currentUserId,
-        'linked_at': now.toIso8601String(),
+        'linked_at': now.toUtcIso8601(),
       };
 }

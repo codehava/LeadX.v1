@@ -126,8 +126,8 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
     final data = {
       'name': name,
       'period_type': periodType,
-      'start_date': startDate.toIso8601String(),
-      'end_date': endDate.toIso8601String(),
+      'start_date': startDate.toIso8601String().substring(0, 10),
+      'end_date': endDate.toIso8601String().substring(0, 10),
       'is_current': isCurrent,
       'is_locked': false,
       'is_active': true,
@@ -147,8 +147,8 @@ class Admin4DXRepositoryImpl implements Admin4DXRepository {
   }) async {
     final data = <String, dynamic>{};
     if (name != null) data['name'] = name;
-    if (startDate != null) data['start_date'] = startDate.toIso8601String();
-    if (endDate != null) data['end_date'] = endDate.toIso8601String();
+    if (startDate != null) data['start_date'] = startDate.toIso8601String().substring(0, 10);
+    if (endDate != null) data['end_date'] = endDate.toIso8601String().substring(0, 10);
     if (isCurrent != null) data['is_current'] = isCurrent;
     if (isActive != null) data['is_active'] = isActive;
 

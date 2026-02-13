@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/activity.dart' as domain;
@@ -541,9 +542,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
           payload: {
             'id': id,
             'status': 'CANCELLED',
-            'cancelled_at': now.toIso8601String(),
+            'cancelled_at': now.toUtcIso8601(),
             'cancel_reason': reason,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
@@ -877,10 +878,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
             'activity_id': photo.activityId,
             'photo_url': photoUrl,
             'caption': photo.caption,
-            'taken_at': photo.takenAt?.toIso8601String(),
+            'taken_at': photo.takenAt?.toUtcIso8601(),
             'latitude': photo.latitude,
             'longitude': photo.longitude,
-            'created_at': photo.createdAt.toIso8601String(),
+            'created_at': photo.createdAt.toUtcIso8601(),
           });
 
           // Mark as uploaded locally
@@ -954,9 +955,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
             'latitude': log.latitude,
             'longitude': log.longitude,
             'performed_by': log.performedBy,
-            'performed_at': log.performedAt.toIso8601String(),
+            'performed_at': log.performedAt.toUtcIso8601(),
             'notes': log.notes,
-            'created_at': log.performedAt.toIso8601String(),
+            'created_at': log.performedAt.toUtcIso8601(),
           });
           syncedIds.add(log.id);
         } catch (e) {
@@ -1077,9 +1078,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
           'latitude': latitude,
           'longitude': longitude,
           'performed_by': _currentUserId,
-          'performed_at': now.toIso8601String(),
+          'performed_at': now.toUtcIso8601(),
           'notes': notes,
-          'created_at': now.toIso8601String(),
+          'created_at': now.toUtcIso8601(),
         });
         _log.debug('activity | Audit log synced to remote: $action');
       } catch (e) {
@@ -1235,7 +1236,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'created_by': _currentUserId,
       'object_type': dto.objectType,
       'activity_type_id': dto.activityTypeId,
-      'scheduled_datetime': dto.scheduledDatetime.toIso8601String(),
+      'scheduled_datetime': dto.scheduledDatetime.toUtcIso8601(),
       'customer_id': dto.customerId,
       'hvc_id': dto.hvcId,
       'broker_id': dto.brokerId,
@@ -1243,8 +1244,8 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'notes': dto.notes,
       'status': 'PLANNED',
       'is_immediate': false,
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
+      'created_at': now.toUtcIso8601(),
+      'updated_at': now.toUtcIso8601(),
     };
   }
 
@@ -1259,7 +1260,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'created_by': _currentUserId,
       'object_type': dto.objectType,
       'activity_type_id': dto.activityTypeId,
-      'scheduled_datetime': now.toIso8601String(),
+      'scheduled_datetime': now.toUtcIso8601(),
       'customer_id': dto.customerId,
       'hvc_id': dto.hvcId,
       'broker_id': dto.brokerId,
@@ -1267,15 +1268,15 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'notes': dto.notes,
       'status': 'COMPLETED',
       'is_immediate': true,
-      'executed_at': now.toIso8601String(),
+      'executed_at': now.toUtcIso8601(),
       'latitude': dto.latitude,
       'longitude': dto.longitude,
       'location_accuracy': dto.locationAccuracy,
       'distance_from_target': dto.distanceFromTarget,
       'is_location_override': dto.isLocationOverride,
       'override_reason': dto.overrideReason,
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
+      'created_at': now.toUtcIso8601(),
+      'updated_at': now.toUtcIso8601(),
     };
   }
 
@@ -1286,7 +1287,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'created_by': data.createdBy,
       'object_type': data.objectType,
       'activity_type_id': data.activityTypeId,
-      'scheduled_datetime': data.scheduledDatetime.toIso8601String(),
+      'scheduled_datetime': data.scheduledDatetime.toUtcIso8601(),
       'customer_id': data.customerId,
       'hvc_id': data.hvcId,
       'broker_id': data.brokerId,
@@ -1294,7 +1295,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'notes': data.notes,
       'status': data.status,
       'is_immediate': data.isImmediate,
-      'executed_at': data.executedAt?.toIso8601String(),
+      'executed_at': data.executedAt?.toUtcIso8601(),
       'latitude': data.latitude,
       'longitude': data.longitude,
       'location_accuracy': data.locationAccuracy,
@@ -1303,11 +1304,11 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'override_reason': data.overrideReason,
       'rescheduled_from_id': data.rescheduledFromId,
       'rescheduled_to_id': data.rescheduledToId,
-      'cancelled_at': data.cancelledAt?.toIso8601String(),
+      'cancelled_at': data.cancelledAt?.toUtcIso8601(),
       'cancel_reason': data.cancelReason,
-      'created_at': data.createdAt.toIso8601String(),
-      'updated_at': data.updatedAt.toIso8601String(),
-      'deleted_at': data.deletedAt?.toIso8601String(),
+      'created_at': data.createdAt.toUtcIso8601(),
+      'updated_at': data.updatedAt.toUtcIso8601(),
+      'deleted_at': data.deletedAt?.toUtcIso8601(),
     };
   }
 
@@ -1323,7 +1324,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       'status': status,
       'rescheduled_to_id': newId,
       'notes': 'Rescheduled: $reason',
-      'updated_at': now.toIso8601String(),
+      'updated_at': now.toUtcIso8601(),
     };
   }
 }

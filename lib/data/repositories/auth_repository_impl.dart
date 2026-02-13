@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/app_auth_state.dart';
@@ -392,7 +393,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Update last login
       await _client
           .from('users')
-          .update({'last_login_at': DateTime.now().toIso8601String()})
+          .update({'last_login_at': DateTime.now().toUtcIso8601()})
           .eq('id', user.id);
 
       _currentUser = user;
@@ -625,7 +626,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Build update payload (only include provided fields)
       final Map<String, dynamic> updates = {
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtcIso8601(),
       };
 
       if (name != null) updates['name'] = name;
@@ -680,7 +681,7 @@ class AuthRepositoryImpl implements AuthRepository {
           .from('users')
           .update({
             'photo_url': null,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toUtcIso8601(),
           })
           .eq('id', userId);
 

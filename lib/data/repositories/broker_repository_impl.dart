@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/errors/failures.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/broker.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/entities/sync_models.dart';
@@ -195,7 +196,7 @@ class BrokerRepositoryImpl implements BrokerRepository {
           operation: SyncOperation.delete,
           payload: {
             'id': id,
-            'deleted_at': DateTime.now().toIso8601String(),
+            'deleted_at': DateTime.now().toUtcIso8601(),
           },
         );
       });
@@ -383,8 +384,8 @@ class BrokerRepositoryImpl implements BrokerRepository {
       'notes': dto.notes,
       'is_active': true,
       'created_by': currentUserId,
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
+      'created_at': now.toUtcIso8601(),
+      'updated_at': now.toUtcIso8601(),
     };
   }
 
@@ -405,7 +406,7 @@ class BrokerRepositoryImpl implements BrokerRepository {
       'commission_rate': data.commissionRate,
       'notes': data.notes,
       'is_active': data.isActive,
-      'updated_at': data.updatedAt.toIso8601String(),
+      'updated_at': data.updatedAt.toUtcIso8601(),
     };
   }
 }

@@ -8,6 +8,7 @@ import '../../core/errors/failures.dart';
 import '../../domain/entities/customer.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/entities/sync_models.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/customer_local_data_source.dart';
@@ -653,8 +654,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
         'notes': dto.notes,
         'is_active': true,
         'created_by': _currentUserId,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'created_at': now.toUtcIso8601(),
+        'updated_at': now.toUtcIso8601(),
       };
 
   /// Create sync payload for updated customer.
@@ -680,9 +681,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
         'notes': data.notes,
         'is_active': data.isActive,
         'created_by': data.createdBy,
-        'created_at': data.createdAt.toIso8601String(),
-        'updated_at': data.updatedAt.toIso8601String(),
-        'deleted_at': data.deletedAt?.toIso8601String(),
+        'created_at': data.createdAt.toUtcIso8601(),
+        'updated_at': data.updatedAt.toUtcIso8601(),
+        'deleted_at': data.deletedAt?.toUtcIso8601(),
       };
 
   /// Create sync payload for new key person.
@@ -706,8 +707,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
         'is_active': true,
         'notes': dto.notes,
         'created_by': _currentUserId,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'created_at': now.toUtcIso8601(),
+        'updated_at': now.toUtcIso8601(),
       };
 
   /// Create sync payload for updated key person.
@@ -726,8 +727,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
         'is_active': data.isActive,
         'notes': data.notes,
         'created_by': data.createdBy,
-        'created_at': data.createdAt.toIso8601String(),
-        'updated_at': data.updatedAt.toIso8601String(),
-        'deleted_at': data.deletedAt?.toIso8601String(),
+        'created_at': data.createdAt.toUtcIso8601(),
+        'updated_at': data.updatedAt.toUtcIso8601(),
+        'deleted_at': data.deletedAt?.toUtcIso8601(),
       };
 }

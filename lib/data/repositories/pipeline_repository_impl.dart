@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/pipeline.dart' as domain;
@@ -476,7 +477,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
               'to_status_id': _sanitizeUuid(statusId),
               'notes': dto.notes,
               'changed_by': _currentUserId,
-              'changed_at': now.toIso8601String(),
+              'changed_at': now.toUtcIso8601(),
             },
           );
         }
@@ -878,13 +879,13 @@ class PipelineRepositoryImpl implements PipelineRepository {
       'tsi': dto.tsi,
       'potential_premium': dto.potentialPremium,
       'weighted_value': weightedValue,
-      'expected_close_date': dto.expectedCloseDate?.toIso8601String(),
+      'expected_close_date': dto.expectedCloseDate?.toIso8601String().substring(0, 10),
       'is_tender': dto.isTender,
       'notes': _sanitizeUuid(dto.notes),
       'assigned_rm_id': assignedRmId,
       'created_by': _currentUserId,
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
+      'created_at': now.toUtcIso8601(),
+      'updated_at': now.toUtcIso8601(),
     };
   }
 
@@ -906,7 +907,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       'potential_premium': data.potentialPremium,
       'final_premium': data.finalPremium,
       'weighted_value': data.weightedValue,
-      'expected_close_date': data.expectedCloseDate?.toIso8601String(),
+      'expected_close_date': data.expectedCloseDate?.toIso8601String().substring(0, 10),
       'policy_number': _sanitizeUuid(data.policyNumber),
       'decline_reason': _sanitizeUuid(data.declineReason),
       'is_tender': data.isTender,
@@ -916,10 +917,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
       'scored_to_user_id': _sanitizeUuid(data.scoredToUserId),
       'assigned_rm_id': data.assignedRmId,
       'created_by': data.createdBy,
-      'created_at': data.createdAt.toIso8601String(),
-      'updated_at': data.updatedAt.toIso8601String(),
-      'closed_at': data.closedAt?.toIso8601String(),
-      'deleted_at': data.deletedAt?.toIso8601String(),
+      'created_at': data.createdAt.toUtcIso8601(),
+      'updated_at': data.updatedAt.toUtcIso8601(),
+      'closed_at': data.closedAt?.toUtcIso8601(),
+      'deleted_at': data.deletedAt?.toUtcIso8601(),
     };
   }
 }

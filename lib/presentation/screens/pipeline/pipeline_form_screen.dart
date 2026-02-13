@@ -9,7 +9,7 @@ import '../../providers/master_data_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_text_field.dart';
-import '../../widgets/common/autocomplete_field.dart';
+import '../../widgets/common/searchable_dropdown.dart';
 import '../../widgets/common/discard_confirmation_dialog.dart';
 import '../../widgets/common/loading_indicator.dart';
 
@@ -176,12 +176,13 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
               children: [
                 Expanded(
                   child: cobsAsync.when(
-                    data: (cobs) => AutocompleteField<String>(
+                    data: (cobs) => SearchableDropdown<String>(
                       label: 'COB (Class of Business) *',
                       hint: 'Pilih COB...',
+                      modalTitle: 'Pilih COB',
                       value: _selectedCobId,
                       items: cobs
-                          .map((c) => AutocompleteItem(value: c.id, label: c.name))
+                          .map((c) => DropdownItem(value: c.id, label: c.name))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -200,15 +201,16 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: lobsAsync.when(
-                    data: (lobs) => AutocompleteField<String>(
+                    data: (lobs) => SearchableDropdown<String>(
                       label: 'LOB (Line of Business) *',
                       hint: _selectedCobId == null
                           ? 'Pilih COB dulu'
                           : 'Pilih LOB...',
+                      modalTitle: 'Pilih LOB',
                       value: _selectedLobId,
                       enabled: _selectedCobId != null,
                       items: lobs
-                          .map((l) => AutocompleteItem(value: l.id, label: l.name))
+                          .map((l) => DropdownItem(value: l.id, label: l.name))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -274,12 +276,13 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
             const SizedBox(height: 16),
             
             leadSourcesAsync.when(
-              data: (sources) => AutocompleteField<String>(
+              data: (sources) => SearchableDropdown<String>(
                 label: 'Sumber Leads *',
                 hint: 'Pilih sumber leads...',
+                modalTitle: 'Pilih Sumber Lead',
                 value: _selectedLeadSourceId,
                 items: sources
-                    .map((s) => AutocompleteItem(value: s.id, label: s.name))
+                    .map((s) => DropdownItem(value: s.id, label: s.name))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
@@ -297,12 +300,13 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
             const SizedBox(height: 16),
             
             brokersAsync.when(
-              data: (brokers) => AutocompleteField<String>(
+              data: (brokers) => SearchableDropdown<String>(
                 label: 'Broker (Opsional)',
                 hint: 'Pilih broker...',
+                modalTitle: 'Pilih Broker',
                 value: _selectedBrokerId,
                 items: brokers
-                    .map((b) => AutocompleteItem(value: b.id, label: b.name))
+                    .map((b) => DropdownItem(value: b.id, label: b.name))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
@@ -436,12 +440,13 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         if (pics.isEmpty) {
           return const SizedBox.shrink();
         }
-        return AutocompleteField<String>(
+        return SearchableDropdown<String>(
           label: 'Kontak Broker (Opsional)',
           hint: 'Pilih key person broker...',
+          modalTitle: 'Pilih PIC Broker',
           value: _selectedBrokerPicId,
           items: pics
-              .map((pic) => AutocompleteItem(
+              .map((pic) => DropdownItem(
                     value: pic.id,
                     label: pic.displayNameWithPosition,
                   ))
@@ -467,12 +472,13 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         if (keyPersons.isEmpty) {
           return const SizedBox.shrink();
         }
-        return AutocompleteField<String>(
+        return SearchableDropdown<String>(
           label: 'Kontak Customer (Opsional)',
           hint: 'Pilih key person...',
+          modalTitle: 'Pilih Kontak',
           value: _selectedCustomerContactId,
           items: keyPersons
-              .map((kp) => AutocompleteItem(
+              .map((kp) => DropdownItem(
                     value: kp.id,
                     label: kp.displayNameWithPosition,
                   ))

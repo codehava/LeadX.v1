@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/pipeline_referral.dart' as domain;
@@ -227,8 +228,8 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         'reason': dto.reason,
         'notes': dto.notes,
         'status': 'PENDING_RECEIVER',
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'created_at': now.toUtcIso8601(),
+        'updated_at': now.toUtcIso8601(),
       };
 
       _log.debug('pipeline.referral | Payload: $payload');
@@ -341,9 +342,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           payload: {
             'id': id,
             'status': 'RECEIVER_ACCEPTED',
-            'receiver_accepted_at': now.toIso8601String(),
+            'receiver_accepted_at': now.toUtcIso8601(),
             'receiver_notes': notes,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
@@ -396,9 +397,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           payload: {
             'id': id,
             'status': 'RECEIVER_REJECTED',
-            'receiver_rejected_at': now.toIso8601String(),
+            'receiver_rejected_at': now.toUtcIso8601(),
             'receiver_reject_reason': reason,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
@@ -454,10 +455,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           payload: {
             'id': id,
             'status': 'BM_APPROVED',
-            'bm_approved_at': now.toIso8601String(),
+            'bm_approved_at': now.toUtcIso8601(),
             'bm_approved_by': approverId,
             'bm_notes': notes,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
         _log.debug('pipeline.referral | approveReferral: Queued for sync');
@@ -533,10 +534,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           payload: {
             'id': id,
             'status': 'BM_REJECTED',
-            'bm_rejected_at': now.toIso8601String(),
+            'bm_rejected_at': now.toUtcIso8601(),
             'bm_approved_by': approverId,
             'bm_reject_reason': reason,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
         _log.debug('pipeline.referral | rejectAsManager: Queued for sync');
@@ -618,9 +619,9 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
           payload: {
             'id': id,
             'status': 'CANCELLED',
-            'cancelled_at': now.toIso8601String(),
+            'cancelled_at': now.toUtcIso8601(),
             'cancel_reason': reason,
-            'updated_at': now.toIso8601String(),
+            'updated_at': now.toUtcIso8601(),
           },
         );
       });
