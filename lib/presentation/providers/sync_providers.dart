@@ -145,9 +145,9 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
 
     state = const AsyncValue.loading();
     try {
-      // Step 1: Push - upload local changes to Supabase
+      // Step 1: Push - upload local changes to Supabase (bypass debounce for manual sync)
       AppLogger.instance.debug('sync.queue | Starting push sync...');
-      final pushResult = await _syncService.triggerSync();
+      final pushResult = await _syncService.processQueue();
       AppLogger.instance.debug('sync.queue | Push sync complete: ${pushResult.successCount} uploaded');
 
       // Step 2: Sync pending photos to Supabase Storage

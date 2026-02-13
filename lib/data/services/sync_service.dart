@@ -42,6 +42,12 @@ class SyncService {
   /// Timer for background sync.
   Timer? _backgroundSyncTimer;
 
+  /// Debounce timer for triggerSync() calls.
+  Timer? _debounceTimer;
+
+  /// Completer for the pending debounced sync operation.
+  Completer<SyncResult>? _pendingSyncCompleter;
+
   /// Whether sync is currently in progress.
   bool _isSyncing = false;
 
@@ -455,8 +461,33 @@ class SyncService {
     }
   }
 
-  /// Trigger a manual sync.
-  Future<SyncResult> triggerSync() => processQueue();
+  /// Trigger sync with 500ms debounce window.
+  /// Multiple calls within the window result in a single processQueue().
+  /// Returns a Future that completes when the batched sync finishes.
+  Future<SyncResult> triggerSync() {
+    _debounceTimer?.cancel();
+
+    if (_pendingSyncCompleter == null || _pendingSyncCompleter!.isCompleted) {
+      _pendingSyncCompleter = Completer<SyncResult>();
+    }
+
+    final completer = _pendingSyncCompleter!;
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final result = await processQueue();
+        if (!completer.isCompleted) {
+          completer.complete(result);
+        }
+      } catch (e) {
+        if (!completer.isCompleted) {
+          completer.completeError(e);
+        }
+      }
+    });
+
+    return completer.future;
+  }
 
   /// Start background sync with the specified interval.
   void startBackgroundSync({
@@ -576,6 +607,12 @@ class SyncService {
 
   /// Dispose resources.
   void dispose() {
+    _debounceTimer?.cancel();
+    if (_pendingSyncCompleter != null && !_pendingSyncCompleter!.isCompleted) {
+      _pendingSyncCompleter!.completeError(
+        StateError('SyncService disposed while sync was pending'),
+      );
+    }
     stopBackgroundSync();
     _stateController.close();
   }
