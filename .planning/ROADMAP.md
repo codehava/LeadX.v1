@@ -52,11 +52,12 @@ Plans:
   3. Sync after initial full pull completes in under 5 seconds for typical field rep usage (50 customers, 200 activities) instead of 30+ seconds
   4. Rapid successive repository writes (e.g., importing 10 customers) trigger only one sync batch after 500ms window instead of 10 thundering syncs
   5. Incremental sync passes since timestamps to all remote data source methods and fetches only records with updated_at > last_pull_sync_at
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Queue coalescing + debounced sync triggers (SYNC-03, SYNC-04)
+- [ ] 02-02-PLAN.md — Atomic transactions for Customer, Pipeline, Activity repos (SYNC-01 part 1)
+- [ ] 02-03-PLAN.md — Atomic transactions for remaining repos + incremental sync (SYNC-01 part 2, SYNC-02)
 
 ### Phase 3: Error Classification & Recovery
 **Goal**: Replace generic exception handling with typed error propagation, enable intelligent retry decisions, and gracefully handle offline states in UI
