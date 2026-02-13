@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 3 of 10 (Error Classification & Recovery)
-Plan: 1 of 3 (03-01 complete)
-Status: Executing Phase 3
-Last activity: 2026-02-14 — Completed 03-01 sealed Result type and CustomerRepository migration
+Plan: 3 of 3 (03-03 complete)
+Status: Phase 3 Complete
+Last activity: 2026-02-14 — Completed 03-03 offline-aware UI with OfflineBanner and AppErrorState
 
-Progress: [███░░░░░░░] ~25%
+Progress: [███░░░░░░░] ~30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 9 min
-- Total execution time: 1.5 hours
+- Total execution time: 1.6 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [███░░░░░░░] ~25%
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
-| 03-error-classification-recovery | 1/3 | 14 min | 14 min |
+| 03-error-classification-recovery | 2/3 | 19 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (14 min), 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min)
+- Last 5 plans: 03-03 (5 min), 03-01 (14 min), 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -78,6 +78,9 @@ Recent decisions affecting current work:
 - ResultFailure instead of Failure_ to satisfy camel_case_types lint (03-01)
 - runCatching for simple CRUD, explicit try/catch+mapException for complex methods with not-found logic (03-01)
 - Generic Exception maps to UnexpectedFailure via mapException, not DatabaseFailure (03-01)
+- OfflineBanner defaults to connected (valueOrNull ?? true) to avoid false offline flash on startup (03-03)
+- OfflineBanner placed inside Column above Expanded content, not wrapping children (03-03)
+- AppErrorState.general() for all Drift error callbacks since network errors handled by OfflineBanner separately (03-03)
 - updateCustomer returns null from transaction on not-found, enabling proper NotFoundFailure return (03-01)
 
 ### Roadmap Evolution
@@ -95,8 +98,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 03-01-PLAN.md -- sealed Result type and CustomerRepository migration
+Stopped at: Completed 03-03-PLAN.md -- offline-aware UI with OfflineBanner and AppErrorState
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (03-01 complete)*
+*Last updated: 2026-02-14 (03-03 complete)*
