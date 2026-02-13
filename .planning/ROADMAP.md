@@ -13,7 +13,7 @@ This roadmap transforms LeadX from a feature-complete but unreliable offline CRM
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Observability** - Schema standardization, error types, crash reporting, structured logging
-- [ ] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
+- [x] **Phase 2: Sync Engine Core** - Atomic operations, delta sync, queue coalescing, debounced triggers
 - [ ] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
@@ -55,9 +55,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Queue coalescing + debounced sync triggers (SYNC-03, SYNC-04)
-- [ ] 02-02-PLAN.md — Atomic transactions for Customer, Pipeline, Activity repos (SYNC-01 part 1)
-- [ ] 02-03-PLAN.md — Atomic transactions for remaining repos + incremental sync (SYNC-01 part 2, SYNC-02)
+- [x] 02-01-PLAN.md — Queue coalescing + debounced sync triggers (SYNC-03, SYNC-04)
+- [x] 02-02-PLAN.md — Atomic transactions for Customer, Pipeline, Activity repos (SYNC-01 part 1)
+- [x] 02-03-PLAN.md — Atomic transactions for remaining repos + incremental sync (SYNC-01 part 2, SYNC-02)
 
 ### Phase 3: Error Classification & Recovery
 **Goal**: Replace generic exception handling with typed error propagation, enable intelligent retry decisions, and gracefully handle offline states in UI
@@ -195,7 +195,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Observability | 3/3 | ✓ Complete | 2026-02-13 |
-| 2. Sync Engine Core | 0/TBD | Not started | - |
+| 2. Sync Engine Core | 3/3 | ✓ Complete | 2026-02-13 |
 | 3. Error Classification & Recovery | 0/TBD | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
@@ -207,4 +207,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-13 — Phase 1 complete*
+*Last updated: 2026-02-13 — Phase 2 complete*
