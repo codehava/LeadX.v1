@@ -19,9 +19,9 @@ Progress: [██░░░░░░░░] ~20%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 9 min
-- Total execution time: 1.1 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██░░░░░░░░] ~20%
 |-------|-------|-------|----------|
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
-| 02.1-pre-existing-bug-fixes | 1/3 | 4 min | 4 min |
+| 02.1-pre-existing-bug-fixes | 2/3 | 9 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min), 02-01 (3 min), 01-03 (25 min)
+- Last 5 plans: 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min), 02-01 (3 min)
 - Trend: Stable/Fast
 
 *Updated after each plan completion*
@@ -68,6 +68,8 @@ Recent decisions affecting current work:
 - 30-second safety margin on since timestamps prevents missed records at cost of occasional duplicates (02-03)
 - Per-entity timestamp keys use table names: customers, key_persons, pipelines, activities, hvcs, customer_hvc_links, brokers, cadence_meetings, pipeline_referrals (02-03)
 - endMeeting wraps all participant score calculations + meeting end + all queue ops in single transaction (02-03)
+- toUtcIso8601() extension method for natural call syntax matching .toIso8601String() pattern (02.1-01)
+- Date-only fields use .toIso8601String().substring(0,10) to prevent UTC date-shift for UTC+ timezones (02.1-01)
 - Direct widget swap from AutocompleteField to SearchableDropdown -- APIs compatible (same param names) (02.1-03)
 - Modal titles in Indonesian matching existing UI conventions (Pilih Provinsi, Pilih COB, etc.) (02.1-03)
 - All dropdown selection fields use SearchableDropdown with modal bottom sheet pattern (02.1-03)
@@ -87,8 +89,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 02.1-03-PLAN.md — Phase 2.1 complete (dropdown race condition fix)
+Stopped at: Completed 02.1-01-PLAN.md — Timezone serialization fix (activity_providers Task 2 was missing)
 Resume file: None
 
 ---
-*Last updated: 2026-02-13 (02.1-03 complete, Phase 2.1 complete)*
+*Last updated: 2026-02-13 (02.1-01 complete, 02.1-01 SUMMARY created)*
