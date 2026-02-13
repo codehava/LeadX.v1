@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/app_auth_state.dart';
 import '../../domain/entities/user.dart' as domain;
@@ -76,23 +77,21 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
       password: password,
     );
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case ResultFailure(:final failure):
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
-      },
-      (user) {
+      case Success(:final value):
         // Set Sentry user context for crash reporting
         Sentry.configureScope((scope) {
           scope.setUser(SentryUser(
-            id: user.id,
-            email: user.email,
+            id: value.id,
+            email: value.email,
           ));
         });
         state = const AsyncValue.data(null);
         return true;
-      },
-    );
+    }
   }
 
   Future<void> logout() async {

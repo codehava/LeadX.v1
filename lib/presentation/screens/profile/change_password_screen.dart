@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../domain/repositories/auth_repository.dart';
+import '../../../core/errors/result.dart';
 import '../../providers/auth_providers.dart';
 import '../../widgets/password_strength_indicator.dart';
 
@@ -248,8 +248,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
       if (!mounted) return;
 
-      result.fold(
-        (failure) {
+      switch (result) {
+        case ResultFailure(:final failure):
           // Show error
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -257,14 +257,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        },
-        (_) async {
+        case Success():
           // Success - show dialog and logout
           await showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) => AlertDialog(
-              icon: Icon(
+              icon: const Icon(
                 Icons.check_circle_outline,
                 color: Colors.green,
                 size: 48,
@@ -286,11 +285,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
           // Logout and navigate to login
           await ref.read(loginNotifierProvider.notifier).logout();
-          
+
           if (!mounted) return;
           context.go('/login');
-        },
-      );
+      }
     } catch (e) {
       if (!mounted) return;
 

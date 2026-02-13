@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors/result.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/profile_providers.dart';
 
@@ -408,16 +409,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       if (!mounted) return;
 
-      result.fold(
-        (failure) {
+      switch (result) {
+        case ResultFailure(:final failure):
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Gagal memperbarui profil: ${failure.message}'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        },
-        (user) {
+        case Success():
           ref.invalidate(currentUserProvider);
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -428,8 +428,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           );
 
           context.pop();
-        },
-      );
+      }
     } catch (e) {
       if (!mounted) return;
 

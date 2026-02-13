@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/errors/result.dart';
 import '../../providers/auth_providers.dart';
 
 /// Forgot password screen for password reset.
@@ -35,8 +36,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           .read(authRepositoryProvider)
           .requestPasswordReset(_emailController.text.trim());
 
-      result.fold(
-        (failure) {
+      switch (result) {
+        case ResultFailure(:final failure):
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -45,13 +46,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
             );
           }
-        },
-        (_) {
+        case Success():
           if (mounted) {
             setState(() => _emailSent = true);
           }
-        },
-      );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

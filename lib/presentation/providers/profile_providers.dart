@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/services/camera_service.dart';
 import 'auth_providers.dart';
 
@@ -62,29 +63,29 @@ class ProfilePhotoNotifier extends StateNotifier<ProfilePhotoState> {
         bytes: bytes,
       );
 
-      if (uploadResult.isLeft()) {
-        final failure = uploadResult.fold((l) => l, (r) => null);
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure?.message ?? 'Upload gagal',
-        );
-        return false;
-      }
+      switch (uploadResult) {
+        case ResultFailure(:final failure):
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: failure.message,
+          );
+          return false;
+        case Success(:final value):
+          // Update profile with new photo URL
+          final updateResult = await repository.updateProfile(
+            photoUrl: value,
+          );
 
-      final photoUrl = uploadResult.fold((l) => '', (r) => r);
-
-      // Update profile with new photo URL
-      final updateResult = await repository.updateProfile(
-        photoUrl: photoUrl,
-      );
-
-      if (updateResult.isLeft()) {
-        final failure = updateResult.fold((l) => l, (r) => null);
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure?.message ?? 'Update profil gagal',
-        );
-        return false;
+          switch (updateResult) {
+            case ResultFailure(:final failure):
+              state = state.copyWith(
+                isLoading: false,
+                errorMessage: failure.message,
+              );
+              return false;
+            case Success():
+              break; // continue below
+          }
       }
 
       // Refresh current user provider
@@ -119,11 +120,10 @@ class ProfilePhotoNotifier extends StateNotifier<ProfilePhotoState> {
 
       final result = await repository.removeProfilePhoto(currentUser.id);
 
-      if (result.isLeft()) {
-        final failure = result.fold((l) => l, (r) => null);
+      if (result.isFailure) {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: failure?.message ?? 'Gagal menghapus foto',
+          errorMessage: result.failureOrNull?.message ?? 'Gagal menghapus foto',
         );
         return false;
       }

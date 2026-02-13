@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/errors/result.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../providers/auth_providers.dart';
 import '../../widgets/password_strength_indicator.dart';
@@ -133,8 +134,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
       if (!mounted) return;
 
-      result.fold(
-        (failure) {
+      switch (result) {
+        case ResultFailure(:final failure):
           // Show error
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -142,8 +143,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
-        },
-        (_) async {
+        case Success():
           // Success - show dialog and redirect to login
           if (!mounted) return;
           await showDialog(
@@ -174,8 +174,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           if (mounted) {
             context.go(RoutePaths.login);
           }
-        },
-      );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
