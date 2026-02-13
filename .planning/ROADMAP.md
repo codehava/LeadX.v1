@@ -35,11 +35,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. All sync operations log to Talker with module prefixes (sync.queue, sync.push, sync.pull) replacing scattered debugPrint calls
   4. Sealed SyncError hierarchy exists with retryable vs permanent classification (NetworkSyncError, TimeoutSyncError, AuthSyncError, ValidationSyncError, ConflictSyncError)
   5. Drift schema baseline is exported and migration tested on production data copy before deployment
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — SyncError hierarchy + schema migration v10 (ERR-01, SYNC-05)
+- [ ] 01-02-PLAN.md — Sentry crash reporting integration (OBS-01)
+- [ ] 01-03-PLAN.md — Talker structured logging replacing debugPrint (OBS-02)
 
 ### Phase 2: Sync Engine Core
 **Goal**: Prevent data loss and reduce sync duration through atomic write-queue transactions, incremental sync, intelligent coalescing, and debounced triggers
@@ -192,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Observability | 0/TBD | Not started | - |
+| 1. Foundation & Observability | 0/3 | Planned | - |
 | 2. Sync Engine Core | 0/TBD | Not started | - |
 | 3. Error Classification & Recovery | 0/TBD | Not started | - |
 | 4. Conflict Resolution | 0/TBD | Not started | - |
