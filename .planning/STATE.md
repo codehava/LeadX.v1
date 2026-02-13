@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 3.1 of 10 (Remaining Repo Result Migration)
-Plan: 4 of 5 (03.1-01, 03.1-02, 03.1-03, 03.1-04 complete)
-Status: Executing Phase 3.1
-Last activity: 2026-02-14 — Completed 03.1-03 AuthRepository migration
+Phase: 3.1 of 10 (Remaining Repo Result Migration) -- COMPLETE
+Plan: 5 of 5 (03.1-01, 03.1-02, 03.1-03, 03.1-04, 03.1-05 complete)
+Status: Phase 3.1 Complete
+Last activity: 2026-02-14 — Completed 03.1-05 dartz removal (Phase 3.1 complete)
 
-Progress: [████░░░░░░] ~35%
+Progress: [████░░░░░░] ~40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 10 min
-- Total execution time: 2.6 hours
+- Total execution time: 2.7 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [████░░░░░░] ~35%
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
-| 03.1-remaining-repo-result-migration | 4/5 | 56 min | 14 min |
+| 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min), 03.1-01 (8 min), 03-03 (5 min)
+- Last 5 plans: 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min), 03.1-01 (8 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -113,8 +113,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 03.1-03-PLAN.md (AuthRepository migration to sealed Result)
+Stopped at: Completed 03.1-05-PLAN.md (Phase 3.1 complete -- dartz removed)
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (Phase 3.1, 03.1-03 complete)*
+*Last updated: 2026-02-14 (Phase 3.1 complete)*
