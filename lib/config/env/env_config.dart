@@ -49,6 +49,10 @@ class EnvConfig {
   /// Supabase anonymous key (loaded from .env)
   String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
+  /// Sentry DSN for crash reporting (loaded from .env)
+  /// Empty string disables Sentry (it silently no-ops when DSN is empty)
+  String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
+
   /// Whether the app is in debug mode
   bool get isDebug => const bool.fromEnvironment('DEBUG', defaultValue: true);
 
