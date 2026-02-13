@@ -478,30 +478,94 @@ class SyncService {
     _backgroundSyncTimer = null;
   }
 
-  /// Add an item to the sync queue.
+  /// Add an item to the sync queue with intelligent coalescing.
+  ///
+  /// Coalescing rules (applied atomically within a transaction):
+  /// - create + update → keep create, replace payload with latest
+  /// - create + delete → remove both (entity never reached server)
+  /// - update + update → replace with latest update
+  /// - update + delete → replace with delete
   Future<int> queueOperation({
     required SyncEntityType entityType,
     required String entityId,
     required SyncOperation operation,
     required Map<String, dynamic> payload,
   }) async {
-    // Check if there's already a pending operation for this entity
-    final hasPending = await _syncQueueDataSource.hasPendingOperation(
-      entityType.name,
-      entityId,
-    );
+    return _database.transaction(() async {
+      // Find existing pending operation for this entity
+      final existing = await _syncQueueDataSource.getPendingItemForEntity(
+        entityType.name,
+        entityId,
+      );
 
-    if (hasPending && operation == SyncOperation.update) {
-      // For updates, we can coalesce by removing the old operation
-      await _syncQueueDataSource.removeOperation(entityType.name, entityId);
-    }
+      if (existing == null) {
+        // No existing operation, simply add to queue
+        _log.debug(
+            'sync.queue | Queued ${operation.name} for ${entityType.name}/$entityId');
+        return _syncQueueDataSource.addToQueue(
+          entityType: entityType.name,
+          entityId: entityId,
+          operation: operation.name,
+          payload: jsonEncode(payload),
+        );
+      }
 
-    return _syncQueueDataSource.addToQueue(
-      entityType: entityType.name,
-      entityId: entityId,
-      operation: operation.name,
-      payload: jsonEncode(payload),
-    );
+      // Apply coalescing rules
+      switch ((existing.operation, operation.name)) {
+        case ('create', 'update'):
+          // Keep create operation, update payload to latest state
+          await _syncQueueDataSource.updatePayload(
+              existing.id, jsonEncode(payload));
+          _log.debug(
+              'sync.queue | Coalesced create+update for ${entityType.name}/$entityId');
+          return existing.id;
+
+        case ('create', 'delete'):
+          // Cancel both -- entity never reached server
+          await _syncQueueDataSource.removeOperation(
+              entityType.name, entityId);
+          _log.debug(
+              'sync.queue | Coalesced create+delete for ${entityType.name}/$entityId');
+          return -1;
+
+        case ('update', 'update'):
+          // Replace with latest update
+          await _syncQueueDataSource.removeOperation(
+              entityType.name, entityId);
+          _log.debug(
+              'sync.queue | Coalesced update+update for ${entityType.name}/$entityId');
+          return _syncQueueDataSource.addToQueue(
+            entityType: entityType.name,
+            entityId: entityId,
+            operation: operation.name,
+            payload: jsonEncode(payload),
+          );
+
+        case ('update', 'delete'):
+          // Delete supersedes update
+          await _syncQueueDataSource.removeOperation(
+              entityType.name, entityId);
+          _log.debug(
+              'sync.queue | Coalesced update+delete for ${entityType.name}/$entityId');
+          return _syncQueueDataSource.addToQueue(
+            entityType: entityType.name,
+            entityId: entityId,
+            operation: operation.name,
+            payload: jsonEncode(payload),
+          );
+
+        default:
+          // Unexpected combination (e.g., delete+create), log warning and add anyway
+          _log.warning(
+              'sync.queue | Unexpected coalesce: ${existing.operation}+${operation.name} for ${entityType.name}/$entityId');
+          return _syncQueueDataSource.addToQueue(
+            entityType: entityType.name,
+            entityId: entityId,
+            operation: operation.name,
+            payload: jsonEncode(payload),
+          );
+      }
+    });
   }
 
   /// Get the count of pending sync items.

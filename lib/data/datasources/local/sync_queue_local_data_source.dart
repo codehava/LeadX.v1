@@ -112,6 +112,18 @@ class SyncQueueLocalDataSource {
     return query.getSingleOrNull();
   }
 
+  /// Get the pending sync queue item for a specific entity.
+  /// Returns null if no pending operation exists.
+  Future<SyncQueueItem?> getPendingItemForEntity(
+    String entityType,
+    String entityId,
+  ) async {
+    final query = _db.select(_db.syncQueueItems)
+      ..where((t) =>
+          t.entityType.equals(entityType) & t.entityId.equals(entityId));
+    return query.getSingleOrNull();
+  }
+
   /// Check if an entity already has a pending sync operation.
   Future<bool> hasPendingOperation(String entityType, String entityId) async {
     final query = _db.select(_db.syncQueueItems)
