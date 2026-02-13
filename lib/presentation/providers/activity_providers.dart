@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../data/datasources/local/activity_local_data_source.dart';
 import '../../data/datasources/remote/activity_remote_data_source.dart';
 import '../../data/dtos/activity_dtos.dart';
@@ -344,10 +345,10 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
             'file_path': photoUrl, // Use URL as file_path for web (no local path)
             'photo_url': photoUrl,
             'caption': null,
-            'taken_at': photo.takenAt.toIso8601String(),
+            'taken_at': photo.takenAt.toUtcIso8601(),
             'latitude': latitude,
             'longitude': longitude,
-            'created_at': DateTime.now().toIso8601String(),
+            'created_at': DateTime.now().toUtcIso8601(),
           });
           AppLogger.instance.debug('activity.photo | Remote record created');
           
