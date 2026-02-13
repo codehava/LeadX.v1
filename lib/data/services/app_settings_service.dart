@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../core/utils/date_time_utils.dart';
 import '../database/app_database.dart';
 
 /// Service for managing app settings stored in local database.
@@ -59,7 +60,7 @@ class AppSettingsService {
   /// Mark initial sync as completed.
   Future<void> markInitialSyncCompleted() async {
     await set(keyInitialSyncCompleted, 'true');
-    await set(keyLastSyncAt, DateTime.now().toIso8601String());
+    await set(keyLastSyncAt, DateTime.now().toUtcIso8601());
     await delete(keyLastSyncedTableIndex);
     await delete(keySyncInProgress);
   }
@@ -118,7 +119,7 @@ class AppSettingsService {
 
   /// Set the last sync timestamp for a specific table.
   Future<void> setTableLastSyncAt(String tableName, DateTime timestamp) async {
-    await set('$_keyTableSyncPrefix$tableName', timestamp.toIso8601String());
+    await set('$_keyTableSyncPrefix$tableName', timestamp.toUtcIso8601());
   }
 
   /// Clear the sync timestamp for a specific table (forces full re-sync).

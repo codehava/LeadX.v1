@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/errors/sync_errors.dart';
 import '../../core/logging/app_logger.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/sync_queue_local_data_source.dart';
@@ -260,7 +261,7 @@ class SyncService {
             await _supabaseClient.from(tableName).delete().eq('id', item.entityId);
           } else {
             await _supabaseClient.from(tableName).update({
-              'deleted_at': DateTime.now().toIso8601String(),
+              'deleted_at': DateTime.now().toUtcIso8601(),
             }).eq('id', item.entityId);
           }
         default:

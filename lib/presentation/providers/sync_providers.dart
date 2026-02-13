@@ -212,7 +212,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         (failure) => AppLogger.instance.warning('sync.pull | Customer pull failed: ${failure.message}'),
         (count) {
           AppLogger.instance.debug('sync.pull | Pulled $count customers');
-          _appSettingsService.setTableLastSyncAt('customers', DateTime.now());
+          _appSettingsService.setTableLastSyncAt('customers', DateTime.now().toUtc());
         },
       );
     } catch (e, st) {
@@ -229,7 +229,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         (failure) => AppLogger.instance.warning('sync.pull | Key person pull failed: ${failure.message}'),
         (count) {
           AppLogger.instance.debug('sync.pull | Pulled $count key persons');
-          _appSettingsService.setTableLastSyncAt('key_persons', DateTime.now());
+          _appSettingsService.setTableLastSyncAt('key_persons', DateTime.now().toUtc());
         },
       );
     } catch (e) {
@@ -246,7 +246,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         pipelineRepo.invalidateCaches();
       }
       await _pipelineRepository.syncFromRemote(since: pipelineSince);
-      _appSettingsService.setTableLastSyncAt('pipelines', DateTime.now());
+      _appSettingsService.setTableLastSyncAt('pipelines', DateTime.now().toUtc());
     } catch (e) {
       AppLogger.instance.error('sync.pull | Pipeline pull error: $e');
     }
@@ -258,7 +258,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
       _activityRepository.invalidateCaches();
       await _activityRepository.syncFromRemote(since: activitySince);
-      _appSettingsService.setTableLastSyncAt('activities', DateTime.now());
+      _appSettingsService.setTableLastSyncAt('activities', DateTime.now().toUtc());
 
       // Sync activity photos from remote (no since timestamp needed)
       await _activityRepository.syncPhotosFromRemote();
@@ -275,7 +275,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         (failure) => AppLogger.instance.warning('sync.pull | HVC pull failed: ${failure.message}'),
         (count) {
           AppLogger.instance.debug('sync.pull | Pulled $count HVCs');
-          _appSettingsService.setTableLastSyncAt('hvcs', DateTime.now());
+          _appSettingsService.setTableLastSyncAt('hvcs', DateTime.now().toUtc());
         },
       );
     } catch (e) {
@@ -291,7 +291,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         (failure) => AppLogger.instance.warning('sync.pull | HVC link pull failed: ${failure.message}'),
         (count) {
           AppLogger.instance.debug('sync.pull | Pulled $count HVC-Customer links');
-          _appSettingsService.setTableLastSyncAt('customer_hvc_links', DateTime.now());
+          _appSettingsService.setTableLastSyncAt('customer_hvc_links', DateTime.now().toUtc());
         },
       );
     } catch (e) {
@@ -307,7 +307,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
         (failure) => AppLogger.instance.warning('sync.pull | Broker pull failed: ${failure.message}'),
         (count) {
           AppLogger.instance.debug('sync.pull | Pulled $count brokers');
-          _appSettingsService.setTableLastSyncAt('brokers', DateTime.now());
+          _appSettingsService.setTableLastSyncAt('brokers', DateTime.now().toUtc());
         },
       );
     } catch (e) {
@@ -319,7 +319,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       final cadenceSince = await _getSafeSince('cadence_meetings');
       AppLogger.instance.debug('sync.pull | Pulling cadence data (since: $cadenceSince)...');
       await _cadenceRepository.syncFromRemote(since: cadenceSince);
-      _appSettingsService.setTableLastSyncAt('cadence_meetings', DateTime.now());
+      _appSettingsService.setTableLastSyncAt('cadence_meetings', DateTime.now().toUtc());
       AppLogger.instance.debug('sync.pull | Pulled cadence data');
     } catch (e) {
       AppLogger.instance.error('sync.pull | Cadence pull error: $e');
@@ -332,7 +332,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       // Invalidate caches BEFORE sync to ensure fresh lookup values during mapping
       _pipelineReferralRepository.invalidateCaches();
       await _pipelineReferralRepository.syncFromRemote(since: referralSince);
-      _appSettingsService.setTableLastSyncAt('pipeline_referrals', DateTime.now());
+      _appSettingsService.setTableLastSyncAt('pipeline_referrals', DateTime.now().toUtc());
       AppLogger.instance.debug('sync.pull | Pulled pipeline referral data');
     } catch (e) {
       AppLogger.instance.error('sync.pull | Pipeline referral pull error: $e');

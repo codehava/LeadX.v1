@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart';
 import '../datasources/local/master_data_local_data_source.dart';
+import '../../core/utils/date_time_utils.dart';
 import 'app_settings_service.dart';
 
 /// Progress callback for initial sync.
@@ -529,7 +530,7 @@ class InitialSyncService {
 
     if (since != null) {
       // Delta sync: fetch updated OR deleted since last sync
-      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      query = query.or('updated_at.gt.${since.toUtcIso8601()},deleted_at.gt.${since.toUtcIso8601()}');
     } else {
       // Full sync: only non-deleted records
       query = query.isFilter('deleted_at', null);
@@ -592,7 +593,7 @@ class InitialSyncService {
 
     if (since != null) {
       // Delta sync: fetch updated OR deleted since last sync
-      query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+      query = query.or('updated_at.gt.${since.toUtcIso8601()},deleted_at.gt.${since.toUtcIso8601()}');
     }
     // Note: No deleted_at filter for full sync since customer_hvc_links may not have deleted_at yet
 
@@ -663,7 +664,7 @@ class InitialSyncService {
 
       if (since != null) {
         // Delta sync: fetch updated OR deleted since last sync
-        query = query.or('updated_at.gt.${since.toIso8601String()},deleted_at.gt.${since.toIso8601String()}');
+        query = query.or('updated_at.gt.${since.toUtcIso8601()},deleted_at.gt.${since.toUtcIso8601()}');
       } else {
         // Full sync: only non-deleted records
         query = query.isFilter('deleted_at', null);
@@ -1038,7 +1039,7 @@ class InitialSyncService {
 
     if (since != null) {
       // Delta sync: fetch updated since last sync
-      query = query.gte('updated_at', since.toIso8601String());
+      query = query.gte('updated_at', since.toUtcIso8601());
     }
 
     final data = await query;
