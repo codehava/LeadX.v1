@@ -66,9 +66,6 @@ dependencies:
   talker_flutter: ^4.5.2
   talker_riverpod_logger: ^4.9.3
 
-  # Functional Programming
-  dartz: ^0.10.1
-
   # Environment Configuration
   flutter_dotenv: ^5.2.1
 

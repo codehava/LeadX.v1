@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart' show Either;
 // ignore: depend_on_referenced_packages
 import 'package:meta/meta.dart' show immutable;
 
@@ -28,7 +27,7 @@ sealed class Result<T> {
   /// Create a failure result wrapping [failure].
   const factory Result.failure(Failure failure) = ResultFailure<T>;
 
-  /// Callback-style matching (mirrors dartz .fold() ergonomics).
+  /// Callback-style matching (similar to fold pattern).
   R when<R>({
     required R Function(T value) success,
     required R Function(Failure failure) failure,
@@ -99,16 +98,4 @@ final class ResultFailure<T> extends Result<T> {
 
   @override
   String toString() => 'ResultFailure($failure)';
-}
-
-/// Extension to convert dartz [Either<Failure, T>] to [Result<T>].
-///
-/// Eases incremental migration from dartz Either to sealed Result.
-/// Remove this extension when all repositories have been migrated.
-extension EitherToResult<T> on Either<Failure, T> {
-  /// Convert this [Either<Failure, T>] to a [Result<T>].
-  Result<T> toResult() => fold(
-        (failure) => Result.failure(failure),
-        (value) => Result.success(value),
-      );
 }

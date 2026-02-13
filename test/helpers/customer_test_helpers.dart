@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:leadx_crm/core/errors/failures.dart';
+import 'package:leadx_crm/core/errors/result.dart';
 import 'package:leadx_crm/data/dtos/customer_dtos.dart';
 import 'package:leadx_crm/data/dtos/master_data_dtos.dart';
 import 'package:leadx_crm/data/services/gps_service.dart';
@@ -84,12 +84,45 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, Customer>> createCustomer(CustomerCreateDto dto) async {
+  Stream<Customer?> watchCustomerById(String id) {
+    return watchAllCustomers().map(
+      (customers) => customers.where((c) => c.id == id).firstOrNull,
+    );
+  }
+
+  @override
+  Stream<List<Customer>> watchCustomersPaginated({
+    required int limit,
+    String? searchQuery,
+  }) {
+    return watchAllCustomers().map((customers) {
+      var filtered = customers;
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        filtered = customers
+            .where((c) => c.name.toLowerCase().contains(searchQuery.toLowerCase()))
+            .toList();
+      }
+      return filtered.take(limit).toList();
+    });
+  }
+
+  @override
+  Future<int> getCustomerCount({String? searchQuery}) async {
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      return _customers
+          .where((c) => c.name.toLowerCase().contains(searchQuery.toLowerCase()))
+          .length;
+    }
+    return _customers.length;
+  }
+
+  @override
+  Future<Result<Customer>> createCustomer(CustomerCreateDto dto) async {
     await Future.delayed(const Duration(milliseconds: 50));
     lastCreatedCustomerDto = dto;
 
     if (!shouldCreateSucceed) {
-      return Left(DatabaseFailure(message: errorMessage ?? 'Failed to create customer'));
+      return Result.failure(DatabaseFailure(message: errorMessage ?? 'Failed to create customer'));
     }
 
     final customer = createTestCustomer(
@@ -105,11 +138,11 @@ class FakeCustomerRepository implements CustomerRepository {
     );
     lastCreatedCustomer = customer;
     addCustomer(customer);
-    return Right(customer);
+    return Result.success(customer);
   }
 
   @override
-  Future<Either<Failure, Customer>> updateCustomer(
+  Future<Result<Customer>> updateCustomer(
     String id,
     CustomerUpdateDto dto,
   ) async {
@@ -118,12 +151,12 @@ class FakeCustomerRepository implements CustomerRepository {
     lastUpdatedCustomerDto = dto;
 
     if (!shouldUpdateSucceed) {
-      return Left(DatabaseFailure(message: errorMessage ?? 'Failed to update customer'));
+      return Result.failure(DatabaseFailure(message: errorMessage ?? 'Failed to update customer'));
     }
 
     final existingIndex = _customers.indexWhere((c) => c.id == id);
     if (existingIndex == -1) {
-      return Left(DatabaseFailure(message: 'Customer not found'));
+      return Result.failure(DatabaseFailure(message: 'Customer not found'));
     }
 
     final existing = _customers[existingIndex];
@@ -142,20 +175,20 @@ class FakeCustomerRepository implements CustomerRepository {
     lastUpdatedCustomer = updated;
     _customers[existingIndex] = updated;
     _customersController.add(_customers);
-    return Right(updated);
+    return Result.success(updated);
   }
 
   @override
-  Future<Either<Failure, void>> deleteCustomer(String id) async {
+  Future<Result<void>> deleteCustomer(String id) async {
     lastDeletedCustomerId = id;
 
     if (!shouldDeleteSucceed) {
-      return Left(DatabaseFailure(message: errorMessage ?? 'Failed to delete customer'));
+      return Result.failure(DatabaseFailure(message: errorMessage ?? 'Failed to delete customer'));
     }
 
     _customers = _customers.where((c) => c.id != id).toList();
     _customersController.add(_customers);
-    return const Right(null);
+    return const Result.success(null);
   }
 
   @override
@@ -188,8 +221,8 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, KeyPerson>> addKeyPerson(KeyPersonDto dto) async {
-    return Right(KeyPerson(
+  Future<Result<KeyPerson>> addKeyPerson(KeyPersonDto dto) async {
+    return Result.success(KeyPerson(
       id: 'kp-${DateTime.now().millisecondsSinceEpoch}',
       ownerType: _parseOwnerType(dto.ownerType),
       name: dto.name,
@@ -210,11 +243,11 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, KeyPerson>> updateKeyPerson(
+  Future<Result<KeyPerson>> updateKeyPerson(
     String id,
     KeyPersonDto dto,
   ) async {
-    return Right(KeyPerson(
+    return Result.success(KeyPerson(
       id: id,
       ownerType: _parseOwnerType(dto.ownerType),
       name: dto.name,
@@ -235,8 +268,8 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteKeyPerson(String id) async {
-    return const Right(null);
+  Future<Result<void>> deleteKeyPerson(String id) async {
+    return const Result.success(null);
   }
 
   @override
@@ -245,13 +278,23 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Either<Failure, int>> syncFromRemote({DateTime? since}) async {
-    return const Right(0);
+  Stream<List<KeyPerson>> watchCustomerKeyPersons(String customerId) {
+    return Stream.value(<KeyPerson>[]);
   }
 
   @override
-  Future<Either<Failure, int>> syncKeyPersonsFromRemote({DateTime? since}) async {
-    return const Right(0);
+  Stream<KeyPerson?> watchPrimaryKeyPerson(String customerId) {
+    return Stream.value(null);
+  }
+
+  @override
+  Future<Result<int>> syncFromRemote({DateTime? since}) async {
+    return const Result.success(0);
+  }
+
+  @override
+  Future<Result<int>> syncKeyPersonsFromRemote({DateTime? since}) async {
+    return const Result.success(0);
   }
 
   @override
@@ -488,13 +531,13 @@ Widget createCustomerTestApp({
       }),
 
       // Customer detail (for edit mode)
-      customerDetailProvider.overrideWith((ref, id) async {
-        return customerRepo.getCustomerById(id);
+      customerDetailProvider.overrideWith((ref, id) {
+        return customerRepo.watchCustomerById(id);
       }),
 
       // Customer form notifier
       customerFormNotifierProvider.overrideWith((ref) {
-        return CustomerFormNotifier(ref, customerRepo);
+        return CustomerFormNotifier(customerRepo);
       }),
 
       // GPS service
@@ -572,11 +615,11 @@ Widget createCustomerTestAppWithNavigation({
       customerSearchProvider.overrideWith((ref, query) async {
         return customerRepo.searchCustomers(query);
       }),
-      customerDetailProvider.overrideWith((ref, id) async {
-        return customerRepo.getCustomerById(id);
+      customerDetailProvider.overrideWith((ref, id) {
+        return customerRepo.watchCustomerById(id);
       }),
       customerFormNotifierProvider.overrideWith((ref) {
-        return CustomerFormNotifier(ref, customerRepo);
+        return CustomerFormNotifier(customerRepo);
       }),
       gpsServiceProvider.overrideWithValue(gpsService),
       currentGpsPositionProvider.overrideWith((ref) async {
