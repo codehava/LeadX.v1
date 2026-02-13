@@ -12,9 +12,12 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 
 import 'app.dart';
 import 'config/env/env_config.dart';
+import 'core/logging/app_logger.dart';
+import 'core/logging/sentry_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +31,9 @@ Future<void> main() async {
   // Get and validate environment configuration
   final envConfig = EnvConfig.instance;
   envConfig.validate();
+
+  // Initialize structured logging FIRST (so it's available during Sentry init)
+  AppLogger.init(observer: SentryTalkerObserver());
 
   // Wrap everything in SentryFlutter.init so widget tree errors are captured
   await SentryFlutter.init(
@@ -55,8 +61,9 @@ Future<void> main() async {
 
       // Run the app
       runApp(
-        const ProviderScope(
-          child: LeadXApp(),
+        ProviderScope(
+          observers: [TalkerRiverpodObserver(talker: AppLogger.instance)],
+          child: const LeadXApp(),
         ),
       );
     },

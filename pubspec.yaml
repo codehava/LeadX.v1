@@ -62,9 +62,11 @@ dependencies:
 
   # Observability
   sentry_flutter: ^9.13.0
+  talker: ^4.5.2
+  talker_flutter: ^4.5.2
+  talker_riverpod_logger: ^4.9.3
 
-  # Logging
-  logger: ^2.5.0
+  # Functional Programming
   dartz: ^0.10.1
 
   # Environment Configuration
