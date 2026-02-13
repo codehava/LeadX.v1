@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 2.1 - Pre-existing Bug Fixes (Timezone + Dropdown)
+**Current focus:** Phase 3 - Error Classification & Recovery
 
 ## Current Position
 
-Phase: 2.1 of 10 (Pre-existing Bug Fixes) -- COMPLETE
-Plan: 3 of 3 (02.1-03 complete)
-Status: Phase 2.1 Complete
-Last activity: 2026-02-13 — Completed 02.1-02 UTC timestamp chain fix (remote DS + services + sync providers)
+Phase: 3 of 10 (Error Classification & Recovery)
+Plan: 1 of 3 (03-01 complete)
+Status: Executing Phase 3
+Last activity: 2026-02-14 — Completed 03-01 sealed Result type and CustomerRepository migration
 
-Progress: [██░░░░░░░░] ~20%
+Progress: [███░░░░░░░] ~25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 9 min
-- Total execution time: 1.3 hours
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██░░░░░░░░] ~20%
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
+| 03-error-classification-recovery | 1/3 | 14 min | 14 min |
 
 **Recent Trend:**
-- Last 5 plans: 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min), 02-02 (7 min)
-- Trend: Stable/Fast
+- Last 5 plans: 03-01 (14 min), 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min), 02-03 (9 min)
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -74,6 +75,10 @@ Recent decisions affecting current work:
 - Modal titles in Indonesian matching existing UI conventions (Pilih Provinsi, Pilih COB, etc.) (02.1-03)
 - All dropdown selection fields use SearchableDropdown with modal bottom sheet pattern (02.1-03)
 - [Phase 02.1]: admin_user_remote_data_source.dart left unchanged -- already uses .toUtc().toIso8601String() correctly (02.1-02)
+- ResultFailure instead of Failure_ to satisfy camel_case_types lint (03-01)
+- runCatching for simple CRUD, explicit try/catch+mapException for complex methods with not-found logic (03-01)
+- Generic Exception maps to UnexpectedFailure via mapException, not DatabaseFailure (03-01)
+- updateCustomer returns null from transaction on not-found, enabling proper NotFoundFailure return (03-01)
 
 ### Roadmap Evolution
 
@@ -89,9 +94,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-13
-Stopped at: Completed 02.1-02-PLAN.md -- UTC timestamp chain fix for remote DS, services, and sync providers
+Last session: 2026-02-14
+Stopped at: Completed 03-01-PLAN.md -- sealed Result type and CustomerRepository migration
 Resume file: None
 
 ---
-*Last updated: 2026-02-13 (02.1-02 complete, all Phase 2.1 plans have summaries)*
+*Last updated: 2026-02-14 (03-01 complete)*
