@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 2 of 10 (Sync Engine Core)
-Plan: 1 of 3 (02-01 complete)
+Plan: 2 of 3 (02-02 complete)
 Status: Executing Phase 2
-Last activity: 2026-02-13 — Completed 02-01 Sync queue coalescing and debounced triggers
+Last activity: 2026-02-13 — Completed 02-02 Atomic Drift transactions for repository writes
 
-Progress: [█░░░░░░░░░] ~13%
+Progress: [██░░░░░░░░] ~17%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 11 min
-- Total execution time: 0.73 hours
+- Total plans completed: 5
+- Average duration: 10 min
+- Total execution time: 0.85 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
-| 02-sync-engine-core | 1/3 | 3 min | 3 min |
+| 02-sync-engine-core | 2/3 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 01-03 (25 min), 01-02 (3 min), 01-01 (13 min)
+- Last 5 plans: 02-02 (7 min), 02-01 (3 min), 01-03 (25 min), 01-02 (3 min), 01-01 (13 min)
 - Trend: Improving
 
 *Updated after each plan completion*
@@ -60,6 +60,10 @@ Recent decisions affecting current work:
 - SyncNotifier calls processQueue() directly to bypass debounce for manual sync (02-01)
 - 500ms debounce window for triggerSync() balances responsiveness with batching (02-01)
 - Dart 3 record pattern matching for coalescing rules (02-01)
+- CustomerRepositoryImpl gets _database via constructor injection matching pipeline/activity pattern (02-02)
+- Exception thrown inside transactions (not NotFoundFailure) to satisfy only_throw_errors lint (02-02)
+- clearPrimaryForCustomer moved inside transaction for full atomicity (02-02)
+- rescheduleActivity wrapped as 5th activity method since updateActivity doesn't exist (02-02)
 
 ### Pending Todos
 
@@ -72,8 +76,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 02-01-PLAN.md — Sync queue coalescing and debounced triggers
+Stopped at: Completed 02-02-PLAN.md — Atomic Drift transactions for repository writes
 Resume file: None
 
 ---
-*Last updated: 2026-02-13 (02-01 complete)*
+*Last updated: 2026-02-13 (02-02 complete)*
