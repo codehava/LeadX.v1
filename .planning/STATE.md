@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 3 of 10 (Error Classification & Recovery)
-Plan: 3 of 3 (03-03 complete)
-Status: Phase 3 Complete
-Last activity: 2026-02-14 — Completed 03-03 offline-aware UI with OfflineBanner and AppErrorState
+Plan: 2 of 3 (03-02 complete)
+Status: Executing Phase 3
+Last activity: 2026-02-14 — Completed 03-02 Pipeline & Activity repository migration to sealed Result
 
-Progress: [███░░░░░░░] ~30%
+Progress: [███░░░░░░░] ~27%
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 11
 - Average duration: 9 min
-- Total execution time: 1.6 hours
+- Total execution time: 1.7 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [███░░░░░░░] ~30%
 | 01-foundation-observability | 3/3 | 41 min | 14 min |
 | 02-sync-engine-core | 3/3 | 19 min | 6 min |
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
-| 03-error-classification-recovery | 2/3 | 19 min | 10 min |
+| 03-error-classification-recovery | 2/3 | 32 min | 16 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (5 min), 03-01 (14 min), 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min)
+- Last 5 plans: 03-02 (18 min), 03-01 (14 min), 02.1-02 (5 min), 02.1-01 (5 min), 02.1-03 (4 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -82,6 +82,9 @@ Recent decisions affecting current work:
 - OfflineBanner placed inside Column above Expanded content, not wrapping children (03-03)
 - AppErrorState.general() for all Drift error callbacks since network errors handled by OfflineBanner separately (03-03)
 - updateCustomer returns null from transaction on not-found, enabling proper NotFoundFailure return (03-01)
+- runCatching for simple CRUD (deletePipeline, addPhoto, deletePhoto, addPhotoFromUrl); explicit try/catch+mapException for complex methods (03-02)
+- Pipeline screen sheets (stage_update, status_update) updated as blocking deviation -- direct .fold() callers must migrate too (03-02)
+- Pre-existing test bug fixed: closedAt test missing finalPremium and mock override ordering issue (03-02)
 
 ### Roadmap Evolution
 
@@ -98,8 +101,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 03-03-PLAN.md -- offline-aware UI with OfflineBanner and AppErrorState
+Stopped at: Completed 03-02-PLAN.md -- Pipeline & Activity repository migration to sealed Result
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (03-03 complete)*
+*Last updated: 2026-02-14 (03-02 complete)*
