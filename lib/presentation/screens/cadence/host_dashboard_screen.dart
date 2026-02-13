@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../domain/entities/cadence.dart';
 import '../../providers/cadence_providers.dart';
@@ -317,26 +318,24 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
         .read(cadenceRepositoryProvider)
         .ensureUpcomingMeetings(weeksAhead: 4);
 
-    result.fold(
-      (failure) {
-        scaffold.hideCurrentSnackBar();
-        scaffold.showSnackBar(
-          SnackBar(content: Text('Error: ${failure.message}')),
-        );
-      },
-      (meetings) {
+    switch (result) {
+      case Success(:final value):
         scaffold.hideCurrentSnackBar();
         scaffold.showSnackBar(
           SnackBar(
             content: Text(
-              meetings.isEmpty
+              value.isEmpty
                   ? 'All meetings already exist'
-                  : '${meetings.length} meeting(s) generated',
+                  : '${value.length} meeting(s) generated',
             ),
           ),
         );
         ref.invalidate(hostedMeetingsProvider);
-      },
-    );
+      case ResultFailure(:final failure):
+        scaffold.hideCurrentSnackBar();
+        scaffold.showSnackBar(
+          SnackBar(content: Text('Error: ${failure.message}')),
+        );
+    }
   }
 }

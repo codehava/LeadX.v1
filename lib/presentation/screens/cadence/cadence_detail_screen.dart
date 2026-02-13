@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/cadence.dart';
 import '../../providers/auth_providers.dart';
@@ -86,22 +87,20 @@ class CadenceDetailScreen extends ConsumerWidget {
 
   Future<void> _startMeeting(BuildContext context, WidgetRef ref, String id) async {
     final result = await ref.read(cadenceRepositoryProvider).startMeeting(id);
-    result.fold(
-      (failure) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to start meeting: ${failure.message}')),
-          );
-        }
-      },
-      (_) {
+    switch (result) {
+      case Success():
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Meeting started')),
           );
         }
-      },
-    );
+      case ResultFailure(:final failure):
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to start meeting: ${failure.message}')),
+          );
+        }
+    }
   }
 
   Future<void> _endMeeting(BuildContext context, WidgetRef ref, String id) async {
@@ -126,22 +125,20 @@ class CadenceDetailScreen extends ConsumerWidget {
     if (confirmed != true) return;
 
     final result = await ref.read(cadenceRepositoryProvider).endMeeting(id);
-    result.fold(
-      (failure) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to end meeting: ${failure.message}')),
-          );
-        }
-      },
-      (_) {
+    switch (result) {
+      case Success():
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Meeting ended')),
           );
         }
-      },
-    );
+      case ResultFailure(:final failure):
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to end meeting: ${failure.message}')),
+          );
+        }
+    }
   }
 }
 
@@ -337,23 +334,21 @@ class _HostDetailView extends ConsumerWidget {
             status: status,
             excusedReason: reason,
           );
-          result.fold(
-            (failure) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${failure.message}')),
-                );
-              }
-            },
-            (_) {
+          switch (result) {
+            case Success():
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Attendance marked')),
                 );
               }
-            },
-          );
+            case ResultFailure(:final failure):
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${failure.message}')),
+                );
+              }
+          }
         },
       ),
     );
@@ -395,23 +390,21 @@ class _HostDetailView extends ConsumerWidget {
               participantId: participant.id,
               feedbackText: feedback,
             );
-            result.fold(
-              (failure) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${failure.message}')),
-                  );
-                }
-              },
-              (_) {
+            switch (result) {
+              case Success():
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Feedback saved')),
                   );
                 }
-              },
-            );
+              case ResultFailure(:final failure):
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${failure.message}')),
+                  );
+                }
+            }
           },
         ),
       ),

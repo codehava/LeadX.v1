@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors/result.dart';
 import '../../data/datasources/local/cadence_local_data_source.dart';
 import '../../data/datasources/remote/cadence_remote_data_source.dart';
 import '../../data/repositories/cadence_repository_impl.dart';
@@ -186,21 +187,19 @@ class CadenceFormNotifier extends StateNotifier<CadenceFormState> {
 
     final result = await _repository.submitPreMeetingForm(submission);
 
-    result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          isSubmitted: true,
+          participant: value,
+        );
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
-      },
-      (participant) {
-        state = state.copyWith(
-          isLoading: false,
-          isSubmitted: true,
-          participant: participant,
-        );
-      },
-    );
+    }
   }
 
   /// Save form as draft.
@@ -209,20 +208,18 @@ class CadenceFormNotifier extends StateNotifier<CadenceFormState> {
 
     final result = await _repository.saveFormDraft(submission);
 
-    result.fold(
-      (failure) {
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          participant: value,
+        );
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
-      },
-      (participant) {
-        state = state.copyWith(
-          isLoading: false,
-          participant: participant,
-        );
-      },
-    );
+    }
   }
 
   /// Reset form state.
@@ -280,22 +277,20 @@ class HostActionNotifier extends StateNotifier<HostActionState> {
 
     final result = await _repository.startMeeting(meetingId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (meeting) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Meeting started',
         );
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// End a meeting.
@@ -304,22 +299,20 @@ class HostActionNotifier extends StateNotifier<HostActionState> {
 
     final result = await _repository.endMeeting(meetingId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (meeting) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Meeting completed',
         );
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Mark attendance for a participant.
@@ -336,19 +329,17 @@ class HostActionNotifier extends StateNotifier<HostActionState> {
       excusedReason: excusedReason,
     );
 
-    return result.fold(
-      (failure) {
+    switch (result) {
+      case Success():
+        state = state.copyWith(isLoading: false);
+        return true;
+      case ResultFailure(:final failure):
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
         );
         return false;
-      },
-      (participant) {
-        state = state.copyWith(isLoading: false);
-        return true;
-      },
-    );
+    }
   }
 
   /// Save feedback for a participant.
@@ -363,22 +354,20 @@ class HostActionNotifier extends StateNotifier<HostActionState> {
       feedbackText: feedbackText,
     );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (_) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Feedback saved',
         );
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Clear messages.
@@ -492,23 +481,21 @@ class AdminCadenceConfigNotifier
       isActive: isActive,
     );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (config) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dibuat',
         );
         // No invalidation needed - StreamProviders auto-update from Drift
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Update an existing config.
@@ -543,23 +530,21 @@ class AdminCadenceConfigNotifier
       isActive: isActive,
     );
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (config) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil diperbarui',
         );
         // No invalidation needed - StreamProviders auto-update from Drift
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Toggle config active status.
@@ -568,23 +553,21 @@ class AdminCadenceConfigNotifier
 
     final result = await _repository.toggleConfigActive(configId, isActive);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (config) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: isActive ? 'Konfigurasi diaktifkan' : 'Konfigurasi dinonaktifkan',
         );
         // No invalidation needed - StreamProviders auto-update from Drift
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Delete (deactivate) a config.
@@ -593,23 +576,21 @@ class AdminCadenceConfigNotifier
 
     final result = await _repository.deleteConfig(configId);
 
-    return result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
-        return false;
-      },
-      (_) {
+    switch (result) {
+      case Success():
         state = state.copyWith(
           isLoading: false,
           successMessage: 'Konfigurasi berhasil dihapus',
         );
         // No invalidation needed - StreamProviders auto-update from Drift
         return true;
-      },
-    );
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
   }
 
   /// Clear messages.

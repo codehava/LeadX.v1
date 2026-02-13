@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/errors/result.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/cadence.dart';
 import '../../providers/cadence_providers.dart';
@@ -320,19 +321,17 @@ class _CadenceFormScreenState extends ConsumerState<CadenceFormScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    result.fold(
-      (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${failure.message}')),
-        );
-      },
-      (_) {
+    switch (result) {
+      case Success():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Form submitted successfully')),
         );
         context.pop();
-      },
-    );
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${failure.message}')),
+        );
+    }
   }
 
   Future<void> _saveDraft() async {
@@ -362,17 +361,15 @@ class _CadenceFormScreenState extends ConsumerState<CadenceFormScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    result.fold(
-      (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${failure.message}')),
-        );
-      },
-      (_) {
+    switch (result) {
+      case Success():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Draft saved')),
         );
-      },
-    );
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${failure.message}')),
+        );
+    }
   }
 }
