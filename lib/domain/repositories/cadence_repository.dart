@@ -1,6 +1,4 @@
-import 'package:dartz/dartz.dart';
-
-import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../entities/cadence.dart';
 
 /// Repository interface for cadence meeting operations.
@@ -38,7 +36,7 @@ abstract class CadenceRepository {
   Stream<CadenceScheduleConfig?> watchConfigById(String configId);
 
   /// Create a new schedule config.
-  Future<Either<Failure, CadenceScheduleConfig>> createConfig({
+  Future<Result<CadenceScheduleConfig>> createConfig({
     required String name,
     String? description,
     required String targetRole,
@@ -53,7 +51,7 @@ abstract class CadenceRepository {
   });
 
   /// Update an existing schedule config.
-  Future<Either<Failure, CadenceScheduleConfig>> updateConfig({
+  Future<Result<CadenceScheduleConfig>> updateConfig({
     required String configId,
     String? name,
     String? description,
@@ -69,13 +67,13 @@ abstract class CadenceRepository {
   });
 
   /// Toggle config active status.
-  Future<Either<Failure, CadenceScheduleConfig>> toggleConfigActive(
+  Future<Result<CadenceScheduleConfig>> toggleConfigActive(
     String configId,
     bool isActive,
   );
 
   /// Soft delete a config (set is_active = false).
-  Future<Either<Failure, Unit>> deleteConfig(String configId);
+  Future<Result<void>> deleteConfig(String configId);
 
   // ==========================================
   // Meeting Operations (Streams)
@@ -104,25 +102,25 @@ abstract class CadenceRepository {
   // ==========================================
 
   /// Start a meeting (host only).
-  Future<Either<Failure, CadenceMeeting>> startMeeting(String meetingId);
+  Future<Result<CadenceMeeting>> startMeeting(String meetingId);
 
   /// End/complete a meeting (host only).
-  Future<Either<Failure, CadenceMeeting>> endMeeting(String meetingId);
+  Future<Result<CadenceMeeting>> endMeeting(String meetingId);
 
   /// Cancel a meeting (host only).
-  Future<Either<Failure, CadenceMeeting>> cancelMeeting(
+  Future<Result<CadenceMeeting>> cancelMeeting(
     String meetingId,
     String reason,
   );
 
   /// Update meeting notes (host only).
-  Future<Either<Failure, Unit>> updateMeetingNotes(
+  Future<Result<void>> updateMeetingNotes(
     String meetingId,
     String notes,
   );
 
   /// Update meeting agenda (host only).
-  Future<Either<Failure, Unit>> updateMeetingAgenda(
+  Future<Result<void>> updateMeetingAgenda(
     String meetingId,
     String agenda,
   );
@@ -132,12 +130,12 @@ abstract class CadenceRepository {
   // ==========================================
 
   /// Submit pre-meeting form (Q1-Q4).
-  Future<Either<Failure, CadenceParticipant>> submitPreMeetingForm(
+  Future<Result<CadenceParticipant>> submitPreMeetingForm(
     CadenceFormSubmission submission,
   );
 
   /// Save form as draft (not submitted).
-  Future<Either<Failure, CadenceParticipant>> saveFormDraft(
+  Future<Result<CadenceParticipant>> saveFormDraft(
     CadenceFormSubmission submission,
   );
 
@@ -149,14 +147,14 @@ abstract class CadenceRepository {
   // ==========================================
 
   /// Mark attendance for a participant.
-  Future<Either<Failure, CadenceParticipant>> markAttendance({
+  Future<Result<CadenceParticipant>> markAttendance({
     required String participantId,
     required AttendanceStatus status,
     String? excusedReason,
   });
 
   /// Batch mark attendance for multiple participants.
-  Future<Either<Failure, List<CadenceParticipant>>> batchMarkAttendance({
+  Future<Result<List<CadenceParticipant>>> batchMarkAttendance({
     required String meetingId,
     required Map<String, AttendanceStatus> attendanceMap,
   });
@@ -166,13 +164,13 @@ abstract class CadenceRepository {
   // ==========================================
 
   /// Save internal host notes for a participant (not visible to participant).
-  Future<Either<Failure, Unit>> saveHostNotes({
+  Future<Result<void>> saveHostNotes({
     required String participantId,
     required String notes,
   });
 
   /// Give feedback to a participant (visible to participant).
-  Future<Either<Failure, Unit>> saveFeedback({
+  Future<Result<void>> saveFeedback({
     required String participantId,
     required String feedbackText,
   });
@@ -203,7 +201,7 @@ abstract class CadenceRepository {
 
   /// Ensure upcoming meetings exist for current user as host.
   /// Creates meetings + auto-populates participants if missing.
-  Future<Either<Failure, List<CadenceMeeting>>> ensureUpcomingMeetings({
+  Future<Result<List<CadenceMeeting>>> ensureUpcomingMeetings({
     int weeksAhead = 4,
   });
 

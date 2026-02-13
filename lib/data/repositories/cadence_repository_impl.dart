@@ -1,13 +1,14 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../../core/utils/date_time_utils.dart';
 
+import '../../core/errors/exception_mapper.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/result.dart';
 import '../../domain/entities/cadence.dart' as domain;
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/cadence_repository.dart';
@@ -117,7 +118,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
   }
 
   @override
-  Future<Either<Failure, domain.CadenceScheduleConfig>> createConfig({
+  Future<Result<domain.CadenceScheduleConfig>> createConfig({
     required String name,
     String? description,
     required String targetRole,
@@ -187,17 +188,14 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToScheduleConfig(config));
+      return Result.success(_mapToScheduleConfig(config));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to create cadence config: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'createConfig'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.CadenceScheduleConfig>> updateConfig({
+  Future<Result<domain.CadenceScheduleConfig>> updateConfig({
     required String configId,
     String? name,
     String? description,
@@ -265,17 +263,14 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToScheduleConfig(config));
+      return Result.success(_mapToScheduleConfig(config));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update cadence config: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'updateConfig'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.CadenceScheduleConfig>> toggleConfigActive(
+  Future<Result<domain.CadenceScheduleConfig>> toggleConfigActive(
     String configId,
     bool isActive,
   ) async {
@@ -283,8 +278,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> deleteConfig(String configId) async {
-    try {
+  Future<Result<void>> deleteConfig(String configId) async {
+    return runCatching(() async {
       // Soft delete and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.softDeleteConfig(configId);
@@ -302,14 +297,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       });
 
       unawaited(_syncService.triggerSync());
-
-      return const Right(unit);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to delete cadence config: $e',
-        originalError: e,
-      ));
-    }
+    }, context: 'deleteConfig');
   }
 
   // ==========================================
@@ -372,7 +360,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.CadenceMeeting>> startMeeting(
+  Future<Result<domain.CadenceMeeting>> startMeeting(
     String meetingId,
   ) async {
     try {
@@ -397,17 +385,14 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(await _mapToMeetingWithStats(meeting));
+      return Result.success(await _mapToMeetingWithStats(meeting));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to start meeting: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'startMeeting'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.CadenceMeeting>> endMeeting(
+  Future<Result<domain.CadenceMeeting>> endMeeting(
     String meetingId,
   ) async {
     try {
@@ -466,17 +451,14 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(await _mapToMeetingWithStats(meeting));
+      return Result.success(await _mapToMeetingWithStats(meeting));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to end meeting: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'endMeeting'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.CadenceMeeting>> cancelMeeting(
+  Future<Result<domain.CadenceMeeting>> cancelMeeting(
     String meetingId,
     String reason,
   ) async {
@@ -510,21 +492,18 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(await _mapToMeetingWithStats(meeting));
+      return Result.success(await _mapToMeetingWithStats(meeting));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to cancel meeting: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'cancelMeeting'));
     }
   }
 
   @override
-  Future<Either<Failure, Unit>> updateMeetingNotes(
+  Future<Result<void>> updateMeetingNotes(
     String meetingId,
     String notes,
   ) async {
-    try {
+    return runCatching(() async {
       // Update notes and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.updateMeeting(
@@ -548,21 +527,15 @@ class CadenceRepositoryImpl implements CadenceRepository {
       });
 
       unawaited(_syncService.triggerSync());
-      return const Right(unit);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update meeting notes: $e',
-        originalError: e,
-      ));
-    }
+    }, context: 'updateMeetingNotes');
   }
 
   @override
-  Future<Either<Failure, Unit>> updateMeetingAgenda(
+  Future<Result<void>> updateMeetingAgenda(
     String meetingId,
     String agenda,
   ) async {
-    try {
+    return runCatching(() async {
       // Update agenda and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.updateMeeting(
@@ -586,13 +559,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       });
 
       unawaited(_syncService.triggerSync());
-      return const Right(unit);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to update meeting agenda: $e',
-        originalError: e,
-      ));
-    }
+    }, context: 'updateMeetingAgenda');
   }
 
   // ==========================================
@@ -600,19 +567,19 @@ class CadenceRepositoryImpl implements CadenceRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.CadenceParticipant>> submitPreMeetingForm(
+  Future<Result<domain.CadenceParticipant>> submitPreMeetingForm(
     domain.CadenceFormSubmission submission,
   ) async {
     try {
       final participant = await _localDataSource.getParticipant(submission.participantId);
       if (participant == null) {
-        return Left(DatabaseFailure(message: 'Participant not found'));
+        return Result.failure(NotFoundFailure(message: 'Participant not found'));
       }
 
       // Get meeting to calculate submission status
       final meeting = await _localDataSource.getMeetingById(participant.meetingId);
       if (meeting == null) {
-        return Left(DatabaseFailure(message: 'Meeting not found'));
+        return Result.failure(NotFoundFailure(message: 'Meeting not found'));
       }
 
       // Get config for deadline calculation
@@ -661,20 +628,17 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToParticipant(updated));
+      return Result.success(_mapToParticipant(updated));
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to submit form: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'submitPreMeetingForm'));
     }
   }
 
   @override
-  Future<Either<Failure, domain.CadenceParticipant>> saveFormDraft(
+  Future<Result<domain.CadenceParticipant>> saveFormDraft(
     domain.CadenceFormSubmission submission,
   ) async {
-    try {
+    return runCatching(() async {
       await _localDataSource.updateParticipant(
         submission.participantId,
         db.CadenceParticipantsCompanion(
@@ -687,13 +651,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
       );
 
       final updated = await _localDataSource.getParticipant(submission.participantId);
-      return Right(_mapToParticipant(updated!));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to save draft: $e',
-        originalError: e,
-      ));
-    }
+      return _mapToParticipant(updated!);
+    }, context: 'saveFormDraft');
   }
 
   @override
@@ -709,12 +668,12 @@ class CadenceRepositoryImpl implements CadenceRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, domain.CadenceParticipant>> markAttendance({
+  Future<Result<domain.CadenceParticipant>> markAttendance({
     required String participantId,
     required domain.AttendanceStatus status,
     String? excusedReason,
   }) async {
-    try {
+    return runCatching(() async {
       final scoreImpact = _getAttendanceScore(status);
 
       // Mark attendance and queue for sync atomically
@@ -740,17 +699,12 @@ class CadenceRepositoryImpl implements CadenceRepository {
 
       unawaited(_syncService.triggerSync());
 
-      return Right(_mapToParticipant(updated));
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to mark attendance: $e',
-        originalError: e,
-      ));
-    }
+      return _mapToParticipant(updated);
+    }, context: 'markAttendance');
   }
 
   @override
-  Future<Either<Failure, List<domain.CadenceParticipant>>> batchMarkAttendance({
+  Future<Result<List<domain.CadenceParticipant>>> batchMarkAttendance({
     required String meetingId,
     required Map<String, domain.AttendanceStatus> attendanceMap,
   }) async {
@@ -763,18 +717,17 @@ class CadenceRepositoryImpl implements CadenceRepository {
           status: entry.value,
         );
 
-        result.fold(
-          (failure) => throw Exception(failure.message),
-          (participant) => results.add(participant),
-        );
+        switch (result) {
+          case Success(:final value):
+            results.add(value);
+          case ResultFailure(:final failure):
+            throw Exception(failure.message);
+        }
       }
 
-      return Right(results);
+      return Result.success(results);
     } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to batch mark attendance: $e',
-        originalError: e,
-      ));
+      return Result.failure(mapException(e, context: 'batchMarkAttendance'));
     }
   }
 
@@ -783,11 +736,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, Unit>> saveHostNotes({
+  Future<Result<void>> saveHostNotes({
     required String participantId,
     required String notes,
   }) async {
-    try {
+    return runCatching(() async {
       // Save host notes and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.saveHostNotes(participantId, notes);
@@ -804,21 +757,15 @@ class CadenceRepositoryImpl implements CadenceRepository {
       });
 
       unawaited(_syncService.triggerSync());
-      return const Right(unit);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to save host notes: $e',
-        originalError: e,
-      ));
-    }
+    }, context: 'saveHostNotes');
   }
 
   @override
-  Future<Either<Failure, Unit>> saveFeedback({
+  Future<Result<void>> saveFeedback({
     required String participantId,
     required String feedbackText,
   }) async {
-    try {
+    return runCatching(() async {
       // Save feedback and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.saveFeedback(participantId, feedbackText);
@@ -835,13 +782,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       });
 
       unawaited(_syncService.triggerSync());
-      return const Right(unit);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to save feedback: $e',
-        originalError: e,
-      ));
-    }
+    }, context: 'saveFeedback');
   }
 
   // ==========================================
@@ -898,13 +839,13 @@ class CadenceRepositoryImpl implements CadenceRepository {
   // ==========================================
 
   @override
-  Future<Either<Failure, List<domain.CadenceMeeting>>> ensureUpcomingMeetings({
+  Future<Result<List<domain.CadenceMeeting>>> ensureUpcomingMeetings({
     int weeksAhead = 4,
   }) async {
-    try {
+    return runCatching(() async {
       final config = await _localDataSource.getConfigByFacilitatorRole(_currentUserRole);
       if (config == null) {
-        return const Right([]); // No config for this role
+        return const <domain.CadenceMeeting>[]; // No config for this role
       }
 
       final meetings = <domain.CadenceMeeting>[];
@@ -933,13 +874,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
         }
       }
 
-      return Right(meetings);
-    } catch (e) {
-      return Left(DatabaseFailure(
-        message: 'Failed to ensure upcoming meetings: $e',
-        originalError: e,
-      ));
-    }
+      return meetings;
+    }, context: 'ensureUpcomingMeetings');
   }
 
   @override
