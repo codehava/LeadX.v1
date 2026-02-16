@@ -248,12 +248,32 @@ class SyncService {
     try {
       switch (item.operation) {
         case 'create':
-          await _supabaseClient.from(tableName).insert(payload);
+          // Idempotent: upsert handles retry-after-timeout gracefully
+          await _supabaseClient.from(tableName).upsert(payload);
         case 'update':
-          await _supabaseClient
-              .from(tableName)
-              .update(payload)
-              .eq('id', item.entityId);
+          // Extract version guard metadata (added by repositories when queueing updates)
+          final serverUpdatedAt = payload.remove('_server_updated_at') as String?;
+
+          if (serverUpdatedAt != null) {
+            // Optimistic locking: only update if server record hasn't changed
+            final result = await _supabaseClient
+                .from(tableName)
+                .update(payload)
+                .eq('id', item.entityId)
+                .eq('updated_at', serverUpdatedAt)
+                .select();
+
+            if ((result as List).isEmpty) {
+              // Version guard failed - conflict detected, resolve via LWW
+              await _resolveConflict(item, payload, tableName);
+            }
+          } else {
+            // No version guard (legacy queue items or create+update coalesced)
+            await _supabaseClient
+                .from(tableName)
+                .update(payload)
+                .eq('id', item.entityId);
+          }
         case 'delete':
           // Hard delete for tables without deleted_at column (e.g., customer_hvc_links)
           // Soft delete for others
@@ -322,6 +342,186 @@ class SyncService {
           entityId: item.entityId,
         );
       }
+    }
+  }
+
+  /// Resolve a sync conflict using Last-Write-Wins (LWW) strategy.
+  /// Fetches server record, compares timestamps, logs conflict, and applies winner.
+  /// This method resolves the conflict internally - it does NOT throw.
+  /// Only throws if resolution itself fails (can't fetch server, can't write).
+  Future<void> _resolveConflict(
+    db.SyncQueueItem item,
+    Map<String, dynamic> localPayload,
+    String tableName,
+  ) async {
+    _log.warning('sync.push | Conflict detected for ${item.entityType}/${item.entityId}');
+
+    // Fetch current server state
+    final serverRecord = await _supabaseClient
+        .from(tableName)
+        .select()
+        .eq('id', item.entityId)
+        .maybeSingle();
+
+    if (serverRecord == null) {
+      // Record deleted on server - log and treat as server wins
+      _log.warning('sync.push | Server record deleted during conflict: ${item.entityId}');
+      await _syncQueueDataSource.insertConflict(
+        entityType: item.entityType,
+        entityId: item.entityId,
+        localPayload: jsonEncode(localPayload),
+        serverPayload: '{}',
+        localUpdatedAt: DateTime.tryParse(localPayload['updated_at'] as String? ?? '') ?? DateTime.now(),
+        serverUpdatedAt: DateTime.now(),
+        winner: 'server',
+        resolution: 'server_deleted',
+      );
+      return;
+    }
+
+    final serverUpdatedAtStr = serverRecord['updated_at'] as String;
+    final localUpdatedAtStr = localPayload['updated_at'] as String;
+    final serverUpdatedAt = DateTime.parse(serverUpdatedAtStr);
+    final localUpdatedAt = DateTime.parse(localUpdatedAtStr);
+    final winner = localUpdatedAt.isAfter(serverUpdatedAt) ? 'local' : 'server';
+
+    // Log conflict to audit table regardless of winner
+    await _syncQueueDataSource.insertConflict(
+      entityType: item.entityType,
+      entityId: item.entityId,
+      localPayload: jsonEncode(localPayload),
+      serverPayload: jsonEncode(serverRecord),
+      localUpdatedAt: localUpdatedAt,
+      serverUpdatedAt: serverUpdatedAt,
+      winner: winner,
+    );
+
+    if (winner == 'local') {
+      // Local wins - force push without version guard
+      await _supabaseClient
+          .from(tableName)
+          .update(localPayload)
+          .eq('id', item.entityId);
+      _log.info('sync.push | Conflict resolved: LOCAL wins for ${item.entityType}/${item.entityId}');
+    } else {
+      // Server wins - apply server data to local DB
+      await _applyServerDataLocally(item.entityType, item.entityId, serverRecord);
+      _log.info('sync.push | Conflict resolved: SERVER wins for ${item.entityType}/${item.entityId}');
+    }
+  }
+
+  /// Apply server record to local database when server wins a conflict.
+  Future<void> _applyServerDataLocally(
+    String entityType,
+    String entityId,
+    Map<String, dynamic> serverRecord,
+  ) async {
+    // Mark as not pending sync (server data is authoritative)
+    // and set lastSyncAt to now
+    final syncedAt = DateTime.now();
+
+    switch (entityType) {
+      case 'customer':
+        await (_database.update(_database.customers)
+              ..where((c) => c.id.equals(entityId)))
+            .write(db.CustomersCompanion(
+              name: Value(serverRecord['name'] as String? ?? ''),
+              address: Value(serverRecord['address'] as String? ?? ''),
+              provinceId: Value(serverRecord['province_id'] as String? ?? ''),
+              cityId: Value(serverRecord['city_id'] as String? ?? ''),
+              postalCode: Value(serverRecord['postal_code'] as String?),
+              latitude: Value((serverRecord['latitude'] as num?)?.toDouble()),
+              longitude: Value((serverRecord['longitude'] as num?)?.toDouble()),
+              phone: Value(serverRecord['phone'] as String?),
+              email: Value(serverRecord['email'] as String?),
+              website: Value(serverRecord['website'] as String?),
+              companyTypeId: Value(serverRecord['company_type_id'] as String? ?? ''),
+              ownershipTypeId: Value(serverRecord['ownership_type_id'] as String? ?? ''),
+              industryId: Value(serverRecord['industry_id'] as String? ?? ''),
+              npwp: Value(serverRecord['npwp'] as String?),
+              assignedRmId: Value(serverRecord['assigned_rm_id'] as String? ?? ''),
+              imageUrl: Value(serverRecord['image_url'] as String?),
+              notes: Value(serverRecord['notes'] as String?),
+              isActive: Value(serverRecord['is_active'] as bool? ?? true),
+              updatedAt: Value(DateTime.parse(serverRecord['updated_at'] as String)),
+              deletedAt: serverRecord['deleted_at'] != null
+                  ? Value(DateTime.parse(serverRecord['deleted_at'] as String))
+                  : const Value(null),
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+
+      case 'pipeline':
+        await (_database.update(_database.pipelines)
+              ..where((p) => p.id.equals(entityId)))
+            .write(db.PipelinesCompanion(
+              customerId: Value(serverRecord['customer_id'] as String? ?? ''),
+              stageId: Value(serverRecord['stage_id'] as String? ?? ''),
+              statusId: Value(serverRecord['status_id'] as String? ?? ''),
+              cobId: Value(serverRecord['cob_id'] as String? ?? ''),
+              lobId: Value(serverRecord['lob_id'] as String? ?? ''),
+              leadSourceId: Value(serverRecord['lead_source_id'] as String? ?? ''),
+              brokerId: Value(serverRecord['broker_id'] as String?),
+              brokerPicId: Value(serverRecord['broker_pic_id'] as String?),
+              customerContactId: Value(serverRecord['customer_contact_id'] as String?),
+              tsi: Value((serverRecord['tsi'] as num?)?.toDouble()),
+              potentialPremium: Value((serverRecord['potential_premium'] as num?)?.toDouble() ?? 0),
+              finalPremium: Value((serverRecord['final_premium'] as num?)?.toDouble()),
+              weightedValue: Value((serverRecord['weighted_value'] as num?)?.toDouble()),
+              expectedCloseDate: serverRecord['expected_close_date'] != null
+                  ? Value(DateTime.parse(serverRecord['expected_close_date'] as String))
+                  : const Value(null),
+              policyNumber: Value(serverRecord['policy_number'] as String?),
+              declineReason: Value(serverRecord['decline_reason'] as String?),
+              notes: Value(serverRecord['notes'] as String?),
+              isTender: Value(serverRecord['is_tender'] as bool? ?? false),
+              assignedRmId: Value(serverRecord['assigned_rm_id'] as String? ?? ''),
+              closedAt: serverRecord['closed_at'] != null
+                  ? Value(DateTime.parse(serverRecord['closed_at'] as String))
+                  : const Value(null),
+              updatedAt: Value(DateTime.parse(serverRecord['updated_at'] as String)),
+              deletedAt: serverRecord['deleted_at'] != null
+                  ? Value(DateTime.parse(serverRecord['deleted_at'] as String))
+                  : const Value(null),
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+
+      case 'activity':
+        await (_database.update(_database.activities)
+              ..where((a) => a.id.equals(entityId)))
+            .write(db.ActivitiesCompanion(
+              status: Value(serverRecord['status'] as String? ?? ''),
+              summary: Value(serverRecord['summary'] as String?),
+              notes: Value(serverRecord['notes'] as String?),
+              scheduledDatetime: Value(DateTime.parse(serverRecord['scheduled_datetime'] as String)),
+              executedAt: serverRecord['executed_at'] != null
+                  ? Value(DateTime.parse(serverRecord['executed_at'] as String))
+                  : const Value(null),
+              latitude: Value((serverRecord['latitude'] as num?)?.toDouble()),
+              longitude: Value((serverRecord['longitude'] as num?)?.toDouble()),
+              locationAccuracy: Value((serverRecord['location_accuracy'] as num?)?.toDouble()),
+              distanceFromTarget: Value((serverRecord['distance_from_target'] as num?)?.toDouble()),
+              cancelledAt: serverRecord['cancelled_at'] != null
+                  ? Value(DateTime.parse(serverRecord['cancelled_at'] as String))
+                  : const Value(null),
+              cancelReason: Value(serverRecord['cancel_reason'] as String?),
+              updatedAt: Value(DateTime.parse(serverRecord['updated_at'] as String)),
+              deletedAt: serverRecord['deleted_at'] != null
+                  ? Value(DateTime.parse(serverRecord['deleted_at'] as String))
+                  : const Value(null),
+              isPendingSync: const Value(false),
+              lastSyncAt: Value(syncedAt),
+            ));
+
+      default:
+        // Secondary entities (keyPerson, hvc, broker, cadenceMeeting, pipelineReferral):
+        // Full field-level LWW is not implemented here. The conflict is still
+        // logged to sync_conflicts (by _resolveConflict above), and we mark the
+        // local record as synced. The next pull cycle will apply the server's
+        // authoritative data for these entity types.
+        _log.warning('sync.push | Applying server data for $entityType/$entityId with basic sync metadata only');
+        await _markEntityAsSynced(entityType, entityId);
     }
   }
 

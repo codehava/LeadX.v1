@@ -167,4 +167,57 @@ class SyncQueueLocalDataSource {
           lastError: Value(null),
         ));
   }
+
+  // ============================================
+  // CONFLICT LOGGING
+  // ============================================
+
+  /// Insert a conflict record into the sync_conflicts audit table.
+  Future<int> insertConflict({
+    required String entityType,
+    required String entityId,
+    required String localPayload,
+    required String serverPayload,
+    required DateTime localUpdatedAt,
+    required DateTime serverUpdatedAt,
+    required String winner,
+    String resolution = 'lww',
+  }) async {
+    return _db.into(_db.syncConflicts).insert(
+      SyncConflictsCompanion.insert(
+        entityType: entityType,
+        entityId: entityId,
+        localPayload: localPayload,
+        serverPayload: serverPayload,
+        localUpdatedAt: localUpdatedAt,
+        serverUpdatedAt: serverUpdatedAt,
+        winner: winner,
+        resolution: Value(resolution),
+        detectedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  /// Watch count of conflicts detected in the last [days] days.
+  Stream<int> watchRecentConflictCount({int days = 7}) {
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+    return (_db.selectOnly(_db.syncConflicts)
+          ..addColumns([_db.syncConflicts.id.count()])
+          ..where(_db.syncConflicts.detectedAt.isBiggerOrEqualValue(cutoff)))
+        .map((row) => row.read(_db.syncConflicts.id.count()) ?? 0)
+        .watchSingle();
+  }
+
+  /// Get recent conflicts list (for future UI display).
+  Future<List<SyncConflict>> getRecentConflicts({
+    int days = 7,
+    int limit = 50,
+  }) {
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+    return (_db.select(_db.syncConflicts)
+          ..where((t) => t.detectedAt.isBiggerOrEqualValue(cutoff))
+          ..orderBy([(t) => OrderingTerm.desc(t.detectedAt)])
+          ..limit(limit))
+        .get();
+  }
 }
