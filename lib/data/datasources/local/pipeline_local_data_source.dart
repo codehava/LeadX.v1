@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for pipeline operations.
@@ -249,9 +250,36 @@ class PipelineLocalDataSource {
   }
 
   /// Upsert multiple pipelines from remote sync.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertPipelines(List<PipelinesCompanion> pipelines) async {
+    if (pipelines.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.pipelines)
+          ..addColumns([_db.pipelines.id])
+          ..where(_db.pipelines.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.pipelines.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = pipelines.where((p) {
+      final id = p.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < pipelines.length) {
+      final skipped = pipelines.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped pipelines with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.pipelines, pipelines);
+      batch.insertAllOnConflictUpdate(_db.pipelines, safeToUpsert);
     });
   }
 

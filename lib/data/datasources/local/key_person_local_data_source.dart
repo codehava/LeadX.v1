@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for key person operations.
@@ -174,9 +175,36 @@ class KeyPersonLocalDataSource {
   }
 
   /// Upsert multiple key persons from remote sync.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertKeyPersons(List<KeyPersonsCompanion> keyPersons) async {
+    if (keyPersons.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.keyPersons)
+          ..addColumns([_db.keyPersons.id])
+          ..where(_db.keyPersons.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.keyPersons.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = keyPersons.where((kp) {
+      final id = kp.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < keyPersons.length) {
+      final skipped = keyPersons.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped key persons with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.keyPersons, keyPersons);
+      batch.insertAllOnConflictUpdate(_db.keyPersons, safeToUpsert);
     });
   }
 }

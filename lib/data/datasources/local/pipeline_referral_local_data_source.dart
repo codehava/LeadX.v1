@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for pipeline referral operations.
@@ -247,11 +248,38 @@ class PipelineReferralLocalDataSource {
   }
 
   /// Upsert multiple referrals from remote sync.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertReferrals(
     List<PipelineReferralsCompanion> referrals,
   ) async {
+    if (referrals.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.pipelineReferrals)
+          ..addColumns([_db.pipelineReferrals.id])
+          ..where(_db.pipelineReferrals.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.pipelineReferrals.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = referrals.where((r) {
+      final id = r.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < referrals.length) {
+      final skipped = referrals.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped pipeline referrals with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.pipelineReferrals, referrals);
+      batch.insertAllOnConflictUpdate(_db.pipelineReferrals, safeToUpsert);
     });
   }
 

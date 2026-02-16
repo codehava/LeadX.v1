@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for customer operations.
@@ -168,10 +169,36 @@ class CustomerLocalDataSource {
   }
 
   /// Upsert multiple customers from remote sync.
-  /// Uses conflict resolution to update existing records.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertCustomers(List<CustomersCompanion> customers) async {
+    if (customers.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.customers)
+          ..addColumns([_db.customers.id])
+          ..where(_db.customers.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.customers.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = customers.where((c) {
+      final id = c.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < customers.length) {
+      final skipped = customers.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped customers with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.customers, customers);
+      batch.insertAllOnConflictUpdate(_db.customers, safeToUpsert);
     });
   }
 

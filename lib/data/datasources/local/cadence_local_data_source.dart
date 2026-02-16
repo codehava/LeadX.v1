@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for cadence meeting operations.
@@ -531,12 +532,36 @@ class CadenceLocalDataSource {
   }
 
   /// Upsert meeting from remote.
-  Future<int> upsertMeeting(CadenceMeetingsCompanion data) {
+  /// Skips if local copy has isPendingSync=true (pending local changes).
+  Future<int> upsertMeeting(CadenceMeetingsCompanion data) async {
+    // Check if local record has pending changes
+    final id = data.id.value;
+    final hasPending = await (_db.select(_db.cadenceMeetings)
+          ..where((m) => m.id.equals(id) & m.isPendingSync.equals(true)))
+        .getSingleOrNull();
+    if (hasPending != null) {
+      AppLogger.instance.debug(
+        'sync.pull | Skipped cadence meeting $id with pending local changes',
+      );
+      return 0;
+    }
     return _db.into(_db.cadenceMeetings).insertOnConflictUpdate(data);
   }
 
   /// Upsert participant from remote.
-  Future<int> upsertParticipant(CadenceParticipantsCompanion data) {
+  /// Skips if local copy has isPendingSync=true (pending local changes).
+  Future<int> upsertParticipant(CadenceParticipantsCompanion data) async {
+    // Check if local record has pending changes
+    final id = data.id.value;
+    final hasPending = await (_db.select(_db.cadenceParticipants)
+          ..where((p) => p.id.equals(id) & p.isPendingSync.equals(true)))
+        .getSingleOrNull();
+    if (hasPending != null) {
+      AppLogger.instance.debug(
+        'sync.pull | Skipped cadence participant $id with pending local changes',
+      );
+      return 0;
+    }
     return _db.into(_db.cadenceParticipants).insertOnConflictUpdate(data);
   }
 

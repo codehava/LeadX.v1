@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for HVC operations.
@@ -136,9 +137,36 @@ class HvcLocalDataSource {
   }
 
   /// Batch upsert HVCs from remote.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertHvcs(List<HvcsCompanion> hvcs) async {
+    if (hvcs.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.hvcs)
+          ..addColumns([_db.hvcs.id])
+          ..where(_db.hvcs.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.hvcs.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = hvcs.where((h) {
+      final id = h.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < hvcs.length) {
+      final skipped = hvcs.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped HVCs with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      for (final hvc in hvcs) {
+      for (final hvc in safeToUpsert) {
         batch.insert(_db.hvcs, hvc, mode: InsertMode.insertOrReplace);
       }
     });
@@ -232,10 +260,37 @@ class HvcLocalDataSource {
   }
 
   /// Batch upsert customer-HVC links from remote.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertCustomerHvcLinks(
       List<CustomerHvcLinksCompanion> links) async {
+    if (links.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.customerHvcLinks)
+          ..addColumns([_db.customerHvcLinks.id])
+          ..where(_db.customerHvcLinks.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.customerHvcLinks.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = links.where((l) {
+      final id = l.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < links.length) {
+      final skipped = links.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped customer-HVC links with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      for (final link in links) {
+      for (final link in safeToUpsert) {
         batch.insert(_db.customerHvcLinks, link, mode: InsertMode.insertOrReplace);
       }
     });

@@ -12,6 +12,7 @@ class SyncQueueScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncQueueDataSource = ref.watch(syncQueueDataSourceProvider);
+    final conflictCount = ref.watch(conflictCountProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -30,7 +31,41 @@ class SyncQueueScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: FutureBuilder<List<db.SyncQueueItem>>(
+      body: Column(
+        children: [
+          // Conflict count banner
+          conflictCount.when(
+            data: (count) => count > 0
+                ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: theme.colorScheme.tertiaryContainer,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber,
+                          size: 16,
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$count conflict${count == 1 ? '' : 's'} detected in last 7 days',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          // Sync queue items
+          Expanded(
+            child: FutureBuilder<List<db.SyncQueueItem>>(
         future: syncQueueDataSource.getAllItems(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -95,6 +130,9 @@ class SyncQueueScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+          ),
+        ],
       ),
     );
   }

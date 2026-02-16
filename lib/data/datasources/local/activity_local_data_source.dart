@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for activity operations.
@@ -352,9 +353,36 @@ class ActivityLocalDataSource {
   }
 
   /// Upsert multiple activities from remote sync.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertActivities(List<ActivitiesCompanion> activities) async {
+    if (activities.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.activities)
+          ..addColumns([_db.activities.id])
+          ..where(_db.activities.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.activities.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = activities.where((a) {
+      final id = a.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < activities.length) {
+      final skipped = activities.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped activities with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.activities, activities);
+      batch.insertAllOnConflictUpdate(_db.activities, safeToUpsert);
     });
   }
 

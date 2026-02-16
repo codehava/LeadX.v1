@@ -86,6 +86,13 @@ final pendingSyncCountProvider = StreamProvider<int>((ref) {
   return syncService.watchPendingCount();
 });
 
+/// Provider for the count of recent sync conflicts (last 7 days).
+/// Used by sync status UI to show conflict activity.
+final conflictCountProvider = StreamProvider<int>((ref) {
+  final syncQueueDataSource = ref.watch(syncQueueDataSourceProvider);
+  return syncQueueDataSource.watchRecentConflictCount();
+});
+
 /// Provider for the current connectivity status.
 final isConnectedProvider = Provider<bool>((ref) {
   final connectivityService = ref.watch(connectivityServiceProvider);

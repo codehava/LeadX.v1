@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../database/app_database.dart';
 
 /// Local data source for Broker operations.
@@ -145,9 +146,36 @@ class BrokerLocalDataSource {
   }
 
   /// Batch upsert brokers from remote.
+  /// Skips records where local copy has isPendingSync=true (pending local changes).
   Future<void> upsertBrokers(List<BrokersCompanion> brokers) async {
+    if (brokers.isEmpty) return;
+
+    // Get IDs of records with pending local changes
+    final pendingIds = await (_db.selectOnly(_db.brokers)
+          ..addColumns([_db.brokers.id])
+          ..where(_db.brokers.isPendingSync.equals(true)))
+        .map((row) => row.read(_db.brokers.id)!)
+        .get();
+
+    final pendingIdSet = pendingIds.toSet();
+
+    // Filter out records that have pending local changes
+    final safeToUpsert = brokers.where((b) {
+      final id = b.id.value;
+      return !pendingIdSet.contains(id);
+    }).toList();
+
+    if (safeToUpsert.length < brokers.length) {
+      final skipped = brokers.length - safeToUpsert.length;
+      AppLogger.instance.debug(
+        'sync.pull | Skipped $skipped brokers with pending local changes',
+      );
+    }
+
+    if (safeToUpsert.isEmpty) return;
+
     await _db.batch((batch) {
-      for (final broker in brokers) {
+      for (final broker in safeToUpsert) {
         batch.insert(_db.brokers, broker, mode: InsertMode.insertOrReplace);
       }
     });
