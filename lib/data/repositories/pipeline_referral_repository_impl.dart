@@ -331,6 +331,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       final now = DateTime.now();
       await _database.transaction(() async {
@@ -346,6 +350,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'receiver_accepted_at': now.toUtcIso8601(),
             'receiver_notes': notes,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });
@@ -383,6 +388,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       final now = DateTime.now();
       await _database.transaction(() async {
@@ -398,6 +407,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'receiver_rejected_at': now.toUtcIso8601(),
             'receiver_reject_reason': reason,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });
@@ -436,6 +446,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       _log.debug('pipeline.referral | approveReferral: Updating local status...');
       final now = DateTime.now();
@@ -454,6 +468,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'bm_approved_by': approverId,
             'bm_notes': notes,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
         _log.debug('pipeline.referral | approveReferral: Queued for sync');
@@ -512,6 +527,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       _log.debug('pipeline.referral | rejectAsManager: Updating local status...');
       final now = DateTime.now();
@@ -530,6 +549,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'bm_approved_by': approverId,
             'bm_reject_reason': reason,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
         _log.debug('pipeline.referral | rejectAsManager: Queued for sync');
@@ -596,6 +616,10 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
         ));
       }
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       final now = DateTime.now();
       await _database.transaction(() async {
@@ -611,6 +635,7 @@ class PipelineReferralRepositoryImpl implements PipelineReferralRepository {
             'cancelled_at': now.toUtcIso8601(),
             'cancel_reason': reason,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });

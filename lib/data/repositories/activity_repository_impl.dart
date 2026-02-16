@@ -348,6 +348,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally, create audit log, and queue for sync atomically
       final updated = await _database.transaction(() async {
         await _localDataSource.updateActivity(id, companion);
@@ -373,7 +377,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
           entityType: SyncEntityType.activity,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createUpdateSyncPayload(data),
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;
@@ -437,6 +444,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Create new activity, update original, audit log, and queue all atomically
       await _database.transaction(() async {
         await _localDataSource.insertActivity(newCompanion);
@@ -470,7 +481,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
           entityType: SyncEntityType.activity,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createRescheduleSyncPayload(id, newId, 'RESCHEDULED', dto.reason, now),
+          payload: {
+            ..._createRescheduleSyncPayload(id, newId, 'RESCHEDULED', dto.reason, now),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -508,6 +522,10 @@ class ActivityRepositoryImpl implements ActivityRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally, create audit log, and queue for sync atomically
       await _database.transaction(() async {
         await _localDataSource.updateActivity(id, companion);
@@ -534,6 +552,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
             'cancelled_at': now.toUtcIso8601(),
             'cancel_reason': reason,
             'updated_at': now.toUtcIso8601(),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });

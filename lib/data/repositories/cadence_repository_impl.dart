@@ -215,6 +215,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
       // Update and queue for sync atomically
       late final db.CadenceScheduleConfigData config;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingConfig = await _localDataSource.getConfigById(configId);
+        final serverUpdatedAt = existingConfig?.updatedAt;
+
         await _localDataSource.updateConfig(
           configId,
           db.CadenceScheduleConfigCompanion(
@@ -257,6 +261,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
             'pre_meeting_hours': config.preMeetingHours,
             'is_active': config.isActive,
             'updated_at': now.toUtcIso8601(),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });
@@ -282,6 +288,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
     return runCatching(() async {
       // Soft delete and queue for sync atomically
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingConfig = await _localDataSource.getConfigById(configId);
+        final serverUpdatedAt = existingConfig?.updatedAt;
+
         await _localDataSource.softDeleteConfig(configId);
 
         await _syncService.queueOperation(
@@ -292,6 +302,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
             'id': configId,
             'is_active': false,
             'updated_at': DateTime.now().toUtcIso8601(),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
           },
         );
       });
@@ -367,6 +379,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
       // Start meeting and queue for sync atomically
       late final db.CadenceMeeting meeting;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingMeeting = await _localDataSource.getMeetingById(meetingId);
+        final serverUpdatedAt = existingMeeting?.updatedAt;
+
         await _localDataSource.startMeeting(meetingId);
 
         final result = await _localDataSource.getMeetingById(meetingId);
@@ -379,7 +395,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
           entityType: SyncEntityType.cadenceMeeting,
           entityId: meetingId,
           operation: SyncOperation.update,
-          payload: _createMeetingSyncPayload(meeting),
+          payload: {
+            ..._createMeetingSyncPayload(meeting),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -399,8 +419,15 @@ class CadenceRepositoryImpl implements CadenceRepository {
       // End meeting: update participants, end meeting, and queue all for sync atomically
       late final db.CadenceMeeting meeting;
       await _database.transaction(() async {
+        // Read existing meeting updatedAt BEFORE any writes for version guard
+        final existingMeeting = await _localDataSource.getMeetingById(meetingId);
+        final meetingServerUpdatedAt = existingMeeting?.updatedAt;
+
         final participants = await _localDataSource.getMeetingParticipants(meetingId);
         for (final p in participants) {
+          // Capture participant's updatedAt BEFORE writes for version guard
+          final participantServerUpdatedAt = p.updatedAt;
+
           if (p.attendanceStatus == 'PENDING') {
             await _localDataSource.markAttendance(
               p.id,
@@ -428,7 +455,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
               entityType: SyncEntityType.cadenceParticipant,
               entityId: p.id,
               operation: SyncOperation.update,
-              payload: _createParticipantSyncPayload(updatedParticipant),
+              payload: {
+                ..._createParticipantSyncPayload(updatedParticipant),
+                '_server_updated_at': participantServerUpdatedAt.toUtcIso8601(),
+              },
             );
           }
         }
@@ -445,7 +475,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
           entityType: SyncEntityType.cadenceMeeting,
           entityId: meetingId,
           operation: SyncOperation.update,
-          payload: _createMeetingSyncPayload(meeting),
+          payload: {
+            ..._createMeetingSyncPayload(meeting),
+            if (meetingServerUpdatedAt != null)
+              '_server_updated_at': meetingServerUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -466,6 +500,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
       // Cancel meeting and queue for sync atomically
       late final db.CadenceMeeting meeting;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingMeeting = await _localDataSource.getMeetingById(meetingId);
+        final serverUpdatedAt = existingMeeting?.updatedAt;
+
         await _localDataSource.updateMeeting(
           meetingId,
           db.CadenceMeetingsCompanion(
@@ -486,7 +524,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
           entityType: SyncEntityType.cadenceMeeting,
           entityId: meetingId,
           operation: SyncOperation.update,
-          payload: _createMeetingSyncPayload(meeting),
+          payload: {
+            ..._createMeetingSyncPayload(meeting),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -506,6 +548,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
     return runCatching(() async {
       // Update notes and queue for sync atomically
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingMeeting = await _localDataSource.getMeetingById(meetingId);
+        final serverUpdatedAt = existingMeeting?.updatedAt;
+
         await _localDataSource.updateMeeting(
           meetingId,
           db.CadenceMeetingsCompanion(
@@ -521,7 +567,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
             entityType: SyncEntityType.cadenceMeeting,
             entityId: meetingId,
             operation: SyncOperation.update,
-            payload: _createMeetingSyncPayload(meeting),
+            payload: {
+              ..._createMeetingSyncPayload(meeting),
+              if (serverUpdatedAt != null)
+                '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+            },
           );
         }
       });
@@ -538,6 +588,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
     return runCatching(() async {
       // Update agenda and queue for sync atomically
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingMeeting = await _localDataSource.getMeetingById(meetingId);
+        final serverUpdatedAt = existingMeeting?.updatedAt;
+
         await _localDataSource.updateMeeting(
           meetingId,
           db.CadenceMeetingsCompanion(
@@ -553,7 +607,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
             entityType: SyncEntityType.cadenceMeeting,
             entityId: meetingId,
             operation: SyncOperation.update,
-            payload: _createMeetingSyncPayload(meeting),
+            payload: {
+              ..._createMeetingSyncPayload(meeting),
+              if (serverUpdatedAt != null)
+                '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+            },
           );
         }
       });
@@ -604,6 +662,9 @@ class CadenceRepositoryImpl implements CadenceRepository {
       }
 
       // Submit form and queue for sync atomically
+      // Capture server updatedAt from existing participant (already read above)
+      final serverUpdatedAt = participant.updatedAt;
+
       late final db.CadenceParticipant updated;
       await _database.transaction(() async {
         await _localDataSource.submitForm(
@@ -622,7 +683,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
           entityType: SyncEntityType.cadenceParticipant,
           entityId: submission.participantId,
           operation: SyncOperation.update,
-          payload: _createParticipantSyncPayload(updated),
+          payload: {
+            ..._createParticipantSyncPayload(updated),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -679,6 +743,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
       // Mark attendance and queue for sync atomically
       late final db.CadenceParticipant updated;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingParticipant = await _localDataSource.getParticipant(participantId);
+        final serverUpdatedAt = existingParticipant?.updatedAt;
+
         await _localDataSource.markAttendance(
           participantId,
           status: status.name.toUpperCase(),
@@ -693,7 +761,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
           entityType: SyncEntityType.cadenceParticipant,
           entityId: participantId,
           operation: SyncOperation.update,
-          payload: _createParticipantSyncPayload(updated),
+          payload: {
+            ..._createParticipantSyncPayload(updated),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 
@@ -743,6 +815,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
     return runCatching(() async {
       // Save host notes and queue for sync atomically
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingParticipant = await _localDataSource.getParticipant(participantId);
+        final serverUpdatedAt = existingParticipant?.updatedAt;
+
         await _localDataSource.saveHostNotes(participantId, notes);
 
         final updated = await _localDataSource.getParticipant(participantId);
@@ -751,7 +827,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
             entityType: SyncEntityType.cadenceParticipant,
             entityId: participantId,
             operation: SyncOperation.update,
-            payload: _createParticipantSyncPayload(updated),
+            payload: {
+              ..._createParticipantSyncPayload(updated),
+              if (serverUpdatedAt != null)
+                '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+            },
           );
         }
       });
@@ -768,6 +848,10 @@ class CadenceRepositoryImpl implements CadenceRepository {
     return runCatching(() async {
       // Save feedback and queue for sync atomically
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingParticipant = await _localDataSource.getParticipant(participantId);
+        final serverUpdatedAt = existingParticipant?.updatedAt;
+
         await _localDataSource.saveFeedback(participantId, feedbackText);
 
         final updated = await _localDataSource.getParticipant(participantId);
@@ -776,7 +860,11 @@ class CadenceRepositoryImpl implements CadenceRepository {
             entityType: SyncEntityType.cadenceParticipant,
             entityId: participantId,
             operation: SyncOperation.update,
-            payload: _createParticipantSyncPayload(updated),
+            payload: {
+              ..._createParticipantSyncPayload(updated),
+              if (serverUpdatedAt != null)
+                '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+            },
           );
         }
       });

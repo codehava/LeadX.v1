@@ -135,6 +135,10 @@ class BrokerRepositoryImpl implements BrokerRepository {
       // Update locally and queue for sync atomically
       late final db.Broker updated;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingBroker = await localDataSource.getBrokerById(id);
+        final serverUpdatedAt = existingBroker?.updatedAt;
+
         await localDataSource.updateBroker(
           id,
           db.BrokersCompanion(
@@ -165,7 +169,11 @@ class BrokerRepositoryImpl implements BrokerRepository {
           entityType: SyncEntityType.broker,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createBrokerUpdateSyncPayload(updated),
+          payload: {
+            ..._createBrokerUpdateSyncPayload(updated),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 

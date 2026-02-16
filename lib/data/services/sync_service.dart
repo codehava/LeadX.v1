@@ -746,6 +746,8 @@ class SyncService {
       switch ((existing.operation, operation.name)) {
         case ('create', 'update'):
           // Keep create operation, update payload to latest state
+          // Strip version guard metadata - irrelevant for creates (upsert handles it)
+          payload.remove('_server_updated_at');
           await _syncQueueDataSource.updatePayload(
               existing.id, jsonEncode(payload));
           _log.debug(
@@ -762,6 +764,12 @@ class SyncService {
 
         case ('update', 'update'):
           // Replace with latest update
+          // Preserve _server_updated_at from FIRST update (true server state before edits)
+          final existingPayload = jsonDecode(existing.payload) as Map<String, dynamic>;
+          final firstServerUpdatedAt = existingPayload['_server_updated_at'];
+          if (firstServerUpdatedAt != null) {
+            payload['_server_updated_at'] = firstServerUpdatedAt;
+          }
           await _syncQueueDataSource.removeOperation(
               entityType.name, entityId);
           _log.debug(

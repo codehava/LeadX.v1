@@ -194,6 +194,10 @@ class CustomerRepositoryImpl implements CustomerRepository {
       // Update locally and queue for sync atomically
       // Transaction returns null if customer not found
       final updated = await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existing = await _localDataSource.getCustomerById(id);
+        final serverUpdatedAt = existing?.updatedAt;
+
         await _localDataSource.updateCustomer(id, companion);
 
         // Get updated data for sync payload (inside transaction to see just-written data)
@@ -204,7 +208,11 @@ class CustomerRepositoryImpl implements CustomerRepository {
           entityType: SyncEntityType.customer,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createUpdateSyncPayload(data),
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;
@@ -363,6 +371,10 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
       // Update locally and queue for sync atomically
       final updated = await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingKp = await _keyPersonLocalDataSource.getKeyPersonById(id);
+        final serverUpdatedAt = existingKp?.updatedAt;
+
         // If setting as primary, clear other primaries first
         if (dto.isPrimary && dto.customerId != null) {
           await _keyPersonLocalDataSource.clearPrimaryForCustomer(dto.customerId!);
@@ -380,7 +392,11 @@ class CustomerRepositoryImpl implements CustomerRepository {
           entityType: SyncEntityType.keyPerson,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createKeyPersonUpdateSyncPayload(data),
+          payload: {
+            ..._createKeyPersonUpdateSyncPayload(data),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;

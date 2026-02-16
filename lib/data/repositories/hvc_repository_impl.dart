@@ -172,6 +172,10 @@ class HvcRepositoryImpl implements HvcRepository {
       // Update locally and queue for sync atomically
       late final db.Hvc updated;
       await _database.transaction(() async {
+        // Read existing updatedAt BEFORE local write for version guard
+        final existingHvc = await _localDataSource.getHvcById(id);
+        final serverUpdatedAt = existingHvc?.updatedAt;
+
         await _localDataSource.updateHvc(id, companion);
 
         final result = await _localDataSource.getHvcById(id);
@@ -184,7 +188,11 @@ class HvcRepositoryImpl implements HvcRepository {
           entityType: SyncEntityType.hvc,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createHvcUpdateSyncPayload(updated),
+          payload: {
+            ..._createHvcUpdateSyncPayload(updated),
+            if (serverUpdatedAt != null)
+              '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
       });
 

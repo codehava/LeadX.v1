@@ -317,6 +317,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       final updated = await _database.transaction(() async {
         await _localDataSource.updatePipeline(id, companion);
@@ -331,7 +335,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
           entityType: SyncEntityType.pipeline,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createUpdateSyncPayload(data),
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;
@@ -432,6 +439,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally, create history, and queue for sync atomically
       final updated = await _database.transaction(() async {
         await _localDataSource.updatePipeline(id, companion);
@@ -482,7 +493,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
           entityType: SyncEntityType.pipeline,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createUpdateSyncPayload(data),
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;
@@ -526,6 +540,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
         updatedAt: Value(now),
       );
 
+      // Capture server updatedAt BEFORE local write for version guard
+      // (existing was already read above for validation)
+      final serverUpdatedAt = existing.updatedAt;
+
       // Update locally and queue for sync atomically
       final updated = await _database.transaction(() async {
         await _localDataSource.updatePipeline(id, companion);
@@ -540,7 +558,10 @@ class PipelineRepositoryImpl implements PipelineRepository {
           entityType: SyncEntityType.pipeline,
           entityId: id,
           operation: SyncOperation.update,
-          payload: _createUpdateSyncPayload(data),
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
         );
 
         return data;
