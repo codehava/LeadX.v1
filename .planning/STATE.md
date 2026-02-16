@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 3.1 - Remaining Repo Result Migration
+**Current focus:** Phase 4 - Conflict Resolution
 
 ## Current Position
 
-Phase: 3.1 of 10 (Remaining Repo Result Migration) -- COMPLETE
-Plan: 5 of 5 (03.1-01, 03.1-02, 03.1-03, 03.1-04, 03.1-05 complete)
-Status: Phase 3.1 Complete
-Last activity: 2026-02-14 — Completed 03.1-05 dartz removal (Phase 3.1 complete)
+Phase: 4 of 10 (Conflict Resolution)
+Plan: 1 of 2 (04-01 complete)
+Status: In Progress
+Last activity: 2026-02-16 — Completed 04-01 conflict detection and LWW resolution
 
-Progress: [████░░░░░░] ~40%
+Progress: [█████░░░░░] ~45%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 10 min
-- Total execution time: 2.7 hours
+- Total execution time: 2.8 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [████░░░░░░] ~40%
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
+| 04-conflict-resolution | 1/2 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min), 03.1-01 (8 min)
+- Last 5 plans: 04-01 (8 min), 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -96,6 +97,11 @@ Recent decisions affecting current work:
 - Preserved custom _mapAuthError() with Indonesian-locale messages instead of replacing with generic mapException (03.1-03)
 - Auth test suite rewritten from mockito to mocktail with custom Fakes for Supabase Future-implementing types (03.1-03)
 - FakeSupabaseClient + FakeQueryChain + _FakeTransformBuilder pattern for testing Supabase-dependent code (03.1-03)
+- Upsert for creates makes retry-after-timeout idempotent (no duplicate records on server) (04-01)
+- Version guard via _server_updated_at payload metadata + .eq('updated_at') filter for optimistic locking (04-01)
+- LWW resolution: higher updated_at wins; resolved conflicts treated as successful (not failed) (04-01)
+- Full field-level server-wins for customer/pipeline/activity; secondary entities defer to next pull cycle (04-01)
+- Pipeline/activity _applyServerDataLocally field mappings corrected to match actual Drift schema (04-01)
 
 ### Roadmap Evolution
 
@@ -112,9 +118,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-14
-Stopped at: Completed 03.1-05-PLAN.md (Phase 3.1 complete -- dartz removed)
+Last session: 2026-02-16
+Stopped at: Completed 04-01-PLAN.md (conflict detection and LWW resolution)
 Resume file: None
 
 ---
-*Last updated: 2026-02-14 (Phase 3.1 complete)*
+*Last updated: 2026-02-16 (04-01 complete)*
