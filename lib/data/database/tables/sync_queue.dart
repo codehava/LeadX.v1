@@ -48,3 +48,22 @@ class AppSettings extends Table {
   @override
   Set<Column> get primaryKey => {key};
 }
+
+/// Local-only audit table for sync conflict logging.
+/// Records all detected conflicts with before/after payload snapshots.
+/// NOT synced to server - this is for local debugging and UI display.
+class SyncConflicts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get entityType => text()();
+  TextColumn get entityId => text()();
+  TextColumn get localPayload => text()();   // JSON string
+  TextColumn get serverPayload => text()();  // JSON string
+  DateTimeColumn get localUpdatedAt => dateTime()();
+  DateTimeColumn get serverUpdatedAt => dateTime()();
+  TextColumn get winner => text()();  // 'local' or 'server'
+  TextColumn get resolution => text().withDefault(const Constant('lww'))();
+  DateTimeColumn get detectedAt => dateTime()();
+
+  @override
+  String get tableName => 'sync_conflicts';
+}

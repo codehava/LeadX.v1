@@ -97,11 +97,12 @@ part 'app_database.g.dart';
     AnnouncementReads,
     
     // ============================================
-    // SYSTEM (5 tables)
+    // SYSTEM (6 tables)
     // ============================================
     SyncQueueItems,
     AuditLogs,
     AppSettings,
+    SyncConflicts,
     // History Log Cache
     PipelineStageHistoryItems,
     AuditLogCache,
@@ -112,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +208,10 @@ class AppDatabase extends _$AppDatabase {
             await customStatement(
               'ALTER TABLE activities RENAME COLUMN synced_at TO last_sync_at',
             );
+          }
+          // Migration from v10 to v11: Add sync_conflicts audit table
+          if (from < 11) {
+            await m.createTable(syncConflicts);
           }
         },
         beforeOpen: (details) async {
