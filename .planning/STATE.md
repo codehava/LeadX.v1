@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 4 of 10 (Conflict Resolution)
-Plan: 1 of 2 (04-01 complete)
-Status: In Progress
-Last activity: 2026-02-16 - Completed quick task 1: create a compressed spec md for a potential sixth iteration listing the spec the reqs and lesson learned for the next GSD framework based iteration
+Plan: 2 of 2 (04-02 complete)
+Status: Phase Complete
+Last activity: 2026-02-16 - Completed 04-02-PLAN.md (version guard metadata + pull sync guard)
 
-Progress: [█████░░░░░] ~45%
+Progress: [█████░░░░░] ~50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 10 min
-- Total execution time: 2.8 hours
+- Total execution time: 3.1 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [█████░░░░░] ~45%
 | 02.1-pre-existing-bug-fixes | 3/3 | 14 min | 5 min |
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
-| 04-conflict-resolution | 1/2 | 8 min | 8 min |
+| 04-conflict-resolution | 2/2 | 26 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (8 min), 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min), 03.1-04 (8 min)
+- Last 5 plans: 04-02 (18 min), 04-01 (8 min), 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -97,6 +97,9 @@ Recent decisions affecting current work:
 - Preserved custom _mapAuthError() with Indonesian-locale messages instead of replacing with generic mapException (03.1-03)
 - Auth test suite rewritten from mockito to mocktail with custom Fakes for Supabase Future-implementing types (03.1-03)
 - FakeSupabaseClient + FakeQueryChain + _FakeTransformBuilder pattern for testing Supabase-dependent code (03.1-03)
+- Pull sync upsert methods skip isPendingSync=true records to prevent server data overwriting unsynced local edits (04-02)
+- Coalescing update+update preserves first _server_updated_at (true server state); create+update strips it (irrelevant for new records) (04-02)
+- Batch pre-filter pattern for pull guard: query pending IDs into Set, filter upsert list; individual check for single-record upserts (04-02)
 - Upsert for creates makes retry-after-timeout idempotent (no duplicate records on server) (04-01)
 - Version guard via _server_updated_at payload metadata + .eq('updated_at') filter for optimistic locking (04-01)
 - LWW resolution: higher updated_at wins; resolved conflicts treated as successful (not failed) (04-01)
@@ -125,8 +128,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: Completed 04-01-PLAN.md (conflict detection and LWW resolution)
+Stopped at: Completed 04-02-PLAN.md (version guard metadata + pull sync guard) - Phase 04 complete
 Resume file: None
 
 ---
-*Last updated: 2026-02-16 (04-01 complete)*
+*Last updated: 2026-02-16 (04-02 complete, Phase 04 done)*
