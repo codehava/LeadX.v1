@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 02.1: Pre-existing Bug Fixes** - Timezone serialization + dropdown race condition (INSERTED)
 - [x] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [x] **Phase 03.1: Remaining Repo Result Migration** - Migrate 7 remaining repos from dartz Either to sealed Result, remove dartz (INSERTED)
-- [ ] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
+- [x] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
 - [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
 - [ ] **Phase 7: Offline UX Polish** - Connectivity banner, sync status badges, staleness indicators
@@ -128,8 +128,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — SyncConflicts table + SyncService conflict detection and LWW resolution (CONF-01, CONF-03)
-- [ ] 04-02-PLAN.md — Repository version guard metadata + coalescing update + pull sync guard + conflict count UI
+- [x] 04-01-PLAN.md — SyncConflicts table + SyncService conflict detection and LWW resolution (CONF-01, CONF-03)
+- [x] 04-02-PLAN.md — Repository version guard metadata + coalescing update + pull sync guard + conflict count UI
 
 ### Phase 5: Background Sync & Dead Letter Queue
 **Goal**: Sync persists across app restarts, failed items are pruned and surfaced to users, and queue doesn't grow indefinitely
@@ -239,7 +239,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 02.1. Pre-existing Bug Fixes | 3/3 | ✓ Complete | 2026-02-13 |
 | 3. Error Classification & Recovery | 3/3 | ✓ Complete | 2026-02-14 |
 | 03.1. Remaining Repo Result Migration | 5/5 | ✓ Complete | 2026-02-14 |
-| 4. Conflict Resolution | 0/2 | Not started | - |
+| 4. Conflict Resolution | 2/2 | ✓ Complete | 2026-02-16 |
 | 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
 | 6. Sync Coordination | 0/TBD | Not started | - |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
@@ -249,4 +249,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-14 — Phase 4 planned (2 plans, conflict resolution)*
+*Last updated: 2026-02-16 — Phase 4 complete (conflict resolution)*
