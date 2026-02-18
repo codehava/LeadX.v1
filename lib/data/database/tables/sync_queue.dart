@@ -15,6 +15,9 @@ class SyncQueueItems extends Table {
   TextColumn get payload => text()(); // JSON payload
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
+  /// Status lifecycle: pending -> failed -> dead_letter
+  /// No 'completed' status because completed items are deleted immediately via markAsCompleted().
+  TextColumn get status => text().withDefault(const Constant('pending'))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
 

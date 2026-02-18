@@ -113,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -212,6 +212,18 @@ class AppDatabase extends _$AppDatabase {
           // Migration from v10 to v11: Add sync_conflicts audit table
           if (from < 11) {
             await m.createTable(syncConflicts);
+          }
+          // Migration from v11 to v12: Add status column to sync_queue
+          if (from < 12) {
+            await m.addColumn(syncQueueItems, syncQueueItems.status);
+            // Backfill existing items based on current state
+            await customStatement(
+              "UPDATE sync_queue SET status = CASE "
+              "WHEN retry_count >= 5 THEN 'dead_letter' "
+              "WHEN last_error IS NOT NULL AND retry_count > 0 THEN 'failed' "
+              "ELSE 'pending' "
+              "END"
+            );
           }
         },
         beforeOpen: (details) async {

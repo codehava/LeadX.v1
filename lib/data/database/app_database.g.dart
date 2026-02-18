@@ -30100,6 +30100,16 @@ class $SyncQueueItemsTable extends SyncQueueItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -30132,6 +30142,7 @@ class $SyncQueueItemsTable extends SyncQueueItems
     payload,
     retryCount,
     lastError,
+    status,
     createdAt,
     lastAttemptAt,
   ];
@@ -30194,6 +30205,12 @@ class $SyncQueueItemsTable extends SyncQueueItems
         lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
       );
     }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -30248,6 +30265,10 @@ class $SyncQueueItemsTable extends SyncQueueItems
         DriftSqlType.string,
         data['${effectivePrefix}last_error'],
       ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -30273,6 +30294,10 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
   final String payload;
   final int retryCount;
   final String? lastError;
+
+  /// Status lifecycle: pending -> failed -> dead_letter
+  /// No 'completed' status because completed items are deleted immediately via markAsCompleted().
+  final String status;
   final DateTime createdAt;
   final DateTime? lastAttemptAt;
   const SyncQueueItem({
@@ -30283,6 +30308,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     required this.payload,
     required this.retryCount,
     this.lastError,
+    required this.status,
     required this.createdAt,
     this.lastAttemptAt,
   });
@@ -30298,6 +30324,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
     }
+    map['status'] = Variable<String>(status);
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || lastAttemptAt != null) {
       map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt);
@@ -30316,6 +30343,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
           : Value(lastError),
+      status: Value(status),
       createdAt: Value(createdAt),
       lastAttemptAt: lastAttemptAt == null && nullToAbsent
           ? const Value.absent()
@@ -30336,6 +30364,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
       payload: serializer.fromJson<String>(json['payload']),
       retryCount: serializer.fromJson<int>(json['retryCount']),
       lastError: serializer.fromJson<String?>(json['lastError']),
+      status: serializer.fromJson<String>(json['status']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastAttemptAt: serializer.fromJson<DateTime?>(json['lastAttemptAt']),
     );
@@ -30351,6 +30380,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
       'payload': serializer.toJson<String>(payload),
       'retryCount': serializer.toJson<int>(retryCount),
       'lastError': serializer.toJson<String?>(lastError),
+      'status': serializer.toJson<String>(status),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'lastAttemptAt': serializer.toJson<DateTime?>(lastAttemptAt),
     };
@@ -30364,6 +30394,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     String? payload,
     int? retryCount,
     Value<String?> lastError = const Value.absent(),
+    String? status,
     DateTime? createdAt,
     Value<DateTime?> lastAttemptAt = const Value.absent(),
   }) => SyncQueueItem(
@@ -30374,6 +30405,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     payload: payload ?? this.payload,
     retryCount: retryCount ?? this.retryCount,
     lastError: lastError.present ? lastError.value : this.lastError,
+    status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
     lastAttemptAt: lastAttemptAt.present
         ? lastAttemptAt.value
@@ -30392,6 +30424,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
           ? data.retryCount.value
           : this.retryCount,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       lastAttemptAt: data.lastAttemptAt.present
           ? data.lastAttemptAt.value
@@ -30409,6 +30442,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
           ..write('payload: $payload, ')
           ..write('retryCount: $retryCount, ')
           ..write('lastError: $lastError, ')
+          ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastAttemptAt: $lastAttemptAt')
           ..write(')'))
@@ -30424,6 +30458,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     payload,
     retryCount,
     lastError,
+    status,
     createdAt,
     lastAttemptAt,
   );
@@ -30438,6 +30473,7 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
           other.payload == this.payload &&
           other.retryCount == this.retryCount &&
           other.lastError == this.lastError &&
+          other.status == this.status &&
           other.createdAt == this.createdAt &&
           other.lastAttemptAt == this.lastAttemptAt);
 }
@@ -30450,6 +30486,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
   final Value<String> payload;
   final Value<int> retryCount;
   final Value<String?> lastError;
+  final Value<String> status;
   final Value<DateTime> createdAt;
   final Value<DateTime?> lastAttemptAt;
   const SyncQueueItemsCompanion({
@@ -30460,6 +30497,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
     this.payload = const Value.absent(),
     this.retryCount = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastAttemptAt = const Value.absent(),
   });
@@ -30471,6 +30509,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
     required String payload,
     this.retryCount = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.status = const Value.absent(),
     required DateTime createdAt,
     this.lastAttemptAt = const Value.absent(),
   }) : entityType = Value(entityType),
@@ -30486,6 +30525,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
     Expression<String>? payload,
     Expression<int>? retryCount,
     Expression<String>? lastError,
+    Expression<String>? status,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? lastAttemptAt,
   }) {
@@ -30497,6 +30537,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
       if (payload != null) 'payload': payload,
       if (retryCount != null) 'retry_count': retryCount,
       if (lastError != null) 'last_error': lastError,
+      if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
       if (lastAttemptAt != null) 'last_attempt_at': lastAttemptAt,
     });
@@ -30510,6 +30551,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
     Value<String>? payload,
     Value<int>? retryCount,
     Value<String?>? lastError,
+    Value<String>? status,
     Value<DateTime>? createdAt,
     Value<DateTime?>? lastAttemptAt,
   }) {
@@ -30521,6 +30563,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
       payload: payload ?? this.payload,
       retryCount: retryCount ?? this.retryCount,
       lastError: lastError ?? this.lastError,
+      status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       lastAttemptAt: lastAttemptAt ?? this.lastAttemptAt,
     );
@@ -30550,6 +30593,9 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
     if (lastError.present) {
       map['last_error'] = Variable<String>(lastError.value);
     }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -30569,6 +30615,7 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
           ..write('payload: $payload, ')
           ..write('retryCount: $retryCount, ')
           ..write('lastError: $lastError, ')
+          ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastAttemptAt: $lastAttemptAt')
           ..write(')'))
@@ -56847,6 +56894,7 @@ typedef $$SyncQueueItemsTableCreateCompanionBuilder =
       required String payload,
       Value<int> retryCount,
       Value<String?> lastError,
+      Value<String> status,
       required DateTime createdAt,
       Value<DateTime?> lastAttemptAt,
     });
@@ -56859,6 +56907,7 @@ typedef $$SyncQueueItemsTableUpdateCompanionBuilder =
       Value<String> payload,
       Value<int> retryCount,
       Value<String?> lastError,
+      Value<String> status,
       Value<DateTime> createdAt,
       Value<DateTime?> lastAttemptAt,
     });
@@ -56904,6 +56953,11 @@ class $$SyncQueueItemsTableFilterComposer
 
   ColumnFilters<String> get lastError => $composableBuilder(
     column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -56962,6 +57016,11 @@ class $$SyncQueueItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -57006,6 +57065,9 @@ class $$SyncQueueItemsTableAnnotationComposer
 
   GeneratedColumn<String> get lastError =>
       $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -57056,6 +57118,7 @@ class $$SyncQueueItemsTableTableManager
                 Value<String> payload = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
               }) => SyncQueueItemsCompanion(
@@ -57066,6 +57129,7 @@ class $$SyncQueueItemsTableTableManager
                 payload: payload,
                 retryCount: retryCount,
                 lastError: lastError,
+                status: status,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
               ),
@@ -57078,6 +57142,7 @@ class $$SyncQueueItemsTableTableManager
                 required String payload,
                 Value<int> retryCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 required DateTime createdAt,
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
               }) => SyncQueueItemsCompanion.insert(
@@ -57088,6 +57153,7 @@ class $$SyncQueueItemsTableTableManager
                 payload: payload,
                 retryCount: retryCount,
                 lastError: lastError,
+                status: status,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
               ),
