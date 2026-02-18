@@ -19,6 +19,7 @@ import 'config/env/env_config.dart';
 import 'core/logging/app_logger.dart';
 import 'core/logging/sentry_observer.dart';
 import 'data/services/background_sync_service.dart';
+import 'presentation/providers/sync_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,10 +67,20 @@ Future<void> main() async {
       await BackgroundSyncService.initialize();
       await BackgroundSyncService.registerPeriodicSync();
 
-      // Run the app
+      // Create ProviderContainer for eager initialization of sync services.
+      // Using UncontrolledProviderScope to share the container with the widget tree.
+      final container = ProviderContainer(
+        observers: [TalkerRiverpodObserver(talker: AppLogger.instance)],
+      );
+
+      // Initialize sync services eagerly: connectivity, coordinator (stale lock
+      // recovery + initial sync state), and start the periodic sync timer.
+      await initializeSyncServices(container);
+
+      // Run the app with the shared container
       runApp(
-        ProviderScope(
-          observers: [TalkerRiverpodObserver(talker: AppLogger.instance)],
+        UncontrolledProviderScope(
+          container: container,
           child: const LeadXApp(),
         ),
       );

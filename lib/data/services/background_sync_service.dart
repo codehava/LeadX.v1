@@ -5,6 +5,7 @@ import 'package:workmanager/workmanager.dart';
 
 import '../database/app_database.dart';
 import '../datasources/local/sync_queue_local_data_source.dart';
+import 'app_settings_service.dart';
 import 'connectivity_service.dart';
 import 'sync_service.dart';
 
@@ -43,13 +44,20 @@ void callbackDispatcher() {
       // Do NOT run migrations from background -- if schema is outdated,
       // skip and let the foreground handle migration on next app open.
       final db = AppDatabase();
+      final appSettings = AppSettingsService(db);
 
       try {
+        // 4.5. Check if initial sync has completed (must have reference data before pushing)
+        final initialSyncDone = await appSettings.hasInitialSyncCompleted();
+        if (!initialSyncDone) {
+          // Skip -- initial sync must complete first via foreground app
+          await db.close();
+          return true;
+        }
+
         // 5. Check if background sync is enabled by user
-        final setting = await (db.select(db.appSettings)
-              ..where((t) => t.key.equals('background_sync_enabled')))
-            .getSingleOrNull();
-        if (setting?.value == 'false') {
+        final bgSyncEnabled = await appSettings.get('background_sync_enabled');
+        if (bgSyncEnabled == 'false') {
           await db.close();
           return true; // Skip -- disabled by user
         }
