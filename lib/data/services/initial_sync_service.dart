@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/utils/date_time_utils.dart';
 import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart';
 import '../datasources/local/master_data_local_data_source.dart';
-import '../../core/utils/date_time_utils.dart';
 import 'app_settings_service.dart';
+import 'sync_coordinator.dart';
 
 /// Progress callback for initial sync.
 typedef InitialSyncProgressCallback = void Function(InitialSyncProgress progress);
@@ -62,15 +63,18 @@ class InitialSyncService {
     required AppDatabase database,
     required MasterDataLocalDataSource masterDataSource,
     AppSettingsService? appSettingsService,
+    SyncCoordinator? coordinator,
   })  : _supabase = supabaseClient,
         _db = database,
         _masterDataSource = masterDataSource,
-        _appSettings = appSettingsService;
+        _appSettings = appSettingsService,
+        _coordinator = coordinator;
 
   final SupabaseClient _supabase;
   final AppDatabase _db;
   final MasterDataLocalDataSource _masterDataSource;
   final AppSettingsService? _appSettings;
+  final SyncCoordinator? _coordinator;
 
   /// Page size for paginated fetches.
   static const int pageSize = 50;
@@ -131,7 +135,19 @@ class InitialSyncService {
     InitialSyncProgressCallback? onProgress,
     bool forceRestart = false,
   }) async {
-    if (_isSyncing) {
+    // Acquire coordinator lock if available, else fallback to _isSyncing
+    if (_coordinator != null) {
+      if (!await _coordinator.acquireLock(type: SyncType.initial)) {
+        return SyncResult(
+          success: false,
+          processedCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          errors: ['Could not acquire initial sync lock'],
+          syncedAt: DateTime.now(),
+        );
+      }
+    } else if (_isSyncing) {
       return SyncResult(
         success: false,
         processedCount: 0,
@@ -147,7 +163,6 @@ class InitialSyncService {
     var successCount = 0;
     var failedCount = 0;
 
-    // Determine starting index (for resume)
     // Determine starting index (for resume)
     int startIndex = 0;
     if (!forceRestart && _appSettings != null) {
@@ -216,6 +231,7 @@ class InitialSyncService {
       );
     } finally {
       _isSyncing = false;
+      _coordinator?.releaseLock();
     }
   }
 
@@ -947,7 +963,19 @@ class InitialSyncService {
   Future<SyncResult> performDeltaSync({
     InitialSyncProgressCallback? onProgress,
   }) async {
-    if (_isSyncing) {
+    // Acquire coordinator lock if available, else fallback to _isSyncing
+    if (_coordinator != null) {
+      if (!await _coordinator.acquireLock(type: SyncType.masterDataResync)) {
+        return SyncResult(
+          success: false,
+          processedCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          errors: ['Could not acquire delta sync lock'],
+          syncedAt: DateTime.now(),
+        );
+      }
+    } else if (_isSyncing) {
       return SyncResult(
         success: false,
         processedCount: 0,
@@ -1009,6 +1037,7 @@ class InitialSyncService {
       );
     } finally {
       _isSyncing = false;
+      _coordinator?.releaseLock();
     }
   }
 

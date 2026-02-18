@@ -12,6 +12,7 @@ import '../../domain/entities/sync_models.dart';
 import '../database/app_database.dart' as db;
 import '../datasources/local/sync_queue_local_data_source.dart';
 import 'connectivity_service.dart';
+import 'sync_coordinator.dart';
 
 /// Service for managing offline-first sync operations.
 /// Handles the sync queue processing with retry logic and conflict resolution.
@@ -23,15 +24,18 @@ class SyncService {
     required ConnectivityService connectivityService,
     required SupabaseClient supabaseClient,
     required db.AppDatabase database,
+    SyncCoordinator? coordinator,
   })  : _syncQueueDataSource = syncQueueDataSource,
         _connectivityService = connectivityService,
         _supabaseClient = supabaseClient,
-        _database = database;
+        _database = database,
+        _coordinator = coordinator;
 
   final SyncQueueLocalDataSource _syncQueueDataSource;
   final ConnectivityService _connectivityService;
   final SupabaseClient _supabaseClient;
   final db.AppDatabase _database;
+  final SyncCoordinator? _coordinator;
 
   /// Controller for sync state changes.
   final StreamController<SyncState> _stateController =
@@ -83,16 +87,32 @@ class SyncService {
 
     _log.info('sync.queue | processQueue called, isSyncing=$_isSyncing, isConnected=${_connectivityService.isConnected}');
 
-    if (_isSyncing) {
-      _log.debug('sync.queue | Sync already in progress, returning');
-      return SyncResult(
-        success: false,
-        processedCount: 0,
-        successCount: 0,
-        failedCount: 0,
-        errors: ['Sync already in progress'],
-        syncedAt: DateTime.now(),
-      );
+    // If coordinator is available, check lock state
+    if (_coordinator != null) {
+      if (_coordinator.isLocked) {
+        _log.debug('sync.queue | Sync lock held, skipping processQueue');
+        return SyncResult(
+          success: false,
+          processedCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          errors: ['Sync lock held by coordinator'],
+          syncedAt: DateTime.now(),
+        );
+      }
+    } else {
+      // Fallback for standalone usage (background sync)
+      if (_isSyncing) {
+        _log.debug('sync.queue | Sync already in progress, returning');
+        return SyncResult(
+          success: false,
+          processedCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          errors: ['Sync already in progress'],
+          syncedAt: DateTime.now(),
+        );
+      }
     }
 
     // Check connectivity - first the cached state
@@ -829,7 +849,9 @@ class SyncService {
     _backgroundSyncTimer = Timer.periodic(interval, (_) async {
       // Ensure connectivity is initialized before checking status
       await _connectivityService.ensureInitialized();
-      if (_connectivityService.isConnected && !_isSyncing) {
+      if (_connectivityService.isConnected &&
+          _coordinator?.isLocked != true &&
+          !_isSyncing) {
         unawaited(processQueue());
       }
     });
