@@ -14,7 +14,7 @@ Requirements for stability milestone. Each maps to roadmap phases.
 - [ ] **SYNC-03**: Queue coalescing handles operation sequences correctly (create+update merges to create with updated payload, create+delete removes both, update+update replaces payload)
 - [ ] **SYNC-04**: Sync triggers are debounced (500ms batch window) to prevent thundering herd from `unawaited(triggerSync())` on every repository write
 - [ ] **SYNC-05**: All syncable tables use consistent sync metadata columns (`isPendingSync`, `lastSyncAt`, `updatedAt`) via Drift migration
-- [ ] **SYNC-06**: Sync queue is pruned periodically — completed items older than 7 days are removed, dead items are surfaced
+- [x] **SYNC-06**: Sync queue is pruned periodically — completed items older than 7 days are removed, dead items are surfaced
 
 ### Error Handling
 
@@ -26,7 +26,7 @@ Requirements for stability milestone. Each maps to roadmap phases.
 ### Conflict Resolution & Recovery
 
 - [ ] **CONF-01**: Last-Write-Wins conflict detection compares local and server `updatedAt` timestamps during push sync, logging conflicts to audit table
-- [ ] **CONF-02**: User can view permanently failed sync items in a dead letter queue UI with retry and discard options
+- [x] **CONF-02**: User can view permanently failed sync items in a dead letter queue UI with retry and discard options
 - [ ] **CONF-03**: Sync operations are idempotent — creates use Supabase upsert on client-generated UUIDs, updates use version guards
 - [ ] **CONF-04**: Background sync persists across app restarts via workmanager (Android WorkManager, iOS BGTaskScheduler)
 - [ ] **CONF-05**: SyncCoordinator prevents queue push before initial sync completes and serializes sync phases (push, pull)
@@ -100,13 +100,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYNC-03 | Phase 2 | Pending |
 | SYNC-04 | Phase 2 | Pending |
 | SYNC-05 | Phase 1 | Pending |
-| SYNC-06 | Phase 5 | Pending |
+| SYNC-06 | Phase 5 | Complete |
 | ERR-01 | Phase 1 | Pending |
 | ERR-02 | Phase 3 | Pending |
 | ERR-03 | Phase 3 | Pending |
 | ERR-04 | Phase 3 | Pending |
 | CONF-01 | Phase 4 | Pending |
-| CONF-02 | Phase 5 | Pending |
+| CONF-02 | Phase 5 | Complete |
 | CONF-03 | Phase 4 | Pending |
 | CONF-04 | Phase 5 | Pending |
 | CONF-05 | Phase 6 | Pending |

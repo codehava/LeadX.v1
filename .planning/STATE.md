@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 4 - Conflict Resolution
+**Current focus:** Phase 5 - Background Sync & Dead Letter Queue
 
 ## Current Position
 
-Phase: 4 of 10 (Conflict Resolution)
-Plan: 2 of 2 (04-02 complete)
-Status: Phase Complete
-Last activity: 2026-02-16 - Completed 04-02-PLAN.md (version guard metadata + pull sync guard)
+Phase: 5 of 10 (Background Sync & Dead Letter Queue)
+Plan: 1 of 3 (05-01 complete)
+Status: In Progress
+Last activity: 2026-02-18 - Completed 05-01-PLAN.md (dead letter status tracking + pruning)
 
-Progress: [█████░░░░░] ~50%
+Progress: [██████░░░░] ~55%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 10 min
-- Total execution time: 3.1 hours
+- Total execution time: 3.3 hours
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [█████░░░░░] ~50%
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
 | 04-conflict-resolution | 2/2 | 26 min | 13 min |
+| 05-background-sync-dead-letter-queue | 1/3 | 10 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (18 min), 04-01 (8 min), 03.1-05 (8 min), 03.1-03 (35 min), 03.1-02 (5 min)
+- Last 5 plans: 05-01 (10 min), 04-02 (18 min), 04-01 (8 min), 03.1-05 (8 min), 03.1-03 (35 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -105,6 +106,10 @@ Recent decisions affecting current work:
 - LWW resolution: higher updated_at wins; resolved conflicts treated as successful (not failed) (04-01)
 - Full field-level server-wins for customer/pipeline/activity; secondary entities defer to next pull cycle (04-01)
 - Pipeline/activity _applyServerDataLocally field mappings corrected to match actual Drift schema (04-01)
+- No 'completed' status on sync queue -- completed items deleted immediately via markAsCompleted() (05-01)
+- isPendingSync implicitly true for all unsynced items; only cleared on sync success or explicit discard (05-01)
+- _markEntityAsLocalOnly sets isPendingSync=false and lastSyncAt=null for local-only state (05-01)
+- Pruning errors caught non-fatally to prevent blocking sync result (05-01)
 
 ### Roadmap Evolution
 
@@ -128,8 +133,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-background-sync-dead-letter-queue/05-CONTEXT.md
+Stopped at: Completed 05-01-PLAN.md
+Resume file: .planning/phases/05-background-sync-dead-letter-queue/05-02-PLAN.md
 
 ---
-*Last updated: 2026-02-18 (Phase 5 context gathered)*
+*Last updated: 2026-02-18 (Completed 05-01-PLAN.md)*
