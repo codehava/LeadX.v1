@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../data/services/initial_sync_service.dart';
 import '../../providers/sync_providers.dart';
 
 /// Bottom sheet showing sync progress during initial sync.
+/// Supports auto-retry with backoff and cancel-and-logout after exhausting retries.
 class SyncProgressSheet extends ConsumerStatefulWidget {
   const SyncProgressSheet({super.key});
 
@@ -13,17 +15,18 @@ class SyncProgressSheet extends ConsumerStatefulWidget {
   static bool _isShowing = false;
 
   /// Show the sync progress sheet.
-  /// Returns immediately if already showing to prevent duplicate syncs.
-  static Future<void> show(BuildContext context) async {
+  /// Returns true if sync completed successfully, false if failed or cancelled.
+  /// Returns immediately with false if already showing to prevent duplicate syncs.
+  static Future<bool> show(BuildContext context) async {
     // Prevent showing multiple times (race condition between LoginScreen and HomeScreen)
     if (_isShowing) {
       AppLogger.instance.debug('ui.sync | Already showing, skipping duplicate call');
-      return;
+      return false;
     }
 
     _isShowing = true;
     try {
-      await showModalBottomSheet(
+      final result = await showModalBottomSheet<bool>(
         context: context,
         isDismissible: false,
         enableDrag: false,
@@ -33,6 +36,7 @@ class SyncProgressSheet extends ConsumerStatefulWidget {
         ),
         builder: (context) => const SyncProgressSheet(),
       );
+      return result ?? false;
     } finally {
       _isShowing = false;
     }
@@ -43,102 +47,194 @@ class SyncProgressSheet extends ConsumerStatefulWidget {
 }
 
 class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
+  static const _retryDelays = [
+    Duration(seconds: 2),
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+  ];
+  static const _maxRetries = 3;
+
   InitialSyncProgress? _progress;
   bool _isComplete = false;
   String? _error;
+  int _retryAttempt = 0;
+  bool _showCancelButton = false;
+  String? _retryMessage;
+  bool _isCancelling = false;
 
   @override
   void initState() {
     super.initState();
-    _startSync();
+    _startSyncWithRetry();
   }
 
-  Future<void> _startSync() async {
-    AppLogger.instance.info('ui.sync | Starting initial sync...');
-    final initialSyncService = ref.read(initialSyncServiceProvider);
-    
-    // Listen to progress updates
-    initialSyncService.progressStream.listen((progress) {
-      AppLogger.instance.debug('ui.sync | Progress: ${progress.message} (${progress.percentage}%)');
-      if (mounted) {
+  /// Run the sync with auto-retry and backoff.
+  Future<void> _startSyncWithRetry() async {
+    AppLogger.instance.info('ui.sync | Starting initial sync with retry...');
+
+    for (var attempt = 0; attempt < _maxRetries; attempt++) {
+      _retryAttempt = attempt + 1;
+
+      if (attempt > 0) {
+        // Show retry countdown message
+        final delay = _retryDelays[attempt - 1];
+        if (mounted) {
+          setState(() {
+            _retryMessage = 'Mencoba ulang dalam ${delay.inSeconds} detik... (percobaan $_retryAttempt/$_maxRetries)';
+            _isComplete = false;
+            _error = null;
+          });
+        }
+        AppLogger.instance.info('ui.sync | Retry attempt $_retryAttempt/$_maxRetries after ${delay.inSeconds}s delay');
+        await Future.delayed(delay);
+
+        if (!mounted) return;
+
         setState(() {
-          _progress = progress;
-          // Don't mark complete yet - we still need to pull user data
+          _retryMessage = null;
         });
       }
-    });
 
-    // Phase 1: Sync master data
-    final result = await initialSyncService.performInitialSync(
-      onProgress: (progress) {
-        // Also handle via callback
-      },
-    );
+      final success = await _performSingleSyncAttempt();
 
-    AppLogger.instance.info('ui.sync | Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
-
-    if (!result.success && result.errors.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _isComplete = true;
-          _error = result.errors.first;
-        });
+      if (success) {
+        AppLogger.instance.info('ui.sync | Sync succeeded on attempt $_retryAttempt');
+        if (mounted) {
+          setState(() {
+            _isComplete = true;
+            _error = null;
+            _showCancelButton = false;
+          });
+        }
+        return;
       }
-      return;
+
+      AppLogger.instance.warning('ui.sync | Sync failed on attempt $_retryAttempt/$_maxRetries');
     }
 
-    // Phase 2: Delta sync for transactional tables (hvcs, brokers, pipeline_referrals, etc.)
-    if (mounted) {
-      setState(() {
-        _progress = InitialSyncProgress(
-          currentTable: 'delta_sync',
-          currentTableIndex: 1,
-          totalTables: 1,
-          currentPage: 0,
-          totalRows: 0,
-          percentage: 90,
-          message: 'Mengunduh data transaksional...',
-        );
-      });
-    }
-
-    AppLogger.instance.info('ui.sync | Starting delta sync...');
-    try {
-      final deltaResult = await initialSyncService.performDeltaSync();
-      AppLogger.instance.info('ui.sync | Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
-    } catch (e) {
-      AppLogger.instance.warning('ui.sync | Delta sync error: $e');
-      // Don't fail the whole sync for delta sync errors - they can retry later
-    }
-
-    // Phase 3: Pull user data (customers, pipelines, activities)
-    if (mounted) {
-      setState(() {
-        _progress = InitialSyncProgress(
-          currentTable: 'user_data',
-          currentTableIndex: 1,
-          totalTables: 1,
-          currentPage: 0,
-          totalRows: 0,
-          percentage: 95,
-          message: 'Mengunduh data pengguna...',
-        );
-      });
-    }
-
-    AppLogger.instance.info('ui.sync | Starting user data pull...');
-    try {
-      await ref.read(syncNotifierProvider.notifier).triggerSync();
-      AppLogger.instance.info('ui.sync | User data pull complete');
-    } catch (e) {
-      AppLogger.instance.warning('ui.sync | User data pull error: $e');
-      // Don't fail the whole sync for user data errors - they can retry later
-    }
-
+    // All retries exhausted
+    AppLogger.instance.error('ui.sync | Sync failed after $_maxRetries attempts');
     if (mounted) {
       setState(() {
         _isComplete = true;
+        _showCancelButton = true;
+        _error = 'Sinkronisasi gagal setelah $_maxRetries percobaan';
       });
+    }
+  }
+
+  /// Perform a single sync attempt. Returns true on success, false on failure.
+  Future<bool> _performSingleSyncAttempt() async {
+    try {
+      final initialSyncService = ref.read(initialSyncServiceProvider);
+
+      // Listen to progress updates
+      initialSyncService.progressStream.listen((progress) {
+        AppLogger.instance.debug('ui.sync | Progress: ${progress.message} (${progress.percentage}%)');
+        if (mounted) {
+          setState(() {
+            _progress = progress;
+          });
+        }
+      });
+
+      // Phase 1: Sync master data
+      final result = await initialSyncService.performInitialSync(
+        onProgress: (progress) {
+          // Also handle via callback
+        },
+      );
+
+      AppLogger.instance.info('ui.sync | Master data sync result: success=${result.success}, processed=${result.processedCount}, errors=${result.errors}');
+
+      if (!result.success && result.errors.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _error = result.errors.first;
+          });
+        }
+        return false;
+      }
+
+      // Phase 2: Delta sync for transactional tables
+      if (mounted) {
+        setState(() {
+          _progress = InitialSyncProgress(
+            currentTable: 'delta_sync',
+            currentTableIndex: 1,
+            totalTables: 1,
+            currentPage: 0,
+            totalRows: 0,
+            percentage: 90,
+            message: 'Mengunduh data transaksional...',
+          );
+        });
+      }
+
+      AppLogger.instance.info('ui.sync | Starting delta sync...');
+      try {
+        final deltaResult = await initialSyncService.performDeltaSync();
+        AppLogger.instance.info('ui.sync | Delta sync result: success=${deltaResult.success}, processed=${deltaResult.processedCount}, errors=${deltaResult.errors}');
+      } catch (e) {
+        AppLogger.instance.warning('ui.sync | Delta sync error: $e');
+        // Don't fail the whole sync for delta sync errors - they can retry later
+      }
+
+      // Phase 3: Pull user data (customers, pipelines, activities)
+      if (mounted) {
+        setState(() {
+          _progress = InitialSyncProgress(
+            currentTable: 'user_data',
+            currentTableIndex: 1,
+            totalTables: 1,
+            currentPage: 0,
+            totalRows: 0,
+            percentage: 95,
+            message: 'Mengunduh data pengguna...',
+          );
+        });
+      }
+
+      AppLogger.instance.info('ui.sync | Starting user data pull...');
+      try {
+        await ref.read(syncNotifierProvider.notifier).triggerSync();
+        AppLogger.instance.info('ui.sync | User data pull complete');
+      } catch (e) {
+        AppLogger.instance.warning('ui.sync | User data pull error: $e');
+        // Don't fail the whole sync for user data errors - they can retry later
+      }
+
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.instance.error('ui.sync | Unexpected sync error: $e\n$stackTrace');
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+      }
+      return false;
+    }
+  }
+
+  /// Handle cancel and logout: clear auth session, preserve local data, pop with false.
+  Future<void> _handleCancelAndLogout() async {
+    if (_isCancelling) return;
+
+    setState(() {
+      _isCancelling = true;
+    });
+
+    AppLogger.instance.info('ui.sync | Cancel and logout: clearing auth session, preserving local data');
+
+    try {
+      await Supabase.instance.client.auth.signOut();
+      AppLogger.instance.info('ui.sync | Cancel and logout: auth cleared, local data preserved');
+    } catch (e) {
+      AppLogger.instance.warning('ui.sync | Cancel and logout: signOut error (proceeding anyway): $e');
+    }
+
+    if (mounted) {
+      Navigator.pop(context, false);
     }
   }
 
@@ -210,10 +306,35 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
             textAlign: TextAlign.center,
           ),
 
+          // Retry message (shown between retries)
+          if (_retryMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _retryMessage!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+
+          // Retry count info (shown after all retries exhausted)
+          if (_isComplete && _error != null && _showCancelButton) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Percobaan: $_retryAttempt/$_maxRetries',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+
           const SizedBox(height: 24),
 
           // Progress bar
-          if (!_isComplete && _progress != null) ...[
+          if (!_isComplete && _progress != null && _retryMessage == null) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
@@ -232,7 +353,7 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
           ],
 
           // Table list (showing current progress)
-          if (!_isComplete && _progress != null && _progress!.currentTable.isNotEmpty) ...[
+          if (!_isComplete && _progress != null && _progress!.currentTable.isNotEmpty && _retryMessage == null) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -266,13 +387,47 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
 
           const SizedBox(height: 24),
 
-          // Close button (only when complete)
-          if (_isComplete)
+          // Buttons
+          if (_isComplete && _error == null)
+            // Success: show "Lanjutkan" button
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(_error != null ? 'Tutup' : 'Lanjutkan'),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Lanjutkan'),
+              ),
+            ),
+
+          if (_isComplete && _error != null && _showCancelButton)
+            // All retries exhausted: show "Batalkan & Keluar" button
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isCancelling ? null : _handleCancelAndLogout,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isCancelling
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Batalkan & Keluar'),
+              ),
+            ),
+
+          if (_isComplete && _error != null && !_showCancelButton)
+            // Error but not all retries exhausted (shouldn't normally happen, but safety)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Tutup'),
               ),
             ),
 
@@ -305,7 +460,7 @@ class SyncProgressIndicator extends ConsumerWidget {
         height: 16,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
