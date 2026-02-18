@@ -141,11 +141,12 @@ Plans:
   3. Items exceeding 5 retry attempts are moved to dead letter state and visible in Failed Sync Items UI with retry/discard buttons
   4. User sees badge count of failed sync items on Settings screen and can navigate to dead letter queue list
   5. Retrying a dead letter item resets retryCount and marks isPendingSync=true, discarding removes from queue and marks entity as sync error
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Dead letter foundation: status column migration v12, sync service dead letter logic, queue pruning, providers (SYNC-06, CONF-02)
+- [ ] 05-02-PLAN.md — Dead letter UI: evolve SyncQueueScreen, error translator, settings badge + timestamp, app bar warning (CONF-02, SYNC-06)
+- [ ] 05-03-PLAN.md — Background sync: workmanager integration, iOS/Android config, settings toggle (CONF-04)
 
 ### Phase 6: Sync Coordination
 **Goal**: Prevent race conditions between initial sync and regular sync, serialize push/pull phases, and ensure single sync execution at a time
@@ -240,7 +241,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 3. Error Classification & Recovery | 3/3 | ✓ Complete | 2026-02-14 |
 | 03.1. Remaining Repo Result Migration | 5/5 | ✓ Complete | 2026-02-14 |
 | 4. Conflict Resolution | 2/2 | ✓ Complete | 2026-02-16 |
-| 5. Background Sync & Dead Letter Queue | 0/TBD | Not started | - |
+| 5. Background Sync & Dead Letter Queue | 0/3 | In progress | - |
 | 6. Sync Coordination | 0/TBD | Not started | - |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
@@ -249,4 +250,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-16 — Phase 4 complete (conflict resolution)*
+*Last updated: 2026-02-18 — Phase 5 planned (3 plans)*
