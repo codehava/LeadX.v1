@@ -158,11 +158,12 @@ Plans:
   3. Triggering sync while another sync is in progress queues the request and executes after current sync completes instead of silently dropping
   4. Multiple repositories triggering sync simultaneously results in single coordinated sync execution instead of multiple overlapping syncs
   5. Sync lock acquisition and release is logged with phase metadata (push/pull) and duration for debugging coordination issues
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- SyncCoordinator service + SyncType enum + SyncService/InitialSyncService integration (CONF-05)
+- [ ] 06-02-PLAN.md -- SyncProgressSheet retry/backoff/cancel-logout + caller fixes (CONF-05)
+- [ ] 06-03-PLAN.md -- Provider wiring + SyncNotifier coordination + background sync gate + app startup (CONF-05)
 
 ### Phase 7: Offline UX Polish
 **Goal**: Make offline state and sync status transparent to users through persistent banners, status badges, and staleness indicators
