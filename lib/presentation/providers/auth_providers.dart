@@ -4,10 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/errors/result.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/services/app_settings_service.dart';
+import '../../data/services/sync_coordinator.dart';
 import '../../domain/entities/app_auth_state.dart';
 import '../../domain/entities/user.dart' as domain;
 import '../../domain/repositories/auth_repository.dart';
 import 'database_provider.dart';
+import 'sync_providers.dart';
 
 /// Provider for Supabase client.
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -66,8 +69,13 @@ final currentUserRoleProvider = Provider<domain.UserRole?>((ref) {
 /// Notifier for login actions.
 class LoginNotifier extends StateNotifier<AsyncValue<void>> {
   final AuthRepository _repository;
+  final AppSettingsService? _appSettings;
+  final SyncCoordinator? _coordinator;
 
-  LoginNotifier(this._repository) : super(const AsyncValue.data(null));
+  LoginNotifier(this._repository, {AppSettingsService? appSettings, SyncCoordinator? coordinator})
+      : _appSettings = appSettings,
+        _coordinator = coordinator,
+        super(const AsyncValue.data(null));
 
   Future<bool> login(String email, String password) async {
     state = const AsyncValue.loading();
@@ -96,6 +104,14 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> logout() async {
     state = const AsyncValue.loading();
+
+    // Reset sync state so re-login triggers fresh initial sync
+    _coordinator?.resetInitialSyncState();
+    await _appSettings?.delete(AppSettingsService.keyInitialSyncCompleted);
+    await _appSettings?.delete(AppSettingsService.keyInitialSyncCompletedAt);
+    await _appSettings?.clearAllTableSyncTimestamps();
+    await _appSettings?.setSyncLockHolder(null);
+
     await _repository.signOut();
     // Clear Sentry user context
     Sentry.configureScope((scope) => scope.setUser(null));
@@ -110,5 +126,7 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
 final loginNotifierProvider =
     StateNotifierProvider<LoginNotifier, AsyncValue<void>>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return LoginNotifier(repository);
+  final appSettings = ref.watch(appSettingsServiceProvider);
+  final coordinator = ref.watch(syncCoordinatorProvider);
+  return LoginNotifier(repository, appSettings: appSettings, coordinator: coordinator);
 });
