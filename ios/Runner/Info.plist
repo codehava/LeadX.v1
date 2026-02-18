@@ -47,5 +47,14 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>LeadX requires access to your location to verify customer visits and track activity execution.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.askrindo.leadx_crm.backgroundSync</string>
+	</array>
 </dict>
 </plist>
