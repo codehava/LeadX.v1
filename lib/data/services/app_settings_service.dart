@@ -27,6 +27,12 @@ class AppSettingsService {
   /// Key for theme mode preference.
   static const String keyThemeMode = 'theme_mode';
 
+  /// Key for initial sync completed timestamp (ISO 8601).
+  static const String keyInitialSyncCompletedAt = 'initial_sync_completed_at';
+
+  /// Key for persisted sync lock holder (for crash recovery).
+  static const String keySyncLockHolder = 'sync_lock_holder';
+
   /// Get a setting value by key.
   Future<String?> get(String key) async {
     final setting = await (_db.select(_db.appSettings)
@@ -63,6 +69,34 @@ class AppSettingsService {
     await set(keyLastSyncAt, DateTime.now().toUtcIso8601());
     await delete(keyLastSyncedTableIndex);
     await delete(keySyncInProgress);
+    await setInitialSyncCompletedAt(DateTime.now().toUtc());
+  }
+
+  /// Get the timestamp when initial sync was completed.
+  Future<DateTime?> getInitialSyncCompletedAt() async {
+    final value = await get(keyInitialSyncCompletedAt);
+    if (value == null) return null;
+    return DateTime.tryParse(value);
+  }
+
+  /// Set the timestamp when initial sync was completed.
+  Future<void> setInitialSyncCompletedAt(DateTime timestamp) async {
+    await set(keyInitialSyncCompletedAt, timestamp.toUtcIso8601());
+  }
+
+  /// Get the current sync lock holder (for crash recovery).
+  Future<String?> getSyncLockHolder() async {
+    return get(keySyncLockHolder);
+  }
+
+  /// Set or clear the sync lock holder.
+  /// Pass null to clear (delete) the key.
+  Future<void> setSyncLockHolder(String? holder) async {
+    if (holder == null) {
+      await delete(keySyncLockHolder);
+    } else {
+      await set(keySyncLockHolder, holder);
+    }
   }
 
   /// Get last sync timestamp.

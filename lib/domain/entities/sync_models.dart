@@ -45,6 +45,15 @@ class SyncQueueItem with _$SyncQueueItem {
       _$SyncQueueItemFromJson(json);
 }
 
+/// Types of sync operations for lock tracking and logging.
+enum SyncType {
+  initial,
+  manual,
+  background,
+  repository,
+  masterDataResync,
+}
+
 /// Represents the result of a sync operation.
 @freezed
 class SyncResult with _$SyncResult {
