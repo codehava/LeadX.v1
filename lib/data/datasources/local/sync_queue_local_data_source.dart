@@ -201,6 +201,16 @@ class SyncQueueLocalDataSource {
         .watchSingle();
   }
 
+  /// Get failed and dead letter items ordered by most recent attempt first.
+  /// Used by the sync queue screen "Gagal" filter.
+  Future<List<SyncQueueItem>> getFailedAndDeadLetterItems() async {
+    final query = _db.select(_db.syncQueueItems)
+      ..where(
+          (t) => t.status.equals('dead_letter') | t.status.equals('failed'))
+      ..orderBy([(t) => OrderingTerm.desc(t.lastAttemptAt)]);
+    return query.get();
+  }
+
   /// Get all dead letter items ordered by most recent attempt first.
   Future<List<SyncQueueItem>> getDeadLetterItems() async {
     final query = _db.select(_db.syncQueueItems)
