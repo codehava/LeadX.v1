@@ -180,20 +180,53 @@ class SyncService {
           _log.debug('sync.push | Synced: ${item.entityType}/${item.entityId}');
         } on SyncError catch (syncError) {
           _log.error('sync.push | SyncError: ${item.entityType}/${item.entityId}: ${syncError.message} (retryable: ${syncError.isRetryable})', syncError);
-          if (syncError.isRetryable) {
-            await _syncQueueDataSource.incrementRetryCount(item.id);
+          if (!syncError.isRetryable) {
+            // Non-retryable errors (auth, validation, conflict) go directly to dead letter
+            await _syncQueueDataSource.markAsDeadLetter(item.id, syncError.message);
+            _log.warning('sync.push | Moved to dead letter (non-retryable): ${item.entityType}/${item.entityId}');
           } else {
-            await _syncQueueDataSource.markAsFailed(item.id, syncError.message);
+            // Retryable error: increment retry count then check if exhausted
+            await _syncQueueDataSource.incrementRetryCount(item.id);
+            final updated = await _syncQueueDataSource.getItemById(item.id);
+            if (updated != null && updated.retryCount >= maxRetries) {
+              await _syncQueueDataSource.markAsDeadLetter(
+                item.id,
+                'Max retries ($maxRetries) exhausted: ${syncError.message}',
+              );
+              _log.warning('sync.push | Moved to dead letter (max retries): ${item.entityType}/${item.entityId}');
+            } else {
+              await _syncQueueDataSource.markAsFailed(item.id, syncError.message);
+            }
           }
           errors.add('${item.entityType}/${item.entityId}: ${syncError.message}');
           failedCount++;
         } catch (e) {
           _log.error('sync.push | Unexpected error: ${item.entityType}/${item.entityId}', e);
           await _syncQueueDataSource.incrementRetryCount(item.id);
-          await _syncQueueDataSource.markAsFailed(item.id, e.toString());
+          final updated = await _syncQueueDataSource.getItemById(item.id);
+          if (updated != null && updated.retryCount >= maxRetries) {
+            await _syncQueueDataSource.markAsDeadLetter(
+              item.id,
+              'Max retries ($maxRetries) exhausted: $e',
+            );
+            _log.warning('sync.push | Moved to dead letter (max retries): ${item.entityType}/${item.entityId}');
+          } else {
+            await _syncQueueDataSource.markAsFailed(item.id, e.toString());
+          }
           errors.add('${item.entityType}/${item.entityId}: $e');
           failedCount++;
         }
+      }
+
+      // Prune queue after sync
+      try {
+        await _syncQueueDataSource.pruneOldItems(
+          completedRetention: const Duration(days: 7),
+        );
+        await _syncQueueDataSource.pruneExpiredDeadLetters();
+        await _syncQueueDataSource.pruneSyncConflicts();
+      } catch (e) {
+        _log.warning('sync.queue | Pruning error (non-fatal): $e');
       }
 
       final success = failedCount == 0;
@@ -627,6 +660,104 @@ class SyncService {
         _log.debug('sync.push | Hard deleted customerHvcLink locally: $entityId');
       default:
         _log.warning('sync.push | Unknown entity type for hard delete: $entityType');
+    }
+  }
+
+  /// Discard a dead letter item: remove from queue and mark entity as local-only.
+  Future<void> discardDeadLetterItem(db.SyncQueueItem item) async {
+    await _syncQueueDataSource.discardDeadLetterItem(item.id);
+    await _markEntityAsLocalOnly(item.entityType, item.entityId);
+    _log.info('sync.queue | Discarded dead letter: ${item.entityType}/${item.entityId}');
+  }
+
+  /// Mark an entity as local-only (exists locally, never synced).
+  /// Sets isPendingSync = false and lastSyncAt = null.
+  /// Used when discarding a dead letter item to indicate the entity
+  /// will not be synced.
+  Future<void> _markEntityAsLocalOnly(String entityType, String entityId) async {
+    switch (entityType) {
+      case 'customer':
+        await (_database.update(_database.customers)
+              ..where((c) => c.id.equals(entityId)))
+            .write(const db.CustomersCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'keyPerson':
+        await (_database.update(_database.keyPersons)
+              ..where((k) => k.id.equals(entityId)))
+            .write(const db.KeyPersonsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'pipeline':
+        await (_database.update(_database.pipelines)
+              ..where((p) => p.id.equals(entityId)))
+            .write(const db.PipelinesCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'activity':
+        await (_database.update(_database.activities)
+              ..where((a) => a.id.equals(entityId)))
+            .write(const db.ActivitiesCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'hvc':
+        await (_database.update(_database.hvcs)
+              ..where((h) => h.id.equals(entityId)))
+            .write(const db.HvcsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'customerHvcLink':
+        await (_database.update(_database.customerHvcLinks)
+              ..where((l) => l.id.equals(entityId)))
+            .write(const db.CustomerHvcLinksCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'broker':
+        await (_database.update(_database.brokers)
+              ..where((b) => b.id.equals(entityId)))
+            .write(const db.BrokersCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'pipelineStageHistory':
+        await (_database.update(_database.pipelineStageHistoryItems)
+              ..where((h) => h.id.equals(entityId)))
+            .write(const db.PipelineStageHistoryItemsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'pipelineReferral':
+        await (_database.update(_database.pipelineReferrals)
+              ..where((r) => r.id.equals(entityId)))
+            .write(const db.PipelineReferralsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'cadenceMeeting':
+        await (_database.update(_database.cadenceMeetings)
+              ..where((m) => m.id.equals(entityId)))
+            .write(const db.CadenceMeetingsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'cadenceParticipant':
+        await (_database.update(_database.cadenceParticipants)
+              ..where((p) => p.id.equals(entityId)))
+            .write(const db.CadenceParticipantsCompanion(
+              isPendingSync: Value(false),
+              lastSyncAt: Value(null),
+            ));
+      case 'cadenceConfig':
+        // CadenceScheduleConfig doesn't have isPendingSync column
+        _log.debug('sync.queue | Discarded cadenceConfig: $entityId (no sync flags)');
+      default:
+        _log.warning('sync.queue | Unknown entity type for marking local-only: $entityType');
     }
   }
 

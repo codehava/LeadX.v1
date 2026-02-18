@@ -16,10 +16,13 @@ class SyncQueueLocalDataSource {
     return query.get();
   }
 
-  /// Get pending items with retry count less than max.
+  /// Get retryable items: pending or failed status with retry count less than max.
+  /// Excludes dead_letter items to prevent reprocessing non-retryable errors.
   Future<List<SyncQueueItem>> getRetryableItems({int maxRetries = 5}) async {
     final query = _db.select(_db.syncQueueItems)
-      ..where((t) => t.retryCount.isSmallerThanValue(maxRetries))
+      ..where((t) =>
+          t.retryCount.isSmallerThanValue(maxRetries) &
+          (t.status.equals('pending') | t.status.equals('failed')))
       ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
     return query.get();
   }
@@ -54,6 +57,7 @@ class SyncQueueLocalDataSource {
     await (_db.update(_db.syncQueueItems)
           ..where((t) => t.id.equals(id)))
         .write(SyncQueueItemsCompanion(
+          status: const Value('failed'),
           lastError: Value(error),
           lastAttemptAt: Value(DateTime.now()),
         ));
@@ -158,14 +162,102 @@ class SyncQueueLocalDataSource {
     return query.get();
   }
 
-  /// Reset retry count for an item (to retry failed items).
+  /// Reset retry count and status for an item (to retry dead letter/failed items).
+  /// Also resets status back to 'pending' so getRetryableItems() picks it up.
+  /// Note: The entity's isPendingSync flag does NOT need to be set here because
+  /// it is already true -- it was set when the queue item was first created and
+  /// is only cleared by _markEntityAsSynced on successful sync.
   Future<void> resetRetryCount(int id) async {
     await (_db.update(_db.syncQueueItems)
           ..where((t) => t.id.equals(id)))
         .write(const SyncQueueItemsCompanion(
           retryCount: Value(0),
           lastError: Value(null),
+          status: Value('pending'),
         ));
+  }
+
+  // ============================================
+  // DEAD LETTER MANAGEMENT
+  // ============================================
+
+  /// Mark a sync item as dead letter (non-retryable error or exhausted retries).
+  Future<void> markAsDeadLetter(int id, String error) async {
+    await (_db.update(_db.syncQueueItems)
+          ..where((t) => t.id.equals(id)))
+        .write(SyncQueueItemsCompanion(
+          status: const Value('dead_letter'),
+          lastError: Value(error),
+          lastAttemptAt: Value(DateTime.now()),
+        ));
+  }
+
+  /// Watch count of dead letter items as a reactive Drift stream.
+  Stream<int> watchDeadLetterCount() {
+    return (_db.selectOnly(_db.syncQueueItems)
+          ..addColumns([_db.syncQueueItems.id.count()])
+          ..where(_db.syncQueueItems.status.equals('dead_letter')))
+        .map((row) => row.read(_db.syncQueueItems.id.count()) ?? 0)
+        .watchSingle();
+  }
+
+  /// Get all dead letter items ordered by most recent attempt first.
+  Future<List<SyncQueueItem>> getDeadLetterItems() async {
+    final query = _db.select(_db.syncQueueItems)
+      ..where((t) => t.status.equals('dead_letter'))
+      ..orderBy([(t) => OrderingTerm.desc(t.lastAttemptAt)]);
+    return query.get();
+  }
+
+  /// Discard a dead letter item by removing it from the queue.
+  /// The caller (SyncService) handles clearing isPendingSync on the entity.
+  Future<void> discardDeadLetterItem(int id) async {
+    await (_db.delete(_db.syncQueueItems)
+          ..where((t) => t.id.equals(id)))
+        .go();
+  }
+
+  // ============================================
+  // PRUNING
+  // ============================================
+
+  /// Safety net: prune orphaned items that somehow have no valid status
+  /// and are older than [completedRetention].
+  /// Completed items are already deleted on success via markAsCompleted(),
+  /// so this only catches items in an unexpected state (e.g., no status after crash).
+  Future<int> pruneOldItems({
+    required Duration completedRetention,
+  }) async {
+    final cutoff = DateTime.now().subtract(completedRetention);
+    return (_db.delete(_db.syncQueueItems)
+          ..where((t) =>
+              t.createdAt.isSmallerThanValue(cutoff) &
+              t.status.isNotIn(const ['pending', 'failed', 'dead_letter'])))
+        .go();
+  }
+
+  /// Prune dead letter items that have expired (older than [expiry]).
+  /// Default expiry is 30 days per locked decision.
+  Future<int> pruneExpiredDeadLetters({
+    Duration expiry = const Duration(days: 30),
+  }) async {
+    final cutoff = DateTime.now().subtract(expiry);
+    return (_db.delete(_db.syncQueueItems)
+          ..where((t) =>
+              t.status.equals('dead_letter') &
+              t.lastAttemptAt.isSmallerThanValue(cutoff)))
+        .go();
+  }
+
+  /// Prune sync conflicts older than [olderThan].
+  /// Default is 30 days to keep the conflict audit table manageable.
+  Future<int> pruneSyncConflicts({
+    Duration olderThan = const Duration(days: 30),
+  }) async {
+    final cutoff = DateTime.now().subtract(olderThan);
+    return (_db.delete(_db.syncConflicts)
+          ..where((t) => t.detectedAt.isSmallerThanValue(cutoff)))
+        .go();
   }
 
   // ============================================

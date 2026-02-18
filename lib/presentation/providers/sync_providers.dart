@@ -93,6 +93,23 @@ final conflictCountProvider = StreamProvider<int>((ref) {
   return syncQueueDataSource.watchRecentConflictCount();
 });
 
+/// Provider for the count of dead letter items in the sync queue.
+/// Used by sync status UI to show items that need manual intervention.
+final deadLetterCountProvider = StreamProvider<int>((ref) {
+  final syncQueueDataSource = ref.watch(syncQueueDataSourceProvider);
+  return syncQueueDataSource.watchDeadLetterCount();
+});
+
+/// Provider for the last sync timestamp.
+/// Uses customer sync timestamp as a proxy for overall last sync time
+/// since customers are always pulled during sync.
+final lastSyncTimestampProvider = FutureProvider<DateTime?>((ref) async {
+  // Re-evaluate whenever sync state changes
+  ref.watch(syncNotifierProvider);
+  final appSettings = ref.watch(appSettingsServiceProvider);
+  return appSettings.getTableLastSyncAt('customers');
+});
+
 /// Provider for the current connectivity status.
 final isConnectedProvider = Provider<bool>((ref) {
   final connectivityService = ref.watch(connectivityServiceProvider);
