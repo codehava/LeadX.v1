@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
-import '../../providers/settings_providers.dart';
+import '../../../data/services/background_sync_service.dart';
+import '../../providers/settings_providers.dart' hide appSettingsServiceProvider;
 import '../../providers/sync_providers.dart';
 
 /// Settings screen for theme and app preferences.
@@ -98,6 +100,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 _buildSyncListTile(context, ref),
+                if (!kIsWeb) ...[
+                  const Divider(height: 1),
+                  _buildBackgroundSyncToggle(context, ref),
+                ],
               ],
             ),
           ),
@@ -162,6 +168,31 @@ class SettingsScreen extends ConsumerWidget {
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         context.push('/home/sync-queue');
+      },
+    );
+  }
+
+  Widget _buildBackgroundSyncToggle(BuildContext context, WidgetRef ref) {
+    final bgSyncAsync = ref.watch(backgroundSyncEnabledProvider);
+    final backgroundSyncEnabled = bgSyncAsync.valueOrNull ?? false;
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.sync_lock_outlined),
+      title: const Text('Sinkronisasi Latar Belakang'),
+      subtitle: const Text('Sinkronkan data saat aplikasi ditutup'),
+      value: backgroundSyncEnabled,
+      onChanged: (value) async {
+        // Persist setting
+        final appSettings = ref.read(appSettingsServiceProvider);
+        await appSettings.set('background_sync_enabled', value.toString());
+        // Register or cancel WorkManager task
+        if (value) {
+          await BackgroundSyncService.registerPeriodicSync();
+        } else {
+          await BackgroundSyncService.cancelPeriodicSync();
+        }
+        // Trigger rebuild
+        ref.invalidate(backgroundSyncEnabledProvider);
       },
     );
   }

@@ -18,6 +18,7 @@ import 'app.dart';
 import 'config/env/env_config.dart';
 import 'core/logging/app_logger.dart';
 import 'core/logging/sentry_observer.dart';
+import 'data/services/background_sync_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,12 @@ Future<void> main() async {
 
       // Initialize locale data for Indonesian date formatting
       await initializeDateFormatting('id_ID', null);
+
+      // Initialize background sync (WorkManager) -- mobile only, no-op on web.
+      // Always register the periodic task; the callback itself checks the
+      // user toggle setting and skips processing if disabled.
+      await BackgroundSyncService.initialize();
+      await BackgroundSyncService.registerPeriodicSync();
 
       // Run the app
       runApp(

@@ -105,7 +105,6 @@ class BackgroundSyncService {
 
     await Workmanager().initialize(
       callbackDispatcher,
-      isInDebugMode: !kReleaseMode,
     );
   }
 

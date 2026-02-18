@@ -110,6 +110,14 @@ final lastSyncTimestampProvider = FutureProvider<DateTime?>((ref) async {
   return appSettings.getTableLastSyncAt('customers');
 });
 
+/// Provider for background sync enabled setting.
+/// Defaults to false (off) when no setting exists.
+final backgroundSyncEnabledProvider = FutureProvider<bool>((ref) async {
+  final appSettings = ref.watch(appSettingsServiceProvider);
+  final value = await appSettings.get('background_sync_enabled');
+  return value == 'true'; // Default false if not set
+});
+
 /// Provider for the current connectivity status.
 final isConnectedProvider = Provider<bool>((ref) {
   final connectivityService = ref.watch(connectivityServiceProvider);
