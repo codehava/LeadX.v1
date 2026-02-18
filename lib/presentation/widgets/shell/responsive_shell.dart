@@ -261,6 +261,22 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 await context.push('/home/sync-queue');
                 return;
               }
+
+              // Check if coordinator lock is held -- show queued toast
+              final coordinator = ref.read(syncCoordinatorProvider);
+              if (coordinator.isLocked) {
+                coordinator.setQueuedSyncPending();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Sinkronisasi sedang berjalan -- permintaan Anda diantrikan'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+                return;
+              }
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Sinkronisasi dimulai...'),

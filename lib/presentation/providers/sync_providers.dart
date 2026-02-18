@@ -18,6 +18,7 @@ import '../../data/repositories/pipeline_repository_impl.dart';
 import '../../data/services/app_settings_service.dart';
 import '../../data/services/connectivity_service.dart';
 import '../../data/services/initial_sync_service.dart';
+import '../../data/services/sync_coordinator.dart';
 import '../../data/services/sync_service.dart';
 import '../../domain/entities/sync_models.dart';
 import '../../domain/repositories/activity_repository.dart';
@@ -42,6 +43,12 @@ final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
   return AppSettingsService(db);
 });
 
+/// Provider for the sync coordinator (central lock for all sync operations).
+final syncCoordinatorProvider = Provider<SyncCoordinator>((ref) {
+  final appSettings = ref.watch(appSettingsServiceProvider);
+  return SyncCoordinator(appSettings);
+});
+
 /// Provider for the connectivity service.
 final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
@@ -62,12 +69,14 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   final connectivityService = ref.watch(connectivityServiceProvider);
   final supabase = ref.watch(supabaseClientProvider);
   final database = ref.watch(databaseProvider);
+  final coordinator = ref.watch(syncCoordinatorProvider);
 
   final service = SyncService(
     syncQueueDataSource: syncQueueDataSource,
     connectivityService: connectivityService,
     supabaseClient: supabase,
     database: database,
+    coordinator: coordinator,
   );
 
   ref.onDispose(service.dispose);
@@ -135,6 +144,15 @@ Future<void> initializeSyncServices(ProviderContainer container) async {
   final connectivityService = container.read(connectivityServiceProvider);
   await connectivityService.initialize();
 
+  // Initialize the coordinator: load persisted state and recover stale locks.
+  // Must happen BEFORE startBackgroundSync so the coordinator is ready.
+  final coordinator = container.read(syncCoordinatorProvider);
+  await coordinator.initialize();
+
+  // TODO(Phase 6): Schema migration detection for re-triggering initial sync
+  // When schemaVersion at initial sync time < current schemaVersion AND
+  // new migration includes sync-relevant tables, reset initial sync flag.
+
   final syncService = container.read(syncServiceProvider);
   syncService.startBackgroundSync();
 }
@@ -154,6 +172,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._pipelineReferralRepository,
     this._connectivityService,
     this._appSettingsService,
+    this._coordinator,
   ) : super(const AsyncValue.data(null));
 
   final Ref _ref;
@@ -167,6 +186,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   final PipelineReferralRepository _pipelineReferralRepository;
   final ConnectivityService _connectivityService;
   final AppSettingsService _appSettingsService;
+  final SyncCoordinator _coordinator;
 
   /// Read since timestamp with 30s safety margin to avoid missing records.
   Future<DateTime?> _getSafeSince(String tableName) async {
@@ -176,12 +196,22 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   }
 
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
+  /// Acquires the coordinator lock before execution and releases it after.
+  /// If lock is held, the sync is queued for a single follow-up execution.
   Future<void> triggerSync() async {
     // Ensure connectivity service is initialized (important for mobile)
     await _connectivityService.ensureInitialized();
 
     if (!_connectivityService.isConnected) {
       state = AsyncValue.error('Device is offline', StackTrace.current);
+      return;
+    }
+
+    // Attempt to acquire the coordinator lock
+    final acquired = await _coordinator.acquireLock(type: SyncType.manual);
+    if (!acquired) {
+      AppLogger.instance.info('sync.coordinator | Manual sync queued (lock held)');
+      // Don't set error state -- the sync is queued, not failed
       return;
     }
 
@@ -211,6 +241,17 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     } catch (e, st) {
       AppLogger.instance.error('sync.queue | Sync error: $e');
       state = AsyncValue.error(e, st);
+    } finally {
+      _coordinator.releaseLock();
+
+      // Execute queued sync if pending (collapse multiple into one)
+      if (_coordinator.consumeQueuedSync()) {
+        AppLogger.instance.info('sync.coordinator | Executing queued sync');
+        // Small delay to avoid tight loop
+        await Future.delayed(const Duration(milliseconds: 200));
+        // Recursive call -- safe because lock is released
+        await triggerSync();
+      }
     }
   }
 
@@ -407,12 +448,14 @@ final initialSyncServiceProvider = Provider<InitialSyncService>((ref) {
   final db = ref.watch(databaseProvider);
   final masterDataSource = ref.watch(masterDataLocalDataSourceProvider);
   final appSettings = ref.watch(appSettingsServiceProvider);
+  final coordinator = ref.watch(syncCoordinatorProvider);
 
   final service = InitialSyncService(
     supabaseClient: supabase,
     database: db,
     masterDataSource: masterDataSource,
     appSettingsService: appSettings,
+    coordinator: coordinator,
   );
 
   ref.onDispose(service.dispose);
@@ -432,6 +475,7 @@ final syncNotifierProvider =
   final syncService = ref.watch(syncServiceProvider);
   final connectivityService = ref.watch(connectivityServiceProvider);
   final appSettings = ref.watch(appSettingsServiceProvider);
+  final coordinator = ref.watch(syncCoordinatorProvider);
 
   // Import repositories lazily to avoid circular dependencies
   final customerRepository = ref.watch(_customerRepositoryProvider);
@@ -454,6 +498,7 @@ final syncNotifierProvider =
     pipelineReferralRepository,
     connectivityService,
     appSettings,
+    coordinator,
   );
 });
 
