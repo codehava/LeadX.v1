@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 03.1: Remaining Repo Result Migration** - Migrate 7 remaining repos from dartz Either to sealed Result, remove dartz (INSERTED)
 - [x] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [x] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
-- [x] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
+- [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks (UAT gap closure in progress)
 - [ ] **Phase 7: Offline UX Polish** - Connectivity banner, sync status badges, staleness indicators
 - [ ] **Phase 8: Stubbed Feature Completion** - Customer actions, activity editing, phone/email launch, notification settings
 - [ ] **Phase 9: Admin & Dashboard Features** - User deletion, quick activity logging
@@ -158,12 +158,13 @@ Plans:
   3. Triggering sync while another sync is in progress queues the request and executes after current sync completes instead of silently dropping
   4. Multiple repositories triggering sync simultaneously results in single coordinated sync execution instead of multiple overlapping syncs
   5. Sync lock acquisition and release is logged with phase metadata (push/pull) and duration for debugging coordination issues
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 06-01-PLAN.md -- SyncCoordinator service + SyncType enum + SyncService/InitialSyncService integration (CONF-05)
 - [x] 06-02-PLAN.md -- SyncProgressSheet retry/backoff/cancel-logout + caller fixes (CONF-05)
 - [x] 06-03-PLAN.md -- Provider wiring + SyncNotifier coordination + background sync gate + app startup (CONF-05)
+- [ ] 06-04-PLAN.md -- UAT gap closure: zone mismatch fix + coordinator routing + re-sync guard (CONF-05)
 
 ### Phase 7: Offline UX Polish
 **Goal**: Make offline state and sync status transparent to users through persistent banners, status badges, and staleness indicators
@@ -243,7 +244,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 03.1. Remaining Repo Result Migration | 5/5 | ✓ Complete | 2026-02-14 |
 | 4. Conflict Resolution | 2/2 | ✓ Complete | 2026-02-16 |
 | 5. Background Sync & Dead Letter Queue | 3/3 | ✓ Complete | 2026-02-18 |
-| 6. Sync Coordination | 3/3 | ✓ Complete | 2026-02-18 |
+| 6. Sync Coordination | 3/4 | UAT gap closure | - |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
 | 9. Admin & Dashboard Features | 0/TBD | Not started | - |
@@ -251,4 +252,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-18 — Phase 6 complete (3/3)*
+*Last updated: 2026-02-18 — Phase 6 UAT gap closure plan created (06-04)*
