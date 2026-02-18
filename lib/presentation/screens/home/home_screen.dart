@@ -48,12 +48,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       if (stillNotSynced && mounted) {
         AppLogger.instance.info('ui.home | Initial sync not completed, showing SyncProgressSheet');
-        await SyncProgressSheet.show(context);
-        // Only mark completed if SyncProgressSheet actually ran (not skipped due to _isShowing)
-        final nowSynced = await appSettings.hasInitialSyncCompleted();
-        if (!nowSynced) {
-          await appSettings.markInitialSyncCompleted();
-          AppLogger.instance.info('ui.home | Initial sync completed and marked');
+        final syncSuccess = await SyncProgressSheet.show(context);
+        if (syncSuccess && mounted) {
+          // Only mark completed on actual success
+          final nowSynced = await appSettings.hasInitialSyncCompleted();
+          if (!nowSynced) {
+            await appSettings.markInitialSyncCompleted();
+            AppLogger.instance.info('ui.home | Initial sync completed and marked');
+          }
+        } else {
+          // Sync failed or user cancelled -- signOut already happened in sheet
+          AppLogger.instance.warning('ui.home | Initial sync failed or cancelled');
+          // Auth guard will redirect to login after signOut
         }
       }
     }

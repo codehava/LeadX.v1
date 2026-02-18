@@ -303,6 +303,20 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             },
             onLongPress: () async {
               // Long press = force re-sync master data
+              // Check if sync is already in progress
+              final isSyncing = ref.read(syncServiceProvider).isSyncing;
+              if (isSyncing) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Sinkronisasi sedang berjalan, coba lagi nanti'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+                return;
+              }
+
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(

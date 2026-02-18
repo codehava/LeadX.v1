@@ -45,13 +45,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       AppLogger.instance.info('auth | Login success, hasInitialSynced=$hasInitialSynced');
 
       if (!hasInitialSynced) {
-        // Show sync progress sheet
+        // Show sync progress sheet and check result
         AppLogger.instance.info('auth | Starting initial sync...');
         if (mounted) {
-          await SyncProgressSheet.show(context);
-          // Mark as completed after sync
-          await appSettings.markInitialSyncCompleted();
-          AppLogger.instance.info('auth | Initial sync completed');
+          final syncSuccess = await SyncProgressSheet.show(context);
+          if (syncSuccess && mounted) {
+            await appSettings.markInitialSyncCompleted();
+            AppLogger.instance.info('auth | Initial sync completed');
+          } else {
+            // Sync failed or user cancelled -- signOut already happened in sheet
+            AppLogger.instance.warning('auth | Initial sync failed or cancelled');
+            return; // Don't navigate to home
+          }
         }
       } else {
         AppLogger.instance.debug('auth | Initial sync already completed, skipping');
