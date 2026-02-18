@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 03.1: Remaining Repo Result Migration** - Migrate 7 remaining repos from dartz Either to sealed Result, remove dartz (INSERTED)
 - [x] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
 - [x] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
-- [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
+- [x] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
 - [ ] **Phase 7: Offline UX Polish** - Connectivity banner, sync status badges, staleness indicators
 - [ ] **Phase 8: Stubbed Feature Completion** - Customer actions, activity editing, phone/email launch, notification settings
 - [ ] **Phase 9: Admin & Dashboard Features** - User deletion, quick activity logging
@@ -161,9 +161,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- SyncCoordinator service + SyncType enum + SyncService/InitialSyncService integration (CONF-05)
-- [ ] 06-02-PLAN.md -- SyncProgressSheet retry/backoff/cancel-logout + caller fixes (CONF-05)
-- [ ] 06-03-PLAN.md -- Provider wiring + SyncNotifier coordination + background sync gate + app startup (CONF-05)
+- [x] 06-01-PLAN.md -- SyncCoordinator service + SyncType enum + SyncService/InitialSyncService integration (CONF-05)
+- [x] 06-02-PLAN.md -- SyncProgressSheet retry/backoff/cancel-logout + caller fixes (CONF-05)
+- [x] 06-03-PLAN.md -- Provider wiring + SyncNotifier coordination + background sync gate + app startup (CONF-05)
 
 ### Phase 7: Offline UX Polish
 **Goal**: Make offline state and sync status transparent to users through persistent banners, status badges, and staleness indicators
