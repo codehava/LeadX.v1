@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "Zone mismatch error during initial sync after login + initial sync not triggering on app restart. Related to Phase 6 UncontrolledProviderScope changes."
 created: 2026-02-18T00:00:00Z
 updated: 2026-02-18T00:30:00Z

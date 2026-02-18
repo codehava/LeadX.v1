@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 06-sync-coordination
 source: [06-01-SUMMARY.md, 06-02-SUMMARY.md, 06-03-SUMMARY.md]
 started: 2026-02-18T16:00:00Z
-updated: 2026-02-18T16:30:00Z
+updated: 2026-02-18T17:00:00Z
 ---
 
 ## Current Test
@@ -62,7 +62,7 @@ skipped: 1
 ## Gaps
 
 - truth: "App launches normally and initial sync triggers on startup"
-  status: failed
+  status: resolved
   reason: "User reported: on startup, the initial sync doesnt show or doesnt even sync anything"
   severity: major
   test: 1
@@ -80,7 +80,7 @@ skipped: 1
   debug_session: ".planning/debug/zone-mismatch-initial-sync.md"
 
 - truth: "Initial sync progress sheet completes and populates tables"
-  status: failed
+  status: resolved
   reason: "User reported: it appears, but resuled tables arent in, zone mismatch as the error say it"
   severity: blocker
   test: 2
@@ -93,7 +93,7 @@ skipped: 1
   debug_session: ".planning/debug/zone-mismatch-initial-sync.md"
 
 - truth: "Master data re-sync blocked when sync already running"
-  status: failed
+  status: resolved
   reason: "User reported: it shows mempersiapkan, rather than blocking"
   severity: major
   test: 6

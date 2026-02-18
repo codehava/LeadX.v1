@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "Long-pressing sync area shows re-sync sheet instead of being blocked with toast when sync is already running"
 created: 2026-02-18T00:00:00Z
 updated: 2026-02-18T00:01:00Z
