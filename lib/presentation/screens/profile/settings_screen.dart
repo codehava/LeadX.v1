@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
 import '../../providers/settings_providers.dart';
+import '../../providers/sync_providers.dart';
 
 /// Settings screen for theme and app preferences.
 class SettingsScreen extends ConsumerWidget {
@@ -96,15 +97,7 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sync_outlined),
-                  title: const Text('Sinkronisasi'),
-                  subtitle: const Text('Lihat status dan antrian sinkronisasi'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    context.push('/home/sync-queue');
-                  },
-                ),
+                _buildSyncListTile(context, ref),
               ],
             ),
           ),
@@ -132,6 +125,47 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildSyncListTile(BuildContext context, WidgetRef ref) {
+    final dlCount = ref.watch(deadLetterCountProvider);
+    final lastSync = ref.watch(lastSyncTimestampProvider);
+    final count = dlCount.valueOrNull ?? 0;
+
+    return ListTile(
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Icon(Icons.sync_outlined),
+          if (count > 0)
+            Positioned(
+              right: -6,
+              top: -6,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      title: const Text('Sinkronisasi'),
+      subtitle: Text(_formatLastSync(lastSync.valueOrNull)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        context.push('/home/sync-queue');
+      },
+    );
+  }
+
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -144,4 +178,18 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Format a last sync timestamp into a user-friendly Indonesian relative string.
+String _formatLastSync(DateTime? lastSync) {
+  if (lastSync == null) return 'Belum pernah sinkronisasi';
+  final diff = DateTime.now().difference(lastSync);
+  if (diff.inMinutes < 1) return 'Terakhir sinkronisasi: baru saja';
+  if (diff.inMinutes < 60) {
+    return 'Terakhir sinkronisasi: ${diff.inMinutes} menit lalu';
+  }
+  if (diff.inHours < 24) {
+    return 'Terakhir sinkronisasi: ${diff.inHours} jam lalu';
+  }
+  return 'Terakhir sinkronisasi: ${diff.inDays} hari lalu';
 }

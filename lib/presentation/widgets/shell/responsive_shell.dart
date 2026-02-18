@@ -227,6 +227,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final connectivityService = ref.watch(connectivityServiceProvider);
     final pendingCount = ref.watch(pendingSyncCountProvider);
     final syncNotifier = ref.watch(syncNotifierProvider);
+    final deadLetterCount = ref.watch(deadLetterCountProvider);
 
     // Use the stream value if available, otherwise fall back to synchronous check.
     // The stream only emits on CHANGES, so initial state needs the sync check.
@@ -243,12 +244,23 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       status = SyncStatus.synced;
     }
 
+    // Dead letter items take priority over synced state
+    final dlCount = deadLetterCount.valueOrNull ?? 0;
+    if (dlCount > 0 && status == SyncStatus.synced) {
+      status = SyncStatus.deadLetter;
+    }
+
     return Stack(
       children: [
         Tooltip(
           message: 'Sync (tahan untuk re-sync master data)',
           child: InkWell(
             onTap: () async {
+              // When dead letter warning, navigate to sync queue screen
+              if (status == SyncStatus.deadLetter) {
+                await context.push('/home/sync-queue');
+                return;
+              }
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Sinkronisasi dimulai...'),
@@ -306,8 +318,28 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ),
           ),
         ),
-        // Badge for pending count
-        if ((pendingCount.value ?? 0) > 0)
+        // Badge: dead letter count (red) takes priority over pending count (warning)
+        if (dlCount > 0)
+          Positioned(
+            right: 4,
+            top: 4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '$dlCount',
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          )
+        else if ((pendingCount.value ?? 0) > 0)
           Positioned(
             right: 4,
             top: 4,
