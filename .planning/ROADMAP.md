@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Error Classification & Recovery** - Typed error hierarchy, retry policy, graceful offline fallback
 - [x] **Phase 03.1: Remaining Repo Result Migration** - Migrate 7 remaining repos from dartz Either to sealed Result, remove dartz (INSERTED)
 - [x] **Phase 4: Conflict Resolution** - Last-Write-Wins detection, conflict logging, idempotent operations
-- [ ] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
+- [x] **Phase 5: Background Sync & Dead Letter Queue** - Workmanager integration, queue pruning, failed sync UI
 - [ ] **Phase 6: Sync Coordination** - Initial sync gating, phase serialization, sync locks
 - [ ] **Phase 7: Offline UX Polish** - Connectivity banner, sync status badges, staleness indicators
 - [ ] **Phase 8: Stubbed Feature Completion** - Customer actions, activity editing, phone/email launch, notification settings
@@ -144,9 +144,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Dead letter foundation: status column migration v12, sync service dead letter logic, queue pruning, providers (SYNC-06, CONF-02)
-- [ ] 05-02-PLAN.md — Dead letter UI: evolve SyncQueueScreen, error translator, settings badge + timestamp, app bar warning (CONF-02, SYNC-06)
-- [ ] 05-03-PLAN.md — Background sync: workmanager integration, iOS/Android config, settings toggle (CONF-04)
+- [x] 05-01-PLAN.md — Dead letter foundation: status column migration v12, sync service dead letter logic, queue pruning, providers (SYNC-06, CONF-02)
+- [x] 05-02-PLAN.md — Dead letter UI: evolve SyncQueueScreen, error translator, settings badge + timestamp, app bar warning (CONF-02, SYNC-06)
+- [x] 05-03-PLAN.md — Background sync: workmanager integration, iOS/Android config, settings toggle (CONF-04)
 
 ### Phase 6: Sync Coordination
 **Goal**: Prevent race conditions between initial sync and regular sync, serialize push/pull phases, and ensure single sync execution at a time
@@ -241,7 +241,7 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 3. Error Classification & Recovery | 3/3 | ✓ Complete | 2026-02-14 |
 | 03.1. Remaining Repo Result Migration | 5/5 | ✓ Complete | 2026-02-14 |
 | 4. Conflict Resolution | 2/2 | ✓ Complete | 2026-02-16 |
-| 5. Background Sync & Dead Letter Queue | 1/3 | In progress | - |
+| 5. Background Sync & Dead Letter Queue | 3/3 | Complete | 2026-02-18 |
 | 6. Sync Coordination | 0/TBD | Not started | - |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
@@ -250,4 +250,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-18 — Phase 5 plan 01 complete (1/3)*
+*Last updated: 2026-02-18 — Phase 5 complete (3/3)*

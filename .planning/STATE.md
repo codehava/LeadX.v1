@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 5 - Background Sync & Dead Letter Queue
+**Current focus:** Phase 5 complete - ready for Phase 6
 
 ## Current Position
 
 Phase: 5 of 10 (Background Sync & Dead Letter Queue)
-Plan: 2 of 3 (05-02 complete)
-Status: In Progress
-Last activity: 2026-02-18 - Completed 05-02-PLAN.md (dead letter UI + user awareness)
+Plan: 3 of 3 (05-03 complete - PHASE COMPLETE)
+Status: Phase Complete
+Last activity: 2026-02-18 - Completed 05-03-PLAN.md (background sync via WorkManager)
 
-Progress: [██████░░░░] ~57%
+Progress: [██████░░░░] ~60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 10 min
-- Total execution time: 3.4 hours
+- Total execution time: 3.5 hours
 
 **By Phase:**
 
@@ -33,14 +33,14 @@ Progress: [██████░░░░] ~57%
 | 03-error-classification-recovery | 3/3 | 37 min | 12 min |
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
 | 04-conflict-resolution | 2/2 | 26 min | 13 min |
-| 05-background-sync-dead-letter-queue | 2/3 | 16 min | 8 min |
+| 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (6 min), 05-01 (10 min), 04-02 (18 min), 04-01 (8 min), 03.1-05 (8 min)
+- Last 5 plans: 05-03 (8 min), 05-02 (6 min), 05-01 (10 min), 04-02 (18 min), 04-01 (8 min)
 - Trend: Stable
 
 *Updated after each plan completion*
-| Phase 05 P02 | 6 | 2 tasks | 6 files |
+| Phase 05 P03 | 8 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -114,6 +114,10 @@ Recent decisions affecting current work:
 - [Phase 05]: SyncErrorTranslator uses contains-based pattern matching for error classification (05-02)
 - [Phase 05]: Dead letter badge (red) takes priority over pending count badge (warning) in app bar (05-02)
 - [Phase 05]: Gagal filter default view shows failed+dead_letter since that is primary user concern (05-02)
+- [Phase 05]: Push-only in background (no pull) to stay within iOS 30-second BGTaskScheduler limit (05-03)
+- [Phase 05]: Always register periodic task on startup; callback checks toggle setting and skips if disabled (05-03)
+- [Phase 05]: Background sync defaults to OFF -- user must opt in via Settings toggle (05-03)
+- [Phase 05]: backgroundSyncEnabledProvider uses AppSettings (Drift) -- no shared_preferences dependency added (05-03)
 
 ### Roadmap Evolution
 
@@ -137,8 +141,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 05-02-PLAN.md
-Resume file: .planning/phases/05-background-sync-dead-letter-queue/05-03-PLAN.md
+Stopped at: Completed 05-03-PLAN.md (Phase 5 COMPLETE)
+Resume file: Phase 6 planning needed
 
 ---
-*Last updated: 2026-02-18 (Completed 05-02-PLAN.md)*
+*Last updated: 2026-02-18 (Completed 05-03-PLAN.md - Phase 5 complete)*
