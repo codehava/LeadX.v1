@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 5 complete - ready for Phase 6
+**Current focus:** Phase 6 - Sync Coordination
 
 ## Current Position
 
-Phase: 5 of 10 (Background Sync & Dead Letter Queue)
-Plan: 3 of 3 (05-03 complete - PHASE COMPLETE)
-Status: Phase Complete
-Last activity: 2026-02-18 - Completed 05-03-PLAN.md (background sync via WorkManager)
+Phase: 6 of 10 (Sync Coordination)
+Plan: 1 of 3 (06-01 complete)
+Status: In Progress
+Last activity: 2026-02-18 - Completed 06-01-PLAN.md (SyncCoordinator service)
 
-Progress: [██████░░░░] ~60%
+Progress: [██████░░░░] ~63%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 10 min
-- Total execution time: 3.5 hours
+- Total execution time: 3.7 hours
 
 **By Phase:**
 
@@ -34,13 +34,14 @@ Progress: [██████░░░░] ~60%
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
 | 04-conflict-resolution | 2/2 | 26 min | 13 min |
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
+| 06-sync-coordination | 1/3 | 13 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (8 min), 05-02 (6 min), 05-01 (10 min), 04-02 (18 min), 04-01 (8 min)
+- Last 5 plans: 06-01 (13 min), 05-03 (8 min), 05-02 (6 min), 05-01 (10 min), 04-02 (18 min)
 - Trend: Stable
 
 *Updated after each plan completion*
-| Phase 05 P03 | 8 | 3 tasks | 8 files |
+| Phase 06 P01 | 13 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,10 @@ Recent decisions affecting current work:
 - [Phase 05]: Always register periodic task on startup; callback checks toggle setting and skips if disabled (05-03)
 - [Phase 05]: Background sync defaults to OFF -- user must opt in via Settings toggle (05-03)
 - [Phase 05]: backgroundSyncEnabledProvider uses AppSettings (Drift) -- no shared_preferences dependency added (05-03)
+- [Phase 06]: SyncCoordinator injected as optional parameter to preserve backward compatibility for standalone background sync (06-01)
+- [Phase 06]: Completer-based lock with 5-minute timeout and startup crash recovery via persisted lock holder key (06-01)
+- [Phase 06]: 5-second cooldown after initial sync prevents premature regular sync triggers (06-01)
+- [Phase 06]: Queue collapse -- multiple sync requests while locked collapse into single follow-up execution (06-01)
 
 ### Roadmap Evolution
 
@@ -141,8 +146,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-sync-coordination/06-CONTEXT.md
+Stopped at: Completed 06-01-PLAN.md
+Resume file: .planning/phases/06-sync-coordination/06-02-PLAN.md
 
 ---
-*Last updated: 2026-02-18 (Phase 6 context gathered)*
+*Last updated: 2026-02-18 (Completed 06-01-PLAN.md)*

@@ -29,7 +29,7 @@ Requirements for stability milestone. Each maps to roadmap phases.
 - [x] **CONF-02**: User can view permanently failed sync items in a dead letter queue UI with retry and discard options
 - [ ] **CONF-03**: Sync operations are idempotent — creates use Supabase upsert on client-generated UUIDs, updates use version guards
 - [x] **CONF-04**: Background sync persists across app restarts via workmanager (Android WorkManager, iOS BGTaskScheduler)
-- [ ] **CONF-05**: SyncCoordinator prevents queue push before initial sync completes and serializes sync phases (push, pull)
+- [x] **CONF-05**: SyncCoordinator prevents queue push before initial sync completes and serializes sync phases (push, pull)
 
 ### Offline UX
 
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONF-02 | Phase 5 | Complete |
 | CONF-03 | Phase 4 | Pending |
 | CONF-04 | Phase 5 | Complete |
-| CONF-05 | Phase 6 | Pending |
+| CONF-05 | Phase 6 | Complete |
 | UX-01 | Phase 7 | Pending |
 | UX-02 | Phase 7 | Pending |
 | UX-03 | Phase 7 | Pending |
