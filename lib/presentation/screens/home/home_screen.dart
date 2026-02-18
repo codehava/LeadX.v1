@@ -53,7 +53,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Only mark completed on actual success
           final nowSynced = await appSettings.hasInitialSyncCompleted();
           if (!nowSynced) {
-            await appSettings.markInitialSyncCompleted();
+            final coordinator = ref.read(syncCoordinatorProvider);
+            await coordinator.markInitialSyncComplete();
             AppLogger.instance.info('ui.home | Initial sync completed and marked');
           }
         } else {

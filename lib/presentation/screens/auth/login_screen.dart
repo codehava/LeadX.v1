@@ -50,7 +50,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (mounted) {
           final syncSuccess = await SyncProgressSheet.show(context);
           if (syncSuccess && mounted) {
-            await appSettings.markInitialSyncCompleted();
+            final coordinator = ref.read(syncCoordinatorProvider);
+            await coordinator.markInitialSyncComplete();
             AppLogger.instance.info('auth | Initial sync completed');
           } else {
             // Sync failed or user cancelled -- signOut already happened in sheet
