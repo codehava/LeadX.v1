@@ -22,7 +22,8 @@ import 'data/services/background_sync_service.dart';
 import 'presentation/providers/sync_providers.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // NOTE: WidgetsFlutterBinding moved inside appRunner to avoid zone mismatch
+  // (Sentry wraps appRunner in its own zone; binding must be in the same zone as runApp)
 
   // Use path-based URL strategy for web (removes # from URLs)
   usePathUrlStrategy();
@@ -52,6 +53,8 @@ Future<void> main() async {
       };
     },
     appRunner: () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
       // Initialize Supabase
       await Supabase.initialize(
         url: envConfig.supabaseUrl,
