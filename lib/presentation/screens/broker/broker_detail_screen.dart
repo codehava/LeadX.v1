@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
@@ -273,9 +274,17 @@ class _InfoTab extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     if (broker.phone != null)
-                      _InfoRow(label: 'Telepon', value: broker.phone!),
+                      _TappableInfoRow(
+                        label: 'Telepon',
+                        value: broker.phone!,
+                        onTap: () => launchUrl(Uri.parse('tel:${broker.phone}')),
+                      ),
                     if (broker.email != null)
-                      _InfoRow(label: 'Email', value: broker.email!),
+                      _TappableInfoRow(
+                        label: 'Email',
+                        value: broker.email!,
+                        onTap: () => launchUrl(Uri.parse('mailto:${broker.email}')),
+                      ),
                     if (broker.website != null)
                       _InfoRow(label: 'Website', value: broker.website!),
                   ],
@@ -346,6 +355,55 @@ class _InfoRow extends StatelessWidget {
               value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TappableInfoRow extends StatelessWidget {
+  const _TappableInfoRow({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              child: Text(
+                value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: theme.colorScheme.primary,
+                ),
               ),
             ),
           ),
@@ -474,48 +532,75 @@ class _KeyPersonCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: keyPerson.isPrimary
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : theme.colorScheme.surfaceContainerHighest,
-          child: Icon(
-            Icons.person,
-            color: keyPerson.isPrimary
-                ? AppColors.primary
-                : theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        title: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            Text(keyPerson.name),
-            if (keyPerson.isPrimary) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Primary',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+            CircleAvatar(
+              backgroundColor: keyPerson.isPrimary
+                  ? AppColors.primary.withValues(alpha: 0.1)
+                  : theme.colorScheme.surfaceContainerHighest,
+              child: Icon(
+                Icons.person,
+                color: keyPerson.isPrimary
+                    ? AppColors.primary
+                    : theme.colorScheme.onSurfaceVariant,
               ),
-            ],
-          ],
-        ),
-        subtitle: Text(
-          [
-            if (keyPerson.position != null) keyPerson.position!,
-            if (keyPerson.phone != null) keyPerson.phone!,
-          ].join(' • '),
-        ),
-        trailing: (onEdit != null || onDelete != null)
-            ? PopupMenuButton<String>(
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        keyPerson.name,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      if (keyPerson.isPrimary) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Primary',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (keyPerson.position != null)
+                    Text(
+                      keyPerson.position!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (keyPerson.phone != null)
+              IconButton(
+                icon: const Icon(Icons.phone),
+                tooltip: keyPerson.phone,
+                onPressed: () => launchUrl(Uri.parse('tel:${keyPerson.phone}')),
+              ),
+            if (keyPerson.email != null)
+              IconButton(
+                icon: const Icon(Icons.email),
+                tooltip: keyPerson.email,
+                onPressed: () => launchUrl(Uri.parse('mailto:${keyPerson.email}')),
+              ),
+            if (onEdit != null || onDelete != null)
+              PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'edit') onEdit?.call();
                   if (value == 'delete') onDelete?.call();
@@ -526,8 +611,9 @@ class _KeyPersonCard extends StatelessWidget {
                   if (onDelete != null)
                     const PopupMenuItem(value: 'delete', child: Text('Hapus')),
                 ],
-              )
-            : null,
+              ),
+          ],
+        ),
       ),
     );
   }

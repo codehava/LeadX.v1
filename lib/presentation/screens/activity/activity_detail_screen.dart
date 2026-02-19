@@ -129,10 +129,9 @@ class ActivityDetailScreen extends ConsumerWidget {
                         onTap: () => _navigateToObject(context, activity),
                       ),
                     if (activity.keyPersonName != null)
-                      ListTile(
-                        leading: const Icon(Icons.person),
-                        title: const Text('PIC'),
-                        subtitle: Text(activity.keyPersonName!),
+                      _PicListTile(
+                        keyPersonName: activity.keyPersonName!,
+                        keyPersonId: activity.keyPersonId,
                       ),
                     if (activity.summary != null)
                       ListTile(
@@ -910,7 +909,7 @@ class ActivityDetailScreen extends ConsumerWidget {
     final localDt = dt.toLocal();
     final now = DateTime.now();
     final diff = now.difference(localDt);
-    
+
     if (diff.inMinutes < 1) {
       return 'Baru saja';
     } else if (diff.inHours < 1) {
@@ -922,5 +921,71 @@ class ActivityDetailScreen extends ConsumerWidget {
     } else {
       return '${localDt.day}/${localDt.month}/${localDt.year} ${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
     }
+  }
+}
+
+/// PIC ListTile that looks up key person contact info for phone/email actions.
+class _PicListTile extends ConsumerWidget {
+  const _PicListTile({
+    required this.keyPersonName,
+    this.keyPersonId,
+  });
+
+  final String keyPersonName;
+  final String? keyPersonId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // If we have a keyPersonId, look up contact info
+    if (keyPersonId != null) {
+      final keyPersonAsync = ref.watch(keyPersonByIdProvider(keyPersonId!));
+      return keyPersonAsync.when(
+        data: (keyPerson) {
+          final hasPhone = keyPerson?.phone != null;
+          final hasEmail = keyPerson?.email != null;
+          return ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('PIC'),
+            subtitle: Text(keyPersonName),
+            trailing: (hasPhone || hasEmail)
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (hasPhone)
+                        IconButton(
+                          icon: const Icon(Icons.phone),
+                          tooltip: keyPerson!.phone,
+                          onPressed: () => launchUrl(Uri.parse('tel:${keyPerson.phone}')),
+                        ),
+                      if (hasEmail)
+                        IconButton(
+                          icon: const Icon(Icons.email),
+                          tooltip: keyPerson!.email,
+                          onPressed: () => launchUrl(Uri.parse('mailto:${keyPerson.email}')),
+                        ),
+                    ],
+                  )
+                : null,
+          );
+        },
+        loading: () => ListTile(
+          leading: const Icon(Icons.person),
+          title: const Text('PIC'),
+          subtitle: Text(keyPersonName),
+        ),
+        error: (_, __) => ListTile(
+          leading: const Icon(Icons.person),
+          title: const Text('PIC'),
+          subtitle: Text(keyPersonName),
+        ),
+      );
+    }
+
+    // No keyPersonId — just show the name
+    return ListTile(
+      leading: const Icon(Icons.person),
+      title: const Text('PIC'),
+      subtitle: Text(keyPersonName),
+    );
   }
 }

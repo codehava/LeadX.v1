@@ -149,6 +149,33 @@ final primaryKeyPersonProvider =
   return repository.watchPrimaryKeyPerson(customerId);
 });
 
+/// Provider for fetching a single key person by ID (used by activity detail for PIC contact info).
+final keyPersonByIdProvider =
+    FutureProvider.family<domain.KeyPerson?, String>((ref, id) async {
+  final ds = ref.watch(keyPersonLocalDataSourceProvider);
+  final data = await ds.getKeyPersonById(id);
+  if (data == null) return null;
+  return domain.KeyPerson(
+    id: data.id,
+    ownerType: domain.KeyPersonOwnerTypeExtension.fromString(data.ownerType),
+    name: data.name,
+    createdBy: data.createdBy,
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
+    customerId: data.customerId,
+    brokerId: data.brokerId,
+    hvcId: data.hvcId,
+    position: data.position,
+    department: data.department,
+    phone: data.phone,
+    email: data.email,
+    isPrimary: data.isPrimary,
+    isActive: data.isActive,
+    isPendingSync: data.isPendingSync,
+    deletedAt: data.deletedAt,
+  );
+});
+
 // ==========================================
 // Form Notifiers
 // ==========================================
