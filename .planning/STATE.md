@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 8 in progress (3/4 plans complete) - Stubbed Feature Completion
+**Current focus:** Phase 8 complete (4/4 plans) - Stubbed Feature Completion
 
 ## Current Position
 
-Phase: 8 of 10 (Stubbed Feature Completion) - IN PROGRESS
-Plan: 3 of 4
-Status: In Progress
-Last activity: 2026-02-19 - Phase 8 Plan 03 executed (activity edit flow)
+Phase: 8 of 10 (Stubbed Feature Completion) - COMPLETE
+Plan: 4 of 4
+Status: Complete
+Last activity: 2026-02-19 - Phase 8 Plan 02 executed (contact launchers)
 
-Progress: [████████░░] ~86%
+Progress: [█████████░] ~90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
+- Total plans completed: 33
 - Average duration: 10 min
-- Total execution time: ~5.1 hours
+- Total execution time: ~5.2 hours
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [████████░░] ~86%
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
 | 06-sync-coordination | 5/5 | 41 min | 8 min |
 | 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
-| 08-stubbed-feature-completion | 3/4 | 24 min | 8 min |
+| 08-stubbed-feature-completion | 4/4 | 29 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-03 (11 min), 08-04 (7 min), 08-01 (6 min), 06-05 (5 min), 06-04 (5 min)
+- Last 5 plans: 08-02 (5 min), 08-03 (11 min), 08-04 (7 min), 08-01 (6 min), 06-05 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -160,6 +160,8 @@ Recent decisions affecting current work:
 - [Phase 08]: Completed activities only allow editing summary and notes -- all other fields locked (08-03)
 - [Phase 08]: Object type/association always shown as read-only card in edit mode with lock icon (08-03)
 - [Phase 08]: Edit form pre-fills data via addPostFrameCallback + listenManual for async stream loading with _dataLoaded guard (08-03)
+- [Phase 08]: keyPersonByIdProvider uses FutureProvider.family with inline Drift-to-domain mapping -- avoids new repository method for simple read-only lookup (08-02)
+- [Phase 08]: Broker key person card redesigned from ListTile to Row layout matching customer/HVC pattern for consistent phone/email IconButtons (08-02)
 
 ### Roadmap Evolution
 
@@ -183,8 +185,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-03-PLAN.md
-Resume file: .planning/phases/08-stubbed-feature-completion/08-03-SUMMARY.md
+Stopped at: Completed 08-02-PLAN.md (Phase 8 fully complete)
+Resume file: .planning/phases/08-stubbed-feature-completion/08-02-SUMMARY.md
 
 ---
-*Last updated: 2026-02-19 (Phase 8 Plan 03 complete)*
+*Last updated: 2026-02-19 (Phase 8 Plan 02 complete - Phase 8 fully complete)*
