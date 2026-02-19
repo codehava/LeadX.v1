@@ -51,7 +51,7 @@ Requirements for stability milestone. Each maps to roadmap phases.
 ### Stubbed Features
 
 - [ ] **FEAT-01**: Customer detail screen share functionality works (via share_plus)
-- [ ] **FEAT-02**: Customer detail screen delete functionality works with confirmation dialog
+- [x] **FEAT-02**: Customer detail screen delete functionality works with confirmation dialog
 - [ ] **FEAT-03**: Phone call and email launch work from customer detail, HVC detail, and activity detail screens (via url_launcher)
 - [ ] **FEAT-04**: Activities can be edited after creation via the activity form screen
 - [ ] **FEAT-05**: Notification settings screen exists and is reachable from settings
@@ -119,7 +119,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCORE-01 | Phase 10 | Pending |
 | SCORE-02 | Phase 10 | Pending |
 | FEAT-01 | Phase 8 | Pending |
-| FEAT-02 | Phase 8 | Pending |
+| FEAT-02 | Phase 8 | Complete |
 | FEAT-03 | Phase 8 | Pending |
 | FEAT-04 | Phase 8 | Pending |
 | FEAT-05 | Phase 8 | Pending |
