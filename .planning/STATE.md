@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 8 in progress (2/4 plans complete) - Stubbed Feature Completion
+**Current focus:** Phase 8 in progress (3/4 plans complete) - Stubbed Feature Completion
 
 ## Current Position
 
 Phase: 8 of 10 (Stubbed Feature Completion) - IN PROGRESS
-Plan: 2 of 4
+Plan: 3 of 4
 Status: In Progress
-Last activity: 2026-02-19 - Phase 8 Plan 04 executed (notification settings screen)
+Last activity: 2026-02-19 - Phase 8 Plan 03 executed (activity edit flow)
 
-Progress: [████████░░] ~84%
+Progress: [████████░░] ~86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
+- Total plans completed: 32
 - Average duration: 10 min
-- Total execution time: ~4.9 hours
+- Total execution time: ~5.1 hours
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [████████░░] ~84%
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
 | 06-sync-coordination | 5/5 | 41 min | 8 min |
 | 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
-| 08-stubbed-feature-completion | 2/4 | 13 min | 7 min |
+| 08-stubbed-feature-completion | 3/4 | 24 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-04 (7 min), 08-01 (6 min), 06-05 (5 min), 06-04 (5 min), 06-03 (12 min)
+- Last 5 plans: 08-03 (11 min), 08-04 (7 min), 08-01 (6 min), 06-05 (5 min), 06-04 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -156,6 +156,10 @@ Recent decisions affecting current work:
 - [Phase 08]: Navigate to customer list via context.go('/home/customers') after delete, not context.pop() (08-01)
 - [Phase 08]: Notification settings are local-only device preferences -- no sync to Supabase (08-04)
 - [Phase 08]: hide User import from app_database.dart to avoid clash with domain User entity in providers (08-04)
+- [Phase 08]: ActivityUpdateDto uses all optional fields for partial updates -- object type/ID and isImmediate intentionally omitted (locked in edit mode) (08-03)
+- [Phase 08]: Completed activities only allow editing summary and notes -- all other fields locked (08-03)
+- [Phase 08]: Object type/association always shown as read-only card in edit mode with lock icon (08-03)
+- [Phase 08]: Edit form pre-fills data via addPostFrameCallback + listenManual for async stream loading with _dataLoaded guard (08-03)
 
 ### Roadmap Evolution
 
@@ -179,8 +183,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-04-PLAN.md
-Resume file: .planning/phases/08-stubbed-feature-completion/08-04-SUMMARY.md
+Stopped at: Completed 08-03-PLAN.md
+Resume file: .planning/phases/08-stubbed-feature-completion/08-03-SUMMARY.md
 
 ---
-*Last updated: 2026-02-19 (Phase 8 Plan 04 complete)*
+*Last updated: 2026-02-19 (Phase 8 Plan 03 complete)*
