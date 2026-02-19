@@ -195,11 +195,13 @@ Plans:
   4. User tapping email address on customer detail, HVC detail, or activity detail launches email client with pre-filled recipient via url_launcher
   5. User tapping existing activity card navigates to activity form in edit mode with pre-filled data and can update fields and save changes
   6. Notification Settings screen exists and is navigable from Settings menu with placeholder UI for future notification preferences
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md -- Customer share (share_plus) + cascade delete with confirmation (FEAT-01, FEAT-02)
+- [ ] 08-02-PLAN.md -- Phone/email contact launchers across all detail screens (FEAT-03)
+- [ ] 08-03-PLAN.md -- Activity editing: DTO, repository, route, form edit mode (FEAT-04)
+- [ ] 08-04-PLAN.md -- Notification settings screen with toggle UI (FEAT-05)
 
 ### Phase 9: Admin & Dashboard Features
 **Goal**: Complete admin user management and dashboard quick actions
