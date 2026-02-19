@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../config/routes/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/activity_providers.dart';
@@ -14,7 +15,6 @@ import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/hvc_providers.dart';
 import '../../widgets/common/error_state.dart';
-import '../../widgets/common/offline_banner.dart';
 import 'activity_execution_sheet.dart';
 import 'activity_reschedule_sheet.dart';
 
@@ -39,16 +39,15 @@ class ActivityDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              // TODO: Navigate to edit
+              context.pushNamed(
+                RouteNames.activityEdit,
+                pathParameters: {'id': activityId},
+              );
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const OfflineBanner(),
-          Expanded(
-            child: activityAsync.when(
+      body: activityAsync.when(
         data: (details) {
           if (details == null) {
             return const Center(child: Text('Aktivitas tidak ditemukan'));
@@ -462,11 +461,9 @@ class ActivityDetailScreen extends ConsumerWidget {
           message: error.toString(),
         ),
       ),
-          ),
-        ],
-      ),
     );
   }
+
   /// Build photo thumbnail - handles both local and remote photos.
   Widget _buildPhotoThumbnail(ActivityPhoto photo) {
     // Check if photo is pending upload and has local path (mobile)

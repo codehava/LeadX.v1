@@ -16,12 +16,13 @@ import '../../providers/hvc_providers.dart';
 import '../../providers/master_data_providers.dart';
 import '../../widgets/common/searchable_dropdown.dart';
 
-/// Screen for creating/scheduling activities.
+/// Screen for creating/scheduling/editing activities.
 class ActivityFormScreen extends ConsumerStatefulWidget {
   final String? objectType;
   final String? objectId;
   final String? objectName;
   final bool isImmediate;
+  final String? activityId;
 
   const ActivityFormScreen({
     super.key,
@@ -29,6 +30,7 @@ class ActivityFormScreen extends ConsumerStatefulWidget {
     this.objectId,
     this.objectName,
     this.isImmediate = false,
+    this.activityId,
   });
 
   @override
@@ -37,7 +39,7 @@ class ActivityFormScreen extends ConsumerStatefulWidget {
 
 class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   String? _selectedObjectType;
   String? _selectedObjectId;
   String? _selectedKeyPersonId;
@@ -47,18 +49,25 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
   final _summaryController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   // GPS and Photo state (for immediate activities)
   bool _isCapturingGps = false;
   final List<CapturedPhoto> _capturedPhotos = [];
   bool _requiresPhoto = false;
+
+  // Edit mode state
+  bool _dataLoaded = false;
+  bool _isCompletedActivity = false;
+  String? _editObjectName;
+
+  bool get _isEditMode => widget.activityId != null;
 
   @override
   void initState() {
     super.initState();
     _selectedObjectType = widget.objectType;
     _selectedObjectId = widget.objectId;
-    
+
     if (widget.isImmediate) {
       // For immediate activities, set time to now
       _scheduledDate = DateTime.now();
@@ -68,15 +77,72 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         _captureGps();
       });
     }
+
+    if (_isEditMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadActivityData();
+      });
+    }
   }
-  
+
+  Future<void> _loadActivityData() async {
+    if (_dataLoaded) return;
+
+    final activityAsync = ref.read(activityDetailProvider(widget.activityId!));
+    final activity = activityAsync.valueOrNull;
+
+    if (activity != null) {
+      _applyActivityData(activity);
+    } else {
+      // Wait for the stream to emit the activity data
+      ref.listenManual(activityDetailProvider(widget.activityId!), (prev, next) {
+        final data = next.valueOrNull;
+        if (data != null && !_dataLoaded && mounted) {
+          _applyActivityData(data);
+        }
+      });
+    }
+  }
+
+  void _applyActivityData(Activity activity) {
+    if (_dataLoaded) return;
+    _dataLoaded = true;
+
+    setState(() {
+      // Object type (string representation)
+      switch (activity.objectType) {
+        case ActivityObjectType.customer:
+          _selectedObjectType = 'CUSTOMER';
+          _selectedObjectId = activity.customerId;
+          break;
+        case ActivityObjectType.hvc:
+          _selectedObjectType = 'HVC';
+          _selectedObjectId = activity.hvcId;
+          break;
+        case ActivityObjectType.broker:
+          _selectedObjectType = 'BROKER';
+          _selectedObjectId = activity.brokerId;
+          break;
+      }
+
+      _selectedActivityTypeId = activity.activityTypeId;
+      _scheduledDate = activity.scheduledDatetime;
+      _scheduledTime = TimeOfDay.fromDateTime(activity.scheduledDatetime);
+      _selectedKeyPersonId = activity.keyPersonId;
+      _summaryController.text = activity.summary ?? '';
+      _notesController.text = activity.notes ?? '';
+      _isCompletedActivity = activity.status == ActivityStatus.completed;
+      _editObjectName = activity.objectName;
+    });
+  }
+
   Future<void> _captureGps() async {
     if (!widget.isImmediate) return;
     setState(() => _isCapturingGps = true);
-    
+
     final gpsService = ref.read(gpsServiceProvider);
     await gpsService.getCurrentPosition();
-    
+
     if (mounted) {
       setState(() => _isCapturingGps = false);
     }
@@ -89,20 +155,56 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     super.dispose();
   }
 
+  /// Whether fields other than summary/notes should be locked.
+  /// True when editing a completed activity.
+  bool get _fieldsLocked => _isEditMode && _isCompletedActivity;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final formState = ref.watch(activityFormNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesStreamProvider);
 
+    // Show loading while edit data is being fetched
+    if (_isEditMode && !_dataLoaded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit Aktivitas'),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Determine AppBar title
+    String appBarTitle;
+    if (_isEditMode) {
+      appBarTitle = 'Edit Aktivitas';
+    } else if (widget.isImmediate) {
+      appBarTitle = 'Log Aktivitas';
+    } else {
+      appBarTitle = 'Jadwalkan Aktivitas';
+    }
+
+    // Determine submit button text
+    String submitButtonText;
+    if (_isEditMode) {
+      submitButtonText = 'Simpan Perubahan';
+    } else if (widget.isImmediate) {
+      submitButtonText = 'Catat Aktivitas';
+    } else {
+      submitButtonText = 'Jadwalkan Aktivitas';
+    }
+
     // Listen for successful save
     ref.listen<ActivityFormState>(activityFormNotifierProvider, (prev, next) {
       if (prev?.savedActivity == null && next.savedActivity != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isImmediate
-                ? 'Aktivitas berhasil dicatat'
-                : 'Aktivitas berhasil dijadwalkan'),
+            content: Text(_isEditMode
+                ? 'Perubahan berhasil disimpan'
+                : widget.isImmediate
+                    ? 'Aktivitas berhasil dicatat'
+                    : 'Aktivitas berhasil dijadwalkan'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -120,7 +222,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isImmediate ? 'Log Aktivitas' : 'Jadwalkan Aktivitas'),
+        title: Text(appBarTitle),
       ),
       body: SafeArea(
         child: Form(
@@ -128,8 +230,8 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-            // Object Type Selection (if not pre-selected)
-            if (widget.objectType == null) ...[
+            // Object Type Selection (if not pre-selected and not edit mode)
+            if (widget.objectType == null && !_isEditMode) ...[
               Text(
                 'Untuk',
                 style: theme.textTheme.titleSmall,
@@ -171,8 +273,28 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                 _buildEntityPicker(theme),
             ],
 
-            // Object name display (if pre-selected)
-            if (widget.objectName != null) ...[
+            // In edit mode: always show object info as read-only card
+            if (_isEditMode && _selectedObjectType != null) ...[
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    _getObjectTypeIcon(_selectedObjectType ?? ''),
+                    color: theme.colorScheme.primary,
+                  ),
+                  title: Text(_editObjectName ?? _selectedObjectId ?? 'Unknown'),
+                  subtitle: Text(_getObjectTypeLabel(_selectedObjectType ?? '')),
+                  trailing: Icon(
+                    Icons.lock_outline,
+                    size: 16,
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Object name display (if pre-selected, not in edit mode)
+            if (widget.objectName != null && !_isEditMode) ...[
               Card(
                 child: ListTile(
                   leading: Icon(
@@ -190,11 +312,17 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
               const SizedBox(height: 16),
             ],
 
-            // Key Person selection for dynamically selected objects
-            if (widget.objectType == null && _selectedObjectId != null)
+            // Key Person selection for dynamically selected objects (not locked in edit of completed)
+            if (!_isEditMode && widget.objectType == null && _selectedObjectId != null)
               _buildKeyPersonField(theme),
-            if (widget.objectType == null && _selectedObjectId != null)
+            if (!_isEditMode && widget.objectType == null && _selectedObjectId != null)
               const SizedBox(height: 16),
+
+            // Key Person selection for edit mode (not completed)
+            if (_isEditMode && !_fieldsLocked && _selectedObjectId != null) ...[
+              _buildKeyPersonField(theme),
+              const SizedBox(height: 16),
+            ],
 
             // Activity Type Selection
             Text(
@@ -233,16 +361,18 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                             ? theme.colorScheme.onSecondaryContainer
                             : theme.colorScheme.onSurface,
                       ),
-                      onSelected: (selected) {
-                        final newTypeId = selected ? type.id : null;
-                        setState(() {
-                          _selectedActivityTypeId = newTypeId;
-                        });
-                        // Check photo requirement for immediate activities
-                        if (widget.isImmediate) {
-                          _checkPhotoForType(newTypeId);
-                        }
-                      },
+                      onSelected: _fieldsLocked
+                          ? null // Disable selection for completed activities
+                          : (selected) {
+                              final newTypeId = selected ? type.id : null;
+                              setState(() {
+                                _selectedActivityTypeId = newTypeId;
+                              });
+                              // Check photo requirement for immediate activities
+                              if (widget.isImmediate) {
+                                _checkPhotoForType(newTypeId);
+                              }
+                            },
                       avatar: Icon(
                         _getActivityTypeIcon(type.icon),
                         size: 18,
@@ -266,7 +396,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Date & Time (for scheduled activities)
+            // Date & Time (for scheduled activities, not immediate)
             if (!widget.isImmediate) ...[
               Text(
                 'Tanggal & Waktu',
@@ -278,9 +408,17 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                   Expanded(
                     child: Card(
                       child: ListTile(
-                        leading: const Icon(Icons.calendar_today),
-                        title: Text(_formatDate(_scheduledDate)),
-                        onTap: () => _selectDate(context),
+                        leading: Icon(
+                          Icons.calendar_today,
+                          color: _fieldsLocked ? theme.colorScheme.outline : null,
+                        ),
+                        title: Text(
+                          _formatDate(_scheduledDate),
+                          style: _fieldsLocked
+                              ? TextStyle(color: theme.colorScheme.outline)
+                              : null,
+                        ),
+                        onTap: _fieldsLocked ? null : () => _selectDate(context),
                       ),
                     ),
                   ),
@@ -288,15 +426,46 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                   Expanded(
                     child: Card(
                       child: ListTile(
-                        leading: const Icon(Icons.access_time),
-                        title: Text(_formatTime(_scheduledTime)),
-                        onTap: () => _selectTime(context),
+                        leading: Icon(
+                          Icons.access_time,
+                          color: _fieldsLocked ? theme.colorScheme.outline : null,
+                        ),
+                        title: Text(
+                          _formatTime(_scheduledTime),
+                          style: _fieldsLocked
+                              ? TextStyle(color: theme.colorScheme.outline)
+                              : null,
+                        ),
+                        onTap: _fieldsLocked ? null : () => _selectTime(context),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
+            ],
+
+            // Completed activity notice
+            if (_fieldsLocked) ...[
+              Card(
+                color: AppColors.info.withValues(alpha: 0.1),
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Aktivitas sudah selesai. Hanya ringkasan dan catatan yang dapat diubah.',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
 
             // Summary
@@ -342,9 +511,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(widget.isImmediate
-                      ? 'Catat Aktivitas'
-                      : 'Jadwalkan Aktivitas'),
+                  : Text(submitButtonText),
             ),
             // Safe area bottom padding
             SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
@@ -359,7 +526,9 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _scheduledDate,
-      firstDate: DateTime.now(),
+      firstDate: _isEditMode
+          ? _scheduledDate.subtract(const Duration(days: 365))
+          : DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
@@ -382,6 +551,38 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isEditMode) {
+      await _submitEditForm();
+    } else {
+      await _submitCreateForm();
+    }
+  }
+
+  Future<void> _submitEditForm() async {
+    final scheduledDatetime = DateTime(
+      _scheduledDate.year,
+      _scheduledDate.month,
+      _scheduledDate.day,
+      _scheduledTime.hour,
+      _scheduledTime.minute,
+    );
+
+    final dto = ActivityUpdateDto(
+      activityTypeId: _fieldsLocked ? null : _selectedActivityTypeId,
+      scheduledDatetime: _fieldsLocked ? null : scheduledDatetime,
+      keyPersonId: _fieldsLocked ? null : _selectedKeyPersonId,
+      summary: _summaryController.text.isNotEmpty
+          ? _summaryController.text
+          : null,
+      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+    );
+
+    await ref
+        .read(activityFormNotifierProvider.notifier)
+        .updateActivity(widget.activityId!, dto);
+  }
+
+  Future<void> _submitCreateForm() async {
     if (_selectedActivityTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -417,7 +618,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
       // Get GPS position for immediate activity
       final gpsService = ref.read(gpsServiceProvider);
       final position = await gpsService.getCurrentPosition();
-      
+
       // Create immediate activity
       final dto = ImmediateActivityDto(
         objectType: objectType,
@@ -435,7 +636,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         locationAccuracy: position?.accuracy,
       );
       await ref.read(activityFormNotifierProvider.notifier).createImmediateActivity(dto);
-      
+
       // Save captured photos if any
       final formState = ref.read(activityFormNotifierProvider);
       if (_capturedPhotos.isNotEmpty && formState.savedActivity != null) {
@@ -552,7 +753,10 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   }
 
   Widget _buildCustomerKeyPersonField(ThemeData theme) {
-    final keyPersonsAsync = ref.watch(customerKeyPersonsProvider(_selectedObjectId!));
+    final objectId = _selectedObjectId ?? widget.objectId;
+    if (objectId == null) return const SizedBox.shrink();
+
+    final keyPersonsAsync = ref.watch(customerKeyPersonsProvider(objectId));
 
     return keyPersonsAsync.when(
       data: (keyPersons) {
@@ -597,7 +801,10 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
   }
 
   Widget _buildBrokerKeyPersonField(ThemeData theme) {
-    final keyPersonsAsync = ref.watch(brokerKeyPersonsProvider(_selectedObjectId!));
+    final objectId = _selectedObjectId ?? widget.objectId;
+    if (objectId == null) return const SizedBox.shrink();
+
+    final keyPersonsAsync = ref.watch(brokerKeyPersonsProvider(objectId));
 
     return keyPersonsAsync.when(
       data: (keyPersons) {
@@ -705,7 +912,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
   Widget _buildCustomerPicker(ThemeData theme) {
     final customersAsync = ref.watch(customerListStreamProvider);
-    
+
     return customersAsync.when(
       data: (customers) {
         if (customers.isEmpty) {
@@ -752,7 +959,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
   Widget _buildHvcPicker(ThemeData theme) {
     final hvcsAsync = ref.watch(hvcListStreamProvider);
-    
+
     return hvcsAsync.when(
       data: (hvcs) {
         if (hvcs.isEmpty) {
@@ -797,7 +1004,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
 
   Widget _buildBrokerPicker(ThemeData theme) {
     final brokersAsync = ref.watch(brokerListStreamProvider);
-    
+
     return brokersAsync.when(
       data: (brokers) {
         if (brokers.isEmpty) {
@@ -1001,7 +1208,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
             ),
           ],
         ),
-        
+
         if (kIsWeb)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -1042,7 +1249,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
       setState(() => _requiresPhoto = false);
       return;
     }
-    
+
     final activityTypesAsync = ref.read(activityTypesProvider);
     activityTypesAsync.whenData((types) {
       final activityType = types.firstWhere(
@@ -1077,7 +1284,7 @@ class _ActivityFormScreenState extends ConsumerState<ActivityFormScreen> {
         child: const Icon(Icons.photo, size: 40),
       );
     }
-    
+
     // On mobile, use File
     try {
       return Image.file(
