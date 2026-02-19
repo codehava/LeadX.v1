@@ -197,12 +197,20 @@ class _SyncProgressSheetState extends ConsumerState<SyncProgressSheet> {
 
       AppLogger.instance.info('ui.sync | Starting user data pull...');
       try {
-        await ref.read(syncNotifierProvider.notifier).triggerSync();
+        await ref.read(syncNotifierProvider.notifier).triggerSync(calledFromInitialSync: true);
         AppLogger.instance.info('ui.sync | User data pull complete');
       } catch (e) {
         AppLogger.instance.warning('ui.sync | User data pull error: $e');
         // Don't fail the whole sync for user data errors - they can retry later
       }
+
+      // Mark initial sync complete AFTER all three phases (Phase 1 master data,
+      // Phase 2 delta sync, Phase 3 user data pull). This ensures the 5-second
+      // cooldown in SyncCoordinator only starts after the full sequence finishes,
+      // not between phases. See sync_coordinator.dart _cooldownDuration.
+      final coordinator = ref.read(syncCoordinatorProvider);
+      await coordinator.markInitialSyncComplete();
+      AppLogger.instance.info('ui.sync | All phases complete — initial sync marked done, cooldown started');
 
       return true;
     } catch (e, stackTrace) {
