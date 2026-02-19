@@ -298,8 +298,18 @@ class _InfoTab extends StatelessWidget {
           _InfoSection(
             title: 'Kontak',
             children: [
-              if (customer.phone != null) _InfoRow(label: 'Telepon', value: customer.phone!),
-              if (customer.email != null) _InfoRow(label: 'Email', value: customer.email!),
+              if (customer.phone != null)
+                _TappableInfoRow(
+                  label: 'Telepon',
+                  value: customer.phone!,
+                  onTap: () => launchUrl(Uri.parse('tel:${customer.phone}')),
+                ),
+              if (customer.email != null)
+                _TappableInfoRow(
+                  label: 'Email',
+                  value: customer.email!,
+                  onTap: () => launchUrl(Uri.parse('mailto:${customer.email}')),
+                ),
               if (customer.website != null) _InfoRow(label: 'Website', value: customer.website!),
             ],
           ),
@@ -520,17 +530,13 @@ class _KeyPersonsTab extends ConsumerWidget {
             if (keyPerson.phone != null)
               IconButton(
                 icon: const Icon(Icons.phone),
-                onPressed: () {
-                  // TODO: Call
-                },
+                onPressed: () => launchUrl(Uri.parse('tel:${keyPerson.phone}')),
               ),
-            // if (keyPerson.email != null)
-            //   IconButton(
-            //     icon: const Icon(Icons.email),
-            //     onPressed: () {
-            //       // TODO: Email
-            //     },
-            //   ),
+            if (keyPerson.email != null)
+              IconButton(
+                icon: const Icon(Icons.email),
+                onPressed: () => launchUrl(Uri.parse('mailto:${keyPerson.email}')),
+              ),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {
@@ -1030,6 +1036,53 @@ class _InfoRow extends StatelessWidget {
           ),
           Expanded(
             child: Text(value, style: theme.textTheme.bodyMedium),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TappableInfoRow extends StatelessWidget {
+  const _TappableInfoRow({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              child: Text(
+                value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: theme.colorScheme.primary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
