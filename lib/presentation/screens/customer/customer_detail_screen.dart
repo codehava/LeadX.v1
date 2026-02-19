@@ -14,7 +14,6 @@ import '../../providers/pipeline_providers.dart';
 import '../../widgets/cards/pipeline_card.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
-import '../../widgets/common/offline_banner.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
 import '../activity/activity_execution_sheet.dart';
 import '../activity/immediate_activity_sheet.dart';
@@ -107,24 +106,17 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
           ],
         ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          const OfflineBanner(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _InfoTab(customer: customer),
-                _KeyPersonsTab(customerId: customer.id),
-                _PipelinesTab(customerId: customer.id),
-                _ActivitiesTab(
-                  customerId: customer.id,
-                  customerName: customer.name,
-                  customerLat: customer.latitude,
-                  customerLon: customer.longitude,
-                ),
-              ],
-            ),
+          _InfoTab(customer: customer),
+          _KeyPersonsTab(customerId: customer.id),
+          _PipelinesTab(customerId: customer.id),
+          _ActivitiesTab(
+            customerId: customer.id,
+            customerName: customer.name,
+            customerLat: customer.latitude,
+            customerLon: customer.longitude,
           ),
         ],
       ),
@@ -200,25 +192,57 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
   void _showDeleteConfirmation(Customer customer) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Customer?'),
-        content: Text('Apakah Anda yakin ingin menghapus ${customer.name}?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus Nasabah?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Apakah Anda yakin ingin menghapus "${customer.name}"?'),
+            const SizedBox(height: 8),
+            Text(
+              'Semua data terkait (key person, pipeline, aktivitas) juga akan dihapus.',
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Batal'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              // TODO: Delete customer
-              if (mounted) context.pop();
+              Navigator.pop(dialogContext);
+              await _performDelete(customer);
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _performDelete(Customer customer) async {
+    final repo = ref.read(customerRepositoryProvider);
+    final result = await repo.deleteCustomer(customer.id);
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nasabah berhasil dihapus')),
+        );
+        context.go('/home/customers');
+      case ResultFailure(:final failure):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menghapus nasabah: ${failure.message}')),
+        );
+    }
   }
 
   Future<void> _launchUrl(String url) async {
