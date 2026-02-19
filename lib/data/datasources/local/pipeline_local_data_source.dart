@@ -141,6 +141,22 @@ class PipelineLocalDataSource {
     );
   }
 
+  /// Batch soft-delete all pipelines belonging to a customer.
+  /// Used for cascade deletion when a customer is deleted.
+  Future<void> softDeleteByCustomerId(String customerId) async {
+    final now = DateTime.now();
+    await (_db.update(_db.pipelines)
+          ..where(
+              (p) => p.customerId.equals(customerId) & p.deletedAt.isNull()))
+        .write(
+      PipelinesCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
+        isPendingSync: const Value(true),
+      ),
+    );
+  }
+
   /// Hard delete a pipeline (permanent removal).
   Future<int> hardDeletePipeline(String id) =>
       (_db.delete(_db.pipelines)..where((p) => p.id.equals(id))).go();

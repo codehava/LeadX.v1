@@ -213,6 +213,22 @@ class ActivityLocalDataSource {
     );
   }
 
+  /// Batch soft-delete all activities belonging to a customer.
+  /// Used for cascade deletion when a customer is deleted.
+  Future<void> softDeleteByCustomerId(String customerId) async {
+    final now = DateTime.now();
+    await (_db.update(_db.activities)
+          ..where((a) =>
+              a.customerId.equals(customerId) & a.deletedAt.isNull()))
+        .write(
+      ActivitiesCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
+        isPendingSync: const Value(true),
+      ),
+    );
+  }
+
   /// Hard delete an activity (permanent removal).
   Future<int> hardDeleteActivity(String id) =>
       (_db.delete(_db.activities)..where((a) => a.id.equals(id))).go();

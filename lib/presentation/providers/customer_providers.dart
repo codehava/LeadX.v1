@@ -9,8 +9,10 @@ import '../../data/repositories/customer_repository_impl.dart';
 import '../../domain/entities/customer.dart' as domain;
 import '../../domain/entities/key_person.dart' as domain;
 import '../../domain/repositories/customer_repository.dart';
+import 'activity_providers.dart';
 import 'auth_providers.dart';
 import 'database_provider.dart';
+import 'pipeline_providers.dart';
 import 'sync_providers.dart';
 
 // ==========================================
@@ -53,6 +55,8 @@ final keyPersonRemoteDataSourceProvider =
 final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   final localDataSource = ref.watch(customerLocalDataSourceProvider);
   final keyPersonLocalDataSource = ref.watch(keyPersonLocalDataSourceProvider);
+  final pipelineLocalDataSource = ref.watch(pipelineLocalDataSourceProvider);
+  final activityLocalDataSource = ref.watch(activityLocalDataSourceProvider);
   final remoteDataSource = ref.watch(customerRemoteDataSourceProvider);
   final keyPersonRemoteDataSource = ref.watch(keyPersonRemoteDataSourceProvider);
   final syncService = ref.watch(syncServiceProvider);
@@ -62,6 +66,8 @@ final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   return CustomerRepositoryImpl(
     localDataSource: localDataSource,
     keyPersonLocalDataSource: keyPersonLocalDataSource,
+    pipelineLocalDataSource: pipelineLocalDataSource,
+    activityLocalDataSource: activityLocalDataSource,
     remoteDataSource: remoteDataSource,
     keyPersonRemoteDataSource: keyPersonRemoteDataSource,
     syncService: syncService,

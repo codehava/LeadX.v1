@@ -12,8 +12,10 @@ import '../../domain/entities/sync_models.dart';
 import '../../core/utils/date_time_utils.dart';
 import '../../domain/repositories/customer_repository.dart';
 import '../database/app_database.dart' as db;
+import '../datasources/local/activity_local_data_source.dart';
 import '../datasources/local/customer_local_data_source.dart';
 import '../datasources/local/key_person_local_data_source.dart';
+import '../datasources/local/pipeline_local_data_source.dart';
 import '../datasources/remote/customer_remote_data_source.dart';
 import '../../core/logging/app_logger.dart';
 import '../dtos/customer_dtos.dart';
@@ -24,6 +26,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
   CustomerRepositoryImpl({
     required CustomerLocalDataSource localDataSource,
     required KeyPersonLocalDataSource keyPersonLocalDataSource,
+    required PipelineLocalDataSource pipelineLocalDataSource,
+    required ActivityLocalDataSource activityLocalDataSource,
     required CustomerRemoteDataSource remoteDataSource,
     required KeyPersonRemoteDataSource keyPersonRemoteDataSource,
     required SyncService syncService,
@@ -31,6 +35,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
     required db.AppDatabase database,
   })  : _localDataSource = localDataSource,
         _keyPersonLocalDataSource = keyPersonLocalDataSource,
+        _pipelineLocalDataSource = pipelineLocalDataSource,
+        _activityLocalDataSource = activityLocalDataSource,
         _remoteDataSource = remoteDataSource,
         _keyPersonRemoteDataSource = keyPersonRemoteDataSource,
         _syncService = syncService,
@@ -39,6 +45,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
   final CustomerLocalDataSource _localDataSource;
   final KeyPersonLocalDataSource _keyPersonLocalDataSource;
+  final PipelineLocalDataSource _pipelineLocalDataSource;
+  final ActivityLocalDataSource _activityLocalDataSource;
   final CustomerRemoteDataSource _remoteDataSource;
   final KeyPersonRemoteDataSource _keyPersonRemoteDataSource;
   final SyncService _syncService;
@@ -235,10 +243,20 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<Result<void>> deleteCustomer(String id) =>
       runCatching(() async {
-        // Soft delete locally and queue for sync atomically
+        // Cascade soft-delete locally and queue customer delete for sync atomically.
+        // Related entities (key persons, pipelines, activities) are cascade-deleted
+        // locally but NOT individually queued — the backend handles cascade deletion
+        // when it receives the customer delete.
         await _database.transaction(() async {
+          // Cascade soft-delete related entities first
+          await _keyPersonLocalDataSource.softDeleteByCustomerId(id);
+          await _pipelineLocalDataSource.softDeleteByCustomerId(id);
+          await _activityLocalDataSource.softDeleteByCustomerId(id);
+
+          // Then soft-delete the customer itself
           await _localDataSource.softDeleteCustomer(id);
 
+          // Only queue the customer delete for sync (backend cascades)
           await _syncService.queueOperation(
             entityType: SyncEntityType.customer,
             entityId: id,

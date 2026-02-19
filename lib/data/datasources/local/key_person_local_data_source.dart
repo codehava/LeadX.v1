@@ -137,6 +137,22 @@ class KeyPersonLocalDataSource {
     );
   }
 
+  /// Batch soft-delete all key persons belonging to a customer.
+  /// Used for cascade deletion when a customer is deleted.
+  Future<void> softDeleteByCustomerId(String customerId) async {
+    final now = DateTime.now();
+    await (_db.update(_db.keyPersons)
+          ..where((kp) =>
+              kp.customerId.equals(customerId) & kp.deletedAt.isNull()))
+        .write(
+      KeyPersonsCompanion(
+        deletedAt: Value(now),
+        updatedAt: Value(now),
+        isPendingSync: const Value(true),
+      ),
+    );
+  }
+
   /// Hard delete a key person.
   Future<int> hardDeleteKeyPerson(String id) =>
       (_db.delete(_db.keyPersons)..where((kp) => kp.id.equals(id))).go();
