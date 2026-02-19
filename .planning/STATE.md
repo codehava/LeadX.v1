@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 6 complete (5/5 plans) - ready for Phase 7
+**Current focus:** Phase 7 complete (3/3 plans) - ready for Phase 8
 
 ## Current Position
 
-Phase: 7 of 10 (Offline UX Polish)
-Plan: 0 of TBD
-Status: Not started
-Last activity: 2026-02-19 - Phase 6 gap closure plan (06-05) executed
+Phase: 7 of 10 (Offline UX Polish) - COMPLETE
+Plan: 3 of 3
+Status: Complete
+Last activity: 2026-02-19 - Phase 7 all 3 plans executed
 
-Progress: [███████░░░] ~70%
+Progress: [████████░░] ~80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 29
 - Average duration: 10 min
-- Total execution time: 4.2 hours
+- Total execution time: ~4.7 hours
 
 **By Phase:**
 
@@ -35,6 +35,7 @@ Progress: [███████░░░] ~70%
 | 04-conflict-resolution | 2/2 | 26 min | 13 min |
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
 | 06-sync-coordination | 5/5 | 41 min | 8 min |
+| 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
 
 **Recent Trend:**
 - Last 5 plans: 06-05 (5 min), 06-04 (5 min), 06-03 (12 min), 06-02 (6 min), 06-01 (13 min)
@@ -141,6 +142,14 @@ Recent decisions affecting current work:
 - [Phase 06]: skipInitialSyncChecks bypasses both _initialSyncComplete gate AND cooldown gate for Phase 2/3 of initial sync (06-05)
 - [Phase 06]: markInitialSyncComplete() called AFTER Phase 3 (not before Phase 2) so cooldown starts only after full sequence (06-05)
 - [Phase 06]: Safety-net markInitialSyncComplete() calls in login_screen/home_screen left untouched as harmless redundancy (06-05)
+- [Phase 07]: OfflineBanner moved to shell level in ResponsiveShell, removed from 5 individual screens (07-01)
+- [Phase 07]: syncFailed color = amber/orange (0xFFFF8C00, will retry), syncDeadLetter = red (0xFFEF4444, needs manual action) (07-01)
+- [Phase 07]: Batch sync queue status map via single Drift stream producing Map<String, SyncQueueEntityStatus> for O(1) lookups (07-01)
+- [Phase 07]: Global last sync computed as max DateTime across all table_sync_at_* keys (07-01)
+- [Phase 07]: All 7 entity cards use identical _buildSyncBadge pattern with tap-to-navigate for failed/dead letter (07-02)
+- [Phase 07]: No badge shown when entity is fully synced (SyncQueueEntityStatus.none) (07-02)
+- [Phase 07]: Dashboard staleness indicator with 1-hour amber threshold, placed in welcome card only (07-03)
+- [Phase 07]: Sync queue screen accepts entityId query parameter for entity-filtered view (07-03)
 
 ### Roadmap Evolution
 
@@ -164,8 +173,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-offline-ux-polish/07-CONTEXT.md
+Stopped at: Phase 8 context gathered
+Resume file: .planning/phases/08-stubbed-feature-completion/08-CONTEXT.md
 
 ---
-*Last updated: 2026-02-19 (Phase 7 context gathered)*
+*Last updated: 2026-02-19 (Phase 8 context gathered)*
