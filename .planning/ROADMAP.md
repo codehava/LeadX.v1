@@ -177,11 +177,12 @@ Plans:
   3. Dashboard displays "Last synced: X minutes ago" timestamp sourced from last_pull_sync_at in AppSettings
   4. User tapping failed sync badge count navigates to dead letter queue UI showing failed items with entity type, timestamp, and error message
   5. Sync status indicators update reactively via Drift streams (pending badge disappears immediately when isPendingSync=false after sync)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md -- Shell-level OfflineBanner + batch sync queue status provider + global last sync timestamp + shared formatLastSync utility (UX-01)
+- [ ] 07-02-PLAN.md -- Sync queue-aware badges on all 8 entity card types with failed/dead letter tap navigation (UX-02, UX-04)
+- [ ] 07-03-PLAN.md -- Dashboard staleness display + sync queue entity ID filter (UX-03, UX-04)
 
 ### Phase 8: Stubbed Feature Completion
 **Goal**: Complete half-implemented features for customer actions, activity editing, and communication launchers
