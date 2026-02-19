@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 8 in progress (1/4 plans complete) - Stubbed Feature Completion
+**Current focus:** Phase 8 in progress (2/4 plans complete) - Stubbed Feature Completion
 
 ## Current Position
 
 Phase: 8 of 10 (Stubbed Feature Completion) - IN PROGRESS
-Plan: 1 of 4
+Plan: 2 of 4
 Status: In Progress
-Last activity: 2026-02-19 - Phase 8 Plan 01 executed (customer delete)
+Last activity: 2026-02-19 - Phase 8 Plan 04 executed (notification settings screen)
 
-Progress: [████████░░] ~82%
+Progress: [████████░░] ~84%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: 10 min
-- Total execution time: ~4.8 hours
+- Total execution time: ~4.9 hours
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [████████░░] ~82%
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
 | 06-sync-coordination | 5/5 | 41 min | 8 min |
 | 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
-| 08-stubbed-feature-completion | 1/4 | 6 min | 6 min |
+| 08-stubbed-feature-completion | 2/4 | 13 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-01 (6 min), 06-05 (5 min), 06-04 (5 min), 06-03 (12 min), 06-02 (6 min)
+- Last 5 plans: 08-04 (7 min), 08-01 (6 min), 06-05 (5 min), 06-04 (5 min), 06-03 (12 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -154,6 +154,8 @@ Recent decisions affecting current work:
 - [Phase 08]: Only queue customer delete for sync -- backend handles cascade deletion of related entities (08-01)
 - [Phase 08]: Cascade soft-delete key persons, pipelines, activities within single Drift transaction for immediate UI consistency (08-01)
 - [Phase 08]: Navigate to customer list via context.go('/home/customers') after delete, not context.pop() (08-01)
+- [Phase 08]: Notification settings are local-only device preferences -- no sync to Supabase (08-04)
+- [Phase 08]: hide User import from app_database.dart to avoid clash with domain User entity in providers (08-04)
 
 ### Roadmap Evolution
 
@@ -177,8 +179,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-stubbed-feature-completion/08-01-SUMMARY.md
+Stopped at: Completed 08-04-PLAN.md
+Resume file: .planning/phases/08-stubbed-feature-completion/08-04-SUMMARY.md
 
 ---
-*Last updated: 2026-02-19 (Phase 8 Plan 01 complete)*
+*Last updated: 2026-02-19 (Phase 8 Plan 04 complete)*
