@@ -1423,6 +1423,243 @@ abstract class _ActivityRescheduleDto implements ActivityRescheduleDto {
   get copyWith => throw _privateConstructorUsedError;
 }
 
+/// @nodoc
+mixin _$ActivityUpdateDto {
+  String? get activityTypeId => throw _privateConstructorUsedError;
+  DateTime? get scheduledDatetime => throw _privateConstructorUsedError;
+  String? get keyPersonId => throw _privateConstructorUsedError;
+  String? get summary => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
+
+  /// Create a copy of ActivityUpdateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ActivityUpdateDtoCopyWith<ActivityUpdateDto> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ActivityUpdateDtoCopyWith<$Res> {
+  factory $ActivityUpdateDtoCopyWith(
+    ActivityUpdateDto value,
+    $Res Function(ActivityUpdateDto) then,
+  ) = _$ActivityUpdateDtoCopyWithImpl<$Res, ActivityUpdateDto>;
+  @useResult
+  $Res call({
+    String? activityTypeId,
+    DateTime? scheduledDatetime,
+    String? keyPersonId,
+    String? summary,
+    String? notes,
+  });
+}
+
+/// @nodoc
+class _$ActivityUpdateDtoCopyWithImpl<$Res, $Val extends ActivityUpdateDto>
+    implements $ActivityUpdateDtoCopyWith<$Res> {
+  _$ActivityUpdateDtoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ActivityUpdateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? activityTypeId = freezed,
+    Object? scheduledDatetime = freezed,
+    Object? keyPersonId = freezed,
+    Object? summary = freezed,
+    Object? notes = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            activityTypeId: freezed == activityTypeId
+                ? _value.activityTypeId
+                : activityTypeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            scheduledDatetime: freezed == scheduledDatetime
+                ? _value.scheduledDatetime
+                : scheduledDatetime // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            keyPersonId: freezed == keyPersonId
+                ? _value.keyPersonId
+                : keyPersonId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            summary: freezed == summary
+                ? _value.summary
+                : summary // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notes: freezed == notes
+                ? _value.notes
+                : notes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ActivityUpdateDtoImplCopyWith<$Res>
+    implements $ActivityUpdateDtoCopyWith<$Res> {
+  factory _$$ActivityUpdateDtoImplCopyWith(
+    _$ActivityUpdateDtoImpl value,
+    $Res Function(_$ActivityUpdateDtoImpl) then,
+  ) = __$$ActivityUpdateDtoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String? activityTypeId,
+    DateTime? scheduledDatetime,
+    String? keyPersonId,
+    String? summary,
+    String? notes,
+  });
+}
+
+/// @nodoc
+class __$$ActivityUpdateDtoImplCopyWithImpl<$Res>
+    extends _$ActivityUpdateDtoCopyWithImpl<$Res, _$ActivityUpdateDtoImpl>
+    implements _$$ActivityUpdateDtoImplCopyWith<$Res> {
+  __$$ActivityUpdateDtoImplCopyWithImpl(
+    _$ActivityUpdateDtoImpl _value,
+    $Res Function(_$ActivityUpdateDtoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ActivityUpdateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? activityTypeId = freezed,
+    Object? scheduledDatetime = freezed,
+    Object? keyPersonId = freezed,
+    Object? summary = freezed,
+    Object? notes = freezed,
+  }) {
+    return _then(
+      _$ActivityUpdateDtoImpl(
+        activityTypeId: freezed == activityTypeId
+            ? _value.activityTypeId
+            : activityTypeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        scheduledDatetime: freezed == scheduledDatetime
+            ? _value.scheduledDatetime
+            : scheduledDatetime // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        keyPersonId: freezed == keyPersonId
+            ? _value.keyPersonId
+            : keyPersonId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        summary: freezed == summary
+            ? _value.summary
+            : summary // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notes: freezed == notes
+            ? _value.notes
+            : notes // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+
+class _$ActivityUpdateDtoImpl implements _ActivityUpdateDto {
+  const _$ActivityUpdateDtoImpl({
+    this.activityTypeId,
+    this.scheduledDatetime,
+    this.keyPersonId,
+    this.summary,
+    this.notes,
+  });
+
+  @override
+  final String? activityTypeId;
+  @override
+  final DateTime? scheduledDatetime;
+  @override
+  final String? keyPersonId;
+  @override
+  final String? summary;
+  @override
+  final String? notes;
+
+  @override
+  String toString() {
+    return 'ActivityUpdateDto(activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, keyPersonId: $keyPersonId, summary: $summary, notes: $notes)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ActivityUpdateDtoImpl &&
+            (identical(other.activityTypeId, activityTypeId) ||
+                other.activityTypeId == activityTypeId) &&
+            (identical(other.scheduledDatetime, scheduledDatetime) ||
+                other.scheduledDatetime == scheduledDatetime) &&
+            (identical(other.keyPersonId, keyPersonId) ||
+                other.keyPersonId == keyPersonId) &&
+            (identical(other.summary, summary) || other.summary == summary) &&
+            (identical(other.notes, notes) || other.notes == notes));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    activityTypeId,
+    scheduledDatetime,
+    keyPersonId,
+    summary,
+    notes,
+  );
+
+  /// Create a copy of ActivityUpdateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ActivityUpdateDtoImplCopyWith<_$ActivityUpdateDtoImpl> get copyWith =>
+      __$$ActivityUpdateDtoImplCopyWithImpl<_$ActivityUpdateDtoImpl>(
+        this,
+        _$identity,
+      );
+}
+
+abstract class _ActivityUpdateDto implements ActivityUpdateDto {
+  const factory _ActivityUpdateDto({
+    final String? activityTypeId,
+    final DateTime? scheduledDatetime,
+    final String? keyPersonId,
+    final String? summary,
+    final String? notes,
+  }) = _$ActivityUpdateDtoImpl;
+
+  @override
+  String? get activityTypeId;
+  @override
+  DateTime? get scheduledDatetime;
+  @override
+  String? get keyPersonId;
+  @override
+  String? get summary;
+  @override
+  String? get notes;
+
+  /// Create a copy of ActivityUpdateDto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ActivityUpdateDtoImplCopyWith<_$ActivityUpdateDtoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 ActivitySyncDto _$ActivitySyncDtoFromJson(Map<String, dynamic> json) {
   return _ActivitySyncDto.fromJson(json);
 }

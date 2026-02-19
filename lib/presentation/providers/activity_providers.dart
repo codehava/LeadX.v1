@@ -215,6 +215,25 @@ class ActivityFormNotifier extends StateNotifier<ActivityFormState> {
     }
   }
 
+  /// Update an existing activity.
+  Future<void> updateActivity(String id, ActivityUpdateDto dto) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    final result = await _repository.updateActivity(id, dto);
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(
+          isLoading: false,
+          savedActivity: value,
+        );
+        // No invalidation needed - StreamProviders auto-update from Drift
+      case ResultFailure(:final failure):
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+    }
+  }
+
   /// Create an immediate activity.
   Future<void> createImmediateActivity(ImmediateActivityDto dto) async {
     state = state.copyWith(isLoading: true, errorMessage: null);

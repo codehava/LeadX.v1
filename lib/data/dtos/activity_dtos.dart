@@ -84,6 +84,18 @@ class ActivityRescheduleDto with _$ActivityRescheduleDto {
       _$ActivityRescheduleDtoFromJson(json);
 }
 
+/// DTO for updating an existing activity (partial update).
+@freezed
+class ActivityUpdateDto with _$ActivityUpdateDto {
+  const factory ActivityUpdateDto({
+    String? activityTypeId,
+    DateTime? scheduledDatetime,
+    String? keyPersonId,
+    String? summary,
+    String? notes,
+  }) = _ActivityUpdateDto;
+}
+
 /// DTO for syncing activity data with Supabase.
 @freezed
 class ActivitySyncDto with _$ActivitySyncDto {

@@ -75,6 +75,10 @@ abstract class ActivityRepository {
   // Update Operations
   // ==========================================
 
+  /// Update an existing activity.
+  /// Saves locally first, then queues for sync.
+  Future<Result<Activity>> updateActivity(String id, ActivityUpdateDto dto);
+
   /// Execute a planned activity.
   /// Marks the activity as COMPLETED with GPS data.
   Future<Result<Activity>> executeActivity(

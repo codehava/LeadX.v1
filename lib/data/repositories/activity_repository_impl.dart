@@ -317,6 +317,81 @@ class ActivityRepositoryImpl implements ActivityRepository {
   // ==========================================
 
   @override
+  Future<Result<domain.Activity>> updateActivity(
+    String id,
+    ActivityUpdateDto dto,
+  ) async {
+    try {
+      final now = DateTime.now();
+      final existing = await _localDataSource.getActivityById(id);
+      if (existing == null) {
+        return Result.failure(NotFoundFailure(message: 'Activity not found: $id'));
+      }
+
+      // Build companion from non-null DTO fields
+      final companion = db.ActivitiesCompanion(
+        activityTypeId: dto.activityTypeId != null
+            ? Value(dto.activityTypeId!)
+            : const Value.absent(),
+        scheduledDatetime: dto.scheduledDatetime != null
+            ? Value(dto.scheduledDatetime!)
+            : const Value.absent(),
+        keyPersonId: dto.keyPersonId != null
+            ? Value(dto.keyPersonId)
+            : const Value.absent(),
+        summary: dto.summary != null
+            ? Value(dto.summary)
+            : const Value.absent(),
+        notes: dto.notes != null
+            ? Value(dto.notes)
+            : const Value.absent(),
+        isPendingSync: const Value(true),
+        updatedAt: Value(now),
+      );
+
+      // Capture server updatedAt BEFORE local write for version guard
+      final serverUpdatedAt = existing.updatedAt;
+
+      // Update locally, create audit log, and queue for sync atomically
+      final updated = await _database.transaction(() async {
+        await _localDataSource.updateActivity(id, companion);
+
+        // Insert audit log
+        await _insertAuditLog(
+          activityId: id,
+          action: 'EDITED',
+          notes: 'Activity edited',
+        );
+
+        // Get updated data for sync payload (inside transaction)
+        final data = await _localDataSource.getActivityById(id);
+        if (data == null) {
+          throw Exception('Activity not found after update: $id');
+        }
+
+        await _syncService.queueOperation(
+          entityType: SyncEntityType.activity,
+          entityId: id,
+          operation: SyncOperation.update,
+          payload: {
+            ..._createUpdateSyncPayload(data),
+            '_server_updated_at': serverUpdatedAt.toUtcIso8601(),
+          },
+        );
+
+        return data;
+      });
+
+      // Trigger sync if online (outside transaction)
+      _syncService.triggerSync();
+
+      return Result.success(_mapToActivity(updated));
+    } catch (e) {
+      return Result.failure(mapException(e, context: 'updateActivity'));
+    }
+  }
+
+  @override
   Future<Result<domain.Activity>> executeActivity(
     String id,
     ActivityExecutionDto dto,
