@@ -198,7 +198,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   /// Trigger a bidirectional sync: push pending changes, then pull new data.
   /// Acquires the coordinator lock before execution and releases it after.
   /// If lock is held, the sync is queued for a single follow-up execution.
-  Future<void> triggerSync() async {
+  Future<void> triggerSync({bool calledFromInitialSync = false}) async {
     // Ensure connectivity service is initialized (important for mobile)
     await _connectivityService.ensureInitialized();
 
@@ -208,7 +208,12 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     }
 
     // Attempt to acquire the coordinator lock
-    final acquired = await _coordinator.acquireLock(type: SyncType.manual);
+    // skipInitialSyncChecks: Phase 3 of initial sync calls triggerSync before
+    // markInitialSyncComplete() runs, so the coordinator gate and cooldown must be bypassed.
+    final acquired = await _coordinator.acquireLock(
+      type: SyncType.manual,
+      skipInitialSyncChecks: calledFromInitialSync,
+    );
     if (!acquired) {
       AppLogger.instance.info('sync.coordinator | Manual sync queued (lock held)');
       // Don't set error state -- the sync is queued, not failed

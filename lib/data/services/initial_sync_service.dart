@@ -965,7 +965,10 @@ class InitialSyncService {
   }) async {
     // Acquire coordinator lock if available, else fallback to _isSyncing
     if (_coordinator != null) {
-      if (!await _coordinator.acquireLock(type: SyncType.masterDataResync)) {
+      // skipInitialSyncChecks: true — performDeltaSync is called as Phase 2 of the
+      // initial sync orchestration (from SyncProgressSheet) while _initialSyncComplete
+      // is still false and before markInitialSyncComplete() sets the cooldown timestamp.
+      if (!await _coordinator.acquireLock(type: SyncType.masterDataResync, skipInitialSyncChecks: true)) {
         return SyncResult(
           success: false,
           processedCount: 0,

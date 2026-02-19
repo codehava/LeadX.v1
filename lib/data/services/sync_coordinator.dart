@@ -75,7 +75,7 @@ class SyncCoordinator {
   /// Returns `true` if the lock was acquired, `false` if rejected.
   /// When rejected, non-initial sync types are queued for a single
   /// follow-up execution.
-  Future<bool> acquireLock({required SyncType type}) async {
+  Future<bool> acquireLock({required SyncType type, bool skipInitialSyncChecks = false}) async {
     // If lock is currently held
     if (_activeSyncCompleter != null) {
       // Check for stale lock timeout recovery
@@ -118,7 +118,8 @@ class SyncCoordinator {
     }
 
     // Gate regular sync until initial sync completes
-    if (!_initialSyncComplete && type != SyncType.initial) {
+    // (skipInitialSyncChecks=true is used by Phase 2/3 of the initial sync orchestration)
+    if (!skipInitialSyncChecks && !_initialSyncComplete && type != SyncType.initial) {
       _log.debug(
         'sync.coordinator | Rejected $type sync (initial sync not complete)',
       );
@@ -126,7 +127,8 @@ class SyncCoordinator {
     }
 
     // Cooldown check after initial sync
-    if (_initialSyncCompletedAt != null && type != SyncType.initial) {
+    // (skipInitialSyncChecks=true bypasses this for Phase 2/3 of initial sync orchestration)
+    if (!skipInitialSyncChecks && _initialSyncCompletedAt != null && type != SyncType.initial) {
       final elapsed = DateTime.now().difference(_initialSyncCompletedAt!);
       if (elapsed < _cooldownDuration) {
         final remainingMs =
