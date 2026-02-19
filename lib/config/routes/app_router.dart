@@ -41,6 +41,7 @@ import '../../presentation/screens/pipeline/pipeline_history_screen.dart';
 import '../../presentation/screens/profile/about_screen.dart';
 import '../../presentation/screens/profile/change_password_screen.dart';
 import '../../presentation/screens/profile/edit_profile_screen.dart';
+import '../../presentation/screens/profile/notification_settings_screen.dart';
 import '../../presentation/screens/profile/settings_screen.dart';
 import '../../presentation/screens/referral/manager_approval_screen.dart';
 import '../../presentation/screens/referral/referral_create_screen.dart';
@@ -357,6 +358,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final id = state.pathParameters['id']!;
                   return ActivityDetailScreen(activityId: id);
                 },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: RouteNames.activityEdit,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return ActivityFormScreen(activityId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -659,9 +671,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => NoTransitionPage(
               child: ResponsiveShell(
                 currentRoute: state.matchedLocation,
-                child: const Placeholder(
-                  child: Center(child: Text('Notifications')),
-                ),
+                child: const NotificationSettingsScreen(),
               ),
             ),
           ),
@@ -670,10 +680,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'sync-queue',
             name: 'syncQueue',
-            builder: (context, state) => ResponsiveShell(
-              currentRoute: state.matchedLocation,
-              child: const SyncQueueScreen(),
-            ),
+            builder: (context, state) {
+              final entityId = state.uri.queryParameters['entityId'];
+              return ResponsiveShell(
+                currentRoute: state.matchedLocation,
+                child: SyncQueueScreen(entityId: entityId),
+              );
+            },
           ),
         ],
       ),

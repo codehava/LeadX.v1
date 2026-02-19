@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/utils/format_last_sync.dart';
 import '../../../data/services/background_sync_service.dart';
 import '../../providers/settings_providers.dart' hide appSettingsServiceProvider;
 import '../../providers/sync_providers.dart';
@@ -89,14 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Pengaturan Notifikasi'),
                   subtitle: const Text('Atur preferensi notifikasi'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Navigate to notification settings when implemented
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Pengaturan notifikasi akan segera hadir'),
-                      ),
-                    );
-                  },
+                  onTap: () => context.go('/home/notifications'),
                 ),
                 const Divider(height: 1),
                 _buildSyncListTile(context, ref),
@@ -164,7 +158,7 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
       title: const Text('Sinkronisasi'),
-      subtitle: Text(_formatLastSync(lastSync.valueOrNull)),
+      subtitle: Text(formatLastSync(lastSync.valueOrNull)),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         context.push('/home/sync-queue');
@@ -211,16 +205,3 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Format a last sync timestamp into a user-friendly Indonesian relative string.
-String _formatLastSync(DateTime? lastSync) {
-  if (lastSync == null) return 'Belum pernah sinkronisasi';
-  final diff = DateTime.now().difference(lastSync);
-  if (diff.inMinutes < 1) return 'Terakhir sinkronisasi: baru saja';
-  if (diff.inMinutes < 60) {
-    return 'Terakhir sinkronisasi: ${diff.inMinutes} menit lalu';
-  }
-  if (diff.inHours < 24) {
-    return 'Terakhir sinkronisasi: ${diff.inHours} jam lalu';
-  }
-  return 'Terakhir sinkronisasi: ${diff.inDays} hari lalu';
-}
