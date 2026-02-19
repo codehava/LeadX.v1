@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 6 UAT gaps closed - ready for Phase 7
+**Current focus:** Phase 6 complete (5/5 plans) - ready for Phase 7
 
 ## Current Position
 
 Phase: 7 of 10 (Offline UX Polish)
 Plan: 0 of TBD
 Status: Not started
-Last activity: 2026-02-18 - Phase 6 UAT gap closure plan (06-04) executed
+Last activity: 2026-02-19 - Phase 6 gap closure plan (06-05) executed
 
 Progress: [███████░░░] ~70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 10 min
-- Total execution time: 4.1 hours
+- Total execution time: 4.2 hours
 
 **By Phase:**
 
@@ -34,10 +34,10 @@ Progress: [███████░░░] ~70%
 | 03.1-remaining-repo-result-migration | 5/5 | 64 min | 13 min |
 | 04-conflict-resolution | 2/2 | 26 min | 13 min |
 | 05-background-sync-dead-letter-queue | 3/3 | 24 min | 8 min |
-| 06-sync-coordination | 4/4 | 36 min | 9 min |
+| 06-sync-coordination | 5/5 | 41 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04 (5 min), 06-03 (12 min), 06-02 (6 min), 06-01 (13 min), 05-03 (8 min)
+- Last 5 plans: 06-05 (5 min), 06-04 (5 min), 06-03 (12 min), 06-02 (6 min), 06-01 (13 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -45,6 +45,7 @@ Progress: [███████░░░] ~70%
 | Phase 06 P02 | 6 | 2 tasks | 4 files |
 | Phase 06 P03 | 12 | 2 tasks | 4 files |
 | Phase 06 P04 | 5 | 2 tasks | 4 files |
+| Phase 06 P05 | 5 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 06]: WidgetsFlutterBinding moved inside Sentry appRunner to avoid zone mismatch -- binding must be in same zone as runApp (06-04)
 - [Phase 06]: coordinator.markInitialSyncComplete() replaces direct appSettings call in UI to set both persisted and in-memory flags (06-04)
 - [Phase 06]: onLongPress re-sync guard checks coordinator.isLocked plus legacy isSyncing fallback (06-04)
+- [Phase 06]: skipInitialSyncChecks bypasses both _initialSyncComplete gate AND cooldown gate for Phase 2/3 of initial sync (06-05)
+- [Phase 06]: markInitialSyncComplete() called AFTER Phase 3 (not before Phase 2) so cooldown starts only after full sequence (06-05)
+- [Phase 06]: Safety-net markInitialSyncComplete() calls in login_screen/home_screen left untouched as harmless redundancy (06-05)
 
 ### Roadmap Evolution
 
@@ -159,9 +163,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Completed 06-04-PLAN.md (UAT gap closure)
+Last session: 2026-02-19
+Stopped at: Completed 06-05-PLAN.md (cooldown-gate bypass for initial sync phases)
 Resume file: N/A
 
 ---
-*Last updated: 2026-02-18 (Phase 6 UAT gap closure 06-04 complete)*
+*Last updated: 2026-02-19 (Phase 6 gap closure 06-05 complete)*
