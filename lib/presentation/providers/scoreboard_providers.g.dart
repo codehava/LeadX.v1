@@ -1117,8 +1117,29 @@ final dashboardStatsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DashboardStatsRef = AutoDisposeFutureProviderRef<DashboardStats>;
+String _$isScoreUpdatePendingHash() =>
+    r'24ba3d5cfc3d83800a3d0663dc5011cb8978330b';
+
+/// Check if any pending sync queue items exist for scoring-relevant entities.
+/// Shows "score update pending" hint on scoreboard when true.
+///
+/// Copied from [isScoreUpdatePending].
+@ProviderFor(isScoreUpdatePending)
+final isScoreUpdatePendingProvider = AutoDisposeStreamProvider<bool>.internal(
+  isScoreUpdatePending,
+  name: r'isScoreUpdatePendingProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isScoreUpdatePendingHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef IsScoreUpdatePendingRef = AutoDisposeStreamProviderRef<bool>;
 String _$filteredLeaderboardHash() =>
-    r'5db380f1332576b2a74cf20ba9f4113d7f19e091';
+    r'daa6e67b206d707c60786401cf5255f445169bac';
 
 /// Get filtered leaderboard based on current filter state.
 ///
@@ -1144,12 +1165,14 @@ class FilteredLeaderboardFamily
     String? branchId,
     String? regionalOfficeId,
     String? searchQuery,
+    String? role,
   }) {
     return FilteredLeaderboardProvider(
       periodId,
       branchId: branchId,
       regionalOfficeId: regionalOfficeId,
       searchQuery: searchQuery,
+      role: role,
     );
   }
 
@@ -1162,6 +1185,7 @@ class FilteredLeaderboardFamily
       branchId: provider.branchId,
       regionalOfficeId: provider.regionalOfficeId,
       searchQuery: provider.searchQuery,
+      role: provider.role,
     );
   }
 
@@ -1193,6 +1217,7 @@ class FilteredLeaderboardProvider
     String? branchId,
     String? regionalOfficeId,
     String? searchQuery,
+    String? role,
   }) : this._internal(
          (ref) => filteredLeaderboard(
            ref as FilteredLeaderboardRef,
@@ -1200,6 +1225,7 @@ class FilteredLeaderboardProvider
            branchId: branchId,
            regionalOfficeId: regionalOfficeId,
            searchQuery: searchQuery,
+           role: role,
          ),
          from: filteredLeaderboardProvider,
          name: r'filteredLeaderboardProvider',
@@ -1213,6 +1239,7 @@ class FilteredLeaderboardProvider
          branchId: branchId,
          regionalOfficeId: regionalOfficeId,
          searchQuery: searchQuery,
+         role: role,
        );
 
   FilteredLeaderboardProvider._internal(
@@ -1226,12 +1253,14 @@ class FilteredLeaderboardProvider
     required this.branchId,
     required this.regionalOfficeId,
     required this.searchQuery,
+    required this.role,
   }) : super.internal();
 
   final String periodId;
   final String? branchId;
   final String? regionalOfficeId;
   final String? searchQuery;
+  final String? role;
 
   @override
   Override overrideWith(
@@ -1251,6 +1280,7 @@ class FilteredLeaderboardProvider
         branchId: branchId,
         regionalOfficeId: regionalOfficeId,
         searchQuery: searchQuery,
+        role: role,
       ),
     );
   }
@@ -1266,7 +1296,8 @@ class FilteredLeaderboardProvider
         other.periodId == periodId &&
         other.branchId == branchId &&
         other.regionalOfficeId == regionalOfficeId &&
-        other.searchQuery == searchQuery;
+        other.searchQuery == searchQuery &&
+        other.role == role;
   }
 
   @override
@@ -1276,6 +1307,7 @@ class FilteredLeaderboardProvider
     hash = _SystemHash.combine(hash, branchId.hashCode);
     hash = _SystemHash.combine(hash, regionalOfficeId.hashCode);
     hash = _SystemHash.combine(hash, searchQuery.hashCode);
+    hash = _SystemHash.combine(hash, role.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -1296,6 +1328,9 @@ mixin FilteredLeaderboardRef
 
   /// The parameter `searchQuery` of this provider.
   String? get searchQuery;
+
+  /// The parameter `role` of this provider.
+  String? get role;
 }
 
 class _FilteredLeaderboardProviderElement
@@ -1313,6 +1348,8 @@ class _FilteredLeaderboardProviderElement
   @override
   String? get searchQuery =>
       (origin as FilteredLeaderboardProvider).searchQuery;
+  @override
+  String? get role => (origin as FilteredLeaderboardProvider).role;
 }
 
 String _$teamSummaryHash() => r'bcca0f7ec4edfa2e5221aa5a7eb31ab5fb20d87f';
@@ -1512,7 +1549,7 @@ final scoreboardNotifierProvider =
 
 typedef _$ScoreboardNotifier = AutoDisposeAsyncNotifier<ScoreboardState>;
 String _$leaderboardFilterNotifierHash() =>
-    r'6f3695a356058861af65c953f2827827f0ea6daa';
+    r'7cd0b2419874a58ad895c44947e6a051b6c0d1da';
 
 /// Notifier for managing leaderboard filter state.
 ///

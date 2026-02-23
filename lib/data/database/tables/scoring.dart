@@ -109,6 +109,10 @@ class UserScoreAggregates extends Table {
       real().withDefault(const Constant(0))(); // (lead*0.6 + lag*0.4) + bonus - penalty
   IntColumn get rank => integer().nullable()();
   IntColumn get rankChange => integer().nullable()(); // +/- from previous period
+  IntColumn get branchRank => integer().nullable()();
+  IntColumn get branchRankChange => integer().nullable()();
+  IntColumn get regionalRank => integer().nullable()();
+  IntColumn get regionalRankChange => integer().nullable()();
   DateTimeColumn get calculatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 

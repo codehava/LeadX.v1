@@ -327,6 +327,34 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   }
 
   @override
+  Future<List<LeaderboardEntry>> getFilteredLeaderboardRpc(
+    String periodId, {
+    String? role,
+    String? branchId,
+    String? regionalOfficeId,
+  }) async {
+    final isOnline = await _connectivityService.isConnected;
+    if (isOnline) {
+      try {
+        return await _remoteDataSource.fetchFilteredLeaderboardRpc(
+          periodId,
+          role: role,
+          branchId: branchId,
+          regionalOfficeId: regionalOfficeId,
+        );
+      } catch (e) {
+        // Fall through to local fallback
+      }
+    }
+    // Offline fallback: use existing filter method (no dynamic ranking)
+    return getLeaderboardWithFilters(
+      periodId,
+      branchId: branchId,
+      regionalOfficeId: regionalOfficeId,
+    );
+  }
+
+  @override
   Future<TeamSummary?> getTeamSummary(
     String periodId, {
     String? branchId,

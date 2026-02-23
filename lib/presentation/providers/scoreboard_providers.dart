@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -418,6 +419,24 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
 }
 
 // ============================================
+// SCORE UPDATE PENDING
+// ============================================
+
+/// Check if any pending sync queue items exist for scoring-relevant entities.
+/// Shows "score update pending" hint on scoreboard when true.
+@riverpod
+Stream<bool> isScoreUpdatePending(ref) {
+  // ignore: argument_type_not_assignable
+  final db = ref.watch(appDatabaseProvider);
+  // Watch sync queue for pending items that affect scoring
+  return (db.select(db.syncQueueItems)
+        ..where((t) => t.entityType.isIn(['activity', 'pipeline', 'customer']) &
+            t.status.equals('pending')))
+      .watch()
+      .map((items) => items.isNotEmpty);
+}
+
+// ============================================
 // LEADERBOARD FILTER
 // ============================================
 
@@ -434,6 +453,7 @@ class LeaderboardFilter {
   final LeaderboardFilterMode filterMode;
   final String? selectedBranchId;
   final String? selectedRegionalOfficeId;
+  final String? selectedRole;
   final String searchQuery;
 
   const LeaderboardFilter({
@@ -441,6 +461,7 @@ class LeaderboardFilter {
     this.filterMode = LeaderboardFilterMode.all,
     this.selectedBranchId,
     this.selectedRegionalOfficeId,
+    this.selectedRole,
     this.searchQuery = '',
   });
 
@@ -449,7 +470,9 @@ class LeaderboardFilter {
     LeaderboardFilterMode? filterMode,
     String? selectedBranchId,
     String? selectedRegionalOfficeId,
+    String? selectedRole,
     String? searchQuery,
+    bool clearRole = false,
   }) {
     return LeaderboardFilter(
       selectedPeriod: selectedPeriod ?? this.selectedPeriod,
@@ -457,6 +480,7 @@ class LeaderboardFilter {
       selectedBranchId: selectedBranchId ?? this.selectedBranchId,
       selectedRegionalOfficeId:
           selectedRegionalOfficeId ?? this.selectedRegionalOfficeId,
+      selectedRole: clearRole ? null : (selectedRole ?? this.selectedRole),
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
@@ -500,6 +524,11 @@ class LeaderboardFilterNotifier extends _$LeaderboardFilterNotifier {
     }
   }
 
+  /// Set role filter.
+  void setRole(String? role) {
+    state = state.copyWith(selectedRole: role, clearRole: role == null);
+  }
+
   /// Set search query.
   void setSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
@@ -519,9 +548,23 @@ Future<List<LeaderboardEntry>> filteredLeaderboard(
   String? branchId,
   String? regionalOfficeId,
   String? searchQuery,
+  String? role,
 }) async {
   // ignore: argument_type_not_assignable
   final repository = ref.watch(scoreboardRepositoryProvider);
+
+  // Use RPC method when role filter is active for dynamic ranking
+  if (role != null) {
+    // ignore: return_of_invalid_type
+    return repository.getFilteredLeaderboardRpc(
+      periodId,
+      role: role,
+      branchId: branchId,
+      regionalOfficeId: regionalOfficeId,
+    );
+  }
+
+  // Existing behavior for non-role filters
   // ignore: return_of_invalid_type
   return repository.getLeaderboardWithFilters(
     periodId,

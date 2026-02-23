@@ -74,6 +74,14 @@ abstract class ScoreboardRepository {
     int limit = 100,
   });
 
+  /// Get filtered leaderboard with dynamic ranking via RPC.
+  Future<List<LeaderboardEntry>> getFilteredLeaderboardRpc(
+    String periodId, {
+    String? role,
+    String? branchId,
+    String? regionalOfficeId,
+  });
+
   /// Get team summary for branch or region.
   Future<TeamSummary?> getTeamSummary(
     String periodId, {

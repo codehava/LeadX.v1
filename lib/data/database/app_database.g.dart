@@ -23593,6 +23593,49 @@ class $UserScoreAggregatesTable extends UserScoreAggregates
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _branchRankMeta = const VerificationMeta(
+    'branchRank',
+  );
+  @override
+  late final GeneratedColumn<int> branchRank = GeneratedColumn<int>(
+    'branch_rank',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _branchRankChangeMeta = const VerificationMeta(
+    'branchRankChange',
+  );
+  @override
+  late final GeneratedColumn<int> branchRankChange = GeneratedColumn<int>(
+    'branch_rank_change',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _regionalRankMeta = const VerificationMeta(
+    'regionalRank',
+  );
+  @override
+  late final GeneratedColumn<int> regionalRank = GeneratedColumn<int>(
+    'regional_rank',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _regionalRankChangeMeta =
+      const VerificationMeta('regionalRankChange');
+  @override
+  late final GeneratedColumn<int> regionalRankChange = GeneratedColumn<int>(
+    'regional_rank_change',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _calculatedAtMeta = const VerificationMeta(
     'calculatedAt',
   );
@@ -23627,6 +23670,10 @@ class $UserScoreAggregatesTable extends UserScoreAggregates
     totalScore,
     rank,
     rankChange,
+    branchRank,
+    branchRankChange,
+    regionalRank,
+    regionalRankChange,
     calculatedAt,
     createdAt,
   ];
@@ -23711,6 +23758,39 @@ class $UserScoreAggregatesTable extends UserScoreAggregates
         rankChange.isAcceptableOrUnknown(data['rank_change']!, _rankChangeMeta),
       );
     }
+    if (data.containsKey('branch_rank')) {
+      context.handle(
+        _branchRankMeta,
+        branchRank.isAcceptableOrUnknown(data['branch_rank']!, _branchRankMeta),
+      );
+    }
+    if (data.containsKey('branch_rank_change')) {
+      context.handle(
+        _branchRankChangeMeta,
+        branchRankChange.isAcceptableOrUnknown(
+          data['branch_rank_change']!,
+          _branchRankChangeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('regional_rank')) {
+      context.handle(
+        _regionalRankMeta,
+        regionalRank.isAcceptableOrUnknown(
+          data['regional_rank']!,
+          _regionalRankMeta,
+        ),
+      );
+    }
+    if (data.containsKey('regional_rank_change')) {
+      context.handle(
+        _regionalRankChangeMeta,
+        regionalRankChange.isAcceptableOrUnknown(
+          data['regional_rank_change']!,
+          _regionalRankChangeMeta,
+        ),
+      );
+    }
     if (data.containsKey('calculated_at')) {
       context.handle(
         _calculatedAtMeta,
@@ -23779,6 +23859,22 @@ class $UserScoreAggregatesTable extends UserScoreAggregates
         DriftSqlType.int,
         data['${effectivePrefix}rank_change'],
       ),
+      branchRank: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}branch_rank'],
+      ),
+      branchRankChange: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}branch_rank_change'],
+      ),
+      regionalRank: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}regional_rank'],
+      ),
+      regionalRankChange: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}regional_rank_change'],
+      ),
       calculatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}calculated_at'],
@@ -23808,6 +23904,10 @@ class UserScoreAggregate extends DataClass
   final double totalScore;
   final int? rank;
   final int? rankChange;
+  final int? branchRank;
+  final int? branchRankChange;
+  final int? regionalRank;
+  final int? regionalRankChange;
   final DateTime calculatedAt;
   final DateTime createdAt;
   const UserScoreAggregate({
@@ -23821,6 +23921,10 @@ class UserScoreAggregate extends DataClass
     required this.totalScore,
     this.rank,
     this.rankChange,
+    this.branchRank,
+    this.branchRankChange,
+    this.regionalRank,
+    this.regionalRankChange,
     required this.calculatedAt,
     required this.createdAt,
   });
@@ -23841,6 +23945,18 @@ class UserScoreAggregate extends DataClass
     if (!nullToAbsent || rankChange != null) {
       map['rank_change'] = Variable<int>(rankChange);
     }
+    if (!nullToAbsent || branchRank != null) {
+      map['branch_rank'] = Variable<int>(branchRank);
+    }
+    if (!nullToAbsent || branchRankChange != null) {
+      map['branch_rank_change'] = Variable<int>(branchRankChange);
+    }
+    if (!nullToAbsent || regionalRank != null) {
+      map['regional_rank'] = Variable<int>(regionalRank);
+    }
+    if (!nullToAbsent || regionalRankChange != null) {
+      map['regional_rank_change'] = Variable<int>(regionalRankChange);
+    }
     map['calculated_at'] = Variable<DateTime>(calculatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -23860,6 +23976,18 @@ class UserScoreAggregate extends DataClass
       rankChange: rankChange == null && nullToAbsent
           ? const Value.absent()
           : Value(rankChange),
+      branchRank: branchRank == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchRank),
+      branchRankChange: branchRankChange == null && nullToAbsent
+          ? const Value.absent()
+          : Value(branchRankChange),
+      regionalRank: regionalRank == null && nullToAbsent
+          ? const Value.absent()
+          : Value(regionalRank),
+      regionalRankChange: regionalRankChange == null && nullToAbsent
+          ? const Value.absent()
+          : Value(regionalRankChange),
       calculatedAt: Value(calculatedAt),
       createdAt: Value(createdAt),
     );
@@ -23881,6 +24009,10 @@ class UserScoreAggregate extends DataClass
       totalScore: serializer.fromJson<double>(json['totalScore']),
       rank: serializer.fromJson<int?>(json['rank']),
       rankChange: serializer.fromJson<int?>(json['rankChange']),
+      branchRank: serializer.fromJson<int?>(json['branchRank']),
+      branchRankChange: serializer.fromJson<int?>(json['branchRankChange']),
+      regionalRank: serializer.fromJson<int?>(json['regionalRank']),
+      regionalRankChange: serializer.fromJson<int?>(json['regionalRankChange']),
       calculatedAt: serializer.fromJson<DateTime>(json['calculatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -23899,6 +24031,10 @@ class UserScoreAggregate extends DataClass
       'totalScore': serializer.toJson<double>(totalScore),
       'rank': serializer.toJson<int?>(rank),
       'rankChange': serializer.toJson<int?>(rankChange),
+      'branchRank': serializer.toJson<int?>(branchRank),
+      'branchRankChange': serializer.toJson<int?>(branchRankChange),
+      'regionalRank': serializer.toJson<int?>(regionalRank),
+      'regionalRankChange': serializer.toJson<int?>(regionalRankChange),
       'calculatedAt': serializer.toJson<DateTime>(calculatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -23915,6 +24051,10 @@ class UserScoreAggregate extends DataClass
     double? totalScore,
     Value<int?> rank = const Value.absent(),
     Value<int?> rankChange = const Value.absent(),
+    Value<int?> branchRank = const Value.absent(),
+    Value<int?> branchRankChange = const Value.absent(),
+    Value<int?> regionalRank = const Value.absent(),
+    Value<int?> regionalRankChange = const Value.absent(),
     DateTime? calculatedAt,
     DateTime? createdAt,
   }) => UserScoreAggregate(
@@ -23928,6 +24068,14 @@ class UserScoreAggregate extends DataClass
     totalScore: totalScore ?? this.totalScore,
     rank: rank.present ? rank.value : this.rank,
     rankChange: rankChange.present ? rankChange.value : this.rankChange,
+    branchRank: branchRank.present ? branchRank.value : this.branchRank,
+    branchRankChange: branchRankChange.present
+        ? branchRankChange.value
+        : this.branchRankChange,
+    regionalRank: regionalRank.present ? regionalRank.value : this.regionalRank,
+    regionalRankChange: regionalRankChange.present
+        ? regionalRankChange.value
+        : this.regionalRankChange,
     calculatedAt: calculatedAt ?? this.calculatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -23951,6 +24099,18 @@ class UserScoreAggregate extends DataClass
       rankChange: data.rankChange.present
           ? data.rankChange.value
           : this.rankChange,
+      branchRank: data.branchRank.present
+          ? data.branchRank.value
+          : this.branchRank,
+      branchRankChange: data.branchRankChange.present
+          ? data.branchRankChange.value
+          : this.branchRankChange,
+      regionalRank: data.regionalRank.present
+          ? data.regionalRank.value
+          : this.regionalRank,
+      regionalRankChange: data.regionalRankChange.present
+          ? data.regionalRankChange.value
+          : this.regionalRankChange,
       calculatedAt: data.calculatedAt.present
           ? data.calculatedAt.value
           : this.calculatedAt,
@@ -23971,6 +24131,10 @@ class UserScoreAggregate extends DataClass
           ..write('totalScore: $totalScore, ')
           ..write('rank: $rank, ')
           ..write('rankChange: $rankChange, ')
+          ..write('branchRank: $branchRank, ')
+          ..write('branchRankChange: $branchRankChange, ')
+          ..write('regionalRank: $regionalRank, ')
+          ..write('regionalRankChange: $regionalRankChange, ')
           ..write('calculatedAt: $calculatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -23989,6 +24153,10 @@ class UserScoreAggregate extends DataClass
     totalScore,
     rank,
     rankChange,
+    branchRank,
+    branchRankChange,
+    regionalRank,
+    regionalRankChange,
     calculatedAt,
     createdAt,
   );
@@ -24006,6 +24174,10 @@ class UserScoreAggregate extends DataClass
           other.totalScore == this.totalScore &&
           other.rank == this.rank &&
           other.rankChange == this.rankChange &&
+          other.branchRank == this.branchRank &&
+          other.branchRankChange == this.branchRankChange &&
+          other.regionalRank == this.regionalRank &&
+          other.regionalRankChange == this.regionalRankChange &&
           other.calculatedAt == this.calculatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -24021,6 +24193,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
   final Value<double> totalScore;
   final Value<int?> rank;
   final Value<int?> rankChange;
+  final Value<int?> branchRank;
+  final Value<int?> branchRankChange;
+  final Value<int?> regionalRank;
+  final Value<int?> regionalRankChange;
   final Value<DateTime> calculatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -24035,6 +24211,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
     this.totalScore = const Value.absent(),
     this.rank = const Value.absent(),
     this.rankChange = const Value.absent(),
+    this.branchRank = const Value.absent(),
+    this.branchRankChange = const Value.absent(),
+    this.regionalRank = const Value.absent(),
+    this.regionalRankChange = const Value.absent(),
     this.calculatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -24050,6 +24230,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
     this.totalScore = const Value.absent(),
     this.rank = const Value.absent(),
     this.rankChange = const Value.absent(),
+    this.branchRank = const Value.absent(),
+    this.branchRankChange = const Value.absent(),
+    this.regionalRank = const Value.absent(),
+    this.regionalRankChange = const Value.absent(),
     required DateTime calculatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -24069,6 +24253,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
     Expression<double>? totalScore,
     Expression<int>? rank,
     Expression<int>? rankChange,
+    Expression<int>? branchRank,
+    Expression<int>? branchRankChange,
+    Expression<int>? regionalRank,
+    Expression<int>? regionalRankChange,
     Expression<DateTime>? calculatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -24084,6 +24272,11 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
       if (totalScore != null) 'total_score': totalScore,
       if (rank != null) 'rank': rank,
       if (rankChange != null) 'rank_change': rankChange,
+      if (branchRank != null) 'branch_rank': branchRank,
+      if (branchRankChange != null) 'branch_rank_change': branchRankChange,
+      if (regionalRank != null) 'regional_rank': regionalRank,
+      if (regionalRankChange != null)
+        'regional_rank_change': regionalRankChange,
       if (calculatedAt != null) 'calculated_at': calculatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -24101,6 +24294,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
     Value<double>? totalScore,
     Value<int?>? rank,
     Value<int?>? rankChange,
+    Value<int?>? branchRank,
+    Value<int?>? branchRankChange,
+    Value<int?>? regionalRank,
+    Value<int?>? regionalRankChange,
     Value<DateTime>? calculatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -24116,6 +24313,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
       totalScore: totalScore ?? this.totalScore,
       rank: rank ?? this.rank,
       rankChange: rankChange ?? this.rankChange,
+      branchRank: branchRank ?? this.branchRank,
+      branchRankChange: branchRankChange ?? this.branchRankChange,
+      regionalRank: regionalRank ?? this.regionalRank,
+      regionalRankChange: regionalRankChange ?? this.regionalRankChange,
       calculatedAt: calculatedAt ?? this.calculatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -24155,6 +24356,18 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
     if (rankChange.present) {
       map['rank_change'] = Variable<int>(rankChange.value);
     }
+    if (branchRank.present) {
+      map['branch_rank'] = Variable<int>(branchRank.value);
+    }
+    if (branchRankChange.present) {
+      map['branch_rank_change'] = Variable<int>(branchRankChange.value);
+    }
+    if (regionalRank.present) {
+      map['regional_rank'] = Variable<int>(regionalRank.value);
+    }
+    if (regionalRankChange.present) {
+      map['regional_rank_change'] = Variable<int>(regionalRankChange.value);
+    }
     if (calculatedAt.present) {
       map['calculated_at'] = Variable<DateTime>(calculatedAt.value);
     }
@@ -24180,6 +24393,10 @@ class UserScoreAggregatesCompanion extends UpdateCompanion<UserScoreAggregate> {
           ..write('totalScore: $totalScore, ')
           ..write('rank: $rank, ')
           ..write('rankChange: $rankChange, ')
+          ..write('branchRank: $branchRank, ')
+          ..write('branchRankChange: $branchRankChange, ')
+          ..write('regionalRank: $regionalRank, ')
+          ..write('regionalRankChange: $regionalRankChange, ')
           ..write('calculatedAt: $calculatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -52231,6 +52448,10 @@ typedef $$UserScoreAggregatesTableCreateCompanionBuilder =
       Value<double> totalScore,
       Value<int?> rank,
       Value<int?> rankChange,
+      Value<int?> branchRank,
+      Value<int?> branchRankChange,
+      Value<int?> regionalRank,
+      Value<int?> regionalRankChange,
       required DateTime calculatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -52247,6 +52468,10 @@ typedef $$UserScoreAggregatesTableUpdateCompanionBuilder =
       Value<double> totalScore,
       Value<int?> rank,
       Value<int?> rankChange,
+      Value<int?> branchRank,
+      Value<int?> branchRankChange,
+      Value<int?> regionalRank,
+      Value<int?> regionalRankChange,
       Value<DateTime> calculatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -52352,6 +52577,26 @@ class $$UserScoreAggregatesTableFilterComposer
 
   ColumnFilters<int> get rankChange => $composableBuilder(
     column: $table.rankChange,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get branchRank => $composableBuilder(
+    column: $table.branchRank,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get branchRankChange => $composableBuilder(
+    column: $table.branchRankChange,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get regionalRank => $composableBuilder(
+    column: $table.regionalRank,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get regionalRankChange => $composableBuilder(
+    column: $table.regionalRankChange,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -52461,6 +52706,26 @@ class $$UserScoreAggregatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get branchRank => $composableBuilder(
+    column: $table.branchRank,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get branchRankChange => $composableBuilder(
+    column: $table.branchRankChange,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get regionalRank => $composableBuilder(
+    column: $table.regionalRank,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get regionalRankChange => $composableBuilder(
+    column: $table.regionalRankChange,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get calculatedAt => $composableBuilder(
     column: $table.calculatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -52556,6 +52821,26 @@ class $$UserScoreAggregatesTableAnnotationComposer
 
   GeneratedColumn<int> get rankChange => $composableBuilder(
     column: $table.rankChange,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get branchRank => $composableBuilder(
+    column: $table.branchRank,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get branchRankChange => $composableBuilder(
+    column: $table.branchRankChange,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get regionalRank => $composableBuilder(
+    column: $table.regionalRank,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get regionalRankChange => $composableBuilder(
+    column: $table.regionalRankChange,
     builder: (column) => column,
   );
 
@@ -52660,6 +52945,10 @@ class $$UserScoreAggregatesTableTableManager
                 Value<double> totalScore = const Value.absent(),
                 Value<int?> rank = const Value.absent(),
                 Value<int?> rankChange = const Value.absent(),
+                Value<int?> branchRank = const Value.absent(),
+                Value<int?> branchRankChange = const Value.absent(),
+                Value<int?> regionalRank = const Value.absent(),
+                Value<int?> regionalRankChange = const Value.absent(),
                 Value<DateTime> calculatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -52674,6 +52963,10 @@ class $$UserScoreAggregatesTableTableManager
                 totalScore: totalScore,
                 rank: rank,
                 rankChange: rankChange,
+                branchRank: branchRank,
+                branchRankChange: branchRankChange,
+                regionalRank: regionalRank,
+                regionalRankChange: regionalRankChange,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -52690,6 +52983,10 @@ class $$UserScoreAggregatesTableTableManager
                 Value<double> totalScore = const Value.absent(),
                 Value<int?> rank = const Value.absent(),
                 Value<int?> rankChange = const Value.absent(),
+                Value<int?> branchRank = const Value.absent(),
+                Value<int?> branchRankChange = const Value.absent(),
+                Value<int?> regionalRank = const Value.absent(),
+                Value<int?> regionalRankChange = const Value.absent(),
                 required DateTime calculatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -52704,6 +53001,10 @@ class $$UserScoreAggregatesTableTableManager
                 totalScore: totalScore,
                 rank: rank,
                 rankChange: rankChange,
+                branchRank: branchRank,
+                branchRankChange: branchRankChange,
+                regionalRank: regionalRank,
+                regionalRankChange: regionalRankChange,
                 calculatedAt: calculatedAt,
                 createdAt: createdAt,
                 rowid: rowid,

@@ -223,7 +223,7 @@ class ScoreboardRemoteDataSource {
         ''')
         .eq('user_id', userId)
         .eq('period_id', periodId)
-        .order('snapshot_at', ascending: false)
+        .order('calculated_at', ascending: false)
         .limit(1)
         .maybeSingle();
 
@@ -258,7 +258,7 @@ class ScoreboardRemoteDataSource {
         score: (jsonMap['total_score'] as num?)?.toDouble() ?? 0,
         leadScore: (jsonMap['lead_score'] as num?)?.toDouble() ?? 0,
         lagScore: (jsonMap['lag_score'] as num?)?.toDouble() ?? 0,
-        rankChange: null, // Would need previous period comparison
+        rankChange: jsonMap['rank_change'] as int?,
         branchName: branch?['name'] as String?,
       );
     }).toList();
@@ -307,8 +307,40 @@ class ScoreboardRemoteDataSource {
         score: (jsonMap['total_score'] as num?)?.toDouble() ?? 0,
         leadScore: (jsonMap['lead_score'] as num?)?.toDouble() ?? 0,
         lagScore: (jsonMap['lag_score'] as num?)?.toDouble() ?? 0,
-        rankChange: null, // Would need previous period comparison
+        rankChange: jsonMap['rank_change'] as int?,
         branchName: branch?['name'] as String?,
+      );
+    }).toList();
+  }
+
+  /// Fetch leaderboard via RPC with dynamic ranking within filter context.
+  Future<List<LeaderboardEntry>> fetchFilteredLeaderboardRpc(
+    String periodId, {
+    String? role,
+    String? branchId,
+    String? regionalOfficeId,
+  }) async {
+    final response = await _supabase.rpc(
+      'get_filtered_leaderboard',
+      params: {
+        'p_period_id': periodId,
+        if (role != null) 'p_role': role,
+        if (branchId != null) 'p_branch_id': branchId,
+        if (regionalOfficeId != null) 'p_regional_office_id': regionalOfficeId,
+      },
+    );
+    return (response as List).map((json) {
+      final jsonMap = json as Map<String, dynamic>;
+      return LeaderboardEntry(
+        id: '${jsonMap['user_id']}_$periodId',
+        rank: (jsonMap['rank'] as int? ?? 0).toString(),
+        userId: jsonMap['user_id'] as String? ?? '',
+        userName: jsonMap['user_name'] as String? ?? 'Unknown',
+        score: (jsonMap['total_score'] as num?)?.toDouble() ?? 0,
+        leadScore: (jsonMap['lead_score'] as num?)?.toDouble() ?? 0,
+        lagScore: (jsonMap['lag_score'] as num?)?.toDouble() ?? 0,
+        rankChange: jsonMap['rank_change'] as int?,
+        branchName: jsonMap['branch_name'] as String?,
       );
     }).toList();
   }
