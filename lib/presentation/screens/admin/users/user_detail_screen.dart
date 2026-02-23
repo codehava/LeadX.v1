@@ -356,7 +356,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen>
 
   Future<void> _handleDelete(User user) async {
     // Online guard: deletion requires active internet connection
-    final isOnline = ref.read(connectivityStreamProvider).valueOrNull ?? false;
+    final isOnline = ref.read(connectivityStreamProvider).valueOrNull ?? true;
     if (!isOnline) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
