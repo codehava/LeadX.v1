@@ -45,8 +45,8 @@ Requirements for stability milestone. Each maps to roadmap phases.
 
 ### Scoring
 
-- [ ] **SCORE-01**: Multi-period score aggregation correctly pulls LEAD and LAG scores from their respective active scoring periods and computes the composite score
-- [ ] **SCORE-02**: Team ranking calculation is implemented — compares scores across team members per period and updates rank/rankChange fields
+- [x] **SCORE-01**: Multi-period score aggregation correctly pulls LEAD and LAG scores from their respective active scoring periods and computes the composite score
+- [x] **SCORE-02**: Team ranking calculation is implemented — compares scores across team members per period and updates rank/rankChange fields
 
 ### Stubbed Features
 
@@ -116,8 +116,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-04 | Phase 7 | Pending |
 | OBS-01 | Phase 1 | Pending |
 | OBS-02 | Phase 1 | Pending |
-| SCORE-01 | Phase 10 | Pending |
-| SCORE-02 | Phase 10 | Pending |
+| SCORE-01 | Phase 10 | Complete |
+| SCORE-02 | Phase 10 | Complete |
 | FEAT-01 | Phase 8 | Pending |
 | FEAT-02 | Phase 8 | Complete |
 | FEAT-03 | Phase 8 | Complete |

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 9 COMPLETE - Admin & Dashboard Features
+**Current focus:** Phase 10 - Scoring Optimization (Plan 01 complete)
 
 ## Current Position
 
-Phase: 9 of 10 (Admin & Dashboard Features) - COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 9 complete, ready for Phase 10
-Last activity: 2026-02-23 - Phase 9 complete (admin delete + UI + dead code cleanup)
+Phase: 10 of 10 (Scoring Optimization) - IN PROGRESS
+Plan: 1 of 3 complete
+Status: Plan 01 complete (server-side ranking infrastructure), ready for Plan 02
+Last activity: 2026-02-23 - Phase 10 Plan 01 complete (ranking functions + cron integration)
 
-Progress: [█████████░] ~95%
+Progress: [█████████░] ~97%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35
+- Total plans completed: 36
 - Average duration: 10 min
-- Total execution time: ~5.8 hours
+- Total execution time: ~5.9 hours
 
 **By Phase:**
 
@@ -38,9 +38,10 @@ Progress: [█████████░] ~95%
 | 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
 | 08-stubbed-feature-completion | 4/4 | 29 min | 7 min |
 | 09-admin-dashboard-features | 2/2 | ~35 min | ~18 min |
+| 10-scoring-optimization | 1/3 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-01 (15 min), 09-02 (20 min), 08-02 (5 min), 08-03 (11 min), 08-04 (7 min)
+- Last 5 plans: 10-01 (3 min), 09-01 (15 min), 09-02 (20 min), 08-02 (5 min), 08-03 (11 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -49,6 +50,7 @@ Progress: [█████████░] ~95%
 | Phase 06 P03 | 12 | 2 tasks | 4 files |
 | Phase 06 P04 | 5 | 2 tasks | 4 files |
 | Phase 06 P05 | 5 | 2 tasks | 4 files |
+| Phase 10 P01 | 3 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -163,6 +165,10 @@ Recent decisions affecting current work:
 - [Phase 08]: Edit form pre-fills data via addPostFrameCallback + listenManual for async stream loading with _dataLoaded guard (08-03)
 - [Phase 08]: keyPersonByIdProvider uses FutureProvider.family with inline Drift-to-domain mapping -- avoids new repository method for simple read-only lookup (08-02)
 - [Phase 08]: Broker key person card redesigned from ListTile to Row layout matching customer/HVC pattern for consistent phone/email IconButtons (08-02)
+- [Phase 10]: DENSE_RANK for all ranking pools -- intuitive tie handling (1,2,2,3 not 1,2,2,4) (10-01)
+- [Phase 10]: Three ranking pools (company/branch/regional) stored as columns on user_score_aggregates (10-01)
+- [Phase 10]: Cron ordering: dirty users -> deactivate measures -> calculate rankings (10-01)
+- [Phase 10]: rank_change = NULL for first-ever period; client already handles NULL as dash (10-01)
 
 ### Roadmap Evolution
 
@@ -186,8 +192,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Phase 9 complete, ready for Phase 10
+Stopped at: Completed 10-01-PLAN.md
 Resume file: .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-02-23 (Phase 9 complete)*
+*Last updated: 2026-02-23 (Phase 10 Plan 01 complete)*
