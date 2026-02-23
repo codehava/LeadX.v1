@@ -204,7 +204,7 @@ Plans:
 - [ ] 08-04-PLAN.md -- Notification settings screen with toggle UI (FEAT-05)
 
 ### Phase 9: Admin & Dashboard Features
-**Goal**: Complete admin user management and dashboard quick actions
+**Goal**: Complete admin user deletion with cascading data reassignment and clean up dashboard quick activity dead code
 **Depends on**: Phase 3 (requires typed error handling)
 **Requirements**: FEAT-06, FEAT-07
 **Success Criteria** (what must be TRUE):
@@ -212,11 +212,11 @@ Plans:
   2. User tapping quick activity FAB on dashboard opens bottom sheet with activity form (customer picker, activity type, notes) and successfully creates activity
   3. Quick activity bottom sheet validates required fields (customer, activity type) and shows error states for incomplete submissions
   4. Activity created via quick logging appears immediately in activity list and dashboard recent activities (reactive Drift stream update)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md — Edge Function + Drift migration v13 + data layer for admin user deletion (FEAT-06)
+- [ ] 09-02-PLAN.md — Delete confirmation UI with RM picker + user list filter + FEAT-07 dead code cleanup (FEAT-06, FEAT-07)
 
 ### Phase 10: Scoring Optimization
 **Goal**: Fix multi-period score aggregation and implement team ranking calculation
@@ -251,9 +251,9 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 6. Sync Coordination | 5/5 | ✓ Complete | 2026-02-19 |
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
-| 9. Admin & Dashboard Features | 0/TBD | Not started | - |
+| 9. Admin & Dashboard Features | 0/2 | Planning complete | - |
 | 10. Scoring Optimization | 0/TBD | Not started | - |
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-19 — Phase 6 complete (5/5 plans, gap closure 06-05 executed)*
+*Last updated: 2026-02-23 — Phase 9 planned (2 plans in 2 waves)*
