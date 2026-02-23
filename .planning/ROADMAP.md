@@ -231,9 +231,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md -- Server-side ranking SQL functions + cron update + RLS verification (SCORE-01, SCORE-02)
-- [ ] 10-02-PLAN.md -- Client-side data layer fixes: rankChange reading, snapshot_at bug, role filter, score pending indicator (SCORE-01, SCORE-02)
-- [ ] 10-03-PLAN.md -- Scoring summary grid screen for admins/managers (SCORE-01, SCORE-02)
+- [x] 10-01-PLAN.md -- Server-side ranking SQL functions + cron update + RLS verification (SCORE-01, SCORE-02)
+- [x] 10-02-PLAN.md -- Client-side data layer fixes: rankChange reading, snapshot_at bug, role filter, score pending indicator (SCORE-01, SCORE-02)
+- [x] 10-03-PLAN.md -- Scoring summary grid screen for admins/managers (SCORE-01, SCORE-02)
 
 ## Progress
 
@@ -253,8 +253,8 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
 | 9. Admin & Dashboard Features | 0/2 | Planning complete | - |
-| 10. Scoring Optimization | 3/3 | Complete   | 2026-02-23 |
+| 10. Scoring Optimization | 3/3 | ✓ Complete | 2026-02-23 |
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-23 — Phase 10 planned (3 plans in 3 waves)*
+*Last updated: 2026-02-23 — Phase 10 complete (3/3 plans executed)*
