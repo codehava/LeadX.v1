@@ -17,6 +17,7 @@ class Users extends Table {
   DateTimeColumn get lastLoginAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get lastSyncAt => dateTime().nullable()();
 
   @override

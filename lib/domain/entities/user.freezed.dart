@@ -36,6 +36,7 @@ mixin _$User {
   String? get photoUrl => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
+  DateTime? get deletedAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
@@ -66,6 +67,7 @@ abstract class $UserCopyWith<$Res> {
     String? photoUrl,
     bool isActive,
     DateTime? lastLoginAt,
+    DateTime? deletedAt,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -98,6 +100,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? photoUrl = freezed,
     Object? isActive = null,
     Object? lastLoginAt = freezed,
+    Object? deletedAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -151,6 +154,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.lastLoginAt
                 : lastLoginAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            deletedAt: freezed == deletedAt
+                ? _value.deletedAt
+                : deletedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -186,6 +193,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String? photoUrl,
     bool isActive,
     DateTime? lastLoginAt,
+    DateTime? deletedAt,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -215,6 +223,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? photoUrl = freezed,
     Object? isActive = null,
     Object? lastLoginAt = freezed,
+    Object? deletedAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -268,6 +277,10 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.lastLoginAt
             : lastLoginAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        deletedAt: freezed == deletedAt
+            ? _value.deletedAt
+            : deletedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -297,6 +310,7 @@ class _$UserImpl extends _User {
     this.photoUrl,
     required this.isActive,
     this.lastLoginAt,
+    this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
   }) : super._();
@@ -332,13 +346,15 @@ class _$UserImpl extends _User {
   @override
   final DateTime? lastLoginAt;
   @override
+  final DateTime? deletedAt;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, name: $name, nip: $nip, phone: $phone, role: $role, parentId: $parentId, branchId: $branchId, regionalOfficeId: $regionalOfficeId, photoUrl: $photoUrl, isActive: $isActive, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'User(id: $id, email: $email, name: $name, nip: $nip, phone: $phone, role: $role, parentId: $parentId, branchId: $branchId, regionalOfficeId: $regionalOfficeId, photoUrl: $photoUrl, isActive: $isActive, lastLoginAt: $lastLoginAt, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -364,6 +380,8 @@ class _$UserImpl extends _User {
                 other.isActive == isActive) &&
             (identical(other.lastLoginAt, lastLoginAt) ||
                 other.lastLoginAt == lastLoginAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -386,6 +404,7 @@ class _$UserImpl extends _User {
     photoUrl,
     isActive,
     lastLoginAt,
+    deletedAt,
     createdAt,
     updatedAt,
   );
@@ -418,6 +437,7 @@ abstract class _User extends User {
     final String? photoUrl,
     required final bool isActive,
     final DateTime? lastLoginAt,
+    final DateTime? deletedAt,
     required final DateTime createdAt,
     required final DateTime updatedAt,
   }) = _$UserImpl;
@@ -449,6 +469,8 @@ abstract class _User extends User {
   bool get isActive;
   @override
   DateTime? get lastLoginAt;
+  @override
+  DateTime? get deletedAt;
   @override
   DateTime get createdAt;
   @override

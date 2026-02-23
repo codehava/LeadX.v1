@@ -113,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -224,6 +224,10 @@ class AppDatabase extends _$AppDatabase {
               "ELSE 'pending' "
               "END"
             );
+          }
+          // Migration from v12 to v13: Add deleted_at column to users
+          if (from < 13) {
+            await m.addColumn(users, users.deletedAt);
           }
         },
         beforeOpen: (details) async {

@@ -26,11 +26,15 @@ class User with _$User {
     String? photoUrl,
     required bool isActive,
     DateTime? lastLoginAt,
+    DateTime? deletedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  /// Whether user has been soft-deleted
+  bool get isDeleted => deletedAt != null;
 
   /// Whether user has admin privileges
   bool get isAdmin => role == UserRole.admin || role == UserRole.superadmin;
