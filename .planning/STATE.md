@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Sales reps can reliably capture and access customer data in the field regardless of connectivity — data is never lost, always available, and syncs transparently when online.
-**Current focus:** Phase 10 - Scoring Optimization (Plan 01 complete)
+**Current focus:** Phase 10 - Scoring Optimization (Plan 02 complete)
 
 ## Current Position
 
 Phase: 10 of 10 (Scoring Optimization) - IN PROGRESS
-Plan: 1 of 3 complete
-Status: Plan 01 complete (server-side ranking infrastructure), ready for Plan 02
-Last activity: 2026-02-23 - Phase 10 Plan 01 complete (ranking functions + cron integration)
+Plan: 2 of 3 complete
+Status: Plan 02 complete (client scoring data layer + UI), ready for Plan 03
+Last activity: 2026-02-23 - Phase 10 Plan 02 complete (ranking data fixes, role filter, pending indicator)
 
-Progress: [█████████░] ~97%
+Progress: [█████████░] ~98%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36
+- Total plans completed: 37
 - Average duration: 10 min
-- Total execution time: ~5.9 hours
+- Total execution time: ~6.1 hours
 
 **By Phase:**
 
@@ -38,10 +38,10 @@ Progress: [█████████░] ~97%
 | 07-offline-ux-polish | 3/3 | ~30 min | ~10 min |
 | 08-stubbed-feature-completion | 4/4 | 29 min | 7 min |
 | 09-admin-dashboard-features | 2/2 | ~35 min | ~18 min |
-| 10-scoring-optimization | 1/3 | 3 min | 3 min |
+| 10-scoring-optimization | 2/3 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-01 (3 min), 09-01 (15 min), 09-02 (20 min), 08-02 (5 min), 08-03 (11 min)
+- Last 5 plans: 10-02 (13 min), 10-01 (3 min), 09-01 (15 min), 09-02 (20 min), 08-02 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -51,6 +51,7 @@ Progress: [█████████░] ~97%
 | Phase 06 P04 | 5 | 2 tasks | 4 files |
 | Phase 06 P05 | 5 | 2 tasks | 4 files |
 | Phase 10 P01 | 3 | 3 tasks | 3 files |
+| Phase 10 P02 | 13 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,9 @@ Recent decisions affecting current work:
 - [Phase 10]: Three ranking pools (company/branch/regional) stored as columns on user_score_aggregates (10-01)
 - [Phase 10]: Cron ordering: dirty users -> deactivate measures -> calculate rankings (10-01)
 - [Phase 10]: rank_change = NULL for first-ever period; client already handles NULL as dash (10-01)
+- [Phase 10]: Role filter uses RPC method for dynamic ranking; geography-only filters use existing query method (10-02)
+- [Phase 10]: Score pending indicator watches sync queue for activity/pipeline/customer entity types with pending status (10-02)
+- [Phase 10]: clearRole boolean flag in LeaderboardFilter.copyWith to allow clearing selectedRole back to null (10-02)
 
 ### Roadmap Evolution
 
@@ -192,8 +196,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 10-01-PLAN.md
+Stopped at: Completed 10-02-PLAN.md
 Resume file: .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-02-23 (Phase 10 Plan 01 complete)*
+*Last updated: 2026-02-23 (Phase 10 Plan 02 complete)*
