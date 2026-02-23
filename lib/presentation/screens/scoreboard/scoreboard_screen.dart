@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../config/routes/route_names.dart';
 import '../../providers/scoreboard_providers.dart';
+import '../../widgets/common/error_state.dart';
 import '../../widgets/scoreboard/leaderboard_card.dart';
 import '../../widgets/scoreboard/measure_progress_bar.dart';
 import '../../widgets/scoreboard/score_gauge.dart';
@@ -17,7 +18,6 @@ class ScoreboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final scoreboardAsync = ref.watch(scoreboardNotifierProvider);
 
     return Scaffold(
@@ -35,22 +35,11 @@ class ScoreboardScreen extends ConsumerWidget {
       body: scoreboardAsync.when(
         data: (state) => _buildContent(context, ref, state),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                  ref.read(scoreboardNotifierProvider.notifier).refresh();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, _) => AppErrorState.general(
+          message: error.toString(),
+          onRetry: () {
+            ref.read(scoreboardNotifierProvider.notifier).refresh();
+          },
         ),
       ),
     );
@@ -102,6 +91,9 @@ class ScoreboardScreen extends ConsumerWidget {
             _buildPeriodSelector(context, ref, state),
             const SizedBox(height: 24),
           ],
+
+          // Score update pending indicator
+          _buildScorePendingIndicator(context, ref),
 
           // Personal score card
           _buildPersonalScoreCard(context, state),
@@ -249,6 +241,41 @@ class ScoreboardScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildScorePendingIndicator(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isScorePendingAsync = ref.watch(isScoreUpdatePendingProvider);
+    return isScorePendingAsync.when(
+      data: (isPending) {
+        if (!isPending) return const SizedBox.shrink();
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.amber.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.sync, size: 16, color: Colors.amber.shade700),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Skor sedang diperbarui oleh server...',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.amber.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 

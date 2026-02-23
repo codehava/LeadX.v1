@@ -8,6 +8,7 @@ import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/scoreboard_providers.dart';
+import '../../widgets/common/error_state.dart';
 import '../../widgets/scoreboard/leaderboard_card.dart';
 
 /// Dedicated full-page leaderboard screen with filtering and search.
@@ -45,6 +46,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             searchQuery: filterState.searchQuery.isNotEmpty
                 ? filterState.searchQuery
                 : null,
+            role: filterState.selectedRole,
           ))
         : null;
 
@@ -67,6 +69,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
           // Filter chips (All / My Branch / My Region)
           _buildFilterChips(filterState, currentUser),
+
+          // Role filter chips
+          if (!_isSearching) _buildRoleFilterChips(filterState),
 
           // Team Summary (for BH/BM/ROH/Admin)
           if (currentUser != null && _shouldShowTeamSummary(currentUser))
@@ -185,7 +190,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         child: Row(
           children: [
             FilterChip(
-              label: const Text('🌍 All Company'),
+              label: const Text('All Company'),
               selected: filterState.filterMode == LeaderboardFilterMode.all,
               onSelected: (_) {
                 ref
@@ -196,7 +201,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             ),
             const SizedBox(width: 8),
             FilterChip(
-              label: const Text('🏢 My Branch'),
+              label: const Text('My Branch'),
               selected: filterState.filterMode == LeaderboardFilterMode.branch,
               onSelected: (_) {
                 ref
@@ -207,7 +212,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             ),
             const SizedBox(width: 8),
             FilterChip(
-              label: const Text('📍 My Region'),
+              label: const Text('My Region'),
               selected: filterState.filterMode == LeaderboardFilterMode.region,
               onSelected: (_) {
                 ref
@@ -216,6 +221,45 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               },
               selectedColor: theme.colorScheme.primaryContainer,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleFilterChips(LeaderboardFilter filterState) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            FilterChip(
+              label: const Text('Semua Jabatan'),
+              selected: filterState.selectedRole == null,
+              onSelected: (_) {
+                ref
+                    .read(leaderboardFilterNotifierProvider.notifier)
+                    .setRole(null);
+              },
+              selectedColor: theme.colorScheme.secondaryContainer,
+            ),
+            const SizedBox(width: 8),
+            for (final role in ['RM', 'BH', 'BM', 'ROH'])
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(role),
+                  selected: filterState.selectedRole == role,
+                  onSelected: (_) {
+                    ref
+                        .read(leaderboardFilterNotifierProvider.notifier)
+                        .setRole(role);
+                  },
+                  selectedColor: theme.colorScheme.secondaryContainer,
+                ),
+              ),
           ],
         ),
       ),
@@ -300,26 +344,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text('Error: $error'),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                ref.invalidate(filteredLeaderboardProvider);
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      error: (error, _) => AppErrorState.general(
+        message: error.toString(),
+        onRetry: () {
+          ref.invalidate(filteredLeaderboardProvider);
+        },
       ),
     );
   }
