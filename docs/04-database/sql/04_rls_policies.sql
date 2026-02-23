@@ -118,19 +118,10 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Users can view themselves
-CREATE POLICY "users_select_self" ON users
-FOR SELECT USING (id = (SELECT auth.uid()));
-
--- Supervisors can view subordinates
-CREATE POLICY "users_select_subordinates" ON users
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM user_hierarchy
-    WHERE ancestor_id = (SELECT auth.uid())
-    AND descendant_id = users.id
-  )
-);
+-- All authenticated users can view basic user profiles
+-- (needed for leaderboard name resolution and team visibility)
+CREATE POLICY "users_select_authenticated" ON users
+FOR SELECT USING (auth.uid() IS NOT NULL);
 
 -- Admins have full access
 CREATE POLICY "users_admin_all" ON users
@@ -611,41 +602,33 @@ FOR ALL USING (
   )
 );
 
--- User Scores
+-- User Scores - all authenticated can view (leaderboard + scoring transparency)
 ALTER TABLE user_scores ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "user_scores_select_own" ON user_scores
-FOR SELECT USING (user_id = (SELECT auth.uid()));
-
-CREATE POLICY "user_scores_select_subordinates" ON user_scores
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM user_hierarchy
-    WHERE ancestor_id = (SELECT auth.uid())
-    AND descendant_id = user_scores.user_id
-  )
-);
+CREATE POLICY "user_scores_select_authenticated" ON user_scores
+FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "user_scores_admin" ON user_scores
 FOR ALL USING (is_admin());
 
--- User Score Snapshots (aggregated scores)
-ALTER TABLE user_score_snapshots ENABLE ROW LEVEL SECURITY;
+-- User Score Aggregates (aggregated scores) - all authenticated can view (leaderboard)
+ALTER TABLE user_score_aggregates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "user_score_snapshots_select_own" ON user_score_snapshots
-FOR SELECT USING (user_id = (SELECT auth.uid()));
+CREATE POLICY "user_score_aggregates_select_authenticated" ON user_score_aggregates
+FOR SELECT USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "user_score_snapshots_select_subordinates" ON user_score_snapshots
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM user_hierarchy
-    WHERE ancestor_id = (SELECT auth.uid())
-    AND descendant_id = user_score_snapshots.user_id
-  )
-);
-
-CREATE POLICY "user_score_snapshots_admin" ON user_score_snapshots
+CREATE POLICY "user_score_aggregates_admin" ON user_score_aggregates
 FOR ALL USING (is_admin());
+
+-- NOTE (Phase 10): These SELECT policies support leaderboard visibility.
+-- All authenticated users can read scores and aggregates (public leaderboard).
+-- The get_filtered_leaderboard() RPC function uses SECURITY DEFINER to bypass
+-- RLS for the ranking computation, but results are filtered by the function's
+-- parameters. No new RLS policies needed for Phase 10.
+-- Verified policies:
+--   - user_scores_select_authenticated (above)
+--   - user_score_aggregates_select_authenticated (above)
+--   - users_select_authenticated (in USERS TABLE section)
 
 -- ============================================
 -- WIG (WILDLY IMPORTANT GOALS) TABLES
