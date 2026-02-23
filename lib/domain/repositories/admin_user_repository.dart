@@ -14,7 +14,11 @@ abstract class AdminUserRepository {
   /// Get all users in the system.
   ///
   /// [includeInactive] - if true, includes deactivated users.
-  Future<List<User>> getAllUsers({bool includeInactive = false});
+  /// [includeDeleted] - if true, includes soft-deleted users.
+  Future<List<User>> getAllUsers({
+    bool includeInactive = false,
+    bool includeDeleted = false,
+  });
 
   /// Search users by name, email, or NIP.
   Future<List<User>> searchUsers(String query);

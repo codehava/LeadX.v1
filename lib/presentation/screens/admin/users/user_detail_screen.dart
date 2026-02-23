@@ -8,7 +8,10 @@ import '../../../../config/routes/route_names.dart';
 import '../../../../data/dtos/master_data_dtos.dart';
 import '../../../../domain/entities/user.dart';
 import '../../../providers/admin_user_providers.dart';
+import '../../../providers/auth_providers.dart';
 import '../../../providers/master_data_providers.dart';
+import '../../../providers/sync_providers.dart';
+import '../../../widgets/common/searchable_dropdown.dart';
 
 /// Screen displaying detailed information about a user.
 ///
@@ -69,46 +72,64 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen>
             onSelected: (value) => _handleMenuAction(value, userAsync.value),
             itemBuilder: (context) {
               final user = userAsync.value;
+              final isDeleted = user?.isDeleted ?? false;
               return [
-                PopupMenuItem(
-                  value: (user?.isActive ?? false) ? 'deactivate' : 'activate',
-                  child: Row(
-                    children: [
-                      Icon(
-                        (user?.isActive ?? false)
-                            ? Icons.block
-                            : Icons.check_circle,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        (user?.isActive ?? false)
-                            ? 'Nonaktifkan'
-                            : 'Aktifkan',
-                      ),
-                    ],
+                if (!isDeleted) ...[
+                  PopupMenuItem(
+                    value: (user?.isActive ?? false) ? 'deactivate' : 'activate',
+                    child: Row(
+                      children: [
+                        Icon(
+                          (user?.isActive ?? false)
+                              ? Icons.block
+                              : Icons.check_circle,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          (user?.isActive ?? false)
+                              ? 'Nonaktifkan'
+                              : 'Aktifkan',
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuItem(
-                  value: 'reset_password',
-                  child: Row(
-                    children: [
-                      Icon(Icons.key),
-                      SizedBox(width: 8),
-                      Text('Reset Password'),
-                    ],
+                  const PopupMenuItem(
+                    value: 'reset_password',
+                    child: Row(
+                      children: [
+                        Icon(Icons.key),
+                        SizedBox(width: 8),
+                        Text('Reset Password'),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Hapus', style: TextStyle(color: Colors.red)),
-                    ],
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Hapus', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
-                ),
+                ],
+                if (isDeleted)
+                  const PopupMenuItem(
+                    enabled: false,
+                    value: '',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Text(
+                          'Pengguna sudah dihapus',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
               ];
             },
           ),
@@ -334,39 +355,173 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen>
   }
 
   Future<void> _handleDelete(User user) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Pengguna'),
-        content: Text(
-          'Apakah Anda yakin ingin menghapus ${user.name}? '
-          'Tindakan ini tidak dapat dibatalkan.',
+    // Online guard: deletion requires active internet connection
+    final isOnline = ref.read(connectivityStreamProvider).valueOrNull ?? false;
+    if (!isOnline) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Hapus pengguna membutuhkan koneksi internet'),
+          backgroundColor: Colors.orange,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(false),
-            child: const Text('Batal'),
+      );
+      return;
+    }
+
+    // Self-delete guard: cannot delete own account
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (currentUser?.id == user.id) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tidak dapat menghapus akun sendiri'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation dialog with RM reassignment picker
+    final selectedRmId = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return _DeleteConfirmationDialog(
+          user: user,
+          ref: ref,
+        );
+      },
+    );
+
+    if (selectedRmId == null || !mounted) return;
+
+    // Execute deletion with loading indicator
+    setState(() => _isProcessing = true);
+
+    try {
+      final notifier = ref.read(adminUserNotifierProvider.notifier);
+      await notifier.deleteUser(user.id, selectedRmId);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pengguna berhasil dihapus'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Navigate back to user list (not pop, to avoid stale detail screen)
+      context.go(RoutePaths.adminUsers);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus pengguna: $e'),
+            backgroundColor: Colors.red,
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+}
+
+/// Delete confirmation dialog with RM reassignment picker.
+///
+/// Returns the selected replacement RM ID if confirmed, or null if cancelled.
+class _DeleteConfirmationDialog extends ConsumerStatefulWidget {
+  const _DeleteConfirmationDialog({
+    required this.user,
+    required this.ref,
+  });
+
+  final User user;
+  final WidgetRef ref;
+
+  @override
+  ConsumerState<_DeleteConfirmationDialog> createState() =>
+      _DeleteConfirmationDialogState();
+}
+
+class _DeleteConfirmationDialogState
+    extends ConsumerState<_DeleteConfirmationDialog> {
+  String? _selectedRmId;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeUsersAsync = ref.watch(activeUsersProvider);
+
+    return AlertDialog(
+      title: const Text('Hapus Pengguna'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hapus ${widget.user.name}? Semua data akan dipindahkan ke RM pengganti.',
+          ),
+          const SizedBox(height: 16),
+          activeUsersAsync.when(
+            data: (users) {
+              // Filter out the user being deleted, only show active non-deleted users
+              final eligibleUsers = users
+                  .where((u) =>
+                      u.id != widget.user.id &&
+                      u.isActive &&
+                      !u.isDeleted)
+                  .toList();
+
+              return SearchableDropdown<String>(
+                label: 'RM Pengganti',
+                hint: 'Pilih RM pengganti...',
+                modalTitle: 'Pilih RM Pengganti',
+                searchHint: 'Cari pengguna...',
+                prefixIcon: Icons.person,
+                value: _selectedRmId,
+                items: eligibleUsers.map((u) {
+                  return DropdownItem(
+                    value: u.id,
+                    label: u.name,
+                    subtitle: '${u.role.shortName} - ${u.email}',
+                    icon: Icons.person,
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedRmId = value);
+                },
+              );
+            },
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
             ),
-            onPressed: () => context.pop(true),
-            child: const Text('Hapus'),
+            error: (e, _) => Text(
+              'Gagal memuat daftar pengguna: $e',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
-    );
-
-    if (confirm != true || !mounted) return;
-
-    // TODO: Implement delete functionality when repository method is added
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur hapus pengguna belum diimplementasikan'),
-        backgroundColor: Colors.orange,
-      ),
+      actions: [
+        TextButton(
+          onPressed: () => context.pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          onPressed:
+              _selectedRmId != null ? () => context.pop(_selectedRmId) : null,
+          child: const Text('Hapus'),
+        ),
+      ],
     );
   }
 }
@@ -423,7 +578,23 @@ class _InfoTab extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              if (!user.isActive) ...[
+              if (user.isDeleted) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Dihapus',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ] else if (!user.isActive) ...[
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

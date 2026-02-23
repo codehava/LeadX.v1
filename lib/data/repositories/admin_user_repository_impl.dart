@@ -21,10 +21,14 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
   // ============================================
 
   @override
-  Future<List<User>> getAllUsers({bool includeInactive = false}) async {
+  Future<List<User>> getAllUsers({
+    bool includeInactive = false,
+    bool includeDeleted = false,
+  }) async {
     try {
       final usersData = await _remoteDataSource.fetchAllUsers(
         includeInactive: includeInactive,
+        includeDeleted: includeDeleted,
       );
 
       return usersData.map((data) => _mapToUser(data)).toList();

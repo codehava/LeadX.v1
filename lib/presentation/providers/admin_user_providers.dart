@@ -11,6 +11,9 @@ import 'auth_providers.dart';
 
 part 'admin_user_providers.g.dart';
 
+/// State provider controlling whether deleted users are shown in user list.
+final showDeletedUsersProvider = StateProvider<bool>((ref) => false);
+
 // ============================================
 // DATA SOURCE PROVIDERS
 // ============================================
@@ -38,10 +41,31 @@ AdminUserRepository adminUserRepository(Ref ref) {
 // ============================================
 
 /// Provider for all users list.
+///
+/// Watches [showDeletedUsersProvider] to optionally include soft-deleted users.
+/// When includeDeleted is true, also includes inactive users so deleted users
+/// (who are always inactive) appear in results.
 @riverpod
 Future<List<User>> allUsers(Ref ref) async {
   final repository = ref.watch(adminUserRepositoryProvider);
-  return repository.getAllUsers();
+  final showDeleted = ref.watch(showDeletedUsersProvider);
+  return repository.getAllUsers(
+    includeDeleted: showDeleted,
+    includeInactive: showDeleted,
+  );
+}
+
+/// Provider for active (non-deleted) users only.
+///
+/// Used by the delete dialog RM picker to show only eligible replacement RMs.
+/// Always excludes deleted and inactive users regardless of filter toggle.
+@riverpod
+Future<List<User>> activeUsers(Ref ref) async {
+  final repository = ref.watch(adminUserRepositoryProvider);
+  return repository.getAllUsers(
+    includeDeleted: false,
+    includeInactive: false,
+  );
 }
 
 /// Provider for users filtered by role.
@@ -66,13 +90,28 @@ Future<List<User>> userSubordinates(Ref ref, String userId) async {
 }
 
 /// Provider for a single user by ID.
+///
+/// Searches the current allUsers list. If the user is not found (e.g., they
+/// are deleted and the filter is off), fetches all users including deleted
+/// to find them.
 @riverpod
 Future<User?> userById(Ref ref, String userId) async {
   final users = await ref.watch(allUsersProvider.future);
   try {
     return users.firstWhere((user) => user.id == userId);
-  } catch (e) {
-    return null;
+  } catch (_) {
+    // User not found in current list — may be deleted.
+    // Fetch with includeDeleted to find them.
+    final repository = ref.read(adminUserRepositoryProvider);
+    final allWithDeleted = await repository.getAllUsers(
+      includeDeleted: true,
+      includeInactive: true,
+    );
+    try {
+      return allWithDeleted.firstWhere((user) => user.id == userId);
+    } catch (_) {
+      return null;
+    }
   }
 }
 

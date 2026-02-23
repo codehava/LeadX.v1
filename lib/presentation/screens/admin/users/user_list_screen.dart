@@ -29,6 +29,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final showDeleted = ref.watch(showDeletedUsersProvider);
 
     final usersAsync = _selectedRole != null
         ? ref.watch(usersByRoleProvider(_selectedRole!))
@@ -37,6 +38,20 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manajemen Pengguna'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              showDeleted ? Icons.person_off : Icons.person_off_outlined,
+              color: showDeleted ? colorScheme.primary : null,
+            ),
+            tooltip: showDeleted
+                ? 'Sembunyikan pengguna dihapus'
+                : 'Tampilkan pengguna dihapus',
+            onPressed: () {
+              ref.read(showDeletedUsersProvider.notifier).state = !showDeleted;
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -192,82 +207,101 @@ class _UserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDeleted = user.isDeleted;
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: user.isActive
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerHighest,
-        foregroundColor: user.isActive
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurfaceVariant,
-        child: user.photoUrl != null
-            ? ClipOval(
-                child: Image.network(
-                  user.photoUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Text(user.initials),
+    return Opacity(
+      opacity: isDeleted ? 0.5 : 1.0,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: user.isActive && !isDeleted
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerHighest,
+          foregroundColor: user.isActive && !isDeleted
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSurfaceVariant,
+          child: user.photoUrl != null
+              ? ClipOval(
+                  child: Image.network(
+                    user.photoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Text(user.initials),
+                  ),
+                )
+              : Text(user.initials),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                user.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isDeleted) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
                 ),
-              )
-            : Text(user.initials),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              user.name,
+                child: Text(
+                  'Dihapus',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
+            ] else if (!user.isActive) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Nonaktif',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              user.email,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          if (!user.isActive) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'Nonaktif',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            user.email,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Wrap(
-            spacing: 8,
-            children: [
-              _buildBadge(
-                context,
-                user.role.shortName,
-                _getRoleColor(colorScheme, user.role),
-              ),
-              if (user.nip != null)
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              children: [
                 _buildBadge(
                   context,
-                  user.nip!,
-                  colorScheme.secondaryContainer,
+                  user.role.shortName,
+                  _getRoleColor(colorScheme, user.role),
                 ),
-            ],
-          ),
-        ],
-      ),
-      onTap: () => context.push(
-        RoutePaths.adminUserDetail.replaceFirst(':id', user.id),
+                if (user.nip != null)
+                  _buildBadge(
+                    context,
+                    user.nip!,
+                    colorScheme.secondaryContainer,
+                  ),
+              ],
+            ),
+          ],
+        ),
+        onTap: () => context.push(
+          RoutePaths.adminUserDetail.replaceFirst(':id', user.id),
+        ),
       ),
     );
   }

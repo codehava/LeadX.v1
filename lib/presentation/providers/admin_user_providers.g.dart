@@ -49,9 +49,13 @@ final adminUserRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AdminUserRepositoryRef = AutoDisposeProviderRef<AdminUserRepository>;
-String _$allUsersHash() => r'43ee9d89e6a2c1cc47c04c05a531555aaefb052e';
+String _$allUsersHash() => r'4cf8a326b1ba43d0e750c6919e27a345a0873511';
 
 /// Provider for all users list.
+///
+/// Watches [showDeletedUsersProvider] to optionally include soft-deleted users.
+/// When includeDeleted is true, also includes inactive users so deleted users
+/// (who are always inactive) appear in results.
 ///
 /// Copied from [allUsers].
 @ProviderFor(allUsers)
@@ -68,6 +72,28 @@ final allUsersProvider = AutoDisposeFutureProvider<List<User>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllUsersRef = AutoDisposeFutureProviderRef<List<User>>;
+String _$activeUsersHash() => r'f21e25eb740c3484dc0d39e05fc7fc8784cc5092';
+
+/// Provider for active (non-deleted) users only.
+///
+/// Used by the delete dialog RM picker to show only eligible replacement RMs.
+/// Always excludes deleted and inactive users regardless of filter toggle.
+///
+/// Copied from [activeUsers].
+@ProviderFor(activeUsers)
+final activeUsersProvider = AutoDisposeFutureProvider<List<User>>.internal(
+  activeUsers,
+  name: r'activeUsersProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$activeUsersHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ActiveUsersRef = AutoDisposeFutureProviderRef<List<User>>;
 String _$usersByRoleHash() => r'40c0f226b142bc3c40a01f30ce3bae74f90fb811';
 
 /// Copied from Dart SDK
@@ -484,9 +510,13 @@ class _UserSubordinatesProviderElement
   String get userId => (origin as UserSubordinatesProvider).userId;
 }
 
-String _$userByIdHash() => r'86d1ae9df6d1393a4345c8defe04866fc261bf7d';
+String _$userByIdHash() => r'a2b16129d720a74a7e19168091975caaf149720a';
 
 /// Provider for a single user by ID.
+///
+/// Searches the current allUsers list. If the user is not found (e.g., they
+/// are deleted and the filter is off), fetches all users including deleted
+/// to find them.
 ///
 /// Copied from [userById].
 @ProviderFor(userById)
@@ -494,14 +524,26 @@ const userByIdProvider = UserByIdFamily();
 
 /// Provider for a single user by ID.
 ///
+/// Searches the current allUsers list. If the user is not found (e.g., they
+/// are deleted and the filter is off), fetches all users including deleted
+/// to find them.
+///
 /// Copied from [userById].
 class UserByIdFamily extends Family<AsyncValue<User?>> {
   /// Provider for a single user by ID.
+  ///
+  /// Searches the current allUsers list. If the user is not found (e.g., they
+  /// are deleted and the filter is off), fetches all users including deleted
+  /// to find them.
   ///
   /// Copied from [userById].
   const UserByIdFamily();
 
   /// Provider for a single user by ID.
+  ///
+  /// Searches the current allUsers list. If the user is not found (e.g., they
+  /// are deleted and the filter is off), fetches all users including deleted
+  /// to find them.
   ///
   /// Copied from [userById].
   UserByIdProvider call(String userId) {
@@ -530,9 +572,17 @@ class UserByIdFamily extends Family<AsyncValue<User?>> {
 
 /// Provider for a single user by ID.
 ///
+/// Searches the current allUsers list. If the user is not found (e.g., they
+/// are deleted and the filter is off), fetches all users including deleted
+/// to find them.
+///
 /// Copied from [userById].
 class UserByIdProvider extends AutoDisposeFutureProvider<User?> {
   /// Provider for a single user by ID.
+  ///
+  /// Searches the current allUsers list. If the user is not found (e.g., they
+  /// are deleted and the filter is off), fetches all users including deleted
+  /// to find them.
   ///
   /// Copied from [userById].
   UserByIdProvider(String userId)
@@ -742,7 +792,7 @@ class _SupervisorNameProviderElement
   String? get userId => (origin as SupervisorNameProvider).userId;
 }
 
-String _$adminUserNotifierHash() => r'9c01eb72e76a7d104aba61cc82d317b677553b57';
+String _$adminUserNotifierHash() => r'5583895e862ed83662b1f2689a3c5982a925c34d';
 
 /// State for user management operations.
 ///
