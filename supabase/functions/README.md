@@ -134,6 +134,50 @@ Resets a user's password and generates a temporary password.
 
 ---
 
+### 4. score-aggregation-cron
+
+Processes dirty users, recalculates score aggregates, deactivates expired measures, and computes rankings across three pools (company-wide, per-branch, per-regional).
+
+**Trigger:** Cron job (every 10 minutes) or manual invocation
+
+**Endpoint:** `<SUPABASE_URL>/functions/v1/score-aggregation-cron`
+
+**Method:** POST (no body required)
+
+**Authentication:** Uses service_role key internally (no user auth required — invoked by cron scheduler)
+
+**Processing Steps (in order):**
+1. Find all current scoring periods, select shortest granularity as display period
+2. Fetch dirty users (FIFO by `dirtied_at`)
+3. For each dirty user: call `recalculate_aggregate(p_user_id, p_period_id)`, then remove from `dirty_users`
+4. Deactivate expired measures via `deactivate_expired_measures()` RPC
+5. Calculate rankings via `calculate_rankings(p_period_id)` RPC (only if ≥1 user processed)
+
+**Response (Success - 200):**
+```json
+{
+  "message": "Score aggregation complete",
+  "total": 5,
+  "success": 4,
+  "errors": 1,
+  "periodId": "uuid",
+  "rankingUpdated": true,
+  "measuresDeactivated": 0
+}
+```
+
+**SQL Functions Called:**
+- `recalculate_aggregate(p_user_id, p_period_id)` — per-user score aggregation
+- `deactivate_expired_measures()` — auto-deactivates measures past their period end date
+- `calculate_rankings(p_period_id)` — DENSE_RANK across 3 pools (company/branch/regional) partitioned by role
+
+**Error Handling:**
+- Per-user failures are logged to `system_errors` table and skipped (batch continues)
+- Ranking/deactivation failures are non-fatal (logged but don't fail the response)
+- Errors in dirty user deletion are non-critical (user gets reprocessed next run)
+
+---
+
 ## Deployment
 
 ### Prerequisites
@@ -165,6 +209,7 @@ Deploy a specific function:
 supabase functions deploy admin-create-user
 supabase functions deploy admin-reset-password
 supabase functions deploy admin-delete-user
+supabase functions deploy score-aggregation-cron
 ```
 
 ### Set Environment Variables
