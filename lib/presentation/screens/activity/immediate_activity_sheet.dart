@@ -15,7 +15,12 @@ import '../../providers/hvc_providers.dart';
 import '../../providers/master_data_providers.dart';
 import '../../widgets/common/searchable_dropdown.dart';
 
-/// Bottom sheet for logging an immediate (instant) activity.
+/// Entity-specific immediate activity sheet.
+///
+/// Used from customer, HVC, and broker detail screens to log an immediate
+/// activity pre-associated with that entity. This is SEPARATE from the
+/// dashboard/activities-tab quick logging flow, which uses ActivityFormScreen
+/// in immediate mode (navigated via the "Log Aktivitas" button or flash FAB).
 class ImmediateActivitySheet extends ConsumerStatefulWidget {
   final String objectType;
   final String objectId;

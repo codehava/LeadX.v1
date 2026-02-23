@@ -163,6 +163,10 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
           ),
         ],
       ),
+      // Quick activity logging entry point (Activities tab).
+      // Uses ActivityFormScreen in immediate mode for dashboard/tab-level quick logging.
+      // This is SEPARATE from ImmediateActivitySheet, which is used for entity-specific
+      // immediate activities launched from customer/HVC/broker detail screens.
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
