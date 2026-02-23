@@ -685,6 +685,126 @@ class ScoreboardRemoteDataSource {
   }
 
   // ============================================
+  // SCORING SUMMARY (Admin/Manager Grid)
+  // ============================================
+
+  /// Fetch scoring summary data for all users (admin) or subordinates (manager).
+  /// Returns a cross-join of users, measures, and their scores for a given period.
+  Future<List<Map<String, dynamic>>> fetchScoringSummaryData(
+    String periodId, {
+    String? supervisorUserId, // If non-null, filter to subordinates only
+  }) async {
+    // Step 1: Get all active measure definitions (columns for the grid)
+    final measures = await fetchMeasureDefinitions();
+
+    // Step 2: Get user_score_aggregates for the period (for composite scores)
+    dynamic aggregateQuery = _supabase
+        .from('user_score_aggregates')
+        .select(
+            '*, users!inner(id, name, role, branch_id, is_active, branches(name))')
+        .eq('period_id', periodId)
+        .eq('users.is_active', true);
+
+    if (supervisorUserId != null) {
+      // Filter to subordinates only (manager view)
+      final hierarchyResponse = await _supabase
+          .from('user_hierarchy')
+          .select('descendant_id')
+          .eq('ancestor_id', supervisorUserId)
+          .gt('depth', 0);
+
+      final subordinateIds = (hierarchyResponse as List)
+          .map((h) => (h as Map<String, dynamic>)['descendant_id'] as String)
+          .toList();
+
+      if (subordinateIds.isEmpty) return [];
+
+      aggregateQuery = aggregateQuery.inFilter('user_id', subordinateIds);
+    }
+
+    final aggregates = await aggregateQuery;
+
+    // Step 3: Get all user_scores for the period with measure info
+    final userIds = (aggregates as List)
+        .map((a) => (a as Map<String, dynamic>)['user_id'] as String)
+        .toList();
+
+    if (userIds.isEmpty) return [];
+
+    final scoresResponse = await _supabase
+        .from('user_scores')
+        .select('user_id, measure_id, actual_value, percentage, score')
+        .eq('period_id', periodId)
+        .inFilter('user_id', userIds);
+
+    // For multi-period: also fetch scores from other current periods
+    final allCurrentPeriods = await fetchAllCurrentPeriods();
+    final otherPeriodIds = allCurrentPeriods
+        .where((p) => p.id != periodId)
+        .map((p) => p.id)
+        .toList();
+
+    List<dynamic> additionalScores = [];
+    if (otherPeriodIds.isNotEmpty) {
+      additionalScores = await _supabase
+          .from('user_scores')
+          .select('user_id, measure_id, actual_value, percentage, score')
+          .inFilter('period_id', otherPeriodIds)
+          .inFilter('user_id', userIds);
+    }
+
+    // Combine all scores
+    final allScores = [...(scoresResponse as List), ...additionalScores];
+
+    // Step 4: Build the grid data structure
+    final List<Map<String, dynamic>> rows = [];
+
+    for (final aggregate in aggregates) {
+      final agg = aggregate as Map<String, dynamic>;
+      final userId = agg['user_id'] as String;
+      final user = agg['users'] as Map<String, dynamic>;
+      final branch = user['branches'] as Map<String, dynamic>?;
+
+      // Build measure cells for this user
+      final measureCells = <String, Map<String, dynamic>>{};
+      for (final score in allScores) {
+        final s = score as Map<String, dynamic>;
+        if (s['user_id'] == userId) {
+          measureCells[s['measure_id'] as String] = {
+            'actual_value': (s['actual_value'] as num?)?.toDouble() ?? 0,
+            'percentage': (s['percentage'] as num?)?.toDouble() ?? 0,
+            'score': (s['score'] as num?)?.toDouble() ?? 0,
+          };
+        }
+      }
+
+      rows.add({
+        'user_id': userId,
+        'user_name': user['name'] as String? ?? 'Unknown',
+        'role': user['role'] as String? ?? '',
+        'branch_name': branch?['name'] as String?,
+        'total_score': (agg['total_score'] as num?)?.toDouble() ?? 0,
+        'lead_score': (agg['lead_score'] as num?)?.toDouble() ?? 0,
+        'lag_score': (agg['lag_score'] as num?)?.toDouble() ?? 0,
+        'rank': agg['rank'] as int?,
+        'measure_cells': measureCells,
+      });
+    }
+
+    // Sort by rank (nulls last), then by total_score descending
+    rows.sort((a, b) {
+      final rankA = a['rank'] as int? ?? 9999;
+      final rankB = b['rank'] as int? ?? 9999;
+      if (rankA != rankB) return rankA.compareTo(rankB);
+      return ((b['total_score'] as double) - (a['total_score'] as double))
+          .sign
+          .toInt();
+    });
+
+    return rows;
+  }
+
+  // ============================================
   // MAPPERS
   // ============================================
 
