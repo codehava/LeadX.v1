@@ -148,12 +148,56 @@ serve(async (req) => {
       }
     }
 
+    // Step 1: Deactivate expired measures (BEFORE ranking, per pitfall #6 in research)
+    // This ensures consistent scores before ranking computation
+    let measuresDeactivated = 0;
+    console.log("Checking for expired measures...");
+    const { data: deactivated, error: deactivateError } = await supabase.rpc(
+      "deactivate_expired_measures"
+    );
+    if (deactivateError) {
+      console.error("Measure deactivation failed:", deactivateError);
+      // Non-fatal -- continue with ranking
+    } else if (deactivated > 0) {
+      measuresDeactivated = deactivated;
+      console.log(`Deactivated ${deactivated} expired measures`);
+    }
+
+    // Step 2: Calculate rankings (AFTER all dirty users processed, per pitfall #1)
+    // Only if at least one user was successfully recalculated
+    let rankingUpdated = false;
+    if (successCount > 0) {
+      console.log("Calculating rankings...");
+      const { error: rankError } = await supabase.rpc(
+        "calculate_rankings",
+        { p_period_id: periodId }
+      );
+      if (rankError) {
+        console.error("Ranking calculation failed:", rankError);
+        // Log to system_errors but don't fail the entire response
+        try {
+          await supabase.from("system_errors").insert({
+            error_type: "CRON_RANKING_FAILED",
+            error_message: `Ranking calculation failed: ${rankError.message}`,
+            created_at: new Date().toISOString(),
+          });
+        } catch (logError) {
+          console.error("Failed to log ranking error:", logError);
+        }
+      } else {
+        rankingUpdated = true;
+        console.log("Rankings updated for period:", periodId);
+      }
+    }
+
     const summary = {
       message: "Score aggregation complete",
       total: dirtyUsers.length,
       success: successCount,
       errors: errorCount,
       periodId,
+      rankingUpdated,
+      measuresDeactivated,
     };
 
     console.log("Cron job summary:", summary);
