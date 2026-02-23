@@ -9,6 +9,7 @@ import '../../providers/auth_providers.dart';
 import '../../providers/sync_providers.dart';
 import '../../providers/team_target_providers.dart';
 import '../../screens/home/widgets/home_drawer.dart';
+import '../common/offline_banner.dart';
 import '../common/sync_status_badge.dart';
 import '../sync/sync_progress_sheet.dart';
 import '../layout/responsive_layout.dart';
@@ -116,7 +117,12 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     return Scaffold(
       appBar: _buildAppBar(context),
       drawer: _buildDrawer(context),
-      body: widget.child,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: widget.child),
+        ],
+      ),
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
@@ -129,7 +135,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
         children: [
           _buildNavigationRail(context),
           const VerticalDivider(width: 1),
-          Expanded(child: widget.child),
+          Expanded(
+            child: Column(
+              children: [
+                const OfflineBanner(),
+                Expanded(child: widget.child),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -146,6 +159,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             child: Column(
               children: [
                 _buildDesktopTopBar(context),
+                const OfflineBanner(),
                 Expanded(child: widget.child),
               ],
             ),

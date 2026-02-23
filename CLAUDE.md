@@ -52,7 +52,7 @@ lib/
 │   └── routes/                  # GoRouter configuration
 ├── core/
 │   ├── constants/               # App and API constants
-│   ├── errors/                  # Failures and exceptions
+│   ├── errors/                  # Failures, exceptions, Result type, exception mapper, sync errors
 │   └── theme/                   # AppTheme, AppColors, AppTypography
 ├── data/
 │   ├── database/                # Drift (SQLite) database and tables
@@ -79,7 +79,7 @@ All data operations follow this pattern:
 3. **Trigger background sync** - uploads when online
 4. **UI reads from local database only** - via Riverpod streams
 
-The `SyncService` processes the queue FIFO, handling retries and conflict resolution.
+The `SyncService` processes the queue with coalescing (create+update merges into single create) and debounced triggers (500ms window batches rapid writes). Queue operations are wrapped in Drift transactions with the local DB write for atomicity.
 
 ### Key Technologies
 
@@ -91,6 +91,8 @@ The `SyncService` processes the queue FIFO, handling retries and conflict resolu
 | Backend | Supabase (PostgreSQL, Auth, Realtime) |
 | Models | Freezed (immutable) + JSON serializable |
 | Authentication | Supabase GoTrue with JWT |
+| Crash Reporting | Sentry (optional, disabled if SENTRY_DSN empty) |
+| Logging | Talker with module prefixes (e.g., `sync.queue \| message`) |
 
 ### Database Schema
 
@@ -169,9 +171,10 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
 1. **Repository pattern**: All data access goes through repositories (interfaces in `domain/`, implementations in `data/`)
 2. **Entity-DTO separation**: Domain entities (Freezed) are separate from database/API models
 3. **Soft deletes**: Use `deleted_at` timestamp, never hard delete business data
-4. **Sync status**: All syncable entities have `is_pending_sync` and `last_sync_at` columns
-5. **Functional error handling**: Use `Either<Failure, T>` from dartz for operations that can fail
-6. **Reactive UI with StreamProviders**: UI auto-updates via Drift streams - NO manual invalidation needed for Drift-backed data.
+4. **Sync status**: All syncable entities have `isPendingSync`, `lastSyncAt`, and `updatedAt` columns (standardized in Phase 1)
+5. **Error handling**: Core repositories (Customer, Pipeline, Activity) use sealed `Result<T>` from `core/errors/result.dart` with `mapException()`/`runCatching()` for typed error classification. Remaining repositories still use `Either<Failure, T>` from dartz. New repository work should use `Result<T>`.
+6. **Timestamp serialization**: Use `.toUtcIso8601()` extension (from `core/utils/date_time_extensions.dart`) for all sync payload timestamps. Date-only fields use `.toIso8601String().substring(0, 10)` to prevent UTC date-shift.
+7. **Reactive UI with StreamProviders**: UI auto-updates via Drift streams - NO manual invalidation needed for Drift-backed data.
 
    **How it works:**
    - All list/detail providers use `StreamProvider` with repository `watch*()` methods
@@ -192,6 +195,9 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
    - For list providers: Use `StreamProvider` + `repository.watchAll*()`
    - For detail providers: Use `StreamProvider.family` + `repository.watch*ById(id)`
    - Ensure the full chain exists: Provider → Repository (interface + impl) → LocalDataSource → Drift `.watch()`
+8. **Offline-aware screens**: Use `OfflineBanner` widget at the top of screen bodies to show "Offline - data may be stale" when disconnected. Use `AppErrorState` (not raw `Text('Error: $error')`) for error callbacks in `AsyncValue.when()`.
+9. **Dropdown fields**: Use `SearchableDropdown` with modal bottom sheet pattern for all selection fields — not `AutocompleteField`.
+10. **Logging**: Use `AppLogger` (Talker wrapper) with module prefixes (`sync.queue`, `sync.push`, `sync.pull`) — not `debugPrint`.
 
 ## Data Layer Conventions
 

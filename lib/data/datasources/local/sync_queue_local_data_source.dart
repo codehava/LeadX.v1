@@ -162,6 +162,14 @@ class SyncQueueLocalDataSource {
     return query.get();
   }
 
+  /// Watch all sync queue items. Used by batch status provider to build
+  /// a per-entity status map without N+1 queries.
+  Stream<List<SyncQueueItem>> watchAllItems() {
+    return (_db.select(_db.syncQueueItems)
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .watch();
+  }
+
   /// Reset retry count and status for an item (to retry dead letter/failed items).
   /// Also resets status back to 'pending' so getRetryableItems() picks it up.
   /// Note: The entity's isPendingSync flag does NOT need to be set here because

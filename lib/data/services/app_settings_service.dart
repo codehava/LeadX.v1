@@ -156,6 +156,22 @@ class AppSettingsService {
     await set('$_keyTableSyncPrefix$tableName', timestamp.toUtcIso8601());
   }
 
+  /// Get the most recent sync timestamp across ALL synced tables.
+  /// Returns null if no tables have been synced.
+  Future<DateTime?> getGlobalLastSyncAt() async {
+    final settings = await _db.select(_db.appSettings).get();
+    DateTime? latest;
+    for (final setting in settings) {
+      if (setting.key.startsWith(_keyTableSyncPrefix)) {
+        final dt = DateTime.tryParse(setting.value);
+        if (dt != null && (latest == null || dt.isAfter(latest))) {
+          latest = dt;
+        }
+      }
+    }
+    return latest;
+  }
+
   /// Clear the sync timestamp for a specific table (forces full re-sync).
   Future<void> clearTableSyncAt(String tableName) async {
     await delete('$_keyTableSyncPrefix$tableName');

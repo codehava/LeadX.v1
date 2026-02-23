@@ -10,7 +10,6 @@ import '../../../widgets/common/app_search_field.dart';
 import '../../../widgets/common/empty_state.dart';
 import '../../../widgets/common/error_state.dart';
 import '../../../widgets/common/loading_indicator.dart';
-import '../../../widgets/common/offline_banner.dart';
 
 /// Customers tab showing customer list with search and filter.
 /// Uses lazy loading with pagination for better performance.
@@ -83,12 +82,7 @@ class _CustomersTabState extends ConsumerState<CustomersTab> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const OfflineBanner(),
-          Expanded(child: _buildCustomerList()),
-        ],
-      ),
+      body: _buildCustomerList(),
       floatingActionButton: FloatingActionButton(
         heroTag: 'customers_tab_fab',
         onPressed: () => context.push(RoutePaths.customerCreate),

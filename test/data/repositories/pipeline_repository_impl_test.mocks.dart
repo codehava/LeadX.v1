@@ -571,6 +571,15 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i6.Future<void>);
 
   @override
+  _i6.Future<void> softDeleteByCustomerId(String? customerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#softDeleteByCustomerId, [customerId]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
   _i6.Future<int> hardDeletePipeline(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hardDeletePipeline, [id]),
@@ -1542,6 +1551,15 @@ class MockSyncService extends _i1.Mock implements _i14.SyncService {
             ),
           )
           as _i6.Future<_i2.SyncResult>);
+
+  @override
+  _i6.Future<void> discardDeadLetterItem(_i4.SyncQueueItem? item) =>
+      (super.noSuchMethod(
+            Invocation.method(#discardDeadLetterItem, [item]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i2.SyncResult> triggerSync() =>

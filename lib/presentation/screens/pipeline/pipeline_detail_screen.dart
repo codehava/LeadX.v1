@@ -6,7 +6,6 @@ import '../../../domain/entities/pipeline.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
-import '../../widgets/common/offline_banner.dart';
 import 'pipeline_stage_update_sheet.dart';
 import 'pipeline_status_update_sheet.dart';
 
@@ -80,20 +79,14 @@ class PipelineDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const OfflineBanner(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Stage Badge
-                  _buildStageCard(pipeline, theme),
-            
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Stage Badge
+            _buildStageCard(pipeline, theme),
             const SizedBox(height: 24),
-            
             // Product Info
             _InfoSection(
               title: 'Informasi Produk',
@@ -106,9 +99,7 @@ class PipelineDetailScreen extends ConsumerWidget {
                   _InfoRow(label: 'Broker', value: pipeline.brokerName!),
               ],
             ),
-            
             const SizedBox(height: 24),
-            
             // Financial Info
             _InfoSection(
               title: 'Informasi Finansial',
@@ -121,9 +112,7 @@ class PipelineDetailScreen extends ConsumerWidget {
                   _InfoRow(label: 'Final Premi', value: pipeline.formattedFinalPremium),
               ],
             ),
-            
             const SizedBox(height: 24),
-            
             // Status & Dates
             _InfoSection(
               title: 'Status & Tanggal',
@@ -146,7 +135,6 @@ class PipelineDetailScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            
             if (pipeline.policyNumber != null) ...[
               const SizedBox(height: 24),
               _InfoSection(
@@ -156,7 +144,6 @@ class PipelineDetailScreen extends ConsumerWidget {
                 ],
               ),
             ],
-            
             if (pipeline.declineReason != null) ...[
               const SizedBox(height: 24),
               _InfoSection(
@@ -166,7 +153,6 @@ class PipelineDetailScreen extends ConsumerWidget {
                 ],
               ),
             ],
-            
             if (pipeline.notes != null) ...[
               const SizedBox(height: 24),
               _InfoSection(
@@ -176,9 +162,7 @@ class PipelineDetailScreen extends ConsumerWidget {
                 ],
               ),
             ],
-            
             const SizedBox(height: 24),
-            
             // Metadata
             _InfoSection(
               title: 'Informasi Lainnya',
@@ -189,11 +173,8 @@ class PipelineDetailScreen extends ConsumerWidget {
                 _InfoRow(label: 'Diupdate', value: _formatDateTime(pipeline.updatedAt)),
               ],
             ),
-              ],
-            ),
-          ),
-          ),
-        ],
+          ],
+        ),
       ),
       // Quick action buttons
       bottomNavigationBar: _buildQuickActions(context, pipeline, theme),

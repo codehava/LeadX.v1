@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/activity.dart';
+import '../../providers/sync_providers.dart';
+import '../common/sync_status_badge.dart';
 
 /// Card widget for displaying activity information in lists.
-class ActivityCard extends StatelessWidget {
+class ActivityCard extends ConsumerWidget {
   const ActivityCard({
     super.key,
     required this.activity,
@@ -21,7 +25,7 @@ class ActivityCard extends StatelessWidget {
   final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Card(
@@ -46,7 +50,7 @@ class ActivityCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(theme),
+              _buildHeader(context, ref, theme),
               if (!compact) const SizedBox(height: 8),
               _buildContent(theme),
               if (activity.canExecute && onExecute != null && !compact)
@@ -58,7 +62,7 @@ class ActivityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, ThemeData theme) {
     return Row(
       children: [
         // Activity type icon
@@ -113,6 +117,9 @@ class ActivityCard extends StatelessWidget {
             ],
           ),
         ),
+        // Sync status badge
+        _buildSyncBadge(context, ref, activity.id, activity.isPendingSync),
+        const SizedBox(width: 8),
         // Status badge
         _buildStatusBadge(theme),
       ],
@@ -136,13 +143,6 @@ class ActivityCard extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        // Sync indicator
-        if (activity.isPendingSync)
-          Icon(
-            Icons.sync,
-            size: 16,
-            color: theme.colorScheme.outline,
-          ),
         // GPS indicator
         if (activity.hasValidGps) ...[
           const SizedBox(width: 8),
@@ -171,6 +171,39 @@ class ActivityCard extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  Widget _buildSyncBadge(BuildContext context, WidgetRef ref, String entityId, bool isPendingSync) {
+    final statusMap = ref.watch(syncQueueEntityStatusMapProvider);
+    final queueStatus = statusMap.valueOrNull?[entityId];
+
+    if (queueStatus == null) {
+      if (isPendingSync) {
+        return const SyncStatusBadge(status: SyncStatus.pending);
+      }
+      return const SizedBox.shrink();
+    }
+
+    final syncStatus = switch (queueStatus) {
+      SyncQueueEntityStatus.pending => SyncStatus.pending,
+      SyncQueueEntityStatus.failed => SyncStatus.failed,
+      SyncQueueEntityStatus.deadLetter => SyncStatus.deadLetter,
+      SyncQueueEntityStatus.none => null,
+    };
+
+    if (syncStatus == null) return const SizedBox.shrink();
+
+    final badge = SyncStatusBadge(status: syncStatus);
+
+    if (queueStatus == SyncQueueEntityStatus.failed ||
+        queueStatus == SyncQueueEntityStatus.deadLetter) {
+      return GestureDetector(
+        onTap: () => context.push('/home/sync-queue?entityId=$entityId'),
+        child: badge,
+      );
+    }
+
+    return badge;
   }
 
   Widget _buildStatusBadge(ThemeData theme) {

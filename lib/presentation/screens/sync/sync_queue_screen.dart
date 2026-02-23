@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/sync_error_translator.dart';
 import '../../../data/database/app_database.dart' as db;
@@ -12,7 +13,11 @@ import '../../providers/sync_providers.dart';
 /// Shows permanently failed sync items with translated Indonesian error messages,
 /// and allows retry/discard actions.
 class SyncQueueScreen extends ConsumerStatefulWidget {
-  const SyncQueueScreen({super.key});
+  const SyncQueueScreen({super.key, this.entityId});
+
+  /// Optional entity ID to filter queue items to a specific entity.
+  /// When set, only shows items matching this entity ID.
+  final String? entityId;
 
   @override
   ConsumerState<SyncQueueScreen> createState() => _SyncQueueScreenState();
@@ -40,8 +45,15 @@ class _SyncQueueScreenState extends ConsumerState<SyncQueueScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sinkronisasi'),
+        title: Text(widget.entityId != null
+            ? 'Sinkronisasi (filtered)'
+            : 'Sinkronisasi'),
         actions: [
+          if (widget.entityId != null)
+            TextButton(
+              onPressed: () => context.push('/home/sync-queue'),
+              child: const Text('Lihat Semua'),
+            ),
           IconButton(
             icon: const Icon(Icons.sync),
             tooltip: 'Sinkronkan Sekarang',
@@ -135,7 +147,14 @@ class _SyncQueueScreenState extends ConsumerState<SyncQueueScreen> {
                   );
                 }
 
-                final items = snapshot.data ?? [];
+                var items = snapshot.data ?? [];
+
+                // Apply entity ID filter if set
+                if (widget.entityId != null) {
+                  items = items
+                      .where((item) => item.entityId == widget.entityId)
+                      .toList();
+                }
 
                 if (items.isEmpty) {
                   return Center(

@@ -148,9 +148,10 @@ abstract class AppColors {
   // ============================================
   // SYNC STATUS COLORS
   // ============================================
-  
-  static const Color syncSynced = Color(0xFF22C55E);   // Green
-  static const Color syncPending = Color(0xFFF59E0B); // Amber
-  static const Color syncFailed = Color(0xFFEF4444);  // Red
-  static const Color syncOffline = Color(0xFF6B7280); // Gray
+
+  static const Color syncSynced = Color(0xFF22C55E);      // Green
+  static const Color syncPending = Color(0xFFF59E0B);    // Amber
+  static const Color syncFailed = Color(0xFFFF8C00);     // Amber/orange -- will retry
+  static const Color syncDeadLetter = Color(0xFFEF4444); // Red -- needs manual action
+  static const Color syncOffline = Color(0xFF6B7280);    // Gray
 }

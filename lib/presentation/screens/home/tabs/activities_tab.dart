@@ -10,7 +10,6 @@ import '../../../providers/broker_providers.dart';
 import '../../../providers/customer_providers.dart';
 import '../../../providers/hvc_providers.dart';
 import '../../../widgets/common/error_state.dart';
-import '../../../widgets/common/offline_banner.dart';
 import '../../activity/activity_execution_sheet.dart';
 
 /// Activities tab showing activity calendar and list.
@@ -39,7 +38,6 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
     return Scaffold(
       body: Column(
         children: [
-          const OfflineBanner(),
           // Month selector
           Container(
             padding: const EdgeInsets.all(16),

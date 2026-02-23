@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/pipeline.dart';
 import '../../providers/pipeline_providers.dart';
+import '../../providers/sync_providers.dart';
 import '../common/app_card.dart';
 import '../common/sync_status_badge.dart';
 
@@ -74,10 +76,8 @@ class CustomerCard extends ConsumerWidget {
                 ),
               ),
               // Sync status badge
-              if (showSyncStatus && customer.isPendingSync)
-                SyncStatusBadge(
-                  status: customer.isPendingSync ? SyncStatus.pending : SyncStatus.synced,
-                ),
+              if (showSyncStatus)
+                _buildSyncBadge(context, ref, customer.id, customer.isPendingSync),
             ],
           ),
           const SizedBox(height: 12),
@@ -174,6 +174,39 @@ class CustomerCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildSyncBadge(BuildContext context, WidgetRef ref, String entityId, bool isPendingSync) {
+    final statusMap = ref.watch(syncQueueEntityStatusMapProvider);
+    final queueStatus = statusMap.valueOrNull?[entityId];
+
+    if (queueStatus == null) {
+      if (isPendingSync) {
+        return const SyncStatusBadge(status: SyncStatus.pending);
+      }
+      return const SizedBox.shrink();
+    }
+
+    final syncStatus = switch (queueStatus) {
+      SyncQueueEntityStatus.pending => SyncStatus.pending,
+      SyncQueueEntityStatus.failed => SyncStatus.failed,
+      SyncQueueEntityStatus.deadLetter => SyncStatus.deadLetter,
+      SyncQueueEntityStatus.none => null,
+    };
+
+    if (syncStatus == null) return const SizedBox.shrink();
+
+    final badge = SyncStatusBadge(status: syncStatus);
+
+    if (queueStatus == SyncQueueEntityStatus.failed ||
+        queueStatus == SyncQueueEntityStatus.deadLetter) {
+      return GestureDetector(
+        onTap: () => context.push('/home/sync-queue?entityId=$entityId'),
+        child: badge,
+      );
+    }
+
+    return badge;
   }
 
   Widget _buildPipelineStagesSection(BuildContext context, List<_StageGroup> stageGroups) {

@@ -110,13 +110,46 @@ final deadLetterCountProvider = StreamProvider<int>((ref) {
 });
 
 /// Provider for the last sync timestamp.
-/// Uses customer sync timestamp as a proxy for overall last sync time
-/// since customers are always pulled during sync.
+/// Uses the maximum timestamp across ALL synced tables for accurate global staleness.
 final lastSyncTimestampProvider = FutureProvider<DateTime?>((ref) async {
   // Re-evaluate whenever sync state changes
   ref.watch(syncNotifierProvider);
   final appSettings = ref.watch(appSettingsServiceProvider);
-  return appSettings.getTableLastSyncAt('customers');
+  return appSettings.getGlobalLastSyncAt();
+});
+
+/// Per-entity sync queue status for card badge display.
+/// Index order matters -- higher index = worse status (used for priority).
+enum SyncQueueEntityStatus {
+  none,       // No queue entry (synced)
+  pending,    // status == 'pending'
+  failed,     // status == 'failed' (retryCount < 5)
+  deadLetter, // status == 'dead_letter' (retryCount >= 5)
+}
+
+/// Batch provider for per-entity sync queue status.
+/// Watches the entire sync queue table (typically 0-50 items) and produces
+/// a Map<String, SyncQueueEntityStatus> keyed by entityId.
+/// Cards do O(1) lookups instead of N individual queries.
+final syncQueueEntityStatusMapProvider =
+    StreamProvider<Map<String, SyncQueueEntityStatus>>((ref) {
+  final syncQueueDataSource = ref.watch(syncQueueDataSourceProvider);
+  return syncQueueDataSource.watchAllItems().map((items) {
+    final map = <String, SyncQueueEntityStatus>{};
+    for (final item in items) {
+      final status = switch (item.status) {
+        'dead_letter' => SyncQueueEntityStatus.deadLetter,
+        'failed' => SyncQueueEntityStatus.failed,
+        _ => SyncQueueEntityStatus.pending,
+      };
+      // Keep the worst status per entity (deadLetter > failed > pending)
+      final existing = map[item.entityId];
+      if (existing == null || status.index > existing.index) {
+        map[item.entityId] = status;
+      }
+    }
+    return map;
+  });
 });
 
 /// Provider for background sync enabled setting.
@@ -518,9 +551,14 @@ final _customerRepositoryProvider = Provider<CustomerRepository>((ref) {
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   final database = ref.watch(databaseProvider);
 
+  final pipelineLocalDataSource = ref.watch(_pipelineLocalDataSourceProvider);
+  final activityLocalDataSource = ref.watch(_activityLocalDataSourceProvider);
+
   return CustomerRepositoryImpl(
     localDataSource: localDataSource,
     keyPersonLocalDataSource: keyPersonLocalDataSource,
+    pipelineLocalDataSource: pipelineLocalDataSource,
+    activityLocalDataSource: activityLocalDataSource,
     remoteDataSource: remoteDataSource,
     keyPersonRemoteDataSource: keyPersonRemoteDataSource,
     syncService: syncService,

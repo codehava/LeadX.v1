@@ -1,14 +1,14 @@
 # Phase 8: Stubbed Feature Completion - Research
 
 **Researched:** 2026-02-19
-**Domain:** Flutter feature completion (share, delete, contact launchers, activity editing, notification settings)
+**Domain:** Flutter feature completion (delete, contact launchers, activity editing, notification settings)
 **Confidence:** HIGH
 
 ## Summary
 
-Phase 8 completes half-implemented features across five areas: customer share/delete actions, phone/email contact launchers, activity editing, and notification settings. All features have existing UI stubs (buttons, menu items, route placeholders) that need wiring to actual functionality.
+Phase 8 completes half-implemented features across four areas: customer delete action, phone/email contact launchers, activity editing, and notification settings. All features have existing UI stubs (buttons, menu items, route placeholders) that need wiring to actual functionality.
 
-The codebase already has the required packages installed (`share_plus: ^10.1.4`, `url_launcher: ^6.3.1`) and the data layer patterns for soft-delete and sync queuing are well-established. The main work involves: (1) wiring existing UI stubs to repository calls, (2) adding cascade soft-delete logic for customer deletion, (3) creating an `ActivityUpdateDto` and `updateActivity` repository method that doesn't exist yet, (4) making phone/email fields tappable across all detail screens, and (5) creating a notification settings screen backed by the existing `NotificationSettings` database table.
+The codebase already has the required packages installed (`url_launcher: ^6.3.1`) and the data layer patterns for soft-delete and sync queuing are well-established. The main work involves: (1) adding cascade soft-delete logic for customer deletion, (2) creating an `ActivityUpdateDto` and `updateActivity` repository method that doesn't exist yet, (3) making phone/email fields tappable across all detail screens, and (4) creating a notification settings screen backed by the existing `NotificationSettings` database table.
 
 **Primary recommendation:** This phase is primarily UI-wiring and completing existing patterns -- no new architectural decisions needed. Follow existing repository/sync patterns exactly. The biggest new work is the activity edit flow (new DTO, repository method, route, and form edit mode) and cascade customer delete.
 
@@ -42,7 +42,6 @@ The codebase already has the required packages installed (`share_plus: ^10.1.4`,
 
 ### Claude's Discretion
 
-- **Share content format**: Decide the share text format for customer data (name, company, phone, email) -- plain text via share_plus, Claude picks the formatting
 - **Activity edit field selection**: Choose which fields are editable vs locked based on business logic and existing form patterns
 - **Delete role permissions**: Decide based on existing user role patterns in the codebase
 - **Notification settings screen layout**: DB schema already has columns (pushEnabled, emailEnabled, activityReminders, pipelineUpdates, referralNotifications, cadenceReminders, systemNotifications, reminderMinutesBefore) -- build placeholder toggle UI that saves to DB even if push notifications aren't wired yet
@@ -50,7 +49,7 @@ The codebase already has the required packages installed (`share_plus: ^10.1.4`,
 ### Deferred Ideas (OUT OF SCOPE)
 
 - **Google Maps location selection for customers** -- New capability allowing users to select customer location via Google Maps API with map picker. Belongs in its own phase.
-- **Share content as vCard** -- If plain text sharing proves insufficient, consider vCard format in a future iteration.
+- **Customer share feature** -- Deferred from this phase.
 </user_constraints>
 
 <phase_requirements>
@@ -58,7 +57,7 @@ The codebase already has the required packages installed (`share_plus: ^10.1.4`,
 
 | ID | Description | Research Support |
 |----|-------------|-----------------|
-| FEAT-01 | Customer detail screen share functionality works (via share_plus) | share_plus ^10.1.4 already in pubspec; uses legacy `Share.share(text, subject:)` API; popup menu stub at line 188 of customer_detail_screen.dart has `// TODO: Implement share` |
+| FEAT-01 | ~~Deferred~~ — Customer share moved out of this phase |  |
 | FEAT-02 | Customer detail screen delete functionality works with confirmation dialog | Delete confirmation dialog UI already built (lines 192-214); `deleteCustomer` method exists in repository with soft-delete+sync queuing; needs cascade soft-delete of key persons, pipelines, activities; needs navigation to customer list |
 | FEAT-03 | Phone call and email launch work from customer detail, HVC detail, and activity detail screens | url_launcher already imported and working in customer detail bottom bar; key person phone buttons have `// TODO: Call`; email buttons are commented out; HVC has no direct phone/email (only key persons); broker has phone/email fields; activity detail PIC needs contact actions |
 | FEAT-04 | Activities can be edited after creation via the activity form screen | ActivityRepository has NO `updateActivity` method for general editing (only execute/reschedule/cancel); needs new `ActivityUpdateDto`, repository method, notifier method; ActivityFormScreen needs `activityId` parameter for edit mode; new route `/home/activities/:id/edit` needed |
@@ -70,7 +69,6 @@ The codebase already has the required packages installed (`share_plus: ^10.1.4`,
 ### Core (Already Installed)
 | Library | Version | Purpose | Status |
 |---------|---------|---------|--------|
-| share_plus | ^10.1.4 | Native share sheet for text/files | In pubspec, NOT imported anywhere yet |
 | url_launcher | ^6.3.1 | Launch phone dialer, email client, URLs | Already imported and used in customer_detail_screen.dart and activity_detail_screen.dart |
 | drift | ^2.22.1 | Local SQLite database with reactive streams | Core DB layer, all CRUD operations |
 | flutter_riverpod | ^2.6.1 | State management with providers | Standard state management |
@@ -95,34 +93,14 @@ lib/
     ├── providers/           # Riverpod providers (add updateActivity to notifier)
     ├── screens/
     │   ├── activity/        # ActivityFormScreen (add edit mode)
-    │   ├── customer/        # CustomerDetailScreen (wire share + delete)
+    │   ├── customer/        # CustomerDetailScreen (wire delete)
     │   ├── hvc/             # HvcDetailScreen (wire contact actions)
     │   ├── broker/          # BrokerDetailScreen (wire contact actions)
     │   └── profile/         # Add NotificationSettingsScreen
     └── widgets/             # Reusable widgets (add tappable contact fields)
 ```
 
-### Pattern 1: Share Customer Data
-**What:** Wire the existing share menu item to launch native share sheet
-**When to use:** Customer detail screen "Bagikan" menu action
-**API (share_plus ^10.x):** Uses legacy `Share.share()` static method (new `SharePlus.instance.share(ShareParams)` API introduced in v11.0.0, but project uses ^10.1.4)
-
-```dart
-import 'package:share_plus/share_plus.dart';
-
-// In _handleMenuAction:
-case 'share':
-  final shareText = '${customer.name}\n'
-      '${customer.address}\n'
-      '${customer.phone != null ? 'Tel: ${customer.phone}\n' : ''}'
-      '${customer.email != null ? 'Email: ${customer.email}\n' : ''}';
-  await Share.share(
-    shareText,
-    subject: customer.name,
-  );
-```
-
-### Pattern 2: Cascade Customer Soft-Delete
+### Pattern 1: Cascade Customer Soft-Delete
 **What:** Soft-delete customer + all related key persons, pipelines, and activities in a single Drift transaction
 **When to use:** Customer delete action
 **Key insight:** The existing `deleteCustomer` in `customer_repository_impl.dart` only soft-deletes the customer record itself. Need to add cascade logic inside the transaction.
@@ -206,13 +184,10 @@ Future<Result<Activity>> updateActivity(String id, ActivityUpdateDto dto);
 - **Don't use `ref.invalidate()` for Drift-backed providers** -- Drift streams auto-update. Only invalidate lookup caches.
 - **Don't navigate with `context.pop()` for multi-screen pops** -- Use `context.go('/home/customers')` to navigate to customer list after delete (not `context.pop()` which only goes back one screen).
 - **Don't create separate screens for each contact action** -- Use inline `url_launcher` calls, not navigation.
-- **Don't duplicate share_plus import pattern** -- The project uses `^10.1.4` which uses the legacy `Share.share()` API, NOT the newer `SharePlus.instance.share(ShareParams)` from v11+.
-
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Native sharing | Custom share implementation | `Share.share()` from share_plus | Platform-specific share sheets handled automatically |
 | Phone/email launching | Custom intent handling | `launchUrl(Uri.parse('tel:...'))` from url_launcher | Platform-specific URL scheme handling |
 | Reactive form state | Manual state management | Existing `ActivityFormNotifier` pattern | Consistent with codebase conventions |
 | DB toggle persistence | SharedPreferences for settings | Drift `NotificationSettings` table | Already exists, type-safe, reactive |
@@ -221,13 +196,7 @@ Future<Result<Activity>> updateActivity(String id, ActivityUpdateDto dto);
 
 ## Common Pitfalls
 
-### Pitfall 1: share_plus API Version Mismatch
-**What goes wrong:** Using `SharePlus.instance.share(ShareParams(...))` from v11+ docs when project has `^10.1.4`
-**Why it happens:** Most online docs and Context7 show the newer API
-**How to avoid:** Use `Share.share(text, subject: subject)` -- the legacy static method that works with v10.x
-**Warning signs:** Compilation error "SharePlus not found" or "ShareParams not found"
-
-### Pitfall 2: Customer Delete Navigation
+### Pitfall 1: Customer Delete Navigation
 **What goes wrong:** Using `context.pop()` after delete only goes back one screen (e.g., to edit screen if user came from there)
 **Why it happens:** Pop-based navigation doesn't guarantee reaching the customer list
 **How to avoid:** Use `context.go('/home/customers')` to navigate directly to the customer list
@@ -259,23 +228,7 @@ Future<Result<Activity>> updateActivity(String id, ActivityUpdateDto dto);
 
 ## Code Examples
 
-### Example 1: Customer Share Implementation
-```dart
-// In customer_detail_screen.dart _handleMenuAction:
-case 'share':
-  final lines = <String>[customer.name];
-  if (customer.address.isNotEmpty) lines.add(customer.address);
-  if (customer.phone != null) lines.add('Tel: ${customer.phone}');
-  if (customer.email != null) lines.add('Email: ${customer.email}');
-  if (customer.website != null) lines.add('Web: ${customer.website}');
-  await Share.share(
-    lines.join('\n'),
-    subject: 'Customer: ${customer.name}',
-  );
-  break;
-```
-
-### Example 2: Cascade Customer Delete (Repository)
+### Example 1: Cascade Customer Delete (Repository)
 ```dart
 // In customer_repository_impl.dart:
 @override
@@ -358,19 +311,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
 
 ## Detailed Findings by Feature
 
-### FEAT-01: Customer Share
+### FEAT-01: Customer Share — DEFERRED
 
-**Current state:**
-- `share_plus: ^10.1.4` in pubspec.yaml but NOT imported anywhere
-- Popup menu in `customer_detail_screen.dart` line 188 has `case 'share': // TODO: Implement share`
-- `break` statement exists, just needs implementation
-
-**Work needed:**
-1. Import `share_plus/share_plus.dart` in customer_detail_screen.dart
-2. Build share text from customer fields
-3. Call `Share.share(text, subject: name)`
-
-**API note:** Project uses ^10.1.4 which has legacy `Share.share()` API. Do NOT use `SharePlus.instance.share(ShareParams)` which is v11+.
+Moved out of this phase scope.
 
 ### FEAT-02: Customer Delete with Cascade
 
@@ -504,12 +447,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| `Share.share()` static method | `SharePlus.instance.share(ShareParams)` | share_plus v11.0.0 | Project uses ^10.1.4, stick with legacy API |
 | `url_launcher.launch()` | `launchUrl(Uri.parse(...))` | url_launcher v6.0 | Project already uses new API correctly |
 
 **Deprecated/outdated:**
-- `Share.shareFiles()` -- deprecated in favor of `Share.shareXFiles()` in v7+, but not relevant since we only share text
-
 ## Open Questions
 
 1. **Backend cascade delete behavior**
@@ -537,8 +477,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
 - Codebase analysis: pubspec.yaml (dependency versions)
 
 ### Secondary (MEDIUM confidence)
-- [share_plus pub.dev](https://pub.dev/packages/share_plus) - Verified v10.x uses legacy `Share.share()` API; v11.0.0 introduced `SharePlus.instance.share(ShareParams)`
-- [share_plus changelog](https://pub.dev/packages/share_plus/changelog) - Confirmed breaking change in v11.0.0
+- None
 
 ### Tertiary (LOW confidence)
 - None

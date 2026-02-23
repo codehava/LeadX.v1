@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/broker.dart';
+import '../../providers/sync_providers.dart';
 import '../common/sync_status_badge.dart';
 
 /// Card widget for displaying broker information in lists.
-class BrokerCard extends StatelessWidget {
+class BrokerCard extends ConsumerWidget {
   const BrokerCard({
     super.key,
     required this.broker,
@@ -18,7 +21,7 @@ class BrokerCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Card(
@@ -66,11 +69,7 @@ class BrokerCard extends StatelessWidget {
                     ),
                   ),
                   // Sync status
-                  SyncStatusBadge(
-                    status: broker.isPendingSync
-                        ? SyncStatus.pending
-                        : SyncStatus.synced,
-                  ),
+                  _buildSyncBadge(context, ref, broker.id, broker.isPendingSync),
                 ],
               ),
               const SizedBox(height: 12),
@@ -113,6 +112,39 @@ class BrokerCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildSyncBadge(BuildContext context, WidgetRef ref, String entityId, bool isPendingSync) {
+    final statusMap = ref.watch(syncQueueEntityStatusMapProvider);
+    final queueStatus = statusMap.valueOrNull?[entityId];
+
+    if (queueStatus == null) {
+      if (isPendingSync) {
+        return const SyncStatusBadge(status: SyncStatus.pending);
+      }
+      return const SizedBox.shrink();
+    }
+
+    final syncStatus = switch (queueStatus) {
+      SyncQueueEntityStatus.pending => SyncStatus.pending,
+      SyncQueueEntityStatus.failed => SyncStatus.failed,
+      SyncQueueEntityStatus.deadLetter => SyncStatus.deadLetter,
+      SyncQueueEntityStatus.none => null,
+    };
+
+    if (syncStatus == null) return const SizedBox.shrink();
+
+    final badge = SyncStatusBadge(status: syncStatus);
+
+    if (queueStatus == SyncQueueEntityStatus.failed ||
+        queueStatus == SyncQueueEntityStatus.deadLetter) {
+      return GestureDetector(
+        onTap: () => context.push('/home/sync-queue?entityId=$entityId'),
+        child: badge,
+      );
+    }
+
+    return badge;
   }
 }
 

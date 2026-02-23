@@ -20,7 +20,7 @@ class SyncStatusBadge extends StatelessWidget {
       SyncStatus.pending => (AppColors.syncPending, 'Pending', Icons.cloud_upload),
       SyncStatus.failed => (AppColors.syncFailed, 'Failed', Icons.cloud_off),
       SyncStatus.offline => (AppColors.syncOffline, 'Offline', Icons.cloud_outlined),
-      SyncStatus.deadLetter => (Colors.orange, 'Gagal', Icons.warning_amber),
+      SyncStatus.deadLetter => (AppColors.syncDeadLetter, 'Gagal', Icons.warning_amber),
     };
 
     if (showLabel) {

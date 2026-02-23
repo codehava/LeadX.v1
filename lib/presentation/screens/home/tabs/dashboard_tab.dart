@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/format_last_sync.dart';
 import '../../../../domain/entities/activity.dart';
 import '../../../providers/activity_providers.dart';
 import '../../../providers/pipeline_providers.dart';
 import '../../../providers/scoreboard_providers.dart';
+import '../../../providers/sync_providers.dart';
 import '../widgets/stat_card.dart';
 
 /// Dashboard tab showing today's summary and activities.
@@ -43,6 +45,9 @@ class DashboardTab extends ConsumerWidget {
     final pipelinesAsync = ref.watch(pipelineListStreamProvider);
     final dashboardStatsAsync = ref.watch(dashboardStatsProvider);
 
+    // Watch last sync timestamp for staleness display
+    final lastSyncAsync = ref.watch(lastSyncTimestampProvider);
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(todayActivitiesProvider);
@@ -68,6 +73,40 @@ class DashboardTab extends ConsumerWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Last synced timestamp with staleness warning
+                  lastSyncAsync.when(
+                    data: (lastSync) {
+                      final text = formatLastSync(lastSync);
+                      final isStale = lastSync != null &&
+                          DateTime.now().difference(lastSync) >
+                              const Duration(hours: 1);
+
+                      return Row(
+                        children: [
+                          Icon(
+                            Icons.sync,
+                            size: 14,
+                            color: isStale
+                                ? Colors.orange.shade700
+                                : theme.colorScheme.outline,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            text,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 12,
+                              color: isStale
+                                  ? Colors.orange.shade700
+                                  : theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
                   ),
                 ],
               ),

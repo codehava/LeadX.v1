@@ -604,6 +604,15 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i5.Future<void>);
 
   @override
+  _i5.Future<void> softDeleteByCustomerId(String? customerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#softDeleteByCustomerId, [customerId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<int> hardDeletePipeline(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#hardDeletePipeline, [id]),

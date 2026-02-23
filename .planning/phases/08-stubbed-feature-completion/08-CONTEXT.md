@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Complete half-implemented features: customer share/delete actions, phone/email contact launchers across all entity screens, activity editing with pre-filled form, and notification settings placeholder screen. All features have existing UI stubs (buttons, menu items, route placeholders) that need wiring to actual functionality.
+Complete half-implemented features: customer delete action, phone/email contact launchers across all entity screens, activity editing with pre-filled form, and notification settings placeholder screen. All features have existing UI stubs (buttons, menu items, route placeholders) that need wiring to actual functionality.
 
 </domain>
 
@@ -37,7 +37,6 @@ Complete half-implemented features: customer share/delete actions, phone/email c
 - **Consistent pattern**: Every phone number and email address displayed anywhere in the app should be tappable — apply uniformly across customer, HVC, activity, and broker screens
 
 ### Claude's Discretion
-- **Share content format**: Decide the share text format for customer data (name, company, phone, email) — plain text via share_plus, Claude picks the formatting
 - **Activity edit field selection**: Choose which fields are editable vs locked based on business logic and existing form patterns
 - **Delete role permissions**: Decide based on existing user role patterns in the codebase
 - **Notification settings screen layout**: DB schema already has columns (pushEnabled, emailEnabled, activityReminders, pipelineUpdates, referralNotifications, cadenceReminders, systemNotifications, reminderMinutesBefore) — build placeholder toggle UI that saves to DB even if push notifications aren't wired yet
@@ -60,7 +59,7 @@ Complete half-implemented features: customer share/delete actions, phone/email c
 ## Deferred Ideas
 
 - **Google Maps location selection for customers** — New capability allowing users to select customer location via Google Maps API with map picker. Belongs in its own phase (location/maps feature).
-- **Share content as vCard** — If plain text sharing proves insufficient, consider vCard format in a future iteration.
+- **Customer share feature** — Deferred from this phase. Implement share sheet for customer data via share_plus in a future iteration.
 
 </deferred>
 
