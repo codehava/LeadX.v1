@@ -50,6 +50,13 @@ abstract class AdminUserRepository {
   /// Sets [isActive] to true.
   Future<Result<void>> activateUser(String userId);
 
+  /// Delete a user and reassign all business data to [newRmId].
+  ///
+  /// Online-only operation via Edge Function. Performs cascade:
+  /// reassign subordinates, transfer customers/pipelines/activities/HVCs/
+  /// brokers/referrals, soft-delete user, ban auth account.
+  Future<Result<void>> deleteUser(String userId, String newRmId);
+
   // ============================================
   // PASSWORD OPERATIONS
   // ============================================

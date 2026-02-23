@@ -14,13 +14,20 @@ class AdminUserRemoteDataSource {
   // ============================================
 
   /// Fetch all users from Supabase.
+  ///
+  /// By default filters out inactive and soft-deleted users.
   Future<List<Map<String, dynamic>>> fetchAllUsers({
     bool includeInactive = false,
+    bool includeDeleted = false,
   }) async {
     var query = _client.from('users').select();
 
     if (!includeInactive) {
       query = query.eq('is_active', true);
+    }
+
+    if (!includeDeleted) {
+      query = query.isFilter('deleted_at', null);
     }
 
     final result = await query.order('name');
@@ -174,6 +181,29 @@ class AdminUserRemoteDataSource {
     }
 
     return response.data['temporaryPassword'] as String;
+  }
+
+  // ============================================
+  // DELETE USER
+  // ============================================
+
+  /// Delete a user and reassign their data to a new RM.
+  ///
+  /// Uses Edge Function for server-side cascade deletion:
+  /// reassign subordinates, transfer business data, soft-delete, ban auth.
+  Future<void> deleteUser(String userId, String newRmId) async {
+    final response = await _client.functions.invoke(
+      'admin-delete-user',
+      body: {
+        'userId': userId,
+        'newRmId': newRmId,
+      },
+    );
+
+    if (response.status != 200) {
+      final error = response.data['error'] ?? 'Unknown error';
+      throw Exception('Failed to delete user: $error');
+    }
   }
 
   // ============================================

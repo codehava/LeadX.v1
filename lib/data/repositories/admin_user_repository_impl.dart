@@ -130,6 +130,14 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
       await _remoteDataSource.activateUser(userId);
   }, context: 'activateUser');
 
+  @override
+  Future<Result<void>> deleteUser(
+    String userId,
+    String newRmId,
+  ) => runCatching(() async {
+      await _remoteDataSource.deleteUser(userId, newRmId);
+  }, context: 'deleteUser');
+
   // ============================================
   // PASSWORD OPERATIONS
   // ============================================
@@ -187,6 +195,9 @@ class AdminUserRepositoryImpl implements AdminUserRepository {
       isActive: data['is_active'] as bool? ?? true,
       lastLoginAt: data['last_login_at'] != null
           ? DateTime.parse(data['last_login_at'] as String)
+          : null,
+      deletedAt: data['deleted_at'] != null
+          ? DateTime.parse(data['deleted_at'] as String)
           : null,
       createdAt: DateTime.parse(data['created_at'] as String),
       updatedAt: DateTime.parse(data['updated_at'] as String),

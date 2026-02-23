@@ -158,6 +158,20 @@ class AdminUserNotifier extends _$AdminUserNotifier {
     }
   }
 
+  /// Delete a user and reassign all business data to a new RM.
+  /// Throws exception on failure.
+  Future<void> deleteUser(String userId, String newRmId) async {
+    final repository = ref.read(adminUserRepositoryProvider);
+    final result = await repository.deleteUser(userId, newRmId);
+
+    switch (result) {
+      case Success():
+        ref.invalidate(allUsersProvider);
+      case ResultFailure(:final failure):
+        throw Exception(failure.message);
+    }
+  }
+
   /// Generate a new temporary password for a user.
   /// Throws exception on failure.
   Future<String> generateTemporaryPassword(String userId) async {
