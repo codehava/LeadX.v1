@@ -228,11 +228,12 @@ Plans:
   3. Team ranking calculation runs after score updates and populates rank/rankChange fields based on composite score comparison within team
   4. Manager viewing team scoreboard sees team members sorted by rank with correct rank values (1, 2, 3) and rank change indicators (up/down/same)
   5. Score aggregation handles missing LEAD or LAG scores gracefully (uses 0 or null appropriately instead of crashing)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md -- Server-side ranking SQL functions + cron update + RLS verification (SCORE-01, SCORE-02)
+- [ ] 10-02-PLAN.md -- Client-side data layer fixes: rankChange reading, snapshot_at bug, role filter, score pending indicator (SCORE-01, SCORE-02)
+- [ ] 10-03-PLAN.md -- Scoring summary grid screen for admins/managers (SCORE-01, SCORE-02)
 
 ## Progress
 
@@ -252,8 +253,8 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 3 → 3.1 → 4 → 5 → 6
 | 7. Offline UX Polish | 0/TBD | Not started | - |
 | 8. Stubbed Feature Completion | 0/TBD | Not started | - |
 | 9. Admin & Dashboard Features | 0/2 | Planning complete | - |
-| 10. Scoring Optimization | 0/TBD | Not started | - |
+| 10. Scoring Optimization | 0/3 | Planning complete | - |
 
 ---
 *Created: 2026-02-13*
-*Last updated: 2026-02-23 — Phase 9 planned (2 plans in 2 waves)*
+*Last updated: 2026-02-23 — Phase 10 planned (3 plans in 2 waves)*
