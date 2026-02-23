@@ -52,7 +52,58 @@ Creates a new user with Supabase Auth and inserts profile data into the users ta
 
 ---
 
-### 2. admin-reset-password
+### 2. admin-delete-user
+
+Deletes a user by reassigning all their business data to a replacement RM, soft-deleting the user record, and banning their auth account.
+
+**Endpoint:** `<SUPABASE_URL>/functions/v1/admin-delete-user`
+
+**Method:** POST
+
+**Authentication:** Requires Bearer token (user must be ADMIN or SUPERADMIN)
+
+**Prerequisites:** The `deleted_at` column must exist on the `users` table. Run migration `20260223000001_add_users_deleted_at.sql` or:
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+```
+
+**Request Body:**
+```json
+{
+  "userId": "target-user-uuid",
+  "newRmId": "replacement-rm-uuid"
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "success": true,
+  "message": "User deleted and data reassigned"
+}
+```
+
+**Cascade Steps (in order):**
+1. Reassign subordinates to deleted user's parent
+2. Transfer customers to new RM
+3. Transfer pipelines (assigned_rm_id + scored_to_user_id) to new RM
+4. Transfer activities to new RM
+5. Transfer HVCs to new RM
+6. Transfer brokers to new RM
+7. Transfer pipeline referrals (both referrer and receiver) to new RM
+8. Soft-delete user (is_active=false, deleted_at=now)
+9. Ban auth account (87600h / 10 years)
+
+**Error Responses:**
+- 400: Self-delete attempt or missing fields
+- 401: Missing or invalid authorization
+- 403: Insufficient permissions (not admin)
+- 404: Target user or replacement RM not found
+- 500: Cascade step failure (user left active for retry)
+
+---
+
+### 3. admin-reset-password
 
 Resets a user's password and generates a temporary password.
 
@@ -113,6 +164,7 @@ Deploy a specific function:
 ```bash
 supabase functions deploy admin-create-user
 supabase functions deploy admin-reset-password
+supabase functions deploy admin-delete-user
 ```
 
 ### Set Environment Variables

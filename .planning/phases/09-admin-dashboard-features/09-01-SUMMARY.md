@@ -94,7 +94,11 @@ None - plan executed exactly as written.
 None.
 
 ## User Setup Required
-Edge Function needs deployment: `supabase functions deploy admin-delete-user`
+1. Add `deleted_at` column to Supabase PostgreSQL users table (migration `20260223000001_add_users_deleted_at.sql`):
+   ```sql
+   ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+   ```
+2. Deploy Edge Function: `supabase functions deploy admin-delete-user`
 
 ## Next Phase Readiness
 - Backend infrastructure complete for admin user deletion
