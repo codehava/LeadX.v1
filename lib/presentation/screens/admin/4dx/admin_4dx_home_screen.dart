@@ -138,6 +138,15 @@ class Admin4DXHomeScreen extends ConsumerWidget {
             color: Colors.teal,
             onTap: () => context.push(RoutePaths.adminTargets),
           ),
+          const SizedBox(height: 12),
+
+          AdminMenuCard(
+            icon: Icons.table_chart,
+            title: 'Ringkasan Skor',
+            subtitle: 'Grid skor pengguna per ukuran',
+            color: Colors.indigo,
+            onTap: () => context.push(RoutePaths.adminScoringSummary),
+          ),
           const SizedBox(height: 24),
 
           // Current Period Info

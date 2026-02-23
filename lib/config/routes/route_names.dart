@@ -134,6 +134,9 @@ abstract class RouteNames {
   static const String teamTargets = 'team-targets';
   static const String teamTargetForm = 'team-target-form';
 
+  // Scoring Summary
+  static const String adminScoringSummary = 'admin-scoring-summary';
+
   // Cadence Configuration
   static const String adminCadence = 'admin-cadence';
   static const String adminCadenceCreate = 'admin-cadence-create';
@@ -239,6 +242,9 @@ abstract class RoutePaths {
   // Team Targets (Manager-facing)
   static const String teamTargets = '/home/team-targets';
   static const String teamTargetForm = '/home/team-targets/:userId';
+
+  // Scoring Summary
+  static const String adminScoringSummary = '/admin/4dx/scoring-summary';
 
   // Cadence Configuration
   static const String adminCadence = '/admin/cadence';

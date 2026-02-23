@@ -47,6 +47,7 @@ import '../../presentation/screens/referral/manager_approval_screen.dart';
 import '../../presentation/screens/referral/referral_create_screen.dart';
 import '../../presentation/screens/referral/referral_detail_screen.dart';
 import '../../presentation/screens/referral/referral_list_screen.dart';
+import '../../presentation/screens/admin/4dx/scoring_summary_screen.dart';
 import '../../presentation/screens/admin/4dx/targets/admin_target_list_screen.dart';
 import '../../presentation/screens/admin/4dx/targets/admin_target_form_screen.dart';
 import '../../presentation/screens/team_targets/team_target_list_screen.dart';
@@ -882,6 +883,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+              // Scoring Summary Grid
+              GoRoute(
+                path: 'scoring-summary',
+                name: RouteNames.adminScoringSummary,
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: ResponsiveShell(
+                    currentRoute: state.matchedLocation,
+                    child: const ScoringSummaryScreen(),
+                  ),
+                ),
               ),
             ],
           ),
