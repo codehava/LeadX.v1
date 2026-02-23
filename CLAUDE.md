@@ -197,7 +197,23 @@ Admin API operations (`auth.admin.createUser`, `auth.admin.updateUserById`) requ
    - Ensure the full chain exists: Provider → Repository (interface + impl) → LocalDataSource → Drift `.watch()`
 8. **Offline-aware screens**: Use `OfflineBanner` widget at the top of screen bodies to show "Offline - data may be stale" when disconnected. Use `AppErrorState` (not raw `Text('Error: $error')`) for error callbacks in `AsyncValue.when()`.
 9. **Dropdown fields**: Use `SearchableDropdown` with modal bottom sheet pattern for all selection fields — not `AutocompleteField`.
-10. **Logging**: Use `AppLogger` (Talker wrapper) with module prefixes (`sync.queue`, `sync.push`, `sync.pull`) — not `debugPrint`.
+10. **Logging**: Use `AppLogger` (Talker wrapper) with module prefixes (`sync.queue`, `sync.push`, `sync.pull`, `sync.coordinator`, `sync.lock`) — not `debugPrint`.
+11. **Result<T> consumer pattern**: Use `switch` with exhaustive pattern matching on `Result<T>` — not `.fold()` (dartz legacy).
+    ```dart
+    switch (result) {
+      case Success(:final value):
+        state = state.copyWith(saved: value);
+      case ResultFailure(:final failure):
+        state = state.copyWith(errorMessage: failure.message);
+    }
+    ```
+    For simple CRUD, wrap with `runCatching(() async { ... }, context: 'methodName')`. For complex methods with validation or not-found logic, use explicit `try/catch + mapException()`.
+12. **Cascade soft-delete**: Parent delete soft-deletes all children in a single Drift transaction. Queue ONLY the parent delete for sync (backend cascade handles related data). Example: customer delete → soft-delete key persons, pipelines, activities locally.
+13. **Navigation on delete**: After deleting an entity, navigate to the list screen via `context.go()` — not `context.pop()` — to avoid returning to a stale detail screen.
+14. **Tappable contact fields**: Phone → `launchUrl(Uri.parse('tel:$phone'))`, email → `launchUrl(Uri.parse('mailto:$email'))`. Always `canLaunchUrl()` check first. Strip non-numeric chars from phone before building URI. Consistent across all detail screens.
+15. **Sync status badges on cards**: Show badges only for problem states (`pending`, `failed`, `dead_letter`). No badge = synced. Use batch `syncQueueEntityStatusMapProvider` (single stream, O(1) lookups) — never per-entity `StreamProvider.family` queries. Failed/dead_letter badges are tappable → navigate to filtered `SyncQueueScreen`. Badges appear on list cards only, not detail screens.
+16. **Indonesian UI strings**: Toast notifications, button labels, and error messages are in Indonesian (e.g., "Sinkronisasi sedang berjalan", "Gagal permanen"). Keep this consistent.
+17. **Edit mode pattern**: Add optional `entityId` parameter to form screens. When provided, load existing data and create an `UpdateDto`. For completed activities, lock all fields except notes/summary. Route: `/{feature}/:id/edit`.
 
 ## Data Layer Conventions
 
@@ -225,6 +241,80 @@ await _syncService.queueOperation(
   entityType: SyncEntityType.customer,  // from sync_models.dart
   entityId: id,
   operation: SyncOperation.create,      // create | update | delete
-  payload: { /* JSON matching SyncDto */ },
+  payload: {
+    ...syncPayload,                     // Full entity snapshot
+    '_server_updated_at': lastKnownTs,  // For update version guard
+  },
 );
 ```
+
+## Sync Architecture
+
+### Queue Status Lifecycle
+Items flow: `pending` → `failed` → `dead_letter`. No `completed` status — items are deleted immediately on success. The `status` column lives on `sync_queue_items` (migration v12).
+
+### Idempotent Creates
+All `SyncOperation.create` operations use `.upsert()` (not `.insert()`) for retry-after-timeout safety. Client-generated UUIDs serve as the conflict column.
+
+### Version Guards (Optimistic Locking)
+Updates include `_server_updated_at` metadata in the sync payload (the server's timestamp BEFORE the local edit). The push uses `.update().eq('updated_at', serverUpdatedAt)` — if zero rows updated, a conflict is detected.
+
+### Conflict Resolution (Last-Write-Wins)
+- Compare `localUpdatedAt` vs `serverUpdatedAt` — higher timestamp wins
+- Winner's full payload replaces loser's (entity-level, not field-level merge)
+- All conflicts logged to `sync_conflicts` audit table regardless of winner
+- `SyncConflicts` Drift table stores: entityType, entityId, localPayload, serverPayload, winner, resolution, detectedAt
+
+### Non-Retryable Errors & Dead Letter
+- `AuthSyncError`, `ValidationSyncError`, `ConflictSyncError` → immediately move to `dead_letter` (no retries)
+- `getRetryableItems()` filters `WHERE status = 'pending'` (dead letter excluded)
+- Discard action: remove from queue, mark entity as local-only (`isPendingSync = false`, `lastSyncAt = null`)
+
+### Queue Pruning (Post-Sync)
+Wrapped in try/catch (pruning failures don't block sync result):
+- Orphaned items: `status != 'pending' AND lastAttemptAt < 7 days ago`
+- Expired dead letters: `status = 'dead_letter' AND lastAttemptAt < 30 days ago`
+- Old sync_conflicts: `detectedAt < 30 days ago`
+
+### Sync Coordination
+- **Async lock**: Single `Completer<void>?` guards sync execution (Dart single-threaded model ≈ mutex)
+- **Queued sync collapse**: Excess triggers collapse into `_queuedSyncPending = true` — at most one queued sync after the current one finishes
+- **Initial sync gating**: Non-dismissable modal blocks all app interaction. Auto-retry with backoff (2s/5s/15s, 3 attempts). After 3 failures → "Cancel and log out" button. 5-second cooldown before accepting regular sync triggers.
+- **Lock recovery**: Clear stale lock on startup (app kill recovery). Force-release if held >5 minutes.
+- **Sync types**: `initial`, `manual`, `background`, `repository`, `masterDataResync` — initial gates all others
+
+## Failure Types
+
+Typed `Failure` subclasses (sealed, in `core/errors/`):
+- `NetworkFailure` — socket/timeout errors
+- `AuthFailure` — authentication/authorization errors
+- `ValidationFailure` — invalid input data
+- `NotFoundFailure` — entity not found
+- `DatabaseFailure` — local DB errors
+- `SyncConflictFailure` — optimistic lock conflict
+- `ForbiddenFailure` — permission denied
+- `ServerFailure` — Supabase 5xx errors
+- `UnexpectedFailure` — catch-all
+
+Exception mapping (`mapException()` in `core/errors/`) converts raw exceptions to the above:
+- `SocketException` → `NetworkFailure`
+- `TimeoutException` → `NetworkFailure`
+- `PostgrestException` → status-aware mapping to multiple types
+- `AuthException` → `AuthFailure`
+- `FormatException` → `DatabaseFailure`
+
+## Testing Conventions
+
+### Result<T> Assertions
+```dart
+// Success
+expect(result, isA<Success<Customer>>());
+final customer = (result as Success<Customer>).value;
+
+// Failure
+expect(result, isA<ResultFailure<Customer>>());
+```
+
+### Mock Infrastructure
+- Shared mocks in `test/helpers/mock_sync_infrastructure.dart`
+- Update mock infrastructure when data structures change (e.g., new status column, new methods)
