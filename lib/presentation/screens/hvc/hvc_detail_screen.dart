@@ -183,77 +183,78 @@ class _InfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Info card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Type badge
-                  if (hvc.typeName != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        hvc.typeName!,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
-                  if (hvc.typeName != null) const SizedBox(height: 16),
-
-                  // Code
-                  _InfoRow(label: 'Kode', value: hvc.code),
-
-                  // Description
-                  if (hvc.description != null && hvc.description!.isNotEmpty)
-                    _InfoRow(label: 'Deskripsi', value: hvc.description!),
-
-                  // Address
-                  if (hvc.address != null && hvc.address!.isNotEmpty)
-                    _InfoRow(label: 'Alamat', value: hvc.address!),
-
-                  // Potential value
-                  if (hvc.potentialValue != null)
-                    _InfoRow(
-                      label: 'Nilai Potensial',
-                      value: hvc.formattedPotentialValue,
-                    ),
-
-                  // Geofence radius
-                  _InfoRow(
-                    label: 'Radius Geofence',
-                    value: '${hvc.radiusMeters} meter',
-                  ),
-
-                  // GPS
-                  if (hvc.hasLocation)
-                    _InfoRow(
-                      label: 'Koordinat',
-                      value: '${hvc.latitude}, ${hvc.longitude}',
-                    ),
-                ],
-              ),
-            ),
+          _InfoSection(
+            title: 'Informasi Dasar',
+            children: [
+              _InfoRow(label: 'Kode', value: hvc.code),
+              _InfoRow(label: 'Nama', value: hvc.name),
+              if (hvc.typeName != null)
+                _InfoRow(label: 'Tipe', value: hvc.typeName!),
+              if (hvc.description != null && hvc.description!.isNotEmpty)
+                _InfoRow(label: 'Deskripsi', value: hvc.description!),
+            ],
           ),
+          const SizedBox(height: 24),
+          _InfoSection(
+            title: 'Nilai & Geofence',
+            children: [
+              if (hvc.potentialValue != null)
+                _InfoRow(
+                  label: 'Nilai Potensial',
+                  value: hvc.formattedPotentialValue,
+                ),
+              _InfoRow(
+                label: 'Radius Geofence',
+                value: '${hvc.radiusMeters} meter',
+              ),
+            ],
+          ),
+          if (hvc.address != null && hvc.address!.isNotEmpty || hvc.hasLocation) ...[
+            const SizedBox(height: 24),
+            _InfoSection(
+              title: 'Lokasi',
+              children: [
+                if (hvc.address != null && hvc.address!.isNotEmpty)
+                  _InfoRow(label: 'Alamat', value: hvc.address!),
+                if (hvc.hasLocation)
+                  _InfoRow(
+                    label: 'Koordinat',
+                    value: '${hvc.latitude}, ${hvc.longitude}',
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _InfoSection extends StatelessWidget {
+  const _InfoSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        ...children,
+      ],
     );
   }
 }
@@ -269,20 +270,21 @@ class _InfoRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: theme.textTheme.bodyLarge,
+          Expanded(
+            child: Text(value, style: theme.textTheme.bodyMedium),
           ),
         ],
       ),

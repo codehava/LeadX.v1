@@ -6,6 +6,7 @@ import '../../../config/routes/route_names.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/admin/admin_4dx_providers.dart';
+import '../../providers/scoreboard_providers.dart';
 import '../../providers/team_target_providers.dart';
 
 /// Team Target List Screen.
@@ -213,13 +214,34 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
     ColorScheme colorScheme,
   ) {
     final periodId = _selectedPeriod!.id;
-    final targetsAsync = ref.watch(targetsForPeriodProvider(periodId));
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
 
     return subordinatesAsync.when(
       data: (subordinates) => measuresAsync.when(
-        data: (measures) => targetsAsync.when(
-          data: (targets) {
+        data: (measures) => currentPeriodsAsync.when(
+          data: (currentPeriods) {
             final activeMeasures = measures.where((m) => m.isActive).length;
+
+            // Collect all current period IDs for multi-period target counting
+            final currentPeriodIds =
+                currentPeriods.map((p) => p.id).toSet();
+
+            // Watch targets across all current periods
+            final allTargets = <UserTarget>[];
+            bool anyLoading = false;
+
+            for (final pId in currentPeriodIds) {
+              final targetsAsync = ref.watch(targetsForPeriodProvider(pId));
+              targetsAsync.when(
+                data: (targets) => allTargets.addAll(targets),
+                loading: () => anyLoading = true,
+                error: (_, __) {},
+              );
+            }
+
+            if (anyLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
             // Filter by search
             final filtered = subordinates.where((u) {
@@ -257,7 +279,10 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
             return RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(mySubordinatesProvider);
-                ref.invalidate(targetsForPeriodProvider(periodId));
+                ref.invalidate(allCurrentPeriodsProvider);
+                for (final pId in currentPeriodIds) {
+                  ref.invalidate(targetsForPeriodProvider(pId));
+                }
               },
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
@@ -265,12 +290,15 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final user = filtered[index];
-                  final userTargets =
-                      targets.where((t) => t.userId == user.id).length;
+                  // Count unique measures with targets across ALL current periods
+                  final userMeasureIds = allTargets
+                      .where((t) => t.userId == user.id)
+                      .map((t) => t.measureId)
+                      .toSet();
 
                   return _SubordinateTargetCard(
                     user: user,
-                    assignedCount: userTargets,
+                    assignedCount: userMeasureIds.length,
                     totalMeasures: activeMeasures,
                     isLocked: _selectedPeriod!.isLocked,
                     onTap: () => context.push(
@@ -285,7 +313,7 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) =>
-              Center(child: Text('Gagal memuat target: $error')),
+              Center(child: Text('Gagal memuat periode: $error')),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>

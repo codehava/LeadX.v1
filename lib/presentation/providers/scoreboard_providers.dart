@@ -270,6 +270,15 @@ class PeriodSection {
 
   /// Whether this section has any scores to display.
   bool get hasScores => leadScores.isNotEmpty || lagScores.isNotEmpty;
+
+  /// Average percentage across all scores in this section.
+  double get sectionScore {
+    final allScores = [...leadScores, ...lagScores];
+    if (allScores.isEmpty) return 0;
+    final totalPct = allScores.fold<double>(
+      0, (sum, s) => sum + s.calculatedPercentage);
+    return totalPct / allScores.length;
+  }
 }
 
 /// State for the scoreboard screen.

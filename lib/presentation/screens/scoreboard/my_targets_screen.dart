@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/scoreboard_providers.dart';
@@ -80,14 +81,17 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
       data: (periods) {
         if (periods.isEmpty) return const SizedBox.shrink();
 
-        // Auto-select current period
+        // Auto-select current period (shortest granularity first)
         if (_selectedPeriod == null && periods.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted || _selectedPeriod != null) return;
+            final currentPeriods = periods.where((p) => p.isCurrent).toList()
+              ..sort((a, b) => periodTypePriority(a.periodType)
+                  .compareTo(periodTypePriority(b.periodType)));
             setState(() {
-              _selectedPeriod = periods.firstWhere(
-                (p) => p.isCurrent,
-                orElse: () => periods.first,
-              );
+              _selectedPeriod = currentPeriods.isNotEmpty
+                  ? currentPeriods.first
+                  : periods.first;
             });
           });
         }
@@ -153,91 +157,237 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
+    // For current periods, fetch targets across ALL current periods
+    if (period.isCurrent) {
+      return _buildMultiPeriodTargets(userId, period, theme, colorScheme);
+    }
+
+    // Historical: single-period flat view
     final targetsAsync = ref.watch(userTargetsProvider(userId, period.id));
     final scoresAsync = ref.watch(userScoresProvider(userId, period.id));
 
     return targetsAsync.when(
       data: (targets) => scoresAsync.when(
-        data: (scores) {
-          if (targets.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.track_changes,
-                      size: 64, color: colorScheme.outline),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada target yang ditetapkan',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Hubungi atasan Anda untuk penetapan target',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Group by measure type
-          final leadTargets =
-              targets.where((t) => t.measureType == 'LEAD').toList();
-          final lagTargets =
-              targets.where((t) => t.measureType == 'LAG').toList();
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(userTargetsProvider(userId, period.id));
-              ref.invalidate(userScoresProvider(userId, period.id));
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Summary card
-                _buildSummaryCard(theme, colorScheme, targets, scores),
-                const SizedBox(height: 24),
-
-                // LEAD Targets
-                if (leadTargets.isNotEmpty) ...[
-                  _buildSectionHeader(
-                    theme,
-                    'LEAD Measures (60%)',
-                    Icons.trending_up,
-                    Colors.orange,
-                  ),
-                  const SizedBox(height: 8),
-                  ...leadTargets.map(
-                      (t) => _buildTargetCard(theme, colorScheme, t, scores)),
-                  const SizedBox(height: 24),
-                ],
-
-                // LAG Targets
-                if (lagTargets.isNotEmpty) ...[
-                  _buildSectionHeader(
-                    theme,
-                    'LAG Measures (40%)',
-                    Icons.flag,
-                    Colors.purple,
-                  ),
-                  const SizedBox(height: 8),
-                  ...lagTargets.map(
-                      (t) => _buildTargetCard(theme, colorScheme, t, scores)),
-                ],
-              ],
-            ),
-          );
-        },
+        data: (scores) =>
+            _buildTargetsList(userId, targets, scores, theme, colorScheme, null),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text('Error: $error')),
+    );
+  }
+
+  Widget _buildMultiPeriodTargets(
+    String userId,
+    ScoringPeriod displayPeriod,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+
+    return currentPeriodsAsync.when(
+      data: (currentPeriods) {
+        // Collect targets and scores across all current periods
+        final allTargets = <UserTarget>[];
+        final allScores = <UserScore>[];
+        bool anyLoading = false;
+
+        // Map periodId → period for grouping
+        final periodById = <String, ScoringPeriod>{};
+        for (final p in currentPeriods) {
+          periodById[p.id] = p;
+        }
+
+        for (final p in currentPeriods) {
+          final tAsync = ref.watch(userTargetsProvider(userId, p.id));
+          final sAsync = ref.watch(userScoresProvider(userId, p.id));
+          tAsync.when(
+            data: (t) => allTargets.addAll(t),
+            loading: () => anyLoading = true,
+            error: (_, __) {},
+          );
+          sAsync.when(
+            data: (s) => allScores.addAll(s),
+            loading: () => anyLoading = true,
+            error: (_, __) {},
+          );
+        }
+
+        if (anyLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return _buildTargetsList(
+          userId, allTargets, allScores, theme, colorScheme, currentPeriods,
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text('Error: $error')),
+    );
+  }
+
+  Widget _buildTargetsList(
+    String userId,
+    List<UserTarget> targets,
+    List<UserScore> scores,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    List<ScoringPeriod>? currentPeriods,
+  ) {
+    if (targets.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.track_changes, size: 64, color: colorScheme.outline),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada target yang ditetapkan',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.outline,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Hubungi atasan Anda untuk penetapan target',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // If multi-period, group by period type
+    final hasMultiplePeriodTypes = currentPeriods != null &&
+        currentPeriods.map((p) => p.periodType).toSet().length > 1;
+
+    if (hasMultiplePeriodTypes) {
+      // Build period type → targets map
+      final periodById = <String, ScoringPeriod>{};
+      for (final p in currentPeriods!) {
+        periodById[p.id] = p;
+      }
+
+      final grouped = <String, List<UserTarget>>{};
+      for (final t in targets) {
+        final period = periodById[t.periodId];
+        final pType = period?.periodType ?? 'WEEKLY';
+        grouped.putIfAbsent(pType, () => []).add(t);
+      }
+
+      final sortedTypes = grouped.keys.toList()
+        ..sort((a, b) => periodTypePriority(a).compareTo(periodTypePriority(b)));
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(allCurrentPeriodsProvider);
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildSummaryCard(theme, colorScheme, targets, scores),
+            const SizedBox(height: 24),
+            ...sortedTypes.expand((pType) {
+              final typeTargets = grouped[pType]!;
+              final typeColor = periodTypeColor(pType);
+              final period = currentPeriods.firstWhere(
+                (p) => p.periodType == pType,
+                orElse: () => currentPeriods.first,
+              );
+              final leadTargets =
+                  typeTargets.where((t) => t.measureType == 'LEAD').toList();
+              final lagTargets =
+                  typeTargets.where((t) => t.measureType == 'LAG').toList();
+
+              return [
+                // Period type header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8, height: 8,
+                        decoration: BoxDecoration(
+                          color: typeColor, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${formatPeriodType(pType)} — ${period.name}',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold, color: typeColor),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (leadTargets.isNotEmpty) ...[
+                  _buildSectionHeader(theme, 'LEAD (60%)',
+                      Icons.trending_up, Colors.orange),
+                  const SizedBox(height: 8),
+                  ...leadTargets.map(
+                      (t) => _buildTargetCard(theme, colorScheme, t, scores)),
+                  const SizedBox(height: 16),
+                ],
+                if (lagTargets.isNotEmpty) ...[
+                  _buildSectionHeader(
+                      theme, 'LAG (40%)', Icons.flag, Colors.purple),
+                  const SizedBox(height: 8),
+                  ...lagTargets.map(
+                      (t) => _buildTargetCard(theme, colorScheme, t, scores)),
+                ],
+                const SizedBox(height: 24),
+              ];
+            }),
+          ],
+        ),
+      );
+    }
+
+    // Single period type — flat view
+    final leadTargets =
+        targets.where((t) => t.measureType == 'LEAD').toList();
+    final lagTargets =
+        targets.where((t) => t.measureType == 'LAG').toList();
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        if (_selectedPeriod != null) {
+          ref.invalidate(
+              userTargetsProvider(userId, _selectedPeriod!.id));
+          ref.invalidate(
+              userScoresProvider(userId, _selectedPeriod!.id));
+        }
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildSummaryCard(theme, colorScheme, targets, scores),
+          const SizedBox(height: 24),
+          if (leadTargets.isNotEmpty) ...[
+            _buildSectionHeader(
+                theme, 'LEAD Measures (60%)', Icons.trending_up, Colors.orange),
+            const SizedBox(height: 8),
+            ...leadTargets.map(
+                (t) => _buildTargetCard(theme, colorScheme, t, scores)),
+            const SizedBox(height: 24),
+          ],
+          if (lagTargets.isNotEmpty) ...[
+            _buildSectionHeader(
+                theme, 'LAG Measures (40%)', Icons.flag, Colors.purple),
+            const SizedBox(height: 8),
+            ...lagTargets.map(
+                (t) => _buildTargetCard(theme, colorScheme, t, scores)),
+          ],
+        ],
+      ),
     );
   }
 

@@ -51,11 +51,25 @@ class TeamTargetAssignment extends _$TeamTargetAssignment {
   @override
   FutureOr<void> build() => null;
 
-  /// Save targets for a specific subordinate.
+  /// Save targets for a specific subordinate (single period — legacy).
   Future<bool> saveSubordinateTargets({
     required String userId,
     required String periodId,
     required Map<String, double> measureTargets,
+  }) async {
+    return saveSubordinateTargetsMultiPeriod(
+      userId: userId,
+      targetsByPeriodId: {periodId: measureTargets},
+    );
+  }
+
+  /// Save targets for a specific subordinate across multiple periods.
+  ///
+  /// Groups measure targets by period ID and calls bulkAssignTargets once
+  /// per period, routing each measure's target to the correct period.
+  Future<bool> saveSubordinateTargetsMultiPeriod({
+    required String userId,
+    required Map<String, Map<String, double>> targetsByPeriodId,
   }) async {
     // Keep alive during the async operation to prevent auto-dispose
     final link = ref.keepAlive();
@@ -74,19 +88,28 @@ class TeamTargetAssignment extends _$TeamTargetAssignment {
       // ignore: argument_type_not_assignable
       final repository = ref.read(admin4DXRepositoryProvider);
 
-      await repository.bulkAssignTargets(
-        periodId: periodId,
-        assignedBy: currentUser?.id ?? '',
-        userIds: [userId],
-        measureTargets: measureTargets,
-      );
+      // Call bulkAssignTargets once per period
+      for (final entry in targetsByPeriodId.entries) {
+        final periodId = entry.key;
+        final measureTargets = entry.value;
+        if (measureTargets.isEmpty) continue;
+
+        await repository.bulkAssignTargets(
+          periodId: periodId,
+          assignedBy: currentUser?.id ?? '',
+          userIds: [userId],
+          measureTargets: measureTargets,
+        );
+      }
 
       state = const AsyncValue.data(null);
 
-      // Invalidate affected providers after state is set
-      ref.invalidate(targetsForPeriodProvider(periodId));
-      ref.invalidate(adminUserTargetsProvider(userId, periodId));
-      ref.invalidate(managerOwnTargetsProvider(periodId));
+      // Invalidate affected providers for all periods
+      for (final periodId in targetsByPeriodId.keys) {
+        ref.invalidate(targetsForPeriodProvider(periodId));
+        ref.invalidate(adminUserTargetsProvider(userId, periodId));
+        ref.invalidate(managerOwnTargetsProvider(periodId));
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     } finally {

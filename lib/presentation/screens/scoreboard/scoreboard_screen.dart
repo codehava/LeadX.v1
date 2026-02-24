@@ -477,7 +477,7 @@ class ScoreboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Colored header bar
+          // Colored header bar with section score
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -509,6 +509,23 @@ class ScoreboardScreen extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const Spacer(),
+                if (section.hasScores)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: typeColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${section.sectionScore.toStringAsFixed(0)}%',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: typeColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

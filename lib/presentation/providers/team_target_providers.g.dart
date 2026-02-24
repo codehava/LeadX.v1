@@ -200,7 +200,7 @@ class _ManagerOwnTargetsProviderElement
 }
 
 String _$teamTargetAssignmentHash() =>
-    r'5cab15beef9c931d8ccdaf33132d8b5ceb9c3b18';
+    r'7e4995a50e252afee4f826f1e59c6575d26d7673';
 
 /// Notifier for saving subordinate targets (delegates to existing bulk assign).
 ///

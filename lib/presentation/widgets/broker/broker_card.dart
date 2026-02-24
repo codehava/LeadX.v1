@@ -162,12 +162,12 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final chipColor = color ?? theme.colorScheme.outline;
+    final chipColor = color ?? AppColors.neutral500;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: chipColor.withValues(alpha: 0.1),
+        color: chipColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -179,7 +179,7 @@ class _InfoChip extends StatelessWidget {
             label,
             style: theme.textTheme.labelSmall?.copyWith(
               color: chipColor,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

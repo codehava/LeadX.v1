@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../providers/scoreboard_providers.dart';
 import '../../providers/auth_providers.dart';
@@ -522,11 +523,35 @@ class _MeasureDetailScreenState extends ConsumerState<MeasureDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                point.periodName,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      point.periodName,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: periodTypeColor(point.periodType)
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      formatPeriodType(point.periodType),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: periodTypeColor(point.periodType),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -613,6 +638,7 @@ class _MeasureDetailScreenState extends ConsumerState<MeasureDetailScreen> {
         scorePoints.add(_ScorePoint(
           periodId: period.id,
           periodName: period.name,
+          periodType: period.periodType,
           startDate: period.startDate,
           endDate: period.endDate,
           isCurrent: period.isCurrent,
@@ -637,6 +663,7 @@ class _MeasureDetailScreenState extends ConsumerState<MeasureDetailScreen> {
 class _ScorePoint {
   final String periodId;
   final String periodName;
+  final String periodType;
   final DateTime startDate;
   final DateTime endDate;
   final bool isCurrent;
@@ -646,6 +673,7 @@ class _ScorePoint {
   _ScorePoint({
     required this.periodId,
     required this.periodName,
+    required this.periodType,
     required this.startDate,
     required this.endDate,
     required this.isCurrent,

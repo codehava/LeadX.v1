@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../providers/admin/admin_4dx_providers.dart';
 import '../../providers/admin_user_providers.dart';
+import '../../providers/scoreboard_providers.dart';
 import '../../providers/team_target_providers.dart';
 
 /// Team Target Form Screen.
 ///
 /// Allows a manager to edit all measure targets for a specific subordinate.
 /// Shows cascade hint (manager's own target) per measure.
+/// Routes each measure's target to the correct period based on periodType.
 class TeamTargetFormScreen extends ConsumerStatefulWidget {
   final String userId;
+  /// The display period (used for header context); all current periods
+  /// are fetched internally to route targets correctly.
   final ScoringPeriod period;
 
   const TeamTargetFormScreen({
@@ -45,11 +50,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     final colorScheme = theme.colorScheme;
     final userAsync = ref.watch(userByIdProvider(widget.userId));
     final measuresAsync = ref.watch(allMeasuresProvider);
-    final targetsAsync =
-        ref.watch(adminUserTargetsProvider(widget.userId, widget.period.id));
-    final managerTargetsAsync =
-        ref.watch(managerOwnTargetsProvider(widget.period.id));
-    final isLocked = widget.period.isLocked;
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -61,163 +62,233 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         centerTitle: false,
       ),
       body: measuresAsync.when(
-        data: (measures) => targetsAsync.when(
-          data: (existingTargets) {
-            final activeMeasures = measures.where((m) => m.isActive).toList()
-              ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+        data: (measures) => currentPeriodsAsync.when(
+          data: (currentPeriods) {
+            // Build period type → period map from all current periods
+            final periodByType = <String, ScoringPeriod>{};
+            for (final p in currentPeriods) {
+              periodByType[p.periodType] = p;
+            }
 
-            final leadMeasures =
-                activeMeasures.where((m) => m.measureType == 'LEAD').toList();
-            final lagMeasures =
-                activeMeasures.where((m) => m.measureType == 'LAG').toList();
+            // Fall back to the passed-in period if no current periods found
+            if (periodByType.isEmpty) {
+              periodByType[widget.period.periodType] = widget.period;
+            }
 
-            // Initialize controllers with existing target values
-            _initControllers(activeMeasures, existingTargets);
-
-            // Get manager targets for cascade hints
-            final managerTargets =
-                managerTargetsAsync.valueOrNull ?? <UserTarget>[];
-
-            return Column(
-              children: [
-                // Period info header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  color: colorScheme.surfaceContainerHighest,
-                  child: Row(
-                    children: [
-                      Icon(Icons.calendar_today,
-                          size: 20, color: colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.period.name,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (isLocked)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.lock,
-                                  size: 14,
-                                  color: colorScheme.onErrorContainer),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Read Only',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onErrorContainer,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // Form
-                Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        // LEAD Measures Section
-                        if (leadMeasures.isNotEmpty) ...[
-                          _buildSectionHeader(
-                            theme,
-                            'LEAD Measures (60%)',
-                            Icons.trending_up,
-                            Colors.orange,
-                          ),
-                          const SizedBox(height: 8),
-                          ...leadMeasures.map((m) => _buildMeasureField(
-                                theme,
-                                colorScheme,
-                                m,
-                                existingTargets,
-                                managerTargets,
-                                isLocked,
-                              )),
-                          const SizedBox(height: 24),
-                        ],
-
-                        // LAG Measures Section
-                        if (lagMeasures.isNotEmpty) ...[
-                          _buildSectionHeader(
-                            theme,
-                            'LAG Measures (40%)',
-                            Icons.flag,
-                            Colors.purple,
-                          ),
-                          const SizedBox(height: 8),
-                          ...lagMeasures.map((m) => _buildMeasureField(
-                                theme,
-                                colorScheme,
-                                m,
-                                existingTargets,
-                                managerTargets,
-                                isLocked,
-                              )),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Save button
-                if (!isLocked)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      border: Border(
-                        top: BorderSide(color: colorScheme.outlineVariant),
-                      ),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        icon: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(Icons.save),
-                        label:
-                            Text(_isSaving ? 'Menyimpan...' : 'Simpan Target'),
-                        onPressed: _isSaving ? null : _saveTargets,
-                      ),
-                    ),
-                  ),
-              ],
+            return _buildFormContent(
+              theme, colorScheme, measures, periodByType,
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) =>
-              Center(child: Text('Gagal memuat target: $error')),
+              Center(child: Text('Gagal memuat periode: $error')),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
             Center(child: Text('Gagal memuat measures: $error')),
       ),
+    );
+  }
+
+  Widget _buildFormContent(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    List<MeasureDefinition> measures,
+    Map<String, ScoringPeriod> periodByType,
+  ) {
+    final activeMeasures = measures.where((m) => m.isActive).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    final leadMeasures =
+        activeMeasures.where((m) => m.measureType == 'LEAD').toList();
+    final lagMeasures =
+        activeMeasures.where((m) => m.measureType == 'LAG').toList();
+
+    // Collect all period IDs we need targets for
+    final periodIds = periodByType.values.map((p) => p.id).toSet();
+
+    // Watch existing targets across ALL current periods
+    final allExistingTargets = <UserTarget>[];
+    final allManagerTargets = <UserTarget>[];
+    bool anyLoading = false;
+    bool anyError = false;
+
+    for (final periodId in periodIds) {
+      final targetsAsync =
+          ref.watch(adminUserTargetsProvider(widget.userId, periodId));
+      final managerAsync = ref.watch(managerOwnTargetsProvider(periodId));
+
+      targetsAsync.when(
+        data: (targets) => allExistingTargets.addAll(targets),
+        loading: () => anyLoading = true,
+        error: (_, __) => anyError = true,
+      );
+      managerAsync.when(
+        data: (targets) => allManagerTargets.addAll(targets),
+        loading: () {},
+        error: (_, __) {},
+      );
+    }
+
+    if (anyLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (anyError) {
+      return const Center(child: Text('Gagal memuat target'));
+    }
+
+    // Initialize controllers with existing target values
+    _initControllers(activeMeasures, allExistingTargets);
+
+    // Check if ANY period is fully locked (per-period lock check)
+    final anyUnlockedPeriod =
+        periodByType.values.any((p) => !p.isLocked);
+
+    return Column(
+      children: [
+        // Period info header — show all current periods
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          color: colorScheme.surfaceContainerHighest,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.calendar_today,
+                      size: 20, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Periode Aktif',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: periodByType.entries.map((entry) {
+                  final period = entry.value;
+                  final typeColor = periodTypeColor(period.periodType);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: typeColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: typeColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${formatPeriodType(period.periodType)}: ${period.name}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: typeColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (period.isLocked) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.lock,
+                              size: 12, color: colorScheme.error),
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+
+        // Form
+        Expanded(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // LEAD Measures Section
+                if (leadMeasures.isNotEmpty) ...[
+                  _buildSectionHeader(
+                    theme,
+                    'LEAD Measures (60%)',
+                    Icons.trending_up,
+                    Colors.orange,
+                  ),
+                  const SizedBox(height: 8),
+                  ...leadMeasures.map((m) => _buildMeasureField(
+                        theme,
+                        colorScheme,
+                        m,
+                        allExistingTargets,
+                        allManagerTargets,
+                        periodByType,
+                      )),
+                  const SizedBox(height: 24),
+                ],
+
+                // LAG Measures Section
+                if (lagMeasures.isNotEmpty) ...[
+                  _buildSectionHeader(
+                    theme,
+                    'LAG Measures (40%)',
+                    Icons.flag,
+                    Colors.purple,
+                  ),
+                  const SizedBox(height: 8),
+                  ...lagMeasures.map((m) => _buildMeasureField(
+                        theme,
+                        colorScheme,
+                        m,
+                        allExistingTargets,
+                        allManagerTargets,
+                        periodByType,
+                      )),
+                ],
+              ],
+            ),
+          ),
+        ),
+
+        // Save button — only show if at least one period is unlocked
+        if (anyUnlockedPeriod)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(
+                top: BorderSide(color: colorScheme.outlineVariant),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save),
+                label:
+                    Text(_isSaving ? 'Menyimpan...' : 'Simpan Target'),
+                onPressed: _isSaving
+                    ? null
+                    : () => _saveTargets(periodByType),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -277,7 +348,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     MeasureDefinition measure,
     List<UserTarget> existingTargets,
     List<UserTarget> managerTargets,
-    bool isLocked,
+    Map<String, ScoringPeriod> periodByType,
   ) {
     final controller = _controllers[measure.id];
     final existing = existingTargets
@@ -289,6 +360,12 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         .where((t) => t.measureId == measure.id)
         .firstOrNull;
 
+    // Determine lock status based on the measure's own period
+    final measurePeriodType = measure.periodType ?? 'WEEKLY';
+    final matchingPeriod = periodByType[measurePeriodType];
+    final isLocked = matchingPeriod?.isLocked ?? true;
+    final typeColor = periodTypeColor(measurePeriodType);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -296,7 +373,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Measure code & name
+            // Measure code, name & period type badge
             Row(
               children: [
                 Container(
@@ -316,6 +393,30 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                // Period type badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: typeColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    formatPeriodType(measurePeriodType),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: typeColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+                if (isLocked) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.lock, size: 14, color: colorScheme.error),
+                ],
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -403,25 +504,48 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     );
   }
 
-  Future<void> _saveTargets() async {
+  Future<void> _saveTargets(
+    Map<String, ScoringPeriod> periodByType,
+  ) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
     try {
-      final measureTargets = <String, double>{};
-
-      for (final entry in _controllers.entries) {
-        final value = entry.value.text.trim();
-        if (value.isNotEmpty) {
-          final parsed = double.tryParse(value);
-          if (parsed != null && parsed >= 0) {
-            measureTargets[entry.key] = parsed;
-          }
+      // Get all active measures to map measureId → periodType
+      final measures =
+          ref.read(allMeasuresProvider).valueOrNull ?? <MeasureDefinition>[];
+      final measurePeriodTypes = <String, String>{};
+      for (final m in measures) {
+        if (m.isActive) {
+          measurePeriodTypes[m.id] = m.periodType ?? 'WEEKLY';
         }
       }
 
-      if (measureTargets.isEmpty) {
+      // Group measure targets by their period type
+      final targetsByPeriodId = <String, Map<String, double>>{};
+
+      for (final entry in _controllers.entries) {
+        final measureId = entry.key;
+        final value = entry.value.text.trim();
+        if (value.isEmpty) continue;
+
+        final parsed = double.tryParse(value);
+        if (parsed == null || parsed < 0) continue;
+
+        final periodType = measurePeriodTypes[measureId] ?? 'WEEKLY';
+        final period = periodByType[periodType];
+        if (period == null) continue;
+
+        // Skip locked periods
+        if (period.isLocked) continue;
+
+        targetsByPeriodId
+            .putIfAbsent(period.id, () => {})
+            [measureId] = parsed;
+      }
+
+      if (targetsByPeriodId.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Tidak ada target untuk disimpan')),
@@ -431,20 +555,23 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         return;
       }
 
+      // Save targets per period using multi-period method
       final success = await ref
           .read(teamTargetAssignmentProvider.notifier)
-          .saveSubordinateTargets(
+          .saveSubordinateTargetsMultiPeriod(
             userId: widget.userId,
-            periodId: widget.period.id,
-            measureTargets: measureTargets,
+            targetsByPeriodId: targetsByPeriodId,
           );
+
+      final totalMeasures =
+          targetsByPeriodId.values.fold(0, (sum, m) => sum + m.length);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               success
-                  ? 'Target berhasil disimpan (${measureTargets.length} measures)'
+                  ? 'Target berhasil disimpan ($totalMeasures measures, ${targetsByPeriodId.length} periode)'
                   : 'Gagal menyimpan target',
             ),
             backgroundColor:

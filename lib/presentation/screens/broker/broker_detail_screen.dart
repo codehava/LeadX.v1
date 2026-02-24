@@ -178,150 +178,89 @@ class _InfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Icons.handshake,
-                          color: AppColors.secondary,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              broker.name,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          _InfoSection(
+            title: 'Informasi Broker',
+            children: [
+              _InfoRow(label: 'Kode', value: broker.code),
+              _InfoRow(label: 'Nama', value: broker.name),
+              if (broker.licenseNumber != null)
+                _InfoRow(label: 'No. Lisensi', value: broker.licenseNumber!),
+              if (broker.commissionRate != null)
+                _InfoRow(
+                  label: 'Tarif Komisi',
+                  value: broker.formattedCommissionRate,
+                ),
+            ],
           ),
-          const SizedBox(height: 16),
-
-          // Details card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Informasi Broker',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _InfoRow(label: 'Kode', value: broker.code),
-                  if (broker.licenseNumber != null)
-                    _InfoRow(label: 'No. Lisensi', value: broker.licenseNumber!),
-                  if (broker.commissionRate != null)
-                    _InfoRow(
-                        label: 'Tarif Komisi',
-                        value: broker.formattedCommissionRate),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Contact card
           if (broker.phone != null ||
               broker.email != null ||
-              broker.website != null)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kontak',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (broker.phone != null)
-                      _TappableInfoRow(
-                        label: 'Telepon',
-                        value: broker.phone!,
-                        onTap: () => launchUrl(Uri.parse('tel:${broker.phone}')),
-                      ),
-                    if (broker.email != null)
-                      _TappableInfoRow(
-                        label: 'Email',
-                        value: broker.email!,
-                        onTap: () => launchUrl(Uri.parse('mailto:${broker.email}')),
-                      ),
-                    if (broker.website != null)
-                      _InfoRow(label: 'Website', value: broker.website!),
-                  ],
-                ),
-              ),
+              broker.website != null) ...[
+            const SizedBox(height: 24),
+            _InfoSection(
+              title: 'Kontak',
+              children: [
+                if (broker.phone != null)
+                  _TappableInfoRow(
+                    label: 'Telepon',
+                    value: broker.phone!,
+                    onTap: () => launchUrl(Uri.parse('tel:${broker.phone}')),
+                  ),
+                if (broker.email != null)
+                  _TappableInfoRow(
+                    label: 'Email',
+                    value: broker.email!,
+                    onTap: () => launchUrl(Uri.parse('mailto:${broker.email}')),
+                  ),
+                if (broker.website != null)
+                  _InfoRow(label: 'Website', value: broker.website!),
+              ],
             ),
-          const SizedBox(height: 16),
-
-          // Address card
-          if (broker.address != null)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Alamat',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(broker.address!),
-                    if (broker.hasLocation) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'GPS: ${broker.latitude}, ${broker.longitude}',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+          ],
+          if (broker.address != null) ...[
+            const SizedBox(height: 24),
+            _InfoSection(
+              title: 'Alamat',
+              children: [
+                _InfoRow(label: 'Alamat', value: broker.address!),
+                if (broker.hasLocation)
+                  _InfoRow(
+                    label: 'Koordinat',
+                    value: '${broker.latitude}, ${broker.longitude}',
+                  ),
+              ],
             ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _InfoSection extends StatelessWidget {
+  const _InfoSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        ...children,
+      ],
     );
   }
 }
@@ -337,7 +276,7 @@ class _InfoRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -351,12 +290,7 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: Text(value, style: theme.textTheme.bodyMedium),
           ),
         ],
       ),
@@ -380,7 +314,7 @@ class _TappableInfoRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,7 +333,6 @@ class _TappableInfoRow extends StatelessWidget {
               child: Text(
                 value,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
                   color: theme.colorScheme.primary,
                   decoration: TextDecoration.underline,
                   decorationColor: theme.colorScheme.primary,

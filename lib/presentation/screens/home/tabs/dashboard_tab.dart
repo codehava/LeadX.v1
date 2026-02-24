@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/format_last_sync.dart';
 import '../../../../domain/entities/activity.dart';
+import '../../../../core/utils/period_type_helpers.dart';
 import '../../../providers/activity_providers.dart';
 import '../../../providers/pipeline_providers.dart';
 import '../../../providers/scoreboard_providers.dart';
@@ -156,13 +157,23 @@ class DashboardTab extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: dashboardStatsAsync.when(
-                      data: (stats) => StatCard(
-                        label: 'Ranking',
-                        value: stats.userRank != null ? '#${stats.userRank}' : '-',
-                        icon: Icons.emoji_events,
-                        color: AppColors.tertiary,
-                        onTap: () => context.go('/home/scoreboard'),
-                      ),
+                      data: (stats) {
+                        final periodAsync = ref.watch(currentPeriodProvider);
+                        final periodLabel = periodAsync.whenOrNull(
+                          data: (p) => p != null
+                              ? formatPeriodType(p.periodType)
+                              : null,
+                        );
+                        return StatCard(
+                          label: periodLabel != null
+                              ? 'Ranking $periodLabel'
+                              : 'Ranking',
+                          value: stats.userRank != null ? '#${stats.userRank}' : '-',
+                          icon: Icons.emoji_events,
+                          color: AppColors.tertiary,
+                          onTap: () => context.go('/home/scoreboard'),
+                        );
+                      },
                       loading: () => const StatCard(
                         label: 'Ranking',
                         value: '-',
