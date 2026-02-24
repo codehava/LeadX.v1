@@ -26,25 +26,19 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<List<MeasureDefinition>> getMeasureDefinitions() async {
-    // Try local first
-    final localData = await _localDataSource.getMeasureDefinitions();
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote if local is empty and online
+    // Always try remote first — measures are managed server-side by admins
     if (await _connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchMeasureDefinitions();
         await _localDataSource.upsertMeasureDefinitions(remoteData);
         return remoteData;
       } catch (e) {
-        // Return empty if remote fails
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for measure definitions, falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getMeasureDefinitions();
   }
 
   @override
@@ -59,35 +53,24 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<List<ScoringPeriod>> getScoringPeriods() async {
-    // Try local first
-    final localData = await _localDataSource.getScoringPeriods();
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — periods are managed server-side by admins
     if (await _connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchScoringPeriods();
         await _localDataSource.upsertScoringPeriods(remoteData);
         return remoteData;
       } catch (e) {
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for scoring periods, falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getScoringPeriods();
   }
 
   @override
   Future<ScoringPeriod?> getCurrentPeriod() async {
-    // Try local first
-    final localData = await _localDataSource.getCurrentPeriod();
-    if (localData != null) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — periods are managed server-side by admins
     if (await _connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchCurrentPeriod();
@@ -96,22 +79,17 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         }
         return remoteData;
       } catch (e) {
-        return null;
+        _log.warning('scoreboard | Remote fetch failed for current period, falling back to local: $e');
       }
     }
 
-    return null;
+    // Offline or remote failed: use local cache
+    return _localDataSource.getCurrentPeriod();
   }
 
   @override
   Future<List<ScoringPeriod>> getAllCurrentPeriods() async {
-    // Try local first
-    final localData = await _localDataSource.getAllCurrentPeriods();
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — periods are managed server-side by admins
     if (await _connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchAllCurrentPeriods();
@@ -120,11 +98,12 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         }
         return remoteData;
       } catch (e) {
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for all current periods, falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getAllCurrentPeriods();
   }
 
   @override
@@ -139,13 +118,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<UserTarget>> getUserTargets(
       String userId, String periodId) async {
-    // Try local first
-    final localData = await _localDataSource.getUserTargets(userId, periodId);
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — targets are assigned server-side by managers
     if (await _connectivityService.isConnected) {
       try {
         final remoteData =
@@ -153,11 +126,12 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         await _localDataSource.upsertUserTargets(remoteData);
         return remoteData;
       } catch (e) {
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for user targets, falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getUserTargets(userId, periodId);
   }
 
   // ============================================
@@ -166,13 +140,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<List<UserScore>> getUserScores(String userId, String periodId) async {
-    // Try local first
-    final localData = await _localDataSource.getUserScores(userId, periodId);
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — scores are computed server-side by cron
     if (await _connectivityService.isConnected) {
       try {
         final remoteData =
@@ -180,11 +148,12 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         await _localDataSource.upsertUserScores(remoteData);
         return remoteData;
       } catch (e) {
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for user scores, falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getUserScores(userId, periodId);
   }
 
   @override
@@ -199,14 +168,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<UserScore>> getUserScoresForCurrentPeriods(
       String userId) async {
-    // Try local first
-    final localData =
-        await _localDataSource.getUserScoresForCurrentPeriods(userId);
-    if (localData.isNotEmpty) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — scores are computed server-side by cron
     if (await _connectivityService.isConnected) {
       try {
         final remoteData =
@@ -214,11 +176,12 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         await _localDataSource.upsertUserScores(remoteData);
         return remoteData;
       } catch (e) {
-        return [];
+        _log.warning('scoreboard | Remote fetch failed for user scores (current periods), falling back to local: $e');
       }
     }
 
-    return [];
+    // Offline or remote failed: use local cache
+    return _localDataSource.getUserScoresForCurrentPeriods(userId);
   }
 
   // ============================================
@@ -228,14 +191,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<PeriodSummary?> getUserPeriodSummary(
       String userId, String periodId) async {
-    // Try local first
-    final localData =
-        await _localDataSource.getUserPeriodSummary(userId, periodId);
-    if (localData != null) {
-      return localData;
-    }
-
-    // Fallback to remote
+    // Always try remote first — summaries are computed server-side by cron
     if (await _connectivityService.isConnected) {
       try {
         final remoteData =
@@ -245,11 +201,12 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
         }
         return remoteData;
       } catch (e) {
-        return null;
+        _log.warning('scoreboard | Remote fetch failed for user period summary, falling back to local: $e');
       }
     }
 
-    return null;
+    // Offline or remote failed: use local cache
+    return _localDataSource.getUserPeriodSummary(userId, periodId);
   }
 
   @override
@@ -266,7 +223,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
       try {
         return await _remoteDataSource.fetchLeaderboard(periodId, limit: limit);
       } catch (e) {
-        // Fallback to local
+        _log.warning('scoreboard | Remote fetch failed for leaderboard, falling back to local: $e');
       }
     }
 
@@ -306,7 +263,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
           limit: limit,
         );
       } catch (e) {
-        // Fallback to local (basic, no filters)
+        _log.warning('scoreboard | Remote fetch failed for filtered leaderboard, falling back to local: $e');
       }
     }
 
@@ -343,7 +300,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
           regionalOfficeId: regionalOfficeId,
         );
       } catch (e) {
-        // Fall through to local fallback
+        _log.warning('scoreboard | Remote fetch failed for filtered leaderboard RPC, falling back to local: $e');
       }
     }
     // Offline fallback: use existing filter method (no dynamic ranking)
@@ -369,7 +326,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
           regionalOfficeId: regionalOfficeId,
         );
       } catch (e) {
-        // No fallback for team summary (requires aggregation)
+        _log.warning('scoreboard | Remote fetch failed for team summary: $e');
         return null;
       }
     }
@@ -392,7 +349,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
       try {
         return await _remoteDataSource.fetchDashboardStats(userId);
       } catch (e) {
-        // Fallback to local aggregation
+        _log.warning('scoreboard | Remote fetch failed for dashboard stats, falling back to local: $e');
       }
     }
 

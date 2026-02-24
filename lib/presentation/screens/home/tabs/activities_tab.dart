@@ -199,7 +199,7 @@ class _ActivitiesTabState extends ConsumerState<ActivitiesTab> {
         selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
 
     // Count activities per day
-    Map<String, int> activityCountByDate = {};
+    final activityCountByDate = <String, int>{};
     if (activities != null) {
       for (final activity in activities) {
         final d = activity.scheduledDatetime;
@@ -533,9 +533,7 @@ class _ActivityListTile extends StatelessWidget {
 /// For immediate activities, navigates to object search then shows ImmediateActivitySheet.
 /// For scheduled activities, navigates to activity create form with object type pre-selected.
 class _ObjectSelectorSheet extends ConsumerStatefulWidget {
-  final bool isImmediate;
-  
-  const _ObjectSelectorSheet({this.isImmediate = false});
+  const _ObjectSelectorSheet();
 
   @override
   ConsumerState<_ObjectSelectorSheet> createState() =>
@@ -546,7 +544,7 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isImmediate = widget.isImmediate;
+    const isImmediate = false;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.5,

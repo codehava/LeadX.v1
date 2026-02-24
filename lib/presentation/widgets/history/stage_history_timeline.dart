@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../domain/entities/audit_log_entity.dart';
 import 'stage_history_card.dart';

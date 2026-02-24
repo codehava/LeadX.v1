@@ -291,7 +291,7 @@ class _KeyPersonFormSheetState extends ConsumerState<KeyPersonFormSheet> {
     try {
       final customerRepo = ref.read(customerRepositoryProvider);
       
-      String ownerType = 'CUSTOMER';
+      var ownerType = 'CUSTOMER';
       if (widget.hvcId != null) {
         ownerType = 'HVC';
       } else if (widget.brokerId != null) {

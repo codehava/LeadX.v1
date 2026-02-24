@@ -218,11 +218,11 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(syncQueueItems, syncQueueItems.status);
             // Backfill existing items based on current state
             await customStatement(
-              "UPDATE sync_queue SET status = CASE "
+              'UPDATE sync_queue SET status = CASE '
               "WHEN retry_count >= 5 THEN 'dead_letter' "
               "WHEN last_error IS NOT NULL AND retry_count > 0 THEN 'failed' "
               "ELSE 'pending' "
-              "END"
+              'END'
             );
           }
           // Migration from v12 to v13: Add deleted_at column to users

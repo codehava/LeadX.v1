@@ -35,30 +35,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     if (!mounted) return;
 
-    final _log = AppLogger.instance;
+    final log = AppLogger.instance;
     authState.when(
       initial: () {
-        _log.debug('auth | Splash: Initial state - redirecting to login');
+        log.debug('auth | Splash: Initial state - redirecting to login');
         context.go(RoutePaths.login);
       },
       loading: () {
-        _log.debug('auth | Splash: Still loading - keeping splash visible');
+        log.debug('auth | Splash: Still loading - keeping splash visible');
         // Keep showing splash
       },
       authenticated: (user) {
-        _log.info('auth | Splash: Authenticated - redirecting to home (user: ${user.email})');
+        log.info('auth | Splash: Authenticated - redirecting to home (user: ${user.email})');
         context.go(RoutePaths.home);
       },
       unauthenticated: () {
-        _log.debug('auth | Splash: Unauthenticated - redirecting to login');
+        log.debug('auth | Splash: Unauthenticated - redirecting to login');
         context.go(RoutePaths.login);
       },
       passwordRecovery: () {
-        _log.info('auth | Splash: Password recovery flow - redirecting to reset password');
+        log.info('auth | Splash: Password recovery flow - redirecting to reset password');
         context.go(RoutePaths.resetPassword);
       },
       error: (message) {
-        _log.error('auth | Splash: Auth error: $message - redirecting to login');
+        log.error('auth | Splash: Auth error: $message - redirecting to login');
         context.go(RoutePaths.login);
       },
     );

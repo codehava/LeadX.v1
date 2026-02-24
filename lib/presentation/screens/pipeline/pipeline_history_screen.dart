@@ -29,7 +29,7 @@ class PipelineHistoryScreen extends ConsumerWidget {
         title: pipelineAsync.when(
           data: (pipeline) => Text('Riwayat ${pipeline?.code ?? ''}'),
           loading: () => const Text('Riwayat Pipeline'),
-          error: (_, __) => const Text('Riwayat Pipeline'),
+          error: (_, _) => const Text('Riwayat Pipeline'),
         ),
         actions: [
           IconButton(

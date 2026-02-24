@@ -222,7 +222,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                     backgroundColor: theme.colorScheme.primary,
                     child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
                   ),
-                  error: (_, __) => CircleAvatar(
+                  error: (_, _) => CircleAvatar(
                     radius: 16,
                     backgroundColor: theme.colorScheme.primary,
                     child: const Text('U', style: TextStyle(color: Colors.white, fontSize: 14)),
@@ -955,7 +955,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                     ),
                   ),
                 ),
-                error: (_, __) => Material(
+                error: (_, _) => Material(
                   shape: const CircleBorder(),
                   clipBehavior: Clip.antiAlias,
                   color: Colors.transparent,

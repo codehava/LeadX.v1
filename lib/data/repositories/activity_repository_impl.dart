@@ -859,7 +859,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       // Get all activity IDs from local database
       final activities = await _localDataSource.getAllActivities();
 
-      int photoCount = 0;
+      var photoCount = 0;
       for (final activity in activities) {
         try {
           // Fetch photos for this activity from remote

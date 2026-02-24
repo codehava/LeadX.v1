@@ -559,7 +559,7 @@ class ActivityDetailScreen extends ConsumerWidget {
               onTap: () => Navigator.of(context).pop(),
               child: InteractiveViewer(
                 minScale: 0.5,
-                maxScale: 4.0,
+                maxScale: 4,
                 child: Hero(
                   tag: 'photo_${photo.id}',
                   child: _buildFullSizePhoto(photo),
@@ -579,7 +579,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                   bottom: 8,
                 ),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
@@ -631,7 +631,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                     top: 16,
                   ),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
@@ -973,7 +973,7 @@ class _PicListTile extends ConsumerWidget {
           title: const Text('PIC'),
           subtitle: Text(keyPersonName),
         ),
-        error: (_, __) => ListTile(
+        error: (_, _) => ListTile(
           leading: const Icon(Icons.person),
           title: const Text('PIC'),
           subtitle: Text(keyPersonName),

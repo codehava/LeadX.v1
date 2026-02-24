@@ -21,8 +21,8 @@ class BrokerRemoteDataSource {
   /// Uses pagination to handle large datasets (1000+ records).
   Future<List<Map<String, dynamic>>> fetchBrokers({DateTime? since}) async {
     final allResults = <Map<String, dynamic>>[];
-    int offset = 0;
-    bool hasMore = true;
+    var offset = 0;
+    var hasMore = true;
 
     while (hasMore) {
       var query = _supabase.from('brokers').select();

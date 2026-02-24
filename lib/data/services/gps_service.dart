@@ -26,12 +26,12 @@ class GpsService {
 
   /// Check and request location permissions.
   Future<LocationPermissionStatus> checkAndRequestPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return LocationPermissionStatus.serviceDisabled;
     }
 
-    LocationPermission permission = await Geolocator.checkPermission();
+    var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {

@@ -2,6 +2,8 @@
 ///
 /// This class provides access to environment-specific settings
 /// such as Supabase URL and API keys loaded from .env file at runtime.
+library;
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EnvConfig {

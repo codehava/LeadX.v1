@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/validators.dart';
 import '../../../data/dtos/customer_dtos.dart';
-import '../../../data/services/gps_service.dart';
 import '../../providers/customer_providers.dart';
 import '../../providers/gps_providers.dart';
 import '../../providers/master_data_providers.dart';
@@ -176,12 +175,6 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
     );
   }
 
-  void _markAsChanged() {
-    if (!_hasUnsavedChanges) {
-      setState(() => _hasUnsavedChanges = true);
-    }
-  }
-
   Widget _buildForm(ThemeData theme) {
     // Watch master data providers
     final provincesAsync = ref.watch(provincesStreamProvider);
@@ -245,7 +238,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                           value == null ? 'Provinsi wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('Provinsi *'),
-                    error: (_, __) => _buildErrorDropdown('Provinsi *'),
+                    error: (_, _) => _buildErrorDropdown('Provinsi *'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -268,7 +261,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                           value == null ? 'Kota wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('Kota *'),
-                    error: (_, __) => _buildErrorDropdown('Kota *'),
+                    error: (_, _) => _buildErrorDropdown('Kota *'),
                   ),
                 ),
               ],
@@ -335,7 +328,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                           value == null ? 'Tipe wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('Tipe Perusahaan *'),
-                    error: (_, __) => _buildErrorDropdown('Tipe Perusahaan *'),
+                    error: (_, _) => _buildErrorDropdown('Tipe Perusahaan *'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -355,7 +348,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                           value == null ? 'Kepemilikan wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('Kepemilikan *'),
-                    error: (_, __) => _buildErrorDropdown('Kepemilikan *'),
+                    error: (_, _) => _buildErrorDropdown('Kepemilikan *'),
                   ),
                 ),
               ],
@@ -376,7 +369,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                     value == null ? 'Industri wajib dipilih' : null,
               ),
               loading: () => _buildLoadingDropdown('Industri *'),
-              error: (_, __) => _buildErrorDropdown('Industri *'),
+              error: (_, _) => _buildErrorDropdown('Industri *'),
             ),
             const SizedBox(height: 16),
             AppTextField(

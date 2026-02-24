@@ -64,14 +64,14 @@ class ScoreboardScreen extends ConsumerWidget {
                 size: 64, color: theme.colorScheme.outline),
             const SizedBox(height: 16),
             Text(
-              'No scoring data available',
+              'Data skor belum tersedia',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Scoring periods have not been configured yet.',
+              'Periode scoring belum dikonfigurasi.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -97,7 +97,7 @@ class ScoreboardScreen extends ConsumerWidget {
           // Historical period banner
           if (!state.isMultiPeriodView &&
               state.selectedPeriod != null &&
-              !(state.selectedPeriod!.isCurrent)) ...[
+              !state.selectedPeriod!.isCurrent) ...[
             _buildHistoricalBanner(context, ref, state),
             const SizedBox(height: 16),
           ],
@@ -188,7 +188,7 @@ class ScoreboardScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No team data available',
+                      'Data tim belum tersedia',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.outline,
                       ),
@@ -309,7 +309,7 @@ class ScoreboardScreen extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

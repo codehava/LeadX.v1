@@ -18,7 +18,6 @@ import '../../widgets/common/pipeline_summary_hero.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_state.dart';
 import '../activity/activity_execution_sheet.dart';
-import '../activity/immediate_activity_sheet.dart';
 import '../customer/key_person_form_sheet.dart';
 import '../../widgets/hvc/hvc_customer_link_sheet.dart';
 

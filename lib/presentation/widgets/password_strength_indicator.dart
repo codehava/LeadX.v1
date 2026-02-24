@@ -50,7 +50,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
         case PasswordStrength.medium:
           return 0.66;
         case PasswordStrength.strong:
-          return 1.0;
+          return 1;
       }
     }
 
@@ -84,20 +84,20 @@ class PasswordStrengthIndicator extends StatelessWidget {
       return PasswordStrength.weak;
     }
 
-    int score = 0;
+    var score = 0;
 
     // Length check
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
 
     // Has lowercase
-    if (password.contains(RegExp(r'[a-z]'))) score++;
+    if (password.contains(RegExp('[a-z]'))) score++;
 
     // Has uppercase
-    if (password.contains(RegExp(r'[A-Z]'))) score++;
+    if (password.contains(RegExp('[A-Z]'))) score++;
 
     // Has number
-    if (password.contains(RegExp(r'[0-9]'))) score++;
+    if (password.contains(RegExp('[0-9]'))) score++;
 
     // Has special character
     if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) score++;
@@ -115,8 +115,8 @@ class PasswordStrengthIndicator extends StatelessWidget {
   /// Check if password meets minimum requirements.
   static bool isPasswordValid(String password) {
     return password.length >= 8 &&
-        password.contains(RegExp(r'[a-z]')) &&
-        password.contains(RegExp(r'[A-Z]')) &&
-        password.contains(RegExp(r'[0-9]'));
+        password.contains(RegExp('[a-z]')) &&
+        password.contains(RegExp('[A-Z]')) &&
+        password.contains(RegExp('[0-9]'));
   }
 }

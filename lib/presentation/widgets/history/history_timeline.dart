@@ -116,7 +116,7 @@ class HistoryTimeline extends StatelessWidget {
   }
 
   List<_DateGroup> _groupByDate(List<AuditLog> logs) {
-    final Map<String, List<AuditLog>> grouped = {};
+    final grouped = <String, List<AuditLog>>{};
     
     for (final log in logs) {
       final dateKey = DateFormat('yyyy-MM-dd').format(log.createdAt);

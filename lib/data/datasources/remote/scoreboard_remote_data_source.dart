@@ -387,7 +387,7 @@ class ScoreboardRemoteDataSource {
     double totalScore = 0;
     double totalLeadScore = 0;
     double totalLagScore = 0;
-    int count = data.length;
+    final count = data.length;
 
     for (final entry in data) {
       final jsonMap = entry as Map<String, dynamic>;
@@ -695,7 +695,7 @@ class ScoreboardRemoteDataSource {
     String? supervisorUserId, // If non-null, filter to subordinates only
   }) async {
     // Step 1: Get all active measure definitions (columns for the grid)
-    final measures = await fetchMeasureDefinitions();
+    await fetchMeasureDefinitions();
 
     // Step 2: Get user_score_aggregates for the period (for composite scores)
     dynamic aggregateQuery = _supabase
@@ -744,7 +744,7 @@ class ScoreboardRemoteDataSource {
         .map((p) => p.id)
         .toList();
 
-    List<dynamic> additionalScores = [];
+    var additionalScores = <dynamic>[];
     if (otherPeriodIds.isNotEmpty) {
       additionalScores = await _supabase
           .from('user_scores')
@@ -757,7 +757,7 @@ class ScoreboardRemoteDataSource {
     final allScores = [...(scoresResponse as List), ...additionalScores];
 
     // Step 4: Build the grid data structure
-    final List<Map<String, dynamic>> rows = [];
+    final rows = <Map<String, dynamic>>[];
 
     for (final aggregate in aggregates) {
       final agg = aggregate as Map<String, dynamic>;

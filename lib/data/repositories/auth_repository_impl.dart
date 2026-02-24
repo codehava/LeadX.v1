@@ -323,7 +323,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AppAuthState> getAuthState() async {
     // Wait for initialization to complete with timeout
-    int attempts = 0;
+    var attempts = 0;
     while (!_initialized && attempts < 20) {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
@@ -447,8 +447,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (session == null) return null;
 
     try {
-      _currentUser = await _fetchUserWithFallback(session);
-      return _currentUser;
+      return _currentUser = await _fetchUserWithFallback(session);
     } catch (e) {
       _log.debug('auth | getCurrentUser error: $e');
       return null;
@@ -625,7 +624,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final userId = session.user.id;
 
       // Build update payload (only include provided fields)
-      final Map<String, dynamic> updates = {
+      final updates = <String, dynamic>{
         'updated_at': DateTime.now().toUtcIso8601(),
       };
 

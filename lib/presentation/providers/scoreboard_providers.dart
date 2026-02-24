@@ -1,12 +1,9 @@
-import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/utils/period_type_helpers.dart';
 import '../../data/datasources/local/scoreboard_local_data_source.dart';
 import '../../data/datasources/remote/scoreboard_remote_data_source.dart';
 import '../../data/repositories/scoreboard_repository_impl.dart';
-import '../../data/services/connectivity_service.dart';
 import '../../domain/entities/scoring_entities.dart';
 import '../../domain/repositories/scoreboard_repository.dart';
 import 'auth_providers.dart';
@@ -566,11 +563,12 @@ Stream<bool> isScoreUpdatePending(ref) {
   // ignore: argument_type_not_assignable
   final db = ref.watch(appDatabaseProvider);
   // Watch sync queue for pending items that affect scoring
-  return (db.select(db.syncQueueItems)
-        ..where((t) => t.entityType.isIn(['activity', 'pipeline', 'customer']) &
-            t.status.equals('pending')))
-      .watch()
-      .map((items) => items.isNotEmpty);
+  // Split cascade into separate statements for proper Drift type inference on web
+  final query = db.select(db.syncQueueItems);
+  query.where((t) => t.entityType.isIn(['activity', 'pipeline', 'customer']) &
+      t.status.equals('pending'));
+  // ignore: return_of_invalid_type
+  return query.watch().map((items) => items.isNotEmpty);
 }
 
 // ============================================

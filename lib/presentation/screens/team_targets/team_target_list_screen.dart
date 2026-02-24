@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/routes/route_names.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/admin/admin_4dx_providers.dart';
@@ -33,9 +34,9 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
     final colorScheme = theme.colorScheme;
     final periodsAsync = ref.watch(allPeriodsProvider);
     final subordinatesAsync = ref.watch(mySubordinatesProvider);
-    final measuresAsync = ref.watch(allMeasuresProvider);
     final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
     final currentPeriods = currentPeriodsAsync.valueOrNull ?? [];
+    final measuresAsync = ref.watch(allMeasuresProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +81,7 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Gagal memuat periode'),
+                  error: (_, _) => const Text('Gagal memuat periode'),
                 ),
                 const SizedBox(height: 12),
 
@@ -154,10 +155,12 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
     final currentPeriodAsync = ref.watch(currentPeriodProvider);
 
     return subordinatesAsync.when(
-      data: (subordinates) => measuresAsync.when(
-        data: (measures) => currentPeriodsAsync.when(
-          data: (currentPeriods) {
-            final activeMeasures = measures.where((m) => m.isActive).length;
+      data: (subordinates) => currentPeriodsAsync.when(
+        data: (currentPeriods) => measuresAsync.when(
+          data: (measures) {
+            // Count active measures as fallback denominator
+            final activeMeasureCount =
+                measures.where((m) => m.isActive).length;
 
             // Determine which period IDs to query targets for
             Set<String> periodIdsToQuery;
@@ -171,16 +174,40 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
 
             // Watch targets across the relevant periods
             final allTargets = <UserTarget>[];
-            bool anyLoading = false;
+            final allManagerTargets = <UserTarget>[];
+            var anyLoading = false;
 
             for (final pId in periodIdsToQuery) {
               final targetsAsync = ref.watch(targetsForPeriodProvider(pId));
               targetsAsync.when(
                 data: (targets) => allTargets.addAll(targets),
                 loading: () => anyLoading = true,
-                error: (_, __) {},
+                error: (e, _) {
+                  AppLogger.instance.warning(
+                      'team_targets | Failed to load targets for period $pId: $e');
+                },
+              );
+
+              final managerAsync =
+                  ref.watch(managerOwnTargetsProvider(pId));
+              managerAsync.when(
+                data: (targets) => allManagerTargets.addAll(targets),
+                loading: () => anyLoading = true,
+                error: (e, _) {
+                  AppLogger.instance.warning(
+                      'team_targets | Failed to load manager targets for period $pId: $e');
+                },
               );
             }
+
+            // Count unique measures the manager has been assigned
+            final managerMeasureCount =
+                allManagerTargets.map((t) => t.measureId).toSet().length;
+
+            // Use manager's measure count when available, fallback to all active measures
+            final effectiveTotalMeasures = managerMeasureCount > 0
+                ? managerMeasureCount
+                : activeMeasureCount;
 
             if (anyLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -226,14 +253,16 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
               onRefresh: () async {
                 ref.invalidate(mySubordinatesProvider);
                 ref.invalidate(allCurrentPeriodsProvider);
+                ref.invalidate(allMeasuresProvider);
                 for (final pId in periodIdsToQuery) {
                   ref.invalidate(targetsForPeriodProvider(pId));
+                  ref.invalidate(managerOwnTargetsProvider(pId));
                 }
               },
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: filtered.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final user = filtered[index];
                   // Count unique measures with targets across relevant periods
@@ -245,7 +274,7 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                   return _SubordinateTargetCard(
                     user: user,
                     assignedCount: userMeasureIds.length,
-                    totalMeasures: activeMeasures,
+                    totalMeasures: effectiveTotalMeasures,
                     isLocked: _selectedPeriod?.isLocked ?? false,
                     onTap: () {
                       if (periodForNav == null) return;
@@ -262,11 +291,11 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) =>
-              Center(child: Text('Gagal memuat periode: $error')),
+              Center(child: Text('Gagal memuat ukuran: $error')),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
-            Center(child: Text('Gagal memuat measures: $error')),
+            Center(child: Text('Gagal memuat periode: $error')),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) =>
@@ -332,7 +361,7 @@ class _CascadeSummaryCard extends ConsumerWidget {
                       // Sum of subordinate targets for this measure
                       final subSum = subTargets
                           .where((t) => t.measureId == mt.measureId)
-                          .fold(0.0, (sum, t) => sum + t.targetValue);
+                          .fold<double>(0, (sum, t) => sum + t.targetValue);
                       final overAllocated = subSum > mt.targetValue;
                       final measureName =
                           mt.measureName ?? mt.measureId.substring(0, 8);
@@ -382,14 +411,14 @@ class _CascadeSummaryCard extends ConsumerWidget {
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
           loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

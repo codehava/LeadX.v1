@@ -33,7 +33,7 @@ class _ReferralListScreenState extends ConsumerState<ReferralListScreen>
   }
 
   int _calculateTabCount(bool isManager, bool isAdmin) {
-    int count = 2; // Inbound + Outbound
+    var count = 2; // Inbound + Outbound
     if (isManager) count++; // Approval tab
     if (isAdmin) count++; // All tab
     return count;

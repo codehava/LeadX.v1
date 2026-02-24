@@ -939,7 +939,7 @@ class CadenceRepositoryImpl implements CadenceRepository {
       final meetings = <domain.CadenceMeeting>[];
       final now = DateTime.now();
 
-      for (int week = 0; week < weeksAhead; week++) {
+      for (var week = 0; week < weeksAhead; week++) {
         final targetDate = _calculateNextMeetingDate(
           config.frequency,
           config.dayOfWeek,
@@ -1094,8 +1094,8 @@ class CadenceRepositoryImpl implements CadenceRepository {
     DateTime from,
   ) {
     // Parse time
-    int hour = 9;
-    int minute = 0;
+    var hour = 9;
+    var minute = 0;
     if (defaultTime != null && defaultTime.contains(':')) {
       final parts = defaultTime.split(':');
       hour = int.tryParse(parts[0]) ?? 9;

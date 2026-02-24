@@ -22,7 +22,7 @@ class MeasureDefinitions extends Table {
       text().nullable()(); // Auto-pull from table (activities, pipelines, customers)
   TextColumn get sourceCondition => text().nullable()(); // WHERE clause
   RealColumn get weight =>
-      real().withDefault(const Constant(1.0))(); // Scoring weight (60% lead, 40% lag)
+      real().withDefault(const Constant(1))(); // Scoring weight (60% lead, 40% lag)
   RealColumn get defaultTarget => real().nullable()(); // Default target value
   TextColumn get periodType =>
       text().withDefault(const Constant('WEEKLY'))(); // 'WEEKLY', 'MONTHLY', 'QUARTERLY'

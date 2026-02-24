@@ -91,7 +91,7 @@ class _ImmediateActivitySheetState
     });
 
     final gpsService = ref.read(gpsServiceProvider);
-    final position = await gpsService.getCurrentPosition();
+    await gpsService.getCurrentPosition();
 
     if (mounted) {
       setState(() {
@@ -105,7 +105,7 @@ class _ImmediateActivitySheetState
     final theme = Theme.of(context);
     final activityTypesAsync = ref.watch(activityTypesStreamProvider);
     final formState = ref.watch(activityFormNotifierProvider);
-    final executionState = ref.watch(activityExecutionNotifierProvider);
+    ref.watch(activityExecutionNotifierProvider);
 
     // Listen for successful creation
     ref.listen<ActivityFormState>(activityFormNotifierProvider, (prev, next) {

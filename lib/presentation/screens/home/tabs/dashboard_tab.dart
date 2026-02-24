@@ -107,7 +107,7 @@ class DashboardTab extends ConsumerWidget {
                       );
                     },
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                   ),
                 ],
               ),
@@ -146,7 +146,7 @@ class DashboardTab extends ConsumerWidget {
                         icon: Icons.trending_up,
                         color: AppColors.success,
                       ),
-                      error: (_, __) => const StatCard(
+                      error: (_, _) => const StatCard(
                         label: 'Pipeline Aktif',
                         value: '0',
                         icon: Icons.trending_up,
@@ -180,7 +180,7 @@ class DashboardTab extends ConsumerWidget {
                         icon: Icons.emoji_events,
                         color: AppColors.tertiary,
                       ),
-                      error: (_, __) => StatCard(
+                      error: (_, _) => StatCard(
                         label: 'Ranking',
                         value: '-',
                         icon: Icons.emoji_events,
@@ -222,7 +222,7 @@ class DashboardTab extends ConsumerWidget {
                 ),
               ],
             ),
-            error: (_, __) => const Row(
+            error: (_, _) => const Row(
               children: [
                 Expanded(
                   child: StatCard(
@@ -460,8 +460,6 @@ class _DashboardActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
       child: ListTile(
         onTap: onTap,

@@ -130,7 +130,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
                 },
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const Text('Gagal memuat tipe HVC'),
+              error: (_, _) => const Text('Gagal memuat tipe HVC'),
             ),
             const SizedBox(height: 16),
 

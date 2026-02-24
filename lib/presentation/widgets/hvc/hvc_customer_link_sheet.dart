@@ -151,7 +151,7 @@ class _HvcCustomerLinkSheetState extends ConsumerState<HvcCustomerLinkSheet> {
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Gagal memuat daftar pelanggan'),
+            error: (_, _) => const Text('Gagal memuat daftar pelanggan'),
           ),
           const SizedBox(height: 16),
 

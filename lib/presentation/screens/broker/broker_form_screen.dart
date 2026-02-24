@@ -109,7 +109,7 @@ class _BrokerFormScreenState extends ConsumerState<BrokerFormScreen> {
           appBar: AppBar(title: const Text('Edit Broker')),
           body: const Center(child: CircularProgressIndicator()),
         ),
-        error: (_, __) => Scaffold(
+        error: (_, _) => Scaffold(
           appBar: AppBar(title: const Text('Edit Broker')),
           body: const Center(child: Text('Gagal memuat data')),
         ),

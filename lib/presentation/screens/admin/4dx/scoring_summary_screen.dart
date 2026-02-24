@@ -51,7 +51,7 @@ class _ScoringSummaryScreenState extends ConsumerState<ScoringSummaryScreen> {
           // Subtitle showing filter context
           Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Text(
               isAdmin ? 'Semua pengguna' : 'Tim Anda',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -108,7 +108,7 @@ class _ScoringSummaryScreenState extends ConsumerState<ScoringSummaryScreen> {
         ref.watch(allCurrentPeriodsProvider).valueOrNull ?? [];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
         child: periodsAsync.when(
           data: (periods) {
@@ -140,7 +140,7 @@ class _ScoringSummaryScreenState extends ConsumerState<ScoringSummaryScreen> {
             padding: EdgeInsets.all(16),
             child: Text('Memuat periode...'),
           ),
-          error: (_, __) => const Padding(
+          error: (_, _) => const Padding(
             padding: EdgeInsets.all(16),
             child: Text('Gagal memuat periode'),
           ),

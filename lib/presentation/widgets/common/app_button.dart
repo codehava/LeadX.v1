@@ -94,7 +94,7 @@ class AppButton extends StatelessWidget {
       AppButtonSize.large => 20.0,
     };
 
-    Widget child = isLoading
+    final child = isLoading
         ? SizedBox(
             width: iconSize,
             height: iconSize,
@@ -118,7 +118,7 @@ class AppButton extends StatelessWidget {
 
     final effectiveOnPressed = isLoading ? null : onPressed;
 
-    Widget button = switch (variant) {
+    final button = switch (variant) {
       AppButtonVariant.primary => ElevatedButton(
           onPressed: effectiveOnPressed,
           style: ElevatedButton.styleFrom(

@@ -19,7 +19,6 @@ import '../../widgets/common/pipeline_summary_hero.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
 import '../../widgets/pipeline/pipeline_stage_filter_bar.dart';
 import '../activity/activity_execution_sheet.dart';
-import '../activity/immediate_activity_sheet.dart';
 import 'key_person_form_sheet.dart';
 
 /// Customer detail screen with tabs for info, key persons, pipelines, activities.

@@ -74,7 +74,7 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
               );
             },
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
 
           // Targets list
@@ -137,7 +137,7 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
         // Collect targets and scores across all current periods
         final allTargets = <UserTarget>[];
         final allScores = <UserScore>[];
-        bool anyLoading = false;
+        var anyLoading = false;
 
         // Map periodId → period for grouping
         final periodById = <String, ScoringPeriod>{};
@@ -151,12 +151,12 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
           tAsync.when(
             data: (t) => allTargets.addAll(t),
             loading: () => anyLoading = true,
-            error: (_, __) {},
+            error: (_, _) {},
           );
           sAsync.when(
             data: (s) => allScores.addAll(s),
             loading: () => anyLoading = true,
-            error: (_, __) {},
+            error: (_, _) {},
           );
         }
 

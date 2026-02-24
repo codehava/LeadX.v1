@@ -62,7 +62,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         title: userAsync.when(
           data: (user) => Text('Target: ${user?.name ?? 'Bawahan'}'),
           loading: () => const Text('Target'),
-          error: (_, __) => const Text('Target'),
+          error: (_, _) => const Text('Target'),
         ),
         centerTitle: false,
         actions: [
@@ -117,8 +117,8 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     // Watch existing targets across ALL current periods
     final allExistingTargets = <UserTarget>[];
     final allManagerTargets = <UserTarget>[];
-    bool anyLoading = false;
-    bool anyError = false;
+    var anyLoading = false;
+    var anyError = false;
 
     for (final periodId in periodIds) {
       final targetsAsync =
@@ -128,22 +128,22 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
       targetsAsync.when(
         data: (targets) => allExistingTargets.addAll(targets),
         loading: () => anyLoading = true,
-        error: (_, __) => anyError = true,
+        error: (_, _) => anyError = true,
       );
       managerAsync.when(
         data: (targets) => allManagerTargets.addAll(targets),
         loading: () => anyLoading = true,
-        error: (_, __) => anyError = true,
+        error: (_, _) => anyError = true,
       );
     }
 
     // Watch subordinate count for fair-split default calculation
-    int subordinateCount = 0;
+    var subordinateCount = 0;
     final subordinatesAsync = ref.watch(mySubordinatesProvider);
     subordinatesAsync.when(
       data: (subs) => subordinateCount = subs.length,
       loading: () => anyLoading = true,
-      error: (_, __) => anyError = true,
+      error: (_, _) => anyError = true,
     );
 
     if (anyLoading) {

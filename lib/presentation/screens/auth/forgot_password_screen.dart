@@ -107,7 +107,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const SizedBox(height: 8),
 
           Text(
-            'Enter your email address and we\'ll send you a link to reset your password.',
+            "Enter your email address and we'll send you a link to reset your password.",
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -186,7 +186,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         const SizedBox(height: 8),
 
         Text(
-          'We\'ve sent a password reset link to:',
+          "We've sent a password reset link to:",
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -226,7 +226,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           onPressed: () {
             setState(() => _emailSent = false);
           },
-          child: const Text('Didn\'t receive email? Try again'),
+          child: const Text("Didn't receive email? Try again"),
         ),
       ],
     );

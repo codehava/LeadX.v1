@@ -195,7 +195,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                           value == null ? 'COB wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('COB *'),
-                    error: (_, __) => _buildErrorDropdown('COB *'),
+                    error: (_, _) => _buildErrorDropdown('COB *'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -222,7 +222,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                           value == null ? 'LOB wajib dipilih' : null,
                     ),
                     loading: () => _buildLoadingDropdown('LOB *'),
-                    error: (_, __) => _buildErrorDropdown('LOB *'),
+                    error: (_, _) => _buildErrorDropdown('LOB *'),
                   ),
                 ),
               ],
@@ -294,7 +294,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                     value == null ? 'Sumber leads wajib dipilih' : null,
               ),
               loading: () => _buildLoadingDropdown('Sumber Leads *'),
-              error: (_, __) => _buildErrorDropdown('Sumber Leads *'),
+              error: (_, _) => _buildErrorDropdown('Sumber Leads *'),
             ),
             
             const SizedBox(height: 16),
@@ -317,7 +317,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                 },
               ),
               loading: () => _buildLoadingDropdown('Broker'),
-              error: (_, __) => _buildErrorDropdown('Broker'),
+              error: (_, _) => _buildErrorDropdown('Broker'),
             ),
 
             const SizedBox(height: 16),
@@ -460,7 +460,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         );
       },
       loading: () => _buildLoadingDropdown('Kontak Broker'),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -492,7 +492,7 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         );
       },
       loading: () => _buildLoadingDropdown('Kontak Customer'),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/pipeline.dart';
-import '../../widgets/cards/pipeline_card.dart';
 
 /// A Kanban-style board view for pipelines grouped by stage.
 class PipelineKanbanBoard extends StatelessWidget {

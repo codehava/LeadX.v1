@@ -790,12 +790,10 @@ class _InfoRow extends StatelessWidget {
   const _InfoRow({
     required this.label,
     required this.value,
-    this.valueColor,
   });
 
   final String label;
   final String value;
-  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -822,7 +820,6 @@ class _InfoRow extends StatelessWidget {
               value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: valueColor,
               ),
             ),
           ),

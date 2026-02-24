@@ -19,7 +19,6 @@ import '../../widgets/common/error_state.dart';
 import '../../widgets/common/pipeline_summary_hero.dart';
 import '../../widgets/pipeline/pipeline_stage_filter_bar.dart';
 import '../activity/activity_execution_sheet.dart';
-import '../activity/immediate_activity_sheet.dart';
 import '../customer/key_person_form_sheet.dart';
 
 /// Screen displaying Broker details with tabs.
@@ -395,7 +394,7 @@ class _KeyPersonsTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => AppErrorState(
+        error: (_, _) => AppErrorState(
           title: 'Gagal memuat data',
           onRetry: () => ref.invalidate(brokerKeyPersonsProvider(brokerId)),
         ),
@@ -632,7 +631,7 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => AppErrorState(
+      error: (_, _) => AppErrorState(
         title: 'Gagal memuat data',
         onRetry: () => ref.invalidate(brokerPipelinesProvider(widget.brokerId)),
       ),
@@ -877,7 +876,7 @@ class _ActivitiesTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => AppErrorState(
+        error: (_, _) => AppErrorState(
           title: 'Gagal memuat aktivitas',
           onRetry: () => ref.invalidate(brokerActivitiesProvider(brokerId)),
         ),

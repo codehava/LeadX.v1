@@ -164,7 +164,7 @@ class InitialSyncService {
     var failedCount = 0;
 
     // Determine starting index (for resume)
-    int startIndex = 0;
+    var startIndex = 0;
     if (!forceRestart && _appSettings != null) {
       startIndex = await _appSettings!.getResumeSyncIndex();
 
@@ -672,8 +672,8 @@ class InitialSyncService {
   Future<void> _syncBrokers({DateTime? since}) async {
     // Use pagination for large datasets (1000+ records)
     final allData = <Map<String, dynamic>>[];
-    int offset = 0;
-    bool hasMore = true;
+    var offset = 0;
+    var hasMore = true;
 
     while (hasMore) {
       var query = _supabase.from('brokers').select();

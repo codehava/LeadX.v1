@@ -35,7 +35,7 @@ class ScoreGauge extends StatelessWidget {
             width: size,
             height: size,
             child: CircularProgressIndicator(
-              value: 1.0,
+              value: 1,
               strokeWidth: 12,
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(

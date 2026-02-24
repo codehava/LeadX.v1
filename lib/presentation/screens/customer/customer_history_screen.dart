@@ -25,7 +25,7 @@ class CustomerHistoryScreen extends ConsumerWidget {
         title: customerAsync.when(
           data: (customer) => Text('Riwayat ${customer?.name ?? ''}'),
           loading: () => const Text('Riwayat Customer'),
-          error: (_, __) => const Text('Riwayat Customer'),
+          error: (_, _) => const Text('Riwayat Customer'),
         ),
         actions: [
           IconButton(

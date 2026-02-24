@@ -25,7 +25,7 @@ class CameraService {
     double? maxHeight = 1920,
   }) async {
     try {
-      final XFile? image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: imageQuality,
         maxWidth: maxWidth,
@@ -57,7 +57,7 @@ class CameraService {
     double? maxHeight = 1920,
   }) async {
     try {
-      final XFile? image = await _picker.pickImage(
+      final image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: imageQuality,
         maxWidth: maxWidth,
@@ -102,14 +102,14 @@ class CameraService {
     int? limit,
   }) async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage(
+      final images = await _picker.pickMultiImage(
         imageQuality: imageQuality,
         maxWidth: maxWidth,
         maxHeight: maxHeight,
         limit: limit,
       );
 
-      final List<CapturedPhoto> results = [];
+      final results = <CapturedPhoto>[];
       for (final image in images) {
         final savedPath = await _copyToAppDirectory(image.path);
         results.add(CapturedPhoto(

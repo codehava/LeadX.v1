@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
@@ -140,7 +139,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         );
       },
       loading: () => const LinearProgressIndicator(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -351,7 +350,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   Widget _buildTeamSummary(
       LeaderboardFilter filterState, User currentUser, String? effectivePeriodId) {
     if (effectivePeriodId == null) return const SizedBox.shrink();
-    final selectedPeriod = filterState.selectedPeriod;
 
     // Determine which ID to use based on filter mode
     String? branchId;
@@ -434,7 +432,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

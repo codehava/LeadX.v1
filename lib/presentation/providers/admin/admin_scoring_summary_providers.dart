@@ -81,7 +81,7 @@ class ScoringSummaryNotifier extends _$ScoringSummaryNotifier {
       final measures = await remoteDS.fetchMeasureDefinitions();
 
       // Use selected period if set, otherwise fetch current from server
-      ScoringPeriod? activePeriod = _selectedPeriod;
+      var activePeriod = _selectedPeriod;
       if (activePeriod == null) {
         activePeriod = await remoteDS.fetchCurrentPeriod();
         if (activePeriod == null) {

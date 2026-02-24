@@ -160,7 +160,7 @@ class _ActivityCalendarScreenState extends ConsumerState<ActivityCalendarScreen>
     final leadingEmptyDays = firstWeekday - 1;
 
     // Count activities per day
-    Map<int, List<Activity>> activitiesByDay = {};
+    final activitiesByDay = <int, List<Activity>>{};
     for (final activity in activities) {
       final d = activity.scheduledDatetime;
       if (d.month == _currentMonth.month && d.year == _currentMonth.year) {
@@ -176,7 +176,7 @@ class _ActivityCalendarScreenState extends ConsumerState<ActivityCalendarScreen>
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        childAspectRatio: 1.0,
+        childAspectRatio: 1,
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
       ),

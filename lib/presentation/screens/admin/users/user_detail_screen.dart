@@ -1028,7 +1028,7 @@ class _BranchDetailRow extends ConsumerWidget {
           ],
         ),
       ),
-      error: (_, __) => _DetailRow(
+      error: (_, _) => _DetailRow(
         icon: icon,
         label: label,
         value: '-',
@@ -1103,7 +1103,7 @@ class _RegionalOfficeDetailRow extends ConsumerWidget {
           ],
         ),
       ),
-      error: (_, __) => _DetailRow(
+      error: (_, _) => _DetailRow(
         icon: icon,
         label: label,
         value: '-',
@@ -1171,7 +1171,7 @@ class _SupervisorDetailRow extends ConsumerWidget {
           ],
         ),
       ),
-      error: (_, __) => _DetailRow(
+      error: (_, _) => _DetailRow(
         icon: icon,
         label: label,
         value: '-',

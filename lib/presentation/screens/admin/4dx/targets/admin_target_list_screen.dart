@@ -99,7 +99,7 @@ class _AdminTargetListScreenState extends ConsumerState<AdminTargetListScreen> {
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Gagal memuat periode'),
+                  error: (_, _) => const Text('Gagal memuat periode'),
                 ),
                 const SizedBox(height: 12),
 

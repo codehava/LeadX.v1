@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/local/history_log_local_data_source.dart';
 import '../../data/datasources/remote/history_log_remote_data_source.dart';
