@@ -360,7 +360,7 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
         repository, currentUser.id, displayPeriod);
 
       return multiPeriodState.copyWith(
-        clearSelectedPeriod: true, // null = "Periode Aktif"
+        clearSelectedPeriod: true, // null = "Periode Berjalan"
         periods: periods,
       );
     } catch (e) {
@@ -457,8 +457,8 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
     return sections;
   }
 
-  /// Switch to "Periode Aktif" (multi-period aggregate) view.
-  Future<void> selectActivePeriods() async {
+  /// Switch to "Periode Berjalan" (multi-period aggregate) view.
+  Future<void> selectRunningPeriods() async {
     final repository = ref.read(scoreboardRepositoryProvider);
     final currentUser = await ref.read(currentUserProvider.future);
 
@@ -475,7 +475,7 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
         repository, currentUser.id, displayPeriod);
 
       state = AsyncData(multiPeriodState.copyWith(
-        clearSelectedPeriod: true, // null = "Periode Aktif"
+        clearSelectedPeriod: true, // null = "Periode Berjalan"
         periods: state.valueOrNull?.periods ?? [],
       ));
     } catch (e) {
@@ -637,8 +637,8 @@ class LeaderboardFilterNotifier extends _$LeaderboardFilterNotifier {
     state = state.copyWith(selectedPeriod: period);
   }
 
-  /// Select "Periode Aktif" (null = resolve to display period for query).
-  void selectActivePeriods() {
+  /// Select "Periode Berjalan" (null = resolve to display period for query).
+  void selectRunningPeriods() {
     state = state.copyWith(clearSelectedPeriod: true);
   }
 

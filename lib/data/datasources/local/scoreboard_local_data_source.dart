@@ -77,10 +77,9 @@ class ScoreboardLocalDataSource {
   // SCORING PERIODS
   // ============================================
 
-  /// Get all active scoring periods.
+  /// Get all scoring periods (including inactive/archived ones).
   Future<List<ScoringPeriod>> getScoringPeriods() async {
     final query = _db.select(_db.scoringPeriods)
-      ..where((t) => t.isActive.equals(true))
       ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
     final results = await query.get();

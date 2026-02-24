@@ -127,7 +127,7 @@ class _ScoringSummaryScreenState extends ConsumerState<ScoringSummaryScreen> {
                 if (period == null) {
                   ref
                       .read(scoringSummaryNotifierProvider.notifier)
-                      .selectActivePeriods();
+                      .selectRunningPeriods();
                 } else {
                   ref
                       .read(scoringSummaryNotifierProvider.notifier)

@@ -239,11 +239,11 @@ class _AdminPeriodListScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Set Periode Aktif?'),
+        title: const Text('Set Periode Berjalan?'),
         content: Text(
-          'Periode "${period.name}" akan dijadikan periode aktif saat ini. '
-          'Hanya periode ${formatPeriodType(period.periodType)} lain yang akan dinonaktifkan. '
-          'Periode aktif dengan tipe berbeda tidak terpengaruh.',
+          'Periode "${period.name}" akan dijadikan periode berjalan saat ini. '
+          'Hanya periode ${formatPeriodType(period.periodType)} lain yang akan dihentikan. '
+          'Periode berjalan dengan tipe berbeda tidak terpengaruh.',
         ),
         actions: [
           TextButton(
@@ -252,7 +252,7 @@ class _AdminPeriodListScreenState
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Set Aktif'),
+            child: const Text('Set Berjalan'),
           ),
         ],
       ),
@@ -267,7 +267,7 @@ class _AdminPeriodListScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Periode "${period.name}" sekarang aktif'),
+            content: Text('Periode "${period.name}" sekarang berjalan'),
           ),
         );
       }
@@ -344,8 +344,8 @@ class _AdminPeriodListScreenState
             period.isActive ? 'Nonaktifkan Periode?' : 'Aktifkan Periode?'),
         content: Text(
           period.isActive
-              ? 'Periode ini akan disembunyikan dan tidak digunakan dalam penilaian.'
-              : 'Periode ini akan ditampilkan dan digunakan dalam penilaian.',
+              ? 'Periode ini akan diarsipkan. Periode tetap terlihat di daftar periode tetapi ditandai sebagai arsip.'
+              : 'Periode ini akan diaktifkan kembali dan tidak lagi ditandai sebagai arsip.',
         ),
         actions: [
           TextButton(
@@ -683,7 +683,7 @@ class _PeriodCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'AKTIF',
+                        'BERJALAN',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
@@ -755,7 +755,7 @@ class _PeriodCard extends StatelessWidget {
                           value: 'current',
                           child: ListTile(
                             leading: Icon(Icons.star),
-                            title: Text('Set Aktif'),
+                            title: Text('Set Berjalan'),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),

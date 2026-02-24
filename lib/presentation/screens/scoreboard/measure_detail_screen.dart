@@ -572,7 +572,7 @@ class _MeasureDetailScreenState extends ConsumerState<MeasureDetailScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Current',
+                    'Berjalan',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.success,
                       fontWeight: FontWeight.bold,

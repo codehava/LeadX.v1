@@ -7,22 +7,22 @@ import '../../../domain/entities/scoring_entities.dart';
 /// Reusable period selector widget.
 ///
 /// Tappable row that opens a modal bottom sheet with periods grouped by type.
-/// When [selectedPeriod] is null, "Periode Aktif" (aggregate mode) is selected.
+/// When [selectedPeriod] is null, "Periode Berjalan" (aggregate mode) is selected.
 /// Each screen wraps this widget in its own container (Card, InputDecorator, etc.).
 class PeriodSelector extends StatelessWidget {
-  /// Currently selected period. Null = "Periode Aktif" (aggregate all current).
+  /// Currently selected period. Null = "Periode Berjalan" (aggregate all current).
   final ScoringPeriod? selectedPeriod;
 
   /// All available periods for selection.
   final List<ScoringPeriod> allPeriods;
 
-  /// Current active periods (one per period type). Used for the "Periode Aktif" subtitle.
+  /// Current active periods (one per period type). Used for the "Periode Berjalan" subtitle.
   final List<ScoringPeriod> currentPeriods;
 
-  /// Callback when a period is selected. Null value = "Periode Aktif" selected.
+  /// Callback when a period is selected. Null value = "Periode Berjalan" selected.
   final ValueChanged<ScoringPeriod?> onChanged;
 
-  /// Whether to show the "Periode Aktif" option at the top. Default true.
+  /// Whether to show the "Periode Berjalan" option at the top. Default true.
   /// Set to false for screens that require a specific single period (e.g. admin target editing).
   final bool showActivePeriodOption;
 
@@ -44,7 +44,7 @@ class PeriodSelector extends StatelessWidget {
 
     final String displayText;
     if (isActivePeriodMode) {
-      displayText = 'Periode Aktif';
+      displayText = 'Periode Berjalan';
     } else if (selectedPeriod != null) {
       displayText = selectedPeriod!.name;
     } else {
@@ -72,7 +72,7 @@ class PeriodSelector extends StatelessWidget {
                   if (isActivePeriodMode && currentPeriods.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      formatActivePeriodsSummary(currentPeriods),
+                      formatRunningPeriodsSummary(currentPeriods),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -91,7 +91,7 @@ class PeriodSelector extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Aktif',
+                  'Berjalan',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.success,
                     fontWeight: FontWeight.bold,
@@ -106,7 +106,7 @@ class PeriodSelector extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Aktif',
+                  'Berjalan',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.success,
                     fontWeight: FontWeight.bold,
@@ -185,14 +185,14 @@ class PeriodSelector extends StatelessWidget {
                     controller: scrollController,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
-                      // "Periode Aktif" option
+                      // "Periode Berjalan" option
                       if (showActive) ...[
-                        _buildSectionHeader(context, 'Periode Aktif'),
+                        _buildSectionHeader(context, 'Periode Berjalan'),
                         ListTile(
                           leading: const Icon(Icons.all_inclusive),
-                          title: const Text('Periode Aktif'),
+                          title: const Text('Periode Berjalan'),
                           subtitle: Text(
-                            formatActivePeriodsSummary(currentPeriods),
+                            formatRunningPeriodsSummary(currentPeriods),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -223,11 +223,41 @@ class PeriodSelector extends StatelessWidget {
                           ...periods.map((period) {
                             final isSelected =
                                 selectedPeriod?.id == period.id;
+                            final isArchived = !period.isActive;
                             return ListTile(
-                              title: Text(period.name),
+                              title: Text(
+                                period.name,
+                                style: isArchived
+                                    ? theme.textTheme.bodyLarge?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant
+                                            .withValues(alpha: 0.6),
+                                      )
+                                    : null,
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  if (isArchived)
+                                    Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.outlineVariant
+                                            .withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Arsip',
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   if (period.isCurrent)
                                     Container(
                                       margin: const EdgeInsets.only(right: 8),
@@ -241,7 +271,7 @@ class PeriodSelector extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        'Aktif',
+                                        'Berjalan',
                                         style: theme.textTheme.labelSmall
                                             ?.copyWith(
                                           color: AppColors.success,

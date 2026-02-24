@@ -36,6 +36,11 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
   final Map<String, TextEditingController> _controllers = {};
   bool _isSaving = false;
 
+  // Cached for AppBar "Default" button access
+  List<UserTarget> _cachedManagerTargets = [];
+  int _cachedSubordinateCount = 0;
+  bool _hasUnlockedPeriod = false;
+
   @override
   void dispose() {
     for (final controller in _controllers.values) {
@@ -60,6 +65,13 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
           error: (_, __) => const Text('Target'),
         ),
         centerTitle: false,
+        actions: [
+          if (_hasUnlockedPeriod)
+            TextButton(
+              onPressed: _isSaving ? null : _applyCalculatedDefaults,
+              child: const Text('Default'),
+            ),
+        ],
       ),
       body: measuresAsync.when(
         data: (measures) => currentPeriodsAsync.when(
@@ -99,11 +111,6 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     final activeMeasures = measures.where((m) => m.isActive).toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
-    final leadMeasures =
-        activeMeasures.where((m) => m.measureType == 'LEAD').toList();
-    final lagMeasures =
-        activeMeasures.where((m) => m.measureType == 'LAG').toList();
-
     // Collect all period IDs we need targets for
     final periodIds = periodByType.values.map((p) => p.id).toSet();
 
@@ -125,10 +132,19 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
       );
       managerAsync.when(
         data: (targets) => allManagerTargets.addAll(targets),
-        loading: () {},
-        error: (_, __) {},
+        loading: () => anyLoading = true,
+        error: (_, __) => anyError = true,
       );
     }
+
+    // Watch subordinate count for fair-split default calculation
+    int subordinateCount = 0;
+    final subordinatesAsync = ref.watch(mySubordinatesProvider);
+    subordinatesAsync.when(
+      data: (subs) => subordinateCount = subs.length,
+      loading: () => anyLoading = true,
+      error: (_, __) => anyError = true,
+    );
 
     if (anyLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -137,12 +153,65 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
       return const Center(child: Text('Gagal memuat target'));
     }
 
-    // Initialize controllers with existing target values
-    _initControllers(activeMeasures, allExistingTargets);
+    // Filter measures to only those the manager has been assigned
+    final managerMeasureIds =
+        allManagerTargets.map((t) => t.measureId).toSet();
+    final visibleMeasures = activeMeasures
+        .where((m) => managerMeasureIds.contains(m.id))
+        .toList();
+
+    // Empty state when manager has no assigned measures
+    if (visibleMeasures.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.assignment_late_outlined,
+                size: 64,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Tidak Ada Measure Tersedia',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Anda belum memiliki target yang ditetapkan oleh atasan. '
+                'Hubungi atasan Anda untuk mendapatkan target terlebih dahulu.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final leadMeasures =
+        visibleMeasures.where((m) => m.measureType == 'LEAD').toList();
+    final lagMeasures =
+        visibleMeasures.where((m) => m.measureType == 'LAG').toList();
+
+    // Initialize controllers with existing target values (with fair-split defaults)
+    _initControllers(visibleMeasures, allExistingTargets, allManagerTargets, subordinateCount);
 
     // Check if ANY period is fully locked (per-period lock check)
     final anyUnlockedPeriod =
         periodByType.values.any((p) => !p.isLocked);
+
+    // Cache for AppBar "Default" button
+    _cachedManagerTargets = allManagerTargets;
+    _cachedSubordinateCount = subordinateCount;
+    _hasUnlockedPeriod = anyUnlockedPeriod;
 
     return Column(
       children: [
@@ -230,6 +299,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
                         allExistingTargets,
                         allManagerTargets,
                         periodByType,
+                        subordinateCount,
                       )),
                   const SizedBox(height: 24),
                 ],
@@ -250,6 +320,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
                         allExistingTargets,
                         allManagerTargets,
                         periodByType,
+                        subordinateCount,
                       )),
                 ],
               ],
@@ -295,6 +366,8 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
   void _initControllers(
     List<MeasureDefinition> measures,
     List<UserTarget> existingTargets,
+    List<UserTarget> managerTargets,
+    int subordinateCount,
   ) {
     for (final measure in measures) {
       if (!_controllers.containsKey(measure.id)) {
@@ -308,10 +381,30 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
                       ? 0
                       : 1,
                 )
-              : '',
+              : _calculateDefault(measure, managerTargets, subordinateCount),
         );
       }
     }
+  }
+
+  String _calculateDefault(
+    MeasureDefinition measure,
+    List<UserTarget> managerTargets,
+    int subordinateCount,
+  ) {
+    final effectiveCount = subordinateCount > 0 ? subordinateCount : 1;
+    final managerTarget = managerTargets
+        .where((t) => t.measureId == measure.id)
+        .firstOrNull;
+    if (managerTarget != null && managerTarget.targetValue > 0) {
+      return _formatNumber(
+          (managerTarget.targetValue / effectiveCount).floorToDouble());
+    }
+    if (measure.defaultTarget > 0) {
+      return _formatNumber(
+          (measure.defaultTarget / effectiveCount).floorToDouble());
+    }
+    return '';
   }
 
   Widget _buildSectionHeader(
@@ -349,6 +442,7 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
     List<UserTarget> existingTargets,
     List<UserTarget> managerTargets,
     Map<String, ScoringPeriod> periodByType,
+    int subordinateCount,
   ) {
     final controller = _controllers[measure.id];
     final existing = existingTargets
@@ -435,17 +529,17 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
               children: [
                 if (managerTarget != null)
                   Text(
-                    'Target Anda: ${_formatNumber(managerTarget.targetValue)}',
+                    () {
+                      final base = 'Target Anda: ${_formatNumber(managerTarget.targetValue)}';
+                      if (subordinateCount > 1) {
+                        final perSub = (managerTarget.targetValue / subordinateCount).floorToDouble();
+                        return '$base (${_formatNumber(perSub)}/bawahan)';
+                      }
+                      return base;
+                    }(),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
-                    ),
-                  )
-                else
-                  Text(
-                    'Default: ${_formatNumber(measure.defaultTarget)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 if (measure.unit != null) ...[
@@ -502,6 +596,52 @@ class _TeamTargetFormScreenState extends ConsumerState<TeamTargetFormScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _applyCalculatedDefaults() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Terapkan Default?'),
+        content: const Text(
+          'Semua field akan diisi dengan nilai target Anda dibagi jumlah bawahan. '
+          'Nilai yang sudah diisi akan ditimpa.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Terapkan'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final measures = await ref.read(allMeasuresProvider.future);
+    for (final measure in measures.where((m) => m.isActive)) {
+      final controller = _controllers[measure.id];
+      if (controller != null) {
+        final defaultValue = _calculateDefault(
+          measure,
+          _cachedManagerTargets,
+          _cachedSubordinateCount,
+        );
+        if (defaultValue.isNotEmpty) {
+          controller.text = defaultValue;
+        }
+      }
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nilai default diterapkan')),
+      );
+    }
   }
 
   Future<void> _saveTargets(

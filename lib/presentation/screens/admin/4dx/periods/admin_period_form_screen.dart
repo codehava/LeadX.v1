@@ -214,7 +214,7 @@ class _AdminPeriodFormScreenState extends ConsumerState<AdminPeriodFormScreen> {
 
             // Is Current
             SwitchListTile(
-              title: const Text('Periode Aktif Saat Ini'),
+              title: const Text('Periode Berjalan Saat Ini'),
               subtitle: const Text(
                 'Jadikan periode ini sebagai periode penilaian yang sedang berjalan',
               ),

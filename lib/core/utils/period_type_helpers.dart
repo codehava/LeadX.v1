@@ -50,11 +50,11 @@ int periodTypePriority(String periodType) {
   }
 }
 
-/// Format a summary string of all active current periods.
+/// Format a summary string of all running current periods.
 ///
 /// Returns e.g. "Minggu 8, Februari, Q1 2026" sorted by priority (weekly first).
 /// Returns empty string if [currentPeriods] is empty.
-String formatActivePeriodsSummary(List<ScoringPeriod> currentPeriods) {
+String formatRunningPeriodsSummary(List<ScoringPeriod> currentPeriods) {
   if (currentPeriods.isEmpty) return '';
   final sorted = [...currentPeriods]
     ..sort((a, b) =>

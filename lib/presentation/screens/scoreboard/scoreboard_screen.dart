@@ -218,7 +218,7 @@ class ScoreboardScreen extends ConsumerWidget {
         currentPeriods: currentPeriods,
         onChanged: (period) {
           if (period == null) {
-            ref.read(scoreboardNotifierProvider.notifier).selectActivePeriods();
+            ref.read(scoreboardNotifierProvider.notifier).selectRunningPeriods();
           } else {
             ref.read(scoreboardNotifierProvider.notifier).selectPeriod(period);
           }
@@ -263,7 +263,7 @@ class ScoreboardScreen extends ConsumerWidget {
             onTap: () {
               ref
                   .read(scoreboardNotifierProvider.notifier)
-                  .selectActivePeriods();
+                  .selectRunningPeriods();
             },
             child: Text(
               'Kembali ke periode aktif',

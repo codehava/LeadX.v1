@@ -129,7 +129,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               if (period == null) {
                 ref
                     .read(leaderboardFilterNotifierProvider.notifier)
-                    .selectActivePeriods();
+                    .selectRunningPeriods();
               } else {
                 ref
                     .read(leaderboardFilterNotifierProvider.notifier)

@@ -326,8 +326,9 @@ class _AdminMeasureFormScreenState
           _showError('Weight harus diisi');
           return false;
         }
-        if (_defaultTargetController.text.isEmpty) {
-          _showError('Target harus diisi');
+        if (_defaultTargetController.text.isNotEmpty &&
+            double.tryParse(_defaultTargetController.text) == null) {
+          _showError('Default target harus berupa angka');
           return false;
         }
         return true;
@@ -354,6 +355,10 @@ class _AdminMeasureFormScreenState
     try {
       final isEditMode = widget.measureId != null;
 
+      final defaultTarget = _defaultTargetController.text.isEmpty
+          ? 0.0
+          : double.parse(_defaultTargetController.text);
+
       if (isEditMode) {
         // Update existing measure
         await ref.read(measureFormProvider.notifier).updateMeasure(
@@ -363,7 +368,7 @@ class _AdminMeasureFormScreenState
                   ? null
                   : _descriptionController.text,
               weight: double.parse(_weightController.text),
-              defaultTarget: double.parse(_defaultTargetController.text),
+              defaultTarget: defaultTarget,
               periodType: _periodType,
             );
       } else {
@@ -381,7 +386,7 @@ class _AdminMeasureFormScreenState
               sourceCondition: _sourceCondition,
               calculationFormula: _calculationFormula,
               weight: double.parse(_weightController.text),
-              defaultTarget: double.parse(_defaultTargetController.text),
+              defaultTarget: defaultTarget,
               periodType: _periodType,
               templateType: _selectedTemplate,
               templateConfig: _templateConfig.isEmpty ? null : _templateConfig,
@@ -988,18 +993,17 @@ class _AdminMeasureFormScreenState
         TextFormField(
           controller: _defaultTargetController,
           decoration: const InputDecoration(
-            labelText: 'Default Target *',
-            hintText: '10',
+            labelText: 'Default Target',
+            hintText: 'Opsional',
             border: OutlineInputBorder(),
-            helperText: 'Target default untuk user (bisa diubah per user)',
+            helperText: 'Target default untuk bulk assign (0 jika kosong)',
           ),
           keyboardType: TextInputType.number,
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Target harus diisi';
-            }
-            if (double.tryParse(value) == null) {
-              return 'Target harus berupa angka';
+            if (value != null && value.isNotEmpty) {
+              if (double.tryParse(value) == null) {
+                return 'Target harus berupa angka';
+              }
             }
             return null;
           },
@@ -1061,7 +1065,10 @@ class _AdminMeasureFormScreenState
           children: [
             _PreviewRow(label: 'Weight', value: _weightController.text),
             _PreviewRow(
-                label: 'Default Target', value: _defaultTargetController.text),
+                label: 'Default Target',
+                value: _defaultTargetController.text.isEmpty
+                    ? '0'
+                    : _defaultTargetController.text),
             _PreviewRow(label: 'Periode', value: formatPeriodType(_periodType)),
           ],
         ),
