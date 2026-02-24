@@ -213,7 +213,7 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
     if (hasMultiplePeriodTypes) {
       // Build period type → targets map
       final periodById = <String, ScoringPeriod>{};
-      for (final p in currentPeriods!) {
+      for (final p in currentPeriods) {
         periodById[p.id] = p;
       }
 

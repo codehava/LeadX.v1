@@ -28,7 +28,7 @@ class AppSearchField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: const Icon(Icons.search),
-        suffixIcon: controller?.text.isNotEmpty == true
+        suffixIcon: (controller?.text.isNotEmpty ?? false)
             ? IconButton(
                 icon: const Icon(Icons.clear),
                 onPressed: () {

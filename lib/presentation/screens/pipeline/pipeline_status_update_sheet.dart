@@ -137,7 +137,7 @@ class _PipelineStatusUpdateSheetState
                     const SizedBox(height: 12),
                     
                     statusesAsync.when(
-                      data: (List<PipelineStatusInfo> statuses) => 
+                      data: (statuses) =>
                           _buildStatusList(statuses, theme),
                       loading: () => const Center(child: AppLoadingIndicator()),
                       error: (e, _) => Text('Error: $e'),

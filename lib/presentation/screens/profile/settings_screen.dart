@@ -60,7 +60,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                     selected: {themeMode},
-                    onSelectionChanged: (Set<ThemeMode> newSelection) {
+                    onSelectionChanged: (newSelection) {
                       ref.read(themeModeNotifierProvider.notifier).setThemeMode(newSelection.first);
                     },
                     showSelectedIcon: false,

@@ -446,7 +446,7 @@ class _KeyPersonsTab extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed ?? false) {
       final repo = ref.read(customerRepositoryProvider);
       final result = await repo.deleteKeyPerson(keyPerson.id);
       

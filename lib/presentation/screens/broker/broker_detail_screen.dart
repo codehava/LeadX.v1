@@ -160,7 +160,7 @@ class _BrokerDetailScreenState extends ConsumerState<BrokerDetailScreen>
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if ((confirmed ?? false) && mounted) {
       await ref.read(brokerFormNotifierProvider.notifier).deleteBroker(broker.id);
       if (mounted) {
         context.pop();
@@ -448,7 +448,7 @@ class _KeyPersonsTab extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed ?? false) {
       await ref
           .read(customerRepositoryProvider)
           .deleteKeyPerson(keyPerson.id);

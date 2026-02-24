@@ -21,7 +21,7 @@ class GpsService {
 
   /// Check if location services are enabled.
   Future<bool> isLocationServiceEnabled() async {
-    return await Geolocator.isLocationServiceEnabled();
+    return Geolocator.isLocationServiceEnabled();
   }
 
   /// Check and request location permissions.
@@ -156,12 +156,12 @@ class GpsService {
 
   /// Open app settings (for permission denied forever).
   Future<bool> openAppSettings() async {
-    return await Geolocator.openAppSettings();
+    return Geolocator.openAppSettings();
   }
 
   /// Open location settings.
   Future<bool> openLocationSettings() async {
-    return await Geolocator.openLocationSettings();
+    return Geolocator.openLocationSettings();
   }
 
   /// Validate proximity to target location for activity execution.

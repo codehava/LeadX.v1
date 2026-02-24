@@ -552,7 +552,7 @@ class _ObjectSelectorSheetState extends ConsumerState<_ObjectSelectorSheet> {
       maxChildSize: 0.7,
       expand: false,
       builder: (context, scrollController) {
-        return Container(
+        return DecoratedBox(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius:

@@ -59,6 +59,6 @@ mixin DiscardConfirmationMixin<T extends StatefulWidget> on State<T> {
   /// Call this when user attempts to navigate back.
   Future<bool> handleBackNavigation() async {
     if (!hasUnsavedChanges) return true;
-    return await DiscardConfirmationDialog.show(context);
+    return DiscardConfirmationDialog.show(context);
   }
 }

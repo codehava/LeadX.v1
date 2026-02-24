@@ -98,7 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               children: [
                 // Hero section with new design
-                Container(
+                DecoratedBox(
                   decoration: BoxDecoration(
                     color: colorScheme.primary,
                   ),

@@ -35,7 +35,7 @@ class HistoryLogRepositoryImpl implements HistoryLogRepository {
 
     // If online and force refresh, fetch from remote
     if (isOnline && forceRefresh) {
-      return await _fetchAndCacheEntityHistory(targetTable, targetId);
+      return _fetchAndCacheEntityHistory(targetTable, targetId);
     }
 
     // Try to get from cache first
@@ -46,7 +46,7 @@ class HistoryLogRepositoryImpl implements HistoryLogRepository {
 
     if (hasCache && !forceRefresh) {
       // Return cached data
-      return await _localDataSource.getCachedEntityHistory(
+      return _localDataSource.getCachedEntityHistory(
         targetTable,
         targetId,
       );
@@ -54,7 +54,7 @@ class HistoryLogRepositoryImpl implements HistoryLogRepository {
 
     // No cache, try to fetch from remote
     if (isOnline) {
-      return await _fetchAndCacheEntityHistory(targetTable, targetId);
+      return _fetchAndCacheEntityHistory(targetTable, targetId);
     }
 
     // Offline with no cache - return empty list
@@ -102,7 +102,7 @@ class HistoryLogRepositoryImpl implements HistoryLogRepository {
 
     // If online and force refresh, fetch from remote
     if (isOnline && forceRefresh) {
-      return await _fetchAndCachePipelineStageHistory(pipelineId);
+      return _fetchAndCachePipelineStageHistory(pipelineId);
     }
 
     // Try to get from cache first
@@ -111,12 +111,12 @@ class HistoryLogRepositoryImpl implements HistoryLogRepository {
 
     if (hasCache && !forceRefresh) {
       // Return cached data
-      return await _localDataSource.getCachedPipelineStageHistory(pipelineId);
+      return _localDataSource.getCachedPipelineStageHistory(pipelineId);
     }
 
     // No cache, try to fetch from remote
     if (isOnline) {
-      return await _fetchAndCachePipelineStageHistory(pipelineId);
+      return _fetchAndCachePipelineStageHistory(pipelineId);
     }
 
     // Offline with no cache - return empty list

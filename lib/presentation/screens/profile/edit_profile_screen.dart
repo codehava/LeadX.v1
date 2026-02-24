@@ -207,7 +207,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
               // Loading overlay for photo upload
               if (ref.watch(profilePhotoNotifierProvider).isLoading)
-                Container(
+                ColoredBox(
                   color: Colors.black54,
                   child: const Center(
                     child: Card(

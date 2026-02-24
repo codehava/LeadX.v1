@@ -400,7 +400,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                         targetLat: targetLat,
                         targetLon: targetLon,
                       );
-                      if (result == true && context.mounted) {
+                      if ((result ?? false) && context.mounted) {
                         // Refresh the activity details
                         ref.invalidate(activityWithDetailsProvider(activityId));
                         ScaffoldMessenger.of(context).showSnackBar(

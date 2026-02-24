@@ -354,7 +354,7 @@ class _CalendarDayCell extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Container(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: isToday
@@ -435,7 +435,7 @@ class _DayActivitiesSheet extends StatelessWidget {
       maxChildSize: 0.85,
       expand: false,
       builder: (context, scrollController) {
-        return Container(
+        return DecoratedBox(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

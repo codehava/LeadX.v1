@@ -151,7 +151,7 @@ class _PipelineStageUpdateSheetState
                     const SizedBox(height: 12),
                     
                     stagesAsync.when(
-                      data: (List<PipelineStageDto> stages) => _buildStageList(stages, theme),
+                      data: (stages) => _buildStageList(stages, theme),
                       loading: () => const Center(child: AppLoadingIndicator()),
                       error: (e, _) => Text('Error: $e'),
                     ),
@@ -381,7 +381,7 @@ class _PipelineStageUpdateSheetState
     final stages = stagesAsync.value ?? <PipelineStageDto>[];
     final selectedStage = stages.where((s) => s.id == _selectedStageId).firstOrNull;
     
-    if (selectedStage?.isFinal == true) {
+    if (selectedStage?.isFinal ?? false) {
       if (selectedStage!.isWon) {
         if (_policyNumberController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(

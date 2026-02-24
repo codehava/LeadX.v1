@@ -166,7 +166,7 @@ class InitialSyncService {
     // Determine starting index (for resume)
     var startIndex = 0;
     if (!forceRestart && _appSettings != null) {
-      startIndex = await _appSettings!.getResumeSyncIndex();
+      startIndex = await _appSettings.getResumeSyncIndex();
 
       // Safety check: if resuming but Users table is empty, we must restart
       // because Users are now required early in the process (moved to top).
@@ -182,7 +182,7 @@ class InitialSyncService {
         }
       }
 
-      await _appSettings!.markSyncStarted();
+      await _appSettings.markSyncStarted();
     }
 
     try {
@@ -210,7 +210,7 @@ class InitialSyncService {
 
           // Track progress for resume
           if (_appSettings != null) {
-            await _appSettings!.markTableSynced(i + 1);
+            await _appSettings.markTableSynced(i + 1);
           }
         } catch (e) {
           errors.add('Failed to sync $tableName: $e');

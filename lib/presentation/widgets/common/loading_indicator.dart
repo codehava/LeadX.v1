@@ -64,7 +64,7 @@ class AppLoadingOverlay extends StatelessWidget {
         children: [
           child,
           if (isLoading)
-            Container(
+            ColoredBox(
               color: Colors.black45,
               child: AppLoadingIndicator(
                 message: message,

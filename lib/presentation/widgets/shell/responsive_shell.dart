@@ -365,7 +365,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   ],
                 ),
               );
-              if (confirmed == true && context.mounted) {
+              if ((confirmed ?? false) && context.mounted) {
                 await SyncProgressSheet.show(context);
               }
             },

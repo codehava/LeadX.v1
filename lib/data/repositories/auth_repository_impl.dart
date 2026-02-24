@@ -303,7 +303,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (_database == null) return;
 
     try {
-      await _database!.into(_database!.users).insertOnConflictUpdate(
+      await _database.into(_database.users).insertOnConflictUpdate(
         db.UsersCompanion.insert(
           id: user.id,
           email: user.email,
