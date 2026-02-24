@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../config/routes/route_names.dart';
 import '../../providers/scoreboard_providers.dart';
@@ -89,7 +90,15 @@ class ScoreboardScreen extends ConsumerWidget {
           // Period selector
           if (state.periods.isNotEmpty) ...[
             _buildPeriodSelector(context, ref, state),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+          ],
+
+          // Historical period banner
+          if (!state.isMultiPeriodView &&
+              state.selectedPeriod != null &&
+              !(state.selectedPeriod!.isCurrent)) ...[
+            _buildHistoricalBanner(context, ref, state),
+            const SizedBox(height: 16),
           ],
 
           // Score update pending indicator
@@ -99,26 +108,33 @@ class ScoreboardScreen extends ConsumerWidget {
           _buildPersonalScoreCard(context, state),
           const SizedBox(height: 24),
 
-          // Lead measures section
-          if (state.leadScores.isNotEmpty) ...[
-            _buildMeasuresSection(
-              context,
-              'Lead Measures (60%)',
-              state.leadScores,
-              AppColors.info,
-            ),
-            const SizedBox(height: 24),
-          ],
-
-          // Lag measures section
-          if (state.lagScores.isNotEmpty) ...[
-            _buildMeasuresSection(
-              context,
-              'Lag Measures (40%)',
-              state.lagScores,
-              AppColors.tertiary,
-            ),
-            const SizedBox(height: 24),
+          // Measures display — conditional on multi-period view
+          if (state.isMultiPeriodView) ...[
+            // Multi-period grouped sections
+            ...state.periodSections.expand((section) => [
+                  _buildPeriodSectionCard(context, section),
+                  const SizedBox(height: 24),
+                ]),
+          ] else ...[
+            // Historical flat view
+            if (state.leadScores.isNotEmpty) ...[
+              _buildMeasuresSection(
+                context,
+                'Lead Measures (60%)',
+                state.leadScores,
+                AppColors.info,
+              ),
+              const SizedBox(height: 24),
+            ],
+            if (state.lagScores.isNotEmpty) ...[
+              _buildMeasuresSection(
+                context,
+                'Lag Measures (40%)',
+                state.lagScores,
+                AppColors.tertiary,
+              ),
+              const SizedBox(height: 24),
+            ],
           ],
 
           // Bonuses & Penalties section
@@ -244,6 +260,64 @@ class ScoreboardScreen extends ConsumerWidget {
     );
   }
 
+  /// Banner shown when viewing a historical (non-current) period.
+  Widget _buildHistoricalBanner(
+    BuildContext context,
+    WidgetRef ref,
+    ScoreboardState state,
+  ) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.history, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Melihat periode: ${state.selectedPeriod!.name}  ',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              // Return to current (multi-period) view by selecting a current period
+              final currentPeriods =
+                  state.periods.where((p) => p.isCurrent).toList();
+              if (currentPeriods.isNotEmpty) {
+                currentPeriods.sort((a, b) => periodTypePriority(a.periodType)
+                    .compareTo(periodTypePriority(b.periodType)));
+                ref
+                    .read(scoreboardNotifierProvider.notifier)
+                    .selectPeriod(currentPeriods.first);
+              }
+            },
+            child: Text(
+              'Kembali ke periode aktif',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildScorePendingIndicator(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isScorePendingAsync = ref.watch(isScoreUpdatePendingProvider);
@@ -282,6 +356,9 @@ class ScoreboardScreen extends ConsumerWidget {
   Widget _buildPersonalScoreCard(BuildContext context, ScoreboardState state) {
     final theme = Theme.of(context);
     final summary = state.userSummary;
+    final periodTypeLabel = state.selectedPeriod != null
+        ? formatPeriodType(state.selectedPeriod!.periodType)
+        : null;
 
     return Card(
       child: Padding(
@@ -294,6 +371,15 @@ class ScoreboardScreen extends ConsumerWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            if (periodTypeLabel != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Skor Periode $periodTypeLabel',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             ScoreGauge(
               score: summary?.compositeScore ?? 0,
@@ -380,6 +466,157 @@ class ScoreboardScreen extends ConsumerWidget {
     );
   }
 
+  /// Build a card for a single period section in multi-period view.
+  Widget _buildPeriodSectionCard(BuildContext context, PeriodSection section) {
+    final theme = Theme.of(context);
+    final typeColor = periodTypeColor(section.period.periodType);
+    final typeLabel = formatPeriodType(section.period.periodType);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Colored header bar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: typeColor.withValues(alpha: 0.1),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: typeColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  typeLabel,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: typeColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '— ${section.period.name}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Lead measures
+                if (section.leadScores.isNotEmpty) ...[
+                  _buildMeasureGroupHeader(
+                      context, 'Lead Measures (60%)', AppColors.info),
+                  const SizedBox(height: 12),
+                  ...section.leadScores.asMap().entries.map((entry) {
+                    final score = entry.value;
+                    final isLast = entry.key == section.leadScores.length - 1;
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                      child: InkWell(
+                        onTap: () {
+                          context.pushNamed(
+                            RouteNames.measureDetail,
+                            pathParameters: {'measureId': score.measureId},
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: MeasureProgressBar(
+                          measureName: score.measureName ?? 'Unknown',
+                          actualValue: score.actualValue,
+                          targetValue: score.targetValue,
+                          unit: score.measureUnit,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+
+                // Spacing between lead and lag
+                if (section.leadScores.isNotEmpty &&
+                    section.lagScores.isNotEmpty)
+                  const SizedBox(height: 20),
+
+                // Lag measures
+                if (section.lagScores.isNotEmpty) ...[
+                  _buildMeasureGroupHeader(
+                      context, 'Lag Measures (40%)', AppColors.tertiary),
+                  const SizedBox(height: 12),
+                  ...section.lagScores.asMap().entries.map((entry) {
+                    final score = entry.value;
+                    final isLast = entry.key == section.lagScores.length - 1;
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                      child: InkWell(
+                        onTap: () {
+                          context.pushNamed(
+                            RouteNames.measureDetail,
+                            pathParameters: {'measureId': score.measureId},
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: MeasureProgressBar(
+                          measureName: score.measureName ?? 'Unknown',
+                          actualValue: score.actualValue,
+                          targetValue: score.targetValue,
+                          unit: score.measureUnit,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Small header for lead/lag group within a period section.
+  Widget _buildMeasureGroupHeader(
+    BuildContext context,
+    String title,
+    Color accentColor,
+  ) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: accentColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Flat measures section for historical (single-period) view.
   Widget _buildMeasuresSection(
     BuildContext context,
     String title,

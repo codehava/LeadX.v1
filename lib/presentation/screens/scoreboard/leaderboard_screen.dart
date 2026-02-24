@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
@@ -110,16 +111,24 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       data: (periods) {
         if (periods.isEmpty) return const SizedBox();
 
-        // Auto-select current period if none selected
+        // Auto-select current display period (shortest granularity)
         if (filterState.selectedPeriod == null && periods.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            final current = periods.firstWhere(
-              (p) => p.isCurrent,
-              orElse: () => periods.first,
-            );
-            ref
-                .read(leaderboardFilterNotifierProvider.notifier)
-                .selectPeriod(current);
+            final currentPeriods =
+                periods.where((p) => p.isCurrent).toList();
+            if (currentPeriods.isNotEmpty) {
+              // Pick shortest granularity as display period
+              currentPeriods.sort((a, b) =>
+                  periodTypePriority(a.periodType)
+                      .compareTo(periodTypePriority(b.periodType)));
+              ref
+                  .read(leaderboardFilterNotifierProvider.notifier)
+                  .selectPeriod(currentPeriods.first);
+            } else {
+              ref
+                  .read(leaderboardFilterNotifierProvider.notifier)
+                  .selectPeriod(periods.first);
+            }
           });
         }
 

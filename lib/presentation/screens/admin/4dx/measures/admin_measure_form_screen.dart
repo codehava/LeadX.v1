@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../providers/admin/admin_4dx_providers.dart';
 import '../../../../providers/master_data_providers.dart';
 import '../../../../widgets/admin/multi_select_checkbox_field.dart';
+import '../../../../../core/utils/period_type_helpers.dart';
 
 /// Admin Measure Form Screen.
 ///
@@ -1061,7 +1062,7 @@ class _AdminMeasureFormScreenState
             _PreviewRow(label: 'Weight', value: _weightController.text),
             _PreviewRow(
                 label: 'Default Target', value: _defaultTargetController.text),
-            _PreviewRow(label: 'Periode', value: _formatPeriodType(_periodType)),
+            _PreviewRow(label: 'Periode', value: formatPeriodType(_periodType)),
           ],
         ),
         const SizedBox(height: 16),
@@ -1137,19 +1138,6 @@ class _AdminMeasureFormScreenState
         return 'Customer Acquisition';
       default:
         return templateId;
-    }
-  }
-
-  String _formatPeriodType(String periodType) {
-    switch (periodType) {
-      case 'WEEKLY':
-        return 'Mingguan';
-      case 'MONTHLY':
-        return 'Bulanan';
-      case 'QUARTERLY':
-        return 'Kuartalan';
-      default:
-        return periodType;
     }
   }
 

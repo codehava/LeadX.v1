@@ -117,6 +117,10 @@ Supabase Pro provides automated backups. For rollback:
 | 2025-01-10 | add_referral_tables | Referral system | ✅ Applied |
 | 2025-01-15 | add_role_permissions | RBAC | ✅ Applied |
 | 2025-01-20 | add_audit_logs | Audit trail | ✅ Applied |
+| 2026-02-07 | multi_period_scoring | Multi-period scoring support | ✅ Applied |
+| 2026-02-23 | add_users_deleted_at | Soft delete for users | ✅ Applied |
+| 2026-02-23 | ranking_functions | Scoring ranking functions | ✅ Applied |
+| 2026-02-24 | add_users_nip_unique | Unique constraint on users.nip | ✅ Applied |
 
 ---
 

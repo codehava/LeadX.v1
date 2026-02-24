@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../config/routes/route_names.dart';
+import '../../../../../core/utils/period_type_helpers.dart';
 import '../../../../../domain/entities/scoring_entities.dart';
 import '../../../../providers/admin/admin_4dx_providers.dart';
 
@@ -241,7 +242,7 @@ class _AdminPeriodListScreenState
         title: const Text('Set Periode Aktif?'),
         content: Text(
           'Periode "${period.name}" akan dijadikan periode aktif saat ini. '
-          'Hanya periode ${_formatPeriodTypeLabel(period.periodType)} lain yang akan dinonaktifkan. '
+          'Hanya periode ${formatPeriodType(period.periodType)} lain yang akan dinonaktifkan. '
           'Periode aktif dengan tipe berbeda tidak terpengaruh.',
         ),
         actions: [
@@ -441,21 +442,6 @@ class _AdminPeriodListScreenState
     }
   }
 
-  String _formatPeriodTypeLabel(String periodType) {
-    switch (periodType) {
-      case 'WEEKLY':
-        return 'Mingguan';
-      case 'MONTHLY':
-        return 'Bulanan';
-      case 'QUARTERLY':
-        return 'Kuartalan';
-      case 'YEARLY':
-        return 'Tahunan';
-      default:
-        return periodType;
-    }
-  }
-
   Future<void> _showGenerateDialog() async {
     var periodType = 'WEEKLY';
     var startDate = DateTime.now();
@@ -646,7 +632,7 @@ class _PeriodCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Determine period type color
-    final typeColor = _getTypeColor(period.periodType);
+    final typeColor = periodTypeColor(period.periodType);
 
     return Card(
       elevation: period.isActive ? 1 : 0,
@@ -677,7 +663,7 @@ class _PeriodCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      _formatPeriodType(period.periodType),
+                      formatPeriodType(period.periodType),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: typeColor,
                         fontWeight: FontWeight.bold,
@@ -853,36 +839,6 @@ class _PeriodCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getTypeColor(String periodType) {
-    switch (periodType) {
-      case 'WEEKLY':
-        return Colors.blue;
-      case 'MONTHLY':
-        return Colors.green;
-      case 'QUARTERLY':
-        return Colors.orange;
-      case 'YEARLY':
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _formatPeriodType(String periodType) {
-    switch (periodType) {
-      case 'WEEKLY':
-        return 'Mingguan';
-      case 'MONTHLY':
-        return 'Bulanan';
-      case 'QUARTERLY':
-        return 'Kuartalan';
-      case 'YEARLY':
-        return 'Tahunan';
-      default:
-        return periodType;
-    }
   }
 
   String _formatDate(DateTime date) {

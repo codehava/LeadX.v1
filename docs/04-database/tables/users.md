@@ -22,6 +22,7 @@
 | id | UUID | NO | uuid_generate_v4() | Primary key |
 | email | VARCHAR(255) | NO | - | Unique email |
 | name | VARCHAR(200) | NO | - | Full name |
+| nip | VARCHAR | YES | - | Unique employee ID (NIP) |
 | role | VARCHAR(20) | NO | - | RM/BH/BM/ROH/ADMIN |
 | role_id | UUID | YES | - | FK to roles |
 | parent_id | UUID | YES | - | FK to users (supervisor) |
@@ -65,6 +66,7 @@
 |------|---------|------|
 | users_pkey | id | PRIMARY KEY |
 | users_email_key | email | UNIQUE |
+| users_nip_unique | nip (WHERE nip IS NOT NULL) | UNIQUE (partial) |
 | idx_users_role | role | BTREE |
 | idx_users_parent | parent_id | BTREE |
 | idx_users_branch | branch_id | BTREE |

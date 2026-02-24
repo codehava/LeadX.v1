@@ -1117,6 +1117,27 @@ final dashboardStatsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DashboardStatsRef = AutoDisposeFutureProviderRef<DashboardStats>;
+String _$allCurrentPeriodsHash() => r'727c92ef9e39b29f51f9f2cadca07088a8c71e27';
+
+/// Get all current periods (one per period_type).
+///
+/// Copied from [allCurrentPeriods].
+@ProviderFor(allCurrentPeriods)
+final allCurrentPeriodsProvider =
+    AutoDisposeFutureProvider<List<ScoringPeriod>>.internal(
+      allCurrentPeriods,
+      name: r'allCurrentPeriodsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$allCurrentPeriodsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AllCurrentPeriodsRef =
+    AutoDisposeFutureProviderRef<List<ScoringPeriod>>;
 String _$isScoreUpdatePendingHash() =>
     r'24ba3d5cfc3d83800a3d0663dc5011cb8978330b';
 
@@ -1529,7 +1550,7 @@ class _TeamSummaryProviderElement
 }
 
 String _$scoreboardNotifierHash() =>
-    r'a285812880552fdd57fd2c044612189c5b613806';
+    r'92ea8f9bec69cbb99de37b97474015d44d1f6b8a';
 
 /// See also [ScoreboardNotifier].
 @ProviderFor(ScoreboardNotifier)

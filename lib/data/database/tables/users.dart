@@ -6,7 +6,7 @@ class Users extends Table {
   TextColumn get id => text()(); // FK → auth.users(id)
   TextColumn get email => text().unique()();
   TextColumn get name => text()();
-  TextColumn get nip => text().nullable()(); // Employee ID
+  TextColumn get nip => text().nullable().unique()(); // Employee ID
   TextColumn get phone => text().nullable()();
   TextColumn get role => text()(); // SUPERADMIN/ADMIN/ROH/BM/BH/RM
   TextColumn get parentId => text().nullable().references(Users, #id)(); // Direct supervisor

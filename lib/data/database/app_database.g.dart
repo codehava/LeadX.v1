@@ -1369,6 +1369,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
   @override

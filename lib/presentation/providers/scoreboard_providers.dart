@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/utils/period_type_helpers.dart';
 import '../../data/datasources/local/scoreboard_local_data_source.dart';
 import '../../data/datasources/remote/scoreboard_remote_data_source.dart';
 import '../../data/repositories/scoreboard_repository_impl.dart';
@@ -255,10 +256,28 @@ Future<DashboardStats> dashboardStats(ref) async {
 // SCOREBOARD NOTIFIER
 // ============================================
 
+/// Scores grouped by period type for the multi-period view.
+class PeriodSection {
+  final ScoringPeriod period;
+  final List<UserScore> leadScores;
+  final List<UserScore> lagScores;
+
+  const PeriodSection({
+    required this.period,
+    this.leadScores = const [],
+    this.lagScores = const [],
+  });
+
+  /// Whether this section has any scores to display.
+  bool get hasScores => leadScores.isNotEmpty || lagScores.isNotEmpty;
+}
+
 /// State for the scoreboard screen.
 class ScoreboardState {
   final ScoringPeriod? selectedPeriod;
   final List<ScoringPeriod> periods;
+  final List<PeriodSection> periodSections;
+  final bool isMultiPeriodView;
   final PeriodSummary? userSummary;
   final List<UserScore> leadScores;
   final List<UserScore> lagScores;
@@ -269,6 +288,8 @@ class ScoreboardState {
   const ScoreboardState({
     this.selectedPeriod,
     this.periods = const [],
+    this.periodSections = const [],
+    this.isMultiPeriodView = false,
     this.userSummary,
     this.leadScores = const [],
     this.lagScores = const [],
@@ -280,6 +301,8 @@ class ScoreboardState {
   ScoreboardState copyWith({
     ScoringPeriod? selectedPeriod,
     List<ScoringPeriod>? periods,
+    List<PeriodSection>? periodSections,
+    bool? isMultiPeriodView,
     PeriodSummary? userSummary,
     List<UserScore>? leadScores,
     List<UserScore>? lagScores,
@@ -290,6 +313,8 @@ class ScoreboardState {
     return ScoreboardState(
       selectedPeriod: selectedPeriod ?? this.selectedPeriod,
       periods: periods ?? this.periods,
+      periodSections: periodSections ?? this.periodSections,
+      isMultiPeriodView: isMultiPeriodView ?? this.isMultiPeriodView,
       userSummary: userSummary ?? this.userSummary,
       leadScores: leadScores ?? this.leadScores,
       lagScores: lagScores ?? this.lagScores,
@@ -314,33 +339,39 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
     try {
       // Load periods
       final periods = await repository.getScoringPeriods();
-      final currentPeriodData = await repository.getCurrentPeriod();
+      final displayPeriod = await repository.getCurrentPeriod();
 
-      if (currentPeriodData == null) {
+      if (displayPeriod == null) {
         return ScoreboardState(periods: periods, error: 'No active period');
       }
 
-      // Load scores and leaderboard for current period
+      // Load composite summary and leaderboard from display period
       final userSummary = await repository.getUserPeriodSummary(
         currentUser.id,
-        currentPeriodData.id,
+        displayPeriod.id,
       );
+      final leaderboardData =
+          await repository.getLeaderboard(displayPeriod.id);
 
-      // Use multi-period method: fetches scores from each measure's
-      // own current period, then split by measureType
+      // Build multi-period sections
+      final currentPeriods = await repository.getAllCurrentPeriods();
       final allScores =
           await repository.getUserScoresForCurrentPeriods(currentUser.id);
+
+      final periodSections =
+          _buildPeriodSections(allScores, currentPeriods, displayPeriod);
+
+      // Also keep flat lead/lag for backward compat
       final leadScores =
           allScores.where((s) => s.measureType == 'LEAD').toList();
       final lagScores =
           allScores.where((s) => s.measureType == 'LAG').toList();
 
-      final leaderboardData =
-          await repository.getLeaderboard(currentPeriodData.id);
-
       return ScoreboardState(
-        selectedPeriod: currentPeriodData,
+        selectedPeriod: displayPeriod,
         periods: periods,
+        periodSections: periodSections,
+        isMultiPeriodView: true,
         userSummary: userSummary,
         leadScores: leadScores,
         lagScores: lagScores,
@@ -349,6 +380,61 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
     } catch (e) {
       return ScoreboardState(error: e.toString());
     }
+  }
+
+  /// Build period sections grouped by period type from current periods.
+  List<PeriodSection> _buildPeriodSections(
+    List<UserScore> allScores,
+    List<ScoringPeriod> currentPeriods,
+    ScoringPeriod displayPeriod,
+  ) {
+    // Map periodId → periodType from current periods
+    final periodIdToType = <String, String>{};
+    final periodIdToPeriod = <String, ScoringPeriod>{};
+    for (final p in currentPeriods) {
+      periodIdToType[p.id] = p.periodType;
+      periodIdToPeriod[p.id] = p;
+    }
+
+    // Group scores by period type
+    final scoresByType = <String, List<UserScore>>{};
+    for (final score in allScores) {
+      final periodType =
+          periodIdToType[score.periodId] ?? displayPeriod.periodType;
+      scoresByType.putIfAbsent(periodType, () => []).add(score);
+    }
+
+    // Build sections, skip empty ones
+    final sections = <PeriodSection>[];
+    for (final entry in scoresByType.entries) {
+      final periodType = entry.key;
+      final scores = entry.value;
+
+      // Find the matching current period for this type
+      final period = currentPeriods.firstWhere(
+        (p) => p.periodType == periodType,
+        orElse: () => displayPeriod,
+      );
+
+      final leadScores =
+          scores.where((s) => s.measureType == 'LEAD').toList();
+      final lagScores =
+          scores.where((s) => s.measureType == 'LAG').toList();
+
+      if (leadScores.isNotEmpty || lagScores.isNotEmpty) {
+        sections.add(PeriodSection(
+          period: period,
+          leadScores: leadScores,
+          lagScores: lagScores,
+        ));
+      }
+    }
+
+    // Sort by period type priority (WEEKLY first)
+    sections.sort((a, b) => periodTypePriority(a.period.periodType)
+        .compareTo(periodTypePriority(b.period.periodType)));
+
+    return sections;
   }
 
   /// Change the selected period.
@@ -367,42 +453,60 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
         period.id,
       );
 
-      List<UserScore> leadScores;
-      List<UserScore> lagScores;
+      final leaderboardData = await repository.getLeaderboard(period.id);
 
       if (period.isCurrent) {
-        // For current display period, use multi-period method
-        // which pulls each measure's score from its own current period
+        // For current period, rebuild multi-period view
+        final currentPeriods = await repository.getAllCurrentPeriods();
         final allScores =
             await repository.getUserScoresForCurrentPeriods(currentUser.id);
-        leadScores =
+
+        final displayPeriod = await repository.getCurrentPeriod();
+        final periodSections = _buildPeriodSections(
+          allScores,
+          currentPeriods,
+          displayPeriod ?? period,
+        );
+
+        final leadScores =
             allScores.where((s) => s.measureType == 'LEAD').toList();
-        lagScores =
+        final lagScores =
             allScores.where((s) => s.measureType == 'LAG').toList();
+
+        state = AsyncData(ScoreboardState(
+          selectedPeriod: displayPeriod ?? period,
+          periods: state.valueOrNull?.periods ?? [],
+          periodSections: periodSections,
+          isMultiPeriodView: true,
+          userSummary: userSummary,
+          leadScores: leadScores,
+          lagScores: lagScores,
+          leaderboard: leaderboardData,
+        ));
       } else {
-        // For historical periods, scores are frozen in their period
-        leadScores = await repository.getUserScoresByType(
+        // For historical periods, show flat lead/lag view
+        final leadScores = await repository.getUserScoresByType(
           currentUser.id,
           period.id,
           'LEAD',
         );
-        lagScores = await repository.getUserScoresByType(
+        final lagScores = await repository.getUserScoresByType(
           currentUser.id,
           period.id,
           'LAG',
         );
+
+        state = AsyncData(ScoreboardState(
+          selectedPeriod: period,
+          periods: state.valueOrNull?.periods ?? [],
+          periodSections: const [],
+          isMultiPeriodView: false,
+          userSummary: userSummary,
+          leadScores: leadScores,
+          lagScores: lagScores,
+          leaderboard: leaderboardData,
+        ));
       }
-
-      final leaderboardData = await repository.getLeaderboard(period.id);
-
-      state = AsyncData(ScoreboardState(
-        selectedPeriod: period,
-        periods: state.valueOrNull?.periods ?? [],
-        userSummary: userSummary,
-        leadScores: leadScores,
-        lagScores: lagScores,
-        leaderboard: leaderboardData,
-      ));
     } catch (e) {
       state = AsyncData(state.valueOrNull?.copyWith(
             isLoading: false,
@@ -416,6 +520,19 @@ class ScoreboardNotifier extends _$ScoreboardNotifier {
   Future<void> refresh() async {
     ref.invalidateSelf();
   }
+}
+
+// ============================================
+// ALL CURRENT PERIODS
+// ============================================
+
+/// Get all current periods (one per period_type).
+@riverpod
+Future<List<ScoringPeriod>> allCurrentPeriods(ref) async {
+  // ignore: argument_type_not_assignable
+  final repository = ref.watch(scoreboardRepositoryProvider);
+  // ignore: return_of_invalid_type
+  return repository.getAllCurrentPeriods();
 }
 
 // ============================================

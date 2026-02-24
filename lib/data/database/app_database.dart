@@ -113,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Database schema version - increment on schema changes
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -228,6 +228,12 @@ class AppDatabase extends _$AppDatabase {
           // Migration from v12 to v13: Add deleted_at column to users
           if (from < 13) {
             await m.addColumn(users, users.deletedAt);
+          }
+          // Migration from v13 to v14: Add unique constraint on users.nip
+          if (from < 14) {
+            await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS users_nip_unique ON users (nip) WHERE nip IS NOT NULL',
+            );
           }
         },
         beforeOpen: (details) async {

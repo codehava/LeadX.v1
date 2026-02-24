@@ -35,7 +35,8 @@
       "mcp__chrome-devtools__*",
       "Bash(git add:*)",
       "Bash(tee:*)",
-      "mcp__google__*"
+      "mcp__google__*",
+      "Bash(cd:*)"
     ]
   }
 }
