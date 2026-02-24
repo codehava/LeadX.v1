@@ -22,8 +22,7 @@ import 'data/services/background_sync_service.dart';
 import 'presentation/providers/sync_providers.dart';
 
 Future<void> main() async {
-  // NOTE: WidgetsFlutterBinding moved inside appRunner to avoid zone mismatch
-  // (Sentry wraps appRunner in its own zone; binding must be in the same zone as runApp)
+  WidgetsFlutterBinding.ensureInitialized();
 
   // Use path-based URL strategy for web (removes # from URLs)
   usePathUrlStrategy();
@@ -38,7 +37,10 @@ Future<void> main() async {
   // Initialize structured logging FIRST (so it's available during Sentry init)
   AppLogger.init(observer: SentryTalkerObserver());
 
-  // Wrap everything in SentryFlutter.init so widget tree errors are captured
+  // Initialize Sentry (hooks into FlutterError.onError and
+  // PlatformDispatcher.onError without wrapping runApp in a separate zone,
+  // which avoids zone-mismatch errors on web where dotenv.load() and other
+  // pre-init calls implicitly bind to the root zone).
   await SentryFlutter.init(
     (options) {
       options.dsn = envConfig.sentryDsn;
@@ -52,41 +54,38 @@ Future<void> main() async {
         return event;
       };
     },
-    appRunner: () async {
-      WidgetsFlutterBinding.ensureInitialized();
+  );
 
-      // Initialize Supabase
-      await Supabase.initialize(
-        url: envConfig.supabaseUrl,
-        anonKey: envConfig.supabaseAnonKey,
-      );
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: envConfig.supabaseUrl,
+    anonKey: envConfig.supabaseAnonKey,
+  );
 
-      // Initialize locale data for Indonesian date formatting
-      await initializeDateFormatting('id_ID', null);
+  // Initialize locale data for Indonesian date formatting
+  await initializeDateFormatting('id_ID', null);
 
-      // Initialize background sync (WorkManager) -- mobile only, no-op on web.
-      // Always register the periodic task; the callback itself checks the
-      // user toggle setting and skips processing if disabled.
-      await BackgroundSyncService.initialize();
-      await BackgroundSyncService.registerPeriodicSync();
+  // Initialize background sync (WorkManager) -- mobile only, no-op on web.
+  // Always register the periodic task; the callback itself checks the
+  // user toggle setting and skips processing if disabled.
+  await BackgroundSyncService.initialize();
+  await BackgroundSyncService.registerPeriodicSync();
 
-      // Create ProviderContainer for eager initialization of sync services.
-      // Using UncontrolledProviderScope to share the container with the widget tree.
-      final container = ProviderContainer(
-        observers: [TalkerRiverpodObserver(talker: AppLogger.instance)],
-      );
+  // Create ProviderContainer for eager initialization of sync services.
+  // Using UncontrolledProviderScope to share the container with the widget tree.
+  final container = ProviderContainer(
+    observers: [TalkerRiverpodObserver(talker: AppLogger.instance)],
+  );
 
-      // Initialize sync services eagerly: connectivity, coordinator (stale lock
-      // recovery + initial sync state), and start the periodic sync timer.
-      await initializeSyncServices(container);
+  // Initialize sync services eagerly: connectivity, coordinator (stale lock
+  // recovery + initial sync state), and start the periodic sync timer.
+  await initializeSyncServices(container);
 
-      // Run the app with the shared container
-      runApp(
-        UncontrolledProviderScope(
-          container: container,
-          child: const LeadXApp(),
-        ),
-      );
-    },
+  // Run the app with the shared container
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const LeadXApp(),
+    ),
   );
 }

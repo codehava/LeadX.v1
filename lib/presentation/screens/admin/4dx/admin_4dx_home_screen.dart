@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/routes/route_names.dart';
+import '../../../../core/utils/period_type_helpers.dart';
 import '../../../providers/admin/admin_4dx_providers.dart';
 import '../../../widgets/admin/admin_menu_card.dart';
 
@@ -152,8 +153,11 @@ class Admin4DXHomeScreen extends ConsumerWidget {
           // Current Period Info
           periodsAsync.when(
             data: (periods) {
-              final currentPeriod = periods.where((p) => p.isCurrent).firstOrNull;
-              if (currentPeriod == null) {
+              final currentPeriods = periods.where((p) => p.isCurrent).toList()
+                ..sort((a, b) => periodTypePriority(a.periodType)
+                    .compareTo(periodTypePriority(b.periodType)));
+
+              if (currentPeriods.isEmpty) {
                 return Card(
                   color: colorScheme.errorContainer,
                   child: Padding(
@@ -201,43 +205,73 @@ class Admin4DXHomeScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        currentPeriod.name,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_formatDate(currentPeriod.startDate)} - ${_formatDate(currentPeriod.endDate)}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
-                        ),
-                      ),
-                      if (currentPeriod.isLocked)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.error,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'LOCKED',
-                              style: TextStyle(
-                                color: colorScheme.onError,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                      const SizedBox(height: 12),
+                      ...currentPeriods.map((period) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: periodTypeColor(period.periodType)
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                formatPeriodType(period.periodType),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    period.name,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_formatDate(period.startDate)} - ${_formatDate(period.endDate)}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onPrimaryContainer
+                                          .withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (period.isLocked)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.error,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'LOCKED',
+                                  style: TextStyle(
+                                    color: colorScheme.onError,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
+                      )),
                     ],
                   ),
                 ),

@@ -1550,7 +1550,7 @@ class _TeamSummaryProviderElement
 }
 
 String _$scoreboardNotifierHash() =>
-    r'92ea8f9bec69cbb99de37b97474015d44d1f6b8a';
+    r'ac5ebc2b8bb863045bd19fc07817ca4bea372c57';
 
 /// See also [ScoreboardNotifier].
 @ProviderFor(ScoreboardNotifier)
@@ -1570,7 +1570,7 @@ final scoreboardNotifierProvider =
 
 typedef _$ScoreboardNotifier = AutoDisposeAsyncNotifier<ScoreboardState>;
 String _$leaderboardFilterNotifierHash() =>
-    r'7cd0b2419874a58ad895c44947e6a051b6c0d1da';
+    r'5952cfeeda2beaa48980d66ed75df56d93e9f3b5';
 
 /// Notifier for managing leaderboard filter state.
 ///

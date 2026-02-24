@@ -104,6 +104,31 @@ class PipelineLocalDataSource {
     return query.watch();
   }
 
+  /// Watch pipelines assigned to a specific user (RM).
+  Stream<List<Pipeline>> watchUserPipelines(String userId) {
+    final query = _db.select(_db.pipelines)
+      ..where((p) => p.assignedRmId.equals(userId) & p.deletedAt.isNull())
+      ..orderBy([(p) => OrderingTerm.desc(p.createdAt)]);
+    return query.watch();
+  }
+
+  /// Watch pipelines for customers linked to an HVC.
+  Stream<List<Pipeline>> watchHvcPipelines(String hvcId) {
+    final query = _db.select(_db.pipelines).join([
+      innerJoin(
+        _db.customerHvcLinks,
+        _db.customerHvcLinks.customerId.equalsExp(_db.pipelines.customerId),
+      ),
+    ])
+      ..where(_db.customerHvcLinks.hvcId.equals(hvcId) &
+          _db.pipelines.deletedAt.isNull() &
+          _db.customerHvcLinks.deletedAt.isNull())
+      ..orderBy([OrderingTerm.desc(_db.pipelines.createdAt)]);
+    return query.watch().map(
+          (rows) => rows.map((row) => row.readTable(_db.pipelines)).toList(),
+        );
+  }
+
   /// Get a pipeline by code.
   Future<Pipeline?> getPipelineByCode(String code) async {
     final query = _db.select(_db.pipelines)..where((p) => p.code.equals(code));

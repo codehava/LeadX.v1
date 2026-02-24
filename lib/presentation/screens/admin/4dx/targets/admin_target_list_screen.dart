@@ -8,6 +8,8 @@ import '../../../../../domain/entities/user.dart';
 import '../../../../providers/admin/admin_4dx_providers.dart';
 import '../../../../providers/admin_user_providers.dart';
 import '../../../../providers/auth_providers.dart';
+import '../../../../providers/scoreboard_providers.dart';
+import '../../../../widgets/scoreboard/period_selector.dart';
 
 /// Admin Target List Screen.
 ///
@@ -47,10 +49,9 @@ class _AdminTargetListScreenState extends ConsumerState<AdminTargetListScreen> {
             color: colorScheme.surfaceContainerHighest,
             child: Column(
               children: [
-                // Period dropdown
+                // Period selector (single-period only for editing)
                 periodsAsync.when(
                   data: (periods) {
-                    // Only show unlocked periods for editing
                     final editablePeriods =
                         periods.where((p) => p.isActive).toList();
                     if (editablePeriods.isEmpty) {
@@ -60,70 +61,45 @@ class _AdminTargetListScreenState extends ConsumerState<AdminTargetListScreen> {
                     // Auto-select current period
                     if (_selectedPeriod == null && editablePeriods.isNotEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() {
-                          _selectedPeriod = editablePeriods.firstWhere(
-                            (p) => p.isCurrent,
-                            orElse: () => editablePeriods.first,
-                          );
-                        });
+                        if (mounted && _selectedPeriod == null) {
+                          setState(() {
+                            _selectedPeriod = editablePeriods.firstWhere(
+                              (p) => p.isCurrent,
+                              orElse: () => editablePeriods.first,
+                            );
+                          });
+                        }
                       });
                     }
 
-                    return DropdownButtonFormField<ScoringPeriod>(
-                      initialValue: _selectedPeriod,
+                    final currentPeriods =
+                        ref.watch(allCurrentPeriodsProvider).valueOrNull ?? [];
+
+                    return InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'Periode',
-                        prefixIcon: const Icon(Icons.calendar_today),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         filled: true,
                         fillColor: colorScheme.surface,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      isExpanded: true,
-                      items: editablePeriods.map((period) {
-                        return DropdownMenuItem(
-                          value: period,
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(period.name)),
-                              if (period.isCurrent)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'Aktif',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              if (period.isLocked) ...[
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.lock,
-                                  size: 16,
-                                  color: colorScheme.error,
-                                ),
-                              ],
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (period) {
-                        setState(() => _selectedPeriod = period);
-                      },
+                      child: PeriodSelector(
+                        selectedPeriod: _selectedPeriod,
+                        allPeriods: editablePeriods,
+                        currentPeriods: currentPeriods,
+                        showActivePeriodOption: false,
+                        onChanged: (period) {
+                          if (period != null) {
+                            setState(() => _selectedPeriod = period);
+                          }
+                        },
+                      ),
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, _) => const Text('Gagal memuat periode'),
+                  error: (_, __) => const Text('Gagal memuat periode'),
                 ),
                 const SizedBox(height: 12),
 

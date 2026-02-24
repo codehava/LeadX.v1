@@ -10,7 +10,9 @@ import '../../../../domain/entities/user.dart';
 import '../../../providers/admin_user_providers.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../providers/master_data_providers.dart';
+import '../../../providers/pipeline_providers.dart';
 import '../../../providers/sync_providers.dart';
+import '../../../widgets/common/pipeline_summary_hero.dart';
 import '../../../widgets/common/searchable_dropdown.dart';
 
 /// Screen displaying detailed information about a user.
@@ -527,16 +529,18 @@ class _DeleteConfirmationDialogState
 }
 
 /// Info tab displaying user profile details.
-class _InfoTab extends StatelessWidget {
+class _InfoTab extends ConsumerWidget {
   const _InfoTab({required this.user});
 
   final User user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
+    final pipelinesAsync = ref.watch(userPipelinesProvider(user.id));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -615,6 +619,12 @@ class _InfoTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
+
+        if (pipelinesAsync.hasValue && stagesAsync.hasValue)
+          PipelineSummaryHero(
+            pipelines: pipelinesAsync.value!,
+            stages: stagesAsync.value!,
+          ),
 
         // Details section
         _DetailCard(

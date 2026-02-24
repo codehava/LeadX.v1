@@ -111,6 +111,20 @@ final brokerPipelinesProvider =
   return repository.watchBrokerPipelines(brokerId);
 });
 
+/// Provider for watching pipelines assigned to a specific user/RM (reactive stream).
+final userPipelinesProvider =
+    StreamProvider.family<List<domain.Pipeline>, String>((ref, userId) {
+  final repository = ref.watch(pipelineRepositoryProvider);
+  return repository.watchUserPipelines(userId);
+});
+
+/// Provider for watching pipelines for customers linked to an HVC (reactive stream).
+final hvcPipelinesProvider =
+    StreamProvider.family<List<domain.Pipeline>, String>((ref, hvcId) {
+  final repository = ref.watch(pipelineRepositoryProvider);
+  return repository.watchHvcPipelines(hvcId);
+});
+
 // ==========================================
 // Detail Providers
 // ==========================================

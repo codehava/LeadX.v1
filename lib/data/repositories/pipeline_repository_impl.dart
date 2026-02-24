@@ -123,6 +123,24 @@ class PipelineRepositoryImpl implements PipelineRepository {
     });
   }
 
+  /// Watch pipelines assigned to a specific user/RM.
+  @override
+  Stream<List<domain.Pipeline>> watchUserPipelines(String userId) {
+    return _localDataSource.watchUserPipelines(userId).asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToPipeline).toList();
+    });
+  }
+
+  /// Watch pipelines for customers linked to an HVC.
+  @override
+  Stream<List<domain.Pipeline>> watchHvcPipelines(String hvcId) {
+    return _localDataSource.watchHvcPipelines(hvcId).asyncMap((list) async {
+      await _ensureCachesLoaded();
+      return list.map(_mapToPipeline).toList();
+    });
+  }
+
   // ==========================================
   // Read Operations
   // ==========================================

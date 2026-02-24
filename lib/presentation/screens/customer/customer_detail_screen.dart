@@ -10,11 +10,14 @@ import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/key_person.dart';
 import '../../providers/activity_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/master_data_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/cards/pipeline_card.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/pipeline_summary_hero.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
+import '../../widgets/pipeline/pipeline_stage_filter_bar.dart';
 import '../activity/activity_execution_sheet.dart';
 import '../activity/immediate_activity_sheet.dart';
 import 'key_person_form_sheet.dart';
@@ -262,20 +265,27 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
 }
 
 /// Info tab showing customer details.
-class _InfoTab extends StatelessWidget {
+class _InfoTab extends ConsumerWidget {
   const _InfoTab({required this.customer});
 
   final Customer customer;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final pipelinesAsync = ref.watch(customerPipelinesProvider(customer.id));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (pipelinesAsync.hasValue && stagesAsync.hasValue)
+            PipelineSummaryHero(
+              pipelines: pipelinesAsync.value!,
+              stages: stagesAsync.value!,
+            ),
           _InfoSection(
             title: 'Informasi Dasar',
             children: [
@@ -590,10 +600,12 @@ class _PipelinesTab extends ConsumerStatefulWidget {
 
 class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
   bool _isKanbanView = false;
+  String? _selectedStageId;
 
   @override
   Widget build(BuildContext context) {
     final pipelinesAsync = ref.watch(customerPipelinesProvider(widget.customerId));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -643,26 +655,50 @@ class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
               ),
             );
           }
-          
-          if (_isKanbanView) {
-            return PipelineKanbanBoard(
-              pipelines: pipelines,
-              onPipelineTap: (pipeline) => context.push(
-                '/home/pipelines/${pipeline.id}?customerId=${widget.customerId}',
-              ),
-            );
+
+          // Reset selected stage if it no longer has pipelines
+          if (_selectedStageId != null &&
+              !pipelines.any((p) => p.stageId == _selectedStageId)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _selectedStageId = null);
+            });
           }
-          
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: pipelines.length,
-            itemBuilder: (context, index) {
-              final pipeline = pipelines[index];
-              return PipelineCard(
-                pipeline: pipeline,
-                onTap: () => context.push('/home/pipelines/${pipeline.id}?customerId=${widget.customerId}'),
-              );
-            },
+
+          final filteredPipelines = _selectedStageId == null
+              ? pipelines
+              : pipelines.where((p) => p.stageId == _selectedStageId).toList();
+
+          return Column(
+            children: [
+              if (stagesAsync.hasValue)
+                PipelineStageFilterBar(
+                  pipelines: pipelines,
+                  stages: stagesAsync.value!,
+                  selectedStageId: _selectedStageId,
+                  onStageSelected: (stageId) =>
+                      setState(() => _selectedStageId = stageId),
+                ),
+              Expanded(
+                child: _isKanbanView
+                    ? PipelineKanbanBoard(
+                        pipelines: filteredPipelines,
+                        onPipelineTap: (pipeline) => context.push(
+                          '/home/pipelines/${pipeline.id}?customerId=${widget.customerId}',
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: filteredPipelines.length,
+                        itemBuilder: (context, index) {
+                          final pipeline = filteredPipelines[index];
+                          return PipelineCard(
+                            pipeline: pipeline,
+                            onTap: () => context.push('/home/pipelines/${pipeline.id}?customerId=${widget.customerId}'),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: AppLoadingIndicator()),

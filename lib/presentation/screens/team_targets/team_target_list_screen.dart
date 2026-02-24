@@ -8,6 +8,7 @@ import '../../../domain/entities/user.dart';
 import '../../providers/admin/admin_4dx_providers.dart';
 import '../../providers/scoreboard_providers.dart';
 import '../../providers/team_target_providers.dart';
+import '../../widgets/scoreboard/period_selector.dart';
 
 /// Team Target List Screen.
 ///
@@ -22,6 +23,7 @@ class TeamTargetListScreen extends ConsumerStatefulWidget {
 }
 
 class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
+  /// null = "Periode Aktif" (aggregate view across all current periods).
   ScoringPeriod? _selectedPeriod;
   String _searchQuery = '';
 
@@ -32,6 +34,8 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
     final periodsAsync = ref.watch(allPeriodsProvider);
     final subordinatesAsync = ref.watch(mySubordinatesProvider);
     final measuresAsync = ref.watch(allMeasuresProvider);
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+    final currentPeriods = currentPeriodsAsync.valueOrNull ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +50,7 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
             color: colorScheme.surfaceContainerHighest,
             child: Column(
               children: [
-                // Period dropdown
+                // Period selector
                 periodsAsync.when(
                   data: (periods) {
                     final editablePeriods =
@@ -55,71 +59,24 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                       return const Text('Tidak ada periode tersedia');
                     }
 
-                    // Auto-select current period
-                    if (_selectedPeriod == null && editablePeriods.isNotEmpty) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted && _selectedPeriod == null) {
-                          setState(() {
-                            _selectedPeriod = editablePeriods.firstWhere(
-                              (p) => p.isCurrent,
-                              orElse: () => editablePeriods.first,
-                            );
-                          });
-                        }
-                      });
-                    }
-
-                    return DropdownButtonFormField<ScoringPeriod>(
-                      initialValue: _selectedPeriod,
+                    return InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'Periode',
-                        prefixIcon: const Icon(Icons.calendar_today),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                         filled: true,
                         fillColor: colorScheme.surface,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      isExpanded: true,
-                      items: editablePeriods.map((period) {
-                        return DropdownMenuItem(
-                          value: period,
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(period.name)),
-                              if (period.isCurrent)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'Aktif',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              if (period.isLocked) ...[
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.lock,
-                                  size: 16,
-                                  color: colorScheme.error,
-                                ),
-                              ],
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (period) {
-                        setState(() => _selectedPeriod = period);
-                      },
+                      child: PeriodSelector(
+                        selectedPeriod: _selectedPeriod,
+                        allPeriods: editablePeriods,
+                        currentPeriods: currentPeriods,
+                        onChanged: (period) {
+                          setState(() => _selectedPeriod = period);
+                        },
+                      ),
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
@@ -127,8 +84,8 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Locked period warning
-                if (_selectedPeriod?.isLocked ?? false)
+                // Locked period warning (only for specific selected period)
+                if (_selectedPeriod != null && _selectedPeriod!.isLocked)
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -173,34 +130,14 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
             ),
           ),
 
-          // Cascade summary card
+          // Cascade summary card — for specific period only
           if (_selectedPeriod != null)
             _CascadeSummaryCard(periodId: _selectedPeriod!.id),
 
           // Subordinate List
           Expanded(
-            child: _selectedPeriod == null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 64,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Pilih periode terlebih dahulu',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : _buildSubordinateList(
-                    subordinatesAsync, measuresAsync, theme, colorScheme),
+            child: _buildSubordinateList(
+                subordinatesAsync, measuresAsync, theme, colorScheme),
           ),
         ],
       ),
@@ -213,8 +150,8 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final periodId = _selectedPeriod!.id;
     final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+    final currentPeriodAsync = ref.watch(currentPeriodProvider);
 
     return subordinatesAsync.when(
       data: (subordinates) => measuresAsync.when(
@@ -222,15 +159,21 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
           data: (currentPeriods) {
             final activeMeasures = measures.where((m) => m.isActive).length;
 
-            // Collect all current period IDs for multi-period target counting
-            final currentPeriodIds =
-                currentPeriods.map((p) => p.id).toSet();
+            // Determine which period IDs to query targets for
+            Set<String> periodIdsToQuery;
+            if (_selectedPeriod == null) {
+              // "Periode Aktif" → all current period IDs
+              periodIdsToQuery = currentPeriods.map((p) => p.id).toSet();
+            } else {
+              // Specific period
+              periodIdsToQuery = {_selectedPeriod!.id};
+            }
 
-            // Watch targets across all current periods
+            // Watch targets across the relevant periods
             final allTargets = <UserTarget>[];
             bool anyLoading = false;
 
-            for (final pId in currentPeriodIds) {
+            for (final pId in periodIdsToQuery) {
               final targetsAsync = ref.watch(targetsForPeriodProvider(pId));
               targetsAsync.when(
                 data: (targets) => allTargets.addAll(targets),
@@ -276,11 +219,14 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
               );
             }
 
+            // For navigation: resolve the period to pass to the form
+            final periodForNav = _selectedPeriod ?? currentPeriodAsync.valueOrNull;
+
             return RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(mySubordinatesProvider);
                 ref.invalidate(allCurrentPeriodsProvider);
-                for (final pId in currentPeriodIds) {
+                for (final pId in periodIdsToQuery) {
                   ref.invalidate(targetsForPeriodProvider(pId));
                 }
               },
@@ -290,7 +236,7 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final user = filtered[index];
-                  // Count unique measures with targets across ALL current periods
+                  // Count unique measures with targets across relevant periods
                   final userMeasureIds = allTargets
                       .where((t) => t.userId == user.id)
                       .map((t) => t.measureId)
@@ -300,12 +246,15 @@ class _TeamTargetListScreenState extends ConsumerState<TeamTargetListScreen> {
                     user: user,
                     assignedCount: userMeasureIds.length,
                     totalMeasures: activeMeasures,
-                    isLocked: _selectedPeriod!.isLocked,
-                    onTap: () => context.push(
-                      RoutePaths.teamTargetForm
-                          .replaceAll(':userId', user.id),
-                      extra: _selectedPeriod,
-                    ),
+                    isLocked: _selectedPeriod?.isLocked ?? false,
+                    onTap: () {
+                      if (periodForNav == null) return;
+                      context.push(
+                        RoutePaths.teamTargetForm
+                            .replaceAll(':userId', user.id),
+                        extra: periodForNav,
+                      );
+                    },
                   );
                 },
               ),

@@ -12,9 +12,12 @@ import '../../providers/activity_providers.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/master_data_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_state.dart';
+import '../../widgets/common/pipeline_summary_hero.dart';
+import '../../widgets/pipeline/pipeline_stage_filter_bar.dart';
 import '../activity/activity_execution_sheet.dart';
 import '../activity/immediate_activity_sheet.dart';
 import '../customer/key_person_form_sheet.dart';
@@ -171,18 +174,26 @@ class _BrokerDetailScreenState extends ConsumerState<BrokerDetailScreen>
 }
 
 /// Info tab showing Broker details.
-class _InfoTab extends StatelessWidget {
+class _InfoTab extends ConsumerWidget {
   const _InfoTab({required this.broker});
 
   final Broker broker;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pipelinesAsync = ref.watch(brokerPipelinesProvider(broker.id));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (pipelinesAsync.hasValue && stagesAsync.hasValue)
+            PipelineSummaryHero(
+              pipelines: pipelinesAsync.value!,
+              stages: stagesAsync.value!,
+            ),
           _InfoSection(
             title: 'Informasi Broker',
             children: [
@@ -553,15 +564,22 @@ class _KeyPersonCard extends StatelessWidget {
 }
 
 /// Tab showing pipelines associated with this broker.
-class _PipelinesTab extends ConsumerWidget {
+class _PipelinesTab extends ConsumerStatefulWidget {
   const _PipelinesTab({required this.brokerId});
 
   final String brokerId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pipelinesAsync = ref.watch(brokerPipelinesProvider(brokerId));
-    final theme = Theme.of(context);
+  ConsumerState<_PipelinesTab> createState() => _PipelinesTabState();
+}
+
+class _PipelinesTabState extends ConsumerState<_PipelinesTab> {
+  String? _selectedStageId;
+
+  @override
+  Widget build(BuildContext context) {
+    final pipelinesAsync = ref.watch(brokerPipelinesProvider(widget.brokerId));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
 
     return pipelinesAsync.when(
       data: (pipelines) {
@@ -575,22 +593,48 @@ class _PipelinesTab extends ConsumerWidget {
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 8, bottom: 88),
-          itemCount: pipelines.length,
-          itemBuilder: (context, index) {
-            final pipeline = pipelines[index];
-            return _PipelineCard(
-              pipeline: pipeline,
-              onTap: () => context.push('/home/pipelines/${pipeline.id}'),
-            );
-          },
+        // Reset selected stage if it no longer has pipelines
+        if (_selectedStageId != null &&
+            !pipelines.any((p) => p.stageId == _selectedStageId)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _selectedStageId = null);
+          });
+        }
+
+        final filteredPipelines = _selectedStageId == null
+            ? pipelines
+            : pipelines.where((p) => p.stageId == _selectedStageId).toList();
+
+        return Column(
+          children: [
+            if (stagesAsync.hasValue)
+              PipelineStageFilterBar(
+                pipelines: pipelines,
+                stages: stagesAsync.value!,
+                selectedStageId: _selectedStageId,
+                onStageSelected: (stageId) =>
+                    setState(() => _selectedStageId = stageId),
+              ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 8, bottom: 88),
+                itemCount: filteredPipelines.length,
+                itemBuilder: (context, index) {
+                  final pipeline = filteredPipelines[index];
+                  return _PipelineCard(
+                    pipeline: pipeline,
+                    onTap: () => context.push('/home/pipelines/${pipeline.id}'),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => AppErrorState(
         title: 'Gagal memuat data',
-        onRetry: () => ref.invalidate(brokerPipelinesProvider(brokerId)),
+        onRetry: () => ref.invalidate(brokerPipelinesProvider(widget.brokerId)),
       ),
     );
   }

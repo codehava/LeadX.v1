@@ -146,6 +146,12 @@ class ScoringSummaryNotifier extends _$ScoringSummaryNotifier {
     ref.invalidateSelf();
   }
 
+  /// Select "Periode Aktif" — reset to null so build() resolves to current period.
+  Future<void> selectActivePeriods() async {
+    _selectedPeriod = null;
+    ref.invalidateSelf();
+  }
+
   /// Refresh data (re-fetches with current period selection preserved).
   Future<void> refresh() async {
     ref.invalidateSelf();

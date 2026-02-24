@@ -10,6 +10,7 @@ import '../../providers/scoreboard_providers.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/scoreboard/leaderboard_card.dart';
 import '../../widgets/scoreboard/measure_progress_bar.dart';
+import '../../widgets/scoreboard/period_selector.dart';
 import '../../widgets/scoreboard/score_gauge.dart';
 import '../../providers/auth_providers.dart';
 
@@ -207,55 +208,21 @@ class ScoreboardScreen extends ConsumerWidget {
     WidgetRef ref,
     ScoreboardState state,
   ) {
-    final theme = Theme.of(context);
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+    final currentPeriods = currentPeriodsAsync.valueOrNull ?? [];
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButton<ScoringPeriod>(
-                value: state.selectedPeriod,
-                isExpanded: true,
-                underline: const SizedBox(),
-                items: state.periods.map((period) {
-                  return DropdownMenuItem(
-                    value: period,
-                    child: Text(
-                      period.name,
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (period) {
-                  if (period != null) {
-                    ref
-                        .read(scoreboardNotifierProvider.notifier)
-                        .selectPeriod(period);
-                  }
-                },
-              ),
-            ),
-            if (state.selectedPeriod?.isCurrent == true)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Current',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.success,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
+      child: PeriodSelector(
+        selectedPeriod: state.isMultiPeriodView ? null : state.selectedPeriod,
+        allPeriods: state.periods,
+        currentPeriods: currentPeriods,
+        onChanged: (period) {
+          if (period == null) {
+            ref.read(scoreboardNotifierProvider.notifier).selectActivePeriods();
+          } else {
+            ref.read(scoreboardNotifierProvider.notifier).selectPeriod(period);
+          }
+        },
       ),
     );
   }
@@ -294,16 +261,9 @@ class ScoreboardScreen extends ConsumerWidget {
           ),
           GestureDetector(
             onTap: () {
-              // Return to current (multi-period) view by selecting a current period
-              final currentPeriods =
-                  state.periods.where((p) => p.isCurrent).toList();
-              if (currentPeriods.isNotEmpty) {
-                currentPeriods.sort((a, b) => periodTypePriority(a.periodType)
-                    .compareTo(periodTypePriority(b.periodType)));
-                ref
-                    .read(scoreboardNotifierProvider.notifier)
-                    .selectPeriod(currentPeriods.first);
-              }
+              ref
+                  .read(scoreboardNotifierProvider.notifier)
+                  .selectActivePeriods();
             },
             child: Text(
               'Kembali ke periode aktif',

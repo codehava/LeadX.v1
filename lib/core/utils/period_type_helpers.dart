@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/scoring_entities.dart';
+
 /// Format period type enum string to Indonesian display label.
 String formatPeriodType(String periodType) {
   switch (periodType) {
@@ -46,4 +48,16 @@ int periodTypePriority(String periodType) {
     default:
       return 99;
   }
+}
+
+/// Format a summary string of all active current periods.
+///
+/// Returns e.g. "Minggu 8, Februari, Q1 2026" sorted by priority (weekly first).
+/// Returns empty string if [currentPeriods] is empty.
+String formatActivePeriodsSummary(List<ScoringPeriod> currentPeriods) {
+  if (currentPeriods.isEmpty) return '';
+  final sorted = [...currentPeriods]
+    ..sort((a, b) =>
+        periodTypePriority(a.periodType).compareTo(periodTypePriority(b.periodType)));
+  return sorted.map((p) => p.name).join(', ');
 }

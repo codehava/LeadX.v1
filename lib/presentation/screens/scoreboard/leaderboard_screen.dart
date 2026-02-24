@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/scoreboard_providers.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/scoreboard/leaderboard_card.dart';
+import '../../widgets/scoreboard/period_selector.dart';
 
 /// Dedicated full-page leaderboard screen with filtering and search.
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -37,11 +37,18 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final filterState = ref.watch(leaderboardFilterNotifierProvider);
     final currentUser = ref.watch(currentUserProvider).value;
     final periodsAsync = ref.watch(scoringPeriodsProvider);
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+    final currentPeriods = currentPeriodsAsync.valueOrNull ?? [];
 
+    // Resolve effective period: null (Periode Aktif) → use display period
     final selectedPeriod = filterState.selectedPeriod;
-    final leaderboardAsync = selectedPeriod != null
+    final currentPeriodAsync = ref.watch(currentPeriodProvider);
+    final effectivePeriodId =
+        selectedPeriod?.id ?? currentPeriodAsync.valueOrNull?.id;
+
+    final leaderboardAsync = effectivePeriodId != null
         ? ref.watch(filteredLeaderboardProvider(
-            selectedPeriod.id,
+            effectivePeriodId,
             branchId: filterState.selectedBranchId,
             regionalOfficeId: filterState.selectedRegionalOfficeId,
             searchQuery: filterState.searchQuery.isNotEmpty
@@ -66,7 +73,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       body: Column(
         children: [
           // Period selector
-          _buildPeriodSelector(periodsAsync, filterState),
+          _buildPeriodSelector(periodsAsync, filterState, currentPeriods),
 
           // Filter chips (All / My Branch / My Region)
           _buildFilterChips(filterState, currentUser),
@@ -76,7 +83,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
           // Team Summary (for BH/BM/ROH/Admin)
           if (currentUser != null && _shouldShowTeamSummary(currentUser))
-            _buildTeamSummary(filterState, currentUser),
+            _buildTeamSummary(filterState, currentUser, effectivePeriodId),
 
           // Divider
           const Divider(height: 1),
@@ -106,82 +113,29 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   Widget _buildPeriodSelector(
     AsyncValue<List<ScoringPeriod>> periodsAsync,
     LeaderboardFilter filterState,
+    List<ScoringPeriod> currentPeriods,
   ) {
     return periodsAsync.when(
       data: (periods) {
         if (periods.isEmpty) return const SizedBox();
 
-        // Auto-select current display period (shortest granularity)
-        if (filterState.selectedPeriod == null && periods.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final currentPeriods =
-                periods.where((p) => p.isCurrent).toList();
-            if (currentPeriods.isNotEmpty) {
-              // Pick shortest granularity as display period
-              currentPeriods.sort((a, b) =>
-                  periodTypePriority(a.periodType)
-                      .compareTo(periodTypePriority(b.periodType)));
-              ref
-                  .read(leaderboardFilterNotifierProvider.notifier)
-                  .selectPeriod(currentPeriods.first);
-            } else {
-              ref
-                  .read(leaderboardFilterNotifierProvider.notifier)
-                  .selectPeriod(periods.first);
-            }
-          });
-        }
-
-        final theme = Theme.of(context);
         return Card(
           margin: const EdgeInsets.all(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButton<ScoringPeriod>(
-                    value: filterState.selectedPeriod,
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    items: periods.map((period) {
-                      return DropdownMenuItem(
-                        value: period,
-                        child: Text(
-                          period.name,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (period) {
-                      if (period != null) {
-                        ref
-                            .read(leaderboardFilterNotifierProvider.notifier)
-                            .selectPeriod(period);
-                      }
-                    },
-                  ),
-                ),
-                if (filterState.selectedPeriod?.isCurrent ?? false)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Current',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          child: PeriodSelector(
+            selectedPeriod: filterState.selectedPeriod,
+            allPeriods: periods,
+            currentPeriods: currentPeriods,
+            onChanged: (period) {
+              if (period == null) {
+                ref
+                    .read(leaderboardFilterNotifierProvider.notifier)
+                    .selectActivePeriods();
+              } else {
+                ref
+                    .read(leaderboardFilterNotifierProvider.notifier)
+                    .selectPeriod(period);
+              }
+            },
           ),
         );
       },
@@ -394,9 +348,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   /// Build team summary section.
-  Widget _buildTeamSummary(LeaderboardFilter filterState, User currentUser) {
+  Widget _buildTeamSummary(
+      LeaderboardFilter filterState, User currentUser, String? effectivePeriodId) {
+    if (effectivePeriodId == null) return const SizedBox.shrink();
     final selectedPeriod = filterState.selectedPeriod;
-    if (selectedPeriod == null) return const SizedBox.shrink();
 
     // Determine which ID to use based on filter mode
     String? branchId;
@@ -408,7 +363,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     }
 
     final teamSummaryAsync = ref.watch(teamSummaryProvider(
-      selectedPeriod.id,
+      effectivePeriodId,
       branchId: branchId,
       regionalOfficeId: regionalOfficeId,
     ));

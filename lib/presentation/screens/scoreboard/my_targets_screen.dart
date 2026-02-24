@@ -6,6 +6,7 @@ import '../../../core/utils/period_type_helpers.dart';
 import '../../../domain/entities/scoring_entities.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/scoreboard_providers.dart';
+import '../../widgets/scoreboard/period_selector.dart';
 
 /// User-facing "My Targets" screen.
 ///
@@ -19,7 +20,9 @@ class MyTargetsScreen extends ConsumerStatefulWidget {
 }
 
 class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
+  /// null = "Periode Aktif" (multi-period aggregate mode).
   ScoringPeriod? _selectedPeriod;
+  bool _initialized = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +30,24 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
     final colorScheme = theme.colorScheme;
     final currentUser = ref.watch(currentUserProvider).value;
     final periodsAsync = ref.watch(scoringPeriodsProvider);
+    final currentPeriodsAsync = ref.watch(allCurrentPeriodsProvider);
+    final currentPeriods = currentPeriodsAsync.valueOrNull ?? [];
 
     if (currentUser == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Target Saya')),
         body: const Center(child: CircularProgressIndicator()),
       );
+    }
+
+    // Auto-init: default to null (Periode Aktif) if current periods exist
+    if (!_initialized) {
+      periodsAsync.whenData((periods) {
+        if (periods.isNotEmpty && !_initialized) {
+          _initialized = true;
+          // _selectedPeriod stays null = "Periode Aktif"
+        }
+      });
     }
 
     return Scaffold(
@@ -43,121 +58,52 @@ class _MyTargetsScreenState extends ConsumerState<MyTargetsScreen> {
       body: Column(
         children: [
           // Period selector
-          _buildPeriodSelector(periodsAsync, theme, colorScheme),
+          periodsAsync.when(
+            data: (periods) {
+              if (periods.isEmpty) return const SizedBox.shrink();
+              return Card(
+                margin: const EdgeInsets.all(16),
+                child: PeriodSelector(
+                  selectedPeriod: _selectedPeriod,
+                  allPeriods: periods,
+                  currentPeriods: currentPeriods,
+                  onChanged: (period) {
+                    setState(() => _selectedPeriod = period);
+                  },
+                ),
+              );
+            },
+            loading: () => const LinearProgressIndicator(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
 
           // Targets list
           Expanded(
-            child: _selectedPeriod == null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.calendar_today,
-                            size: 64, color: colorScheme.outline),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Pilih periode',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : _buildTargetsContent(
-                    currentUser.id, _selectedPeriod!, theme, colorScheme),
+            child: _buildTargetsContent(
+                currentUser.id, _selectedPeriod, theme, colorScheme),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPeriodSelector(
-    AsyncValue<List<ScoringPeriod>> periodsAsync,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
-    return periodsAsync.when(
-      data: (periods) {
-        if (periods.isEmpty) return const SizedBox.shrink();
-
-        // Auto-select current period (shortest granularity first)
-        if (_selectedPeriod == null && periods.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted || _selectedPeriod != null) return;
-            final currentPeriods = periods.where((p) => p.isCurrent).toList()
-              ..sort((a, b) => periodTypePriority(a.periodType)
-                  .compareTo(periodTypePriority(b.periodType)));
-            setState(() {
-              _selectedPeriod = currentPeriods.isNotEmpty
-                  ? currentPeriods.first
-                  : periods.first;
-            });
-          });
-        }
-
-        return Card(
-          margin: const EdgeInsets.all(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButton<ScoringPeriod>(
-                    value: _selectedPeriod,
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    items: periods.map((period) {
-                      return DropdownMenuItem(
-                        value: period,
-                        child: Text(
-                          period.name,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (period) {
-                      if (period != null) {
-                        setState(() => _selectedPeriod = period);
-                      }
-                    },
-                  ),
-                ),
-                if (_selectedPeriod?.isCurrent ?? false)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Aktif',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-      loading: () => const LinearProgressIndicator(),
-      error: (_, _) => const SizedBox.shrink(),
-    );
-  }
-
   Widget _buildTargetsContent(
     String userId,
-    ScoringPeriod period,
+    ScoringPeriod? period,
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    // For current periods, fetch targets across ALL current periods
+    // null = "Periode Aktif" → multi-period view
+    if (period == null) {
+      final currentPeriodAsync = ref.watch(currentPeriodProvider);
+      final displayPeriod = currentPeriodAsync.valueOrNull;
+      if (displayPeriod == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      return _buildMultiPeriodTargets(userId, displayPeriod, theme, colorScheme);
+    }
+
+    // Current individual period → also multi-period
     if (period.isCurrent) {
       return _buildMultiPeriodTargets(userId, period, theme, colorScheme);
     }

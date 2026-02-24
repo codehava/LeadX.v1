@@ -12,6 +12,9 @@ import '../../providers/activity_providers.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/hvc_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/master_data_providers.dart';
+import '../../providers/pipeline_providers.dart';
+import '../../widgets/common/pipeline_summary_hero.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_state.dart';
 import '../activity/activity_execution_sheet.dart';
@@ -176,18 +179,26 @@ class _HvcDetailScreenState extends ConsumerState<HvcDetailScreen>
 }
 
 /// Info tab showing HVC details.
-class _InfoTab extends StatelessWidget {
+class _InfoTab extends ConsumerWidget {
   const _InfoTab({required this.hvc});
 
   final Hvc hvc;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pipelinesAsync = ref.watch(hvcPipelinesProvider(hvc.id));
+    final stagesAsync = ref.watch(pipelineStagesStreamProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (pipelinesAsync.hasValue && stagesAsync.hasValue)
+            PipelineSummaryHero(
+              pipelines: pipelinesAsync.value!,
+              stages: stagesAsync.value!,
+            ),
           _InfoSection(
             title: 'Informasi Dasar',
             children: [

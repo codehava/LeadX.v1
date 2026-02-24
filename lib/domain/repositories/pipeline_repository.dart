@@ -32,6 +32,12 @@ abstract class PipelineRepository {
   /// Watch pipelines where the broker is the source (reactive stream).
   Stream<List<Pipeline>> watchBrokerPipelines(String brokerId);
 
+  /// Watch pipelines assigned to a specific user/RM (reactive stream).
+  Stream<List<Pipeline>> watchUserPipelines(String userId);
+
+  /// Watch pipelines for customers linked to an HVC (reactive stream).
+  Stream<List<Pipeline>> watchHvcPipelines(String hvcId);
+
   /// Get a specific pipeline by ID.
   Future<Pipeline?> getPipelineById(String id);
 

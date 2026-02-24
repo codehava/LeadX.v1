@@ -588,27 +588,22 @@ class _SupervisorDropdown extends ConsumerWidget {
         final activeUsers = users.where((u) => u.isActive).toList()
           ..sort((a, b) => a.name.compareTo(b.name));
 
-        return DropdownButtonFormField<String>(
-          initialValue: selectedParentId,
-          decoration: const InputDecoration(
-            labelText: 'Atasan (Supervisor)',
-            hintText: 'Pilih supervisor...',
-            prefixIcon: Icon(Icons.supervisor_account),
-            border: OutlineInputBorder(),
-          ),
-          items: [
-            const DropdownMenuItem<String>(
-              value: null,
-              child: Text('Tidak ada'),
-            ),
-            ...activeUsers.map((user) {
-              return DropdownMenuItem<String>(
-                value: user.id,
-                child: Text('${user.name} (${user.role.shortName})'),
-              );
-            }),
-          ],
+        final items = activeUsers
+            .map((user) => DropdownItem<String>(
+                  value: user.id,
+                  label: user.name,
+                  subtitle: user.role.shortName,
+                ))
+            .toList();
+
+        return SearchableDropdown<String>(
+          label: 'Atasan (Supervisor)',
+          hint: 'Pilih supervisor...',
+          value: selectedParentId,
+          items: items,
           onChanged: onChanged,
+          prefixIcon: Icons.supervisor_account,
+          modalTitle: 'Pilih Atasan',
         );
       },
       loading: () => const InputDecorator(

@@ -7,7 +7,7 @@ part of 'admin_scoring_summary_providers.dart';
 // **************************************************************************
 
 String _$scoringSummaryNotifierHash() =>
-    r'eb1f61f8a75209df950a3568e930994545ec51c5';
+    r'192620b1fd3d7922cc2e240093a80cb2afae5ef1';
 
 /// Provider for scoring summary grid data.
 ///

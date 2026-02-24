@@ -525,6 +525,22 @@ class MockPipelineLocalDataSource extends _i1.Mock
           as _i6.Stream<List<_i4.Pipeline>>);
 
   @override
+  _i6.Stream<List<_i4.Pipeline>> watchUserPipelines(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchUserPipelines, [userId]),
+            returnValue: _i6.Stream<List<_i4.Pipeline>>.empty(),
+          )
+          as _i6.Stream<List<_i4.Pipeline>>);
+
+  @override
+  _i6.Stream<List<_i4.Pipeline>> watchHvcPipelines(String? hvcId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchHvcPipelines, [hvcId]),
+            returnValue: _i6.Stream<List<_i4.Pipeline>>.empty(),
+          )
+          as _i6.Stream<List<_i4.Pipeline>>);
+
+  @override
   _i6.Future<_i4.Pipeline?> getPipelineByCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getPipelineByCode, [code]),

@@ -6,6 +6,7 @@ import '../../../providers/admin/admin_scoring_summary_providers.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../providers/scoreboard_providers.dart';
 import '../../../widgets/common/error_state.dart';
+import '../../../widgets/scoreboard/period_selector.dart';
 
 /// Scoring summary grid screen for admins and managers.
 ///
@@ -103,56 +104,45 @@ class _ScoringSummaryScreenState extends ConsumerState<ScoringSummaryScreen> {
     AsyncValue<ScoringSummaryState> summaryAsync,
   ) {
     final selectedPeriod = summaryAsync.valueOrNull?.selectedPeriod;
+    final currentPeriods =
+        ref.watch(allCurrentPeriodsProvider).valueOrNull ?? [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_month,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: periodsAsync.when(
-                  data: (periods) {
-                    if (periods.isEmpty) {
-                      return const Text('Tidak ada periode');
-                    }
+        child: periodsAsync.when(
+          data: (periods) {
+            if (periods.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Tidak ada periode'),
+              );
+            }
 
-                    return DropdownButton<ScoringPeriod>(
-                      value: selectedPeriod != null
-                          ? periods.where((p) => p.id == selectedPeriod.id).firstOrNull ?? periods.first
-                          : periods.first,
-                      isExpanded: true,
-                      underline: const SizedBox.shrink(),
-                      items: periods.map((period) {
-                        return DropdownMenuItem<ScoringPeriod>(
-                          value: period,
-                          child: Text(
-                            '${period.name} (${period.periodType})',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (period) {
-                        if (period != null) {
-                          ref
-                              .read(scoringSummaryNotifierProvider.notifier)
-                              .selectPeriod(period);
-                        }
-                      },
-                    );
-                  },
-                  loading: () => const Text('Memuat periode...'),
-                  error: (_, __) => const Text('Gagal memuat periode'),
-                ),
-              ),
-            ],
+            return PeriodSelector(
+              selectedPeriod: selectedPeriod,
+              allPeriods: periods,
+              currentPeriods: currentPeriods,
+              onChanged: (period) {
+                if (period == null) {
+                  ref
+                      .read(scoringSummaryNotifierProvider.notifier)
+                      .selectActivePeriods();
+                } else {
+                  ref
+                      .read(scoringSummaryNotifierProvider.notifier)
+                      .selectPeriod(period);
+                }
+              },
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Memuat periode...'),
+          ),
+          error: (_, __) => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Gagal memuat periode'),
           ),
         ),
       ),
