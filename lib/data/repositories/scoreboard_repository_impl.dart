@@ -27,7 +27,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<MeasureDefinition>> getMeasureDefinitions() async {
     // Always try remote first — measures are managed server-side by admins
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchMeasureDefinitions();
         await _localDataSource.upsertMeasureDefinitions(remoteData);
@@ -54,7 +54,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<ScoringPeriod>> getScoringPeriods() async {
     // Always try remote first — periods are managed server-side by admins
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchScoringPeriods();
         await _localDataSource.upsertScoringPeriods(remoteData);
@@ -71,7 +71,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<ScoringPeriod?> getCurrentPeriod() async {
     // Always try remote first — periods are managed server-side by admins
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchCurrentPeriod();
         if (remoteData != null) {
@@ -90,7 +90,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<ScoringPeriod>> getAllCurrentPeriods() async {
     // Always try remote first — periods are managed server-side by admins
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData = await _remoteDataSource.fetchAllCurrentPeriods();
         if (remoteData.isNotEmpty) {
@@ -119,11 +119,15 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   Future<List<UserTarget>> getUserTargets(
       String userId, String periodId) async {
     // Always try remote first — targets are assigned server-side by managers
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData =
             await _remoteDataSource.fetchUserTargets(userId, periodId);
-        await _localDataSource.upsertUserTargets(remoteData);
+        try {
+          await _localDataSource.upsertUserTargets(remoteData);
+        } catch (cacheError) {
+          _log.warning('scoreboard | Failed to cache user targets locally: $cacheError');
+        }
         return remoteData;
       } catch (e) {
         _log.warning('scoreboard | Remote fetch failed for user targets, falling back to local: $e');
@@ -141,11 +145,15 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<List<UserScore>> getUserScores(String userId, String periodId) async {
     // Always try remote first — scores are computed server-side by cron
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData =
             await _remoteDataSource.fetchUserScores(userId, periodId);
-        await _localDataSource.upsertUserScores(remoteData);
+        try {
+          await _localDataSource.upsertUserScores(remoteData);
+        } catch (cacheError) {
+          _log.warning('scoreboard | Failed to cache user scores locally: $cacheError');
+        }
         return remoteData;
       } catch (e) {
         _log.warning('scoreboard | Remote fetch failed for user scores, falling back to local: $e');
@@ -169,11 +177,15 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   Future<List<UserScore>> getUserScoresForCurrentPeriods(
       String userId) async {
     // Always try remote first — scores are computed server-side by cron
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData =
             await _remoteDataSource.fetchUserScoresForCurrentPeriods(userId);
-        await _localDataSource.upsertUserScores(remoteData);
+        try {
+          await _localDataSource.upsertUserScores(remoteData);
+        } catch (cacheError) {
+          _log.warning('scoreboard | Failed to cache user scores (current periods) locally: $cacheError');
+        }
         return remoteData;
       } catch (e) {
         _log.warning('scoreboard | Remote fetch failed for user scores (current periods), falling back to local: $e');
@@ -192,12 +204,16 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   Future<PeriodSummary?> getUserPeriodSummary(
       String userId, String periodId) async {
     // Always try remote first — summaries are computed server-side by cron
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         final remoteData =
             await _remoteDataSource.fetchUserPeriodSummary(userId, periodId);
         if (remoteData != null) {
-          await _localDataSource.upsertPeriodSummaries([remoteData]);
+          try {
+            await _localDataSource.upsertPeriodSummaries([remoteData]);
+          } catch (cacheError) {
+            _log.warning('scoreboard | Failed to cache user period summary locally: $cacheError');
+          }
         }
         return remoteData;
       } catch (e) {
@@ -219,7 +235,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   Future<List<LeaderboardEntry>> getLeaderboard(String periodId,
       {int limit = 10}) async {
     // Always try remote for leaderboard as it needs to be current
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         return await _remoteDataSource.fetchLeaderboard(periodId, limit: limit);
       } catch (e) {
@@ -253,7 +269,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
     int limit = 100,
   }) async {
     // Always try remote for leaderboard as it needs to be current
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         return await _remoteDataSource.fetchLeaderboardWithFilters(
           periodId,
@@ -290,7 +306,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
     String? branchId,
     String? regionalOfficeId,
   }) async {
-    final isOnline = await _connectivityService.isConnected;
+    final isOnline = _connectivityService.isConnected;
     if (isOnline) {
       try {
         return await _remoteDataSource.fetchFilteredLeaderboardRpc(
@@ -318,7 +334,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
     String? regionalOfficeId,
   }) async {
     // Always try remote for team summary as it needs to be current
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         return await _remoteDataSource.fetchTeamSummary(
           periodId,
@@ -345,7 +361,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
   @override
   Future<DashboardStats> getDashboardStats(String userId) async {
     // Try remote first if online
-    if (await _connectivityService.isConnected) {
+    if (_connectivityService.isConnected) {
       try {
         return await _remoteDataSource.fetchDashboardStats(userId);
       } catch (e) {
@@ -377,7 +393,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<void> syncScoringData() async {
-    if (!await _connectivityService.isConnected) return;
+    if (!_connectivityService.isConnected) return;
 
     await syncMeasureDefinitions();
     await syncScoringPeriods();
@@ -385,7 +401,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<void> syncMeasureDefinitions() async {
-    if (!await _connectivityService.isConnected) return;
+    if (!_connectivityService.isConnected) return;
 
     try {
       final remoteData = await _remoteDataSource.fetchMeasureDefinitions();
@@ -397,7 +413,7 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<void> syncScoringPeriods() async {
-    if (!await _connectivityService.isConnected) return;
+    if (!_connectivityService.isConnected) return;
 
     try {
       final remoteData = await _remoteDataSource.fetchScoringPeriods();
@@ -409,7 +425,10 @@ class ScoreboardRepositoryImpl implements ScoreboardRepository {
 
   @override
   Future<void> syncUserScores(String userId) async {
-    if (!await _connectivityService.isConnected) return;
+    if (!_connectivityService.isConnected) return;
+
+    // Ensure FK dependencies (measure_definitions, scoring_periods) exist locally
+    await syncScoringData();
 
     // Fetch all current periods (one per period_type)
     final currentPeriods = await _remoteDataSource.fetchAllCurrentPeriods();

@@ -1139,7 +1139,7 @@ final allCurrentPeriodsProvider =
 typedef AllCurrentPeriodsRef =
     AutoDisposeFutureProviderRef<List<ScoringPeriod>>;
 String _$isScoreUpdatePendingHash() =>
-    r'24ba3d5cfc3d83800a3d0663dc5011cb8978330b';
+    r'0f888009ed5ae9695617f429fed2444406269f72';
 
 /// Check if any pending sync queue items exist for scoring-relevant entities.
 /// Shows "score update pending" hint on scoreboard when true.
@@ -1550,7 +1550,7 @@ class _TeamSummaryProviderElement
 }
 
 String _$scoreboardNotifierHash() =>
-    r'ac5ebc2b8bb863045bd19fc07817ca4bea372c57';
+    r'e20c52344fd706879f86997dc9ab986b165357eb';
 
 /// See also [ScoreboardNotifier].
 @ProviderFor(ScoreboardNotifier)
@@ -1570,7 +1570,7 @@ final scoreboardNotifierProvider =
 
 typedef _$ScoreboardNotifier = AutoDisposeAsyncNotifier<ScoreboardState>;
 String _$leaderboardFilterNotifierHash() =>
-    r'5952cfeeda2beaa48980d66ed75df56d93e9f3b5';
+    r'c819d092a9d611a3281ee27ed65fa44bbe191e17';
 
 /// Notifier for managing leaderboard filter state.
 ///

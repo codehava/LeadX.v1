@@ -212,7 +212,7 @@ class ScoreboardLocalDataSource {
             measureId: target.measureId,
             periodId: target.periodId,
             targetValue: target.targetValue,
-            assignedBy: target.assignedBy ?? '',
+            assignedBy: target.assignedBy ?? target.userId,
             assignedAt: target.createdAt ?? DateTime.now(),
             createdAt: target.createdAt ?? DateTime.now(),
             updatedAt: target.updatedAt ?? DateTime.now(),

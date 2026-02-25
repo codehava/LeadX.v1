@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -192,7 +194,7 @@ class _MasterDataListScreenState extends ConsumerState<MasterDataListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Data berhasil dihapus')),
           );
-          _loadData();
+          unawaited(_loadData());
         case ResultFailure(:final failure):
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

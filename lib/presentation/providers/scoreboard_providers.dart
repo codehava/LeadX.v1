@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/utils/period_type_helpers.dart';
+import '../../data/database/app_database.dart' show AppDatabase;
 import '../../data/datasources/local/scoreboard_local_data_source.dart';
 import '../../data/datasources/remote/scoreboard_remote_data_source.dart';
 import '../../data/repositories/scoreboard_repository_impl.dart';
@@ -561,12 +562,12 @@ Future<List<ScoringPeriod>> allCurrentPeriods(ref) async {
 @riverpod
 Stream<bool> isScoreUpdatePending(ref) {
   // ignore: argument_type_not_assignable
-  final db = ref.watch(appDatabaseProvider);
+  final db = ref.watch(appDatabaseProvider) as AppDatabase;
   // Watch sync queue for pending items that affect scoring
-  // Split cascade into separate statements for proper Drift type inference on web
+  // Separate where() calls are AND-ed by Drift; avoids needing drift import for & operator
   final query = db.select(db.syncQueueItems);
-  query.where((t) => t.entityType.isIn(['activity', 'pipeline', 'customer']) &
-      t.status.equals('pending'));
+  query.where((t) => t.entityType.isIn(['activity', 'pipeline', 'customer']));
+  query.where((t) => t.status.equals('pending'));
   // ignore: return_of_invalid_type
   return query.watch().map((items) => items.isNotEmpty);
 }

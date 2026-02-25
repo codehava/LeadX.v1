@@ -581,7 +581,7 @@ class AuthRepositoryImpl implements AuthRepository {
       } else {
         // Mobile: upload file
         final file = File(localPath);
-        if (!await file.exists()) {
+        if (!file.existsSync()) {
           return const Result.failure(AuthFailure(message: 'File tidak ditemukan'));
         }
 

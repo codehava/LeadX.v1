@@ -190,7 +190,7 @@ class ActivityRemoteDataSource {
     String fileId,
   ) async {
     final file = File(localPath);
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       throw Exception('File not found: $localPath');
     }
 

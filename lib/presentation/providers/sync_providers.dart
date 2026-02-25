@@ -315,6 +315,16 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   Future<void> _pullFromRemote() async {
     AppLogger.instance.debug('sync.pull | Starting _pullFromRemote...');
 
+    // Pull users (reference data — must come before business data)
+    try {
+      AppLogger.instance.debug('sync.pull | Pulling users...');
+      final initialSyncService = _ref.read(initialSyncServiceProvider);
+      await initialSyncService.syncUsers();
+      AppLogger.instance.debug('sync.pull | Pulled users');
+    } catch (e) {
+      AppLogger.instance.error('sync.pull | User pull error: $e');
+    }
+
     // Pull customers
     try {
       final customerSince = await _getSafeSince('customers');

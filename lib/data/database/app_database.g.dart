@@ -20551,7 +20551,7 @@ class $MeasureDefinitionsTable extends MeasureDefinitions
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1.0),
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _defaultTargetMeta = const VerificationMeta(
     'defaultTarget',

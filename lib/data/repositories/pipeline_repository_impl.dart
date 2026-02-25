@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -263,7 +265,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       });
 
       // Trigger sync if online (non-blocking, outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       // Return the created pipeline
       final pipeline = await getPipelineById(id);
@@ -363,7 +365,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       });
 
       // Trigger sync if online (non-blocking, outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return Result.success(_mapToPipeline(updated));
     } catch (e) {
@@ -521,7 +523,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       });
 
       // Trigger sync if online (non-blocking, outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return Result.success(_mapToPipeline(updated));
     } catch (e) {
@@ -586,7 +588,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
       });
 
       // Trigger sync if online (non-blocking, outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return Result.success(_mapToPipeline(updated));
     } catch (e) {
@@ -615,7 +617,7 @@ class PipelineRepositoryImpl implements PipelineRepository {
         });
 
         // Trigger sync if online (non-blocking, outside transaction)
-        _syncService.triggerSync();
+        unawaited(_syncService.triggerSync());
       }, context: 'deletePipeline');
 
   // ==========================================

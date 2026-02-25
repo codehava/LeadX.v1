@@ -301,7 +301,7 @@ class InitialSyncService {
         await _syncBranches();
         break;
       case 'users':
-        await _syncUsers();
+        await syncUsers();
         break;
       case 'user_hierarchy':
         await _syncUserHierarchy();
@@ -881,7 +881,7 @@ class InitialSyncService {
     });
   }
 
-  Future<void> _syncUsers() async {
+  Future<void> syncUsers() async {
     final data = await _supabase.from('users').select().eq('is_active', true);
 
     // First pass: Insert all users WITHOUT parent_id to avoid FK constraint issues

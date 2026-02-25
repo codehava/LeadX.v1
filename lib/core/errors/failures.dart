@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Base class for failure states in the application.
 ///
 /// Uses Either pattern for error handling in use cases.
-abstract class Failure extends Equatable {
+abstract class Failure extends Equatable implements Exception {
   final String message;
   final dynamic originalError;
 

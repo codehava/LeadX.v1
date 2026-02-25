@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -236,7 +238,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       // Return the created activity
       final activity = await getActivityById(id);
@@ -305,7 +307,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       final activity = await getActivityById(id);
       return Result.success(activity!);
@@ -385,7 +387,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return Result.success(_mapToActivity(updated));
     } catch (e) {
@@ -464,7 +466,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return Result.success(_mapToActivity(updated));
     } catch (e) {
@@ -567,7 +569,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       // Return the new activity
       final activity = await getActivityById(newId);
@@ -636,7 +638,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       });
 
       // Trigger sync if online (outside transaction)
-      _syncService.triggerSync();
+      unawaited(_syncService.triggerSync());
 
       return const Result.success(null);
     } catch (e) {
