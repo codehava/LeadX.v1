@@ -461,6 +461,110 @@ FOR SELECT USING (
 
 ---
 
+## 🏢 Cadence Tables RLS
+
+### cadence_schedule_config (Master Data Pattern)
+
+```sql
+ALTER TABLE cadence_schedule_config ENABLE ROW LEVEL SECURITY;
+
+-- All authenticated users can read configs
+CREATE POLICY "cadence_config_select" ON cadence_schedule_config
+FOR SELECT USING (auth.uid() IS NOT NULL);
+
+-- Admins can manage configs
+CREATE POLICY "cadence_config_admin" ON cadence_schedule_config
+FOR ALL USING (is_admin());
+```
+
+### cadence_meetings
+
+```sql
+ALTER TABLE cadence_meetings ENABLE ROW LEVEL SECURITY;
+
+-- Users can see meetings they're part of (as facilitator or participant)
+CREATE POLICY "cadence_meetings_select" ON cadence_meetings
+FOR SELECT USING (
+  facilitator_id = (SELECT auth.uid())
+  OR EXISTS (
+    SELECT 1 FROM cadence_participants cp
+    WHERE cp.meeting_id = cadence_meetings.id
+    AND cp.user_id = (SELECT auth.uid())
+  )
+  OR is_admin()
+);
+
+-- BH+ can create meetings
+CREATE POLICY "cadence_meetings_create" ON cadence_meetings
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM users
+    WHERE id = (SELECT auth.uid())
+    AND role IN ('BH', 'BM', 'ROH', 'ADMIN', 'SUPERADMIN')
+  )
+);
+
+-- Facilitator or creator can update their meetings
+CREATE POLICY "cadence_meetings_update" ON cadence_meetings
+FOR UPDATE USING (
+  facilitator_id = (SELECT auth.uid())
+  OR created_by = (SELECT auth.uid())
+);
+
+-- Admin full access
+CREATE POLICY "cadence_meetings_admin" ON cadence_meetings
+FOR ALL USING (is_admin());
+```
+
+### cadence_participants
+
+```sql
+ALTER TABLE cadence_participants ENABLE ROW LEVEL SECURITY;
+
+-- Users can see/update their own participation
+CREATE POLICY "cadence_participants_own" ON cadence_participants
+FOR ALL USING (user_id = (SELECT auth.uid()));
+
+-- Facilitator (host) can manage participants in their meetings
+CREATE POLICY "cadence_participants_host" ON cadence_participants
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM cadence_meetings cm
+    WHERE cm.id = cadence_participants.meeting_id
+    AND cm.facilitator_id = (SELECT auth.uid())
+  )
+);
+
+-- Admin full access
+CREATE POLICY "cadence_participants_admin" ON cadence_participants
+FOR ALL USING (is_admin());
+```
+
+### Organizational Tables (regional_offices, branches)
+
+```sql
+-- Master data pattern: read-all, admin-modify
+ALTER TABLE regional_offices ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "regional_offices_select" ON regional_offices
+FOR SELECT USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "regional_offices_admin" ON regional_offices
+FOR ALL USING (is_admin());
+
+-- Same pattern applied to branches
+```
+
+### dirty_users (System Table - No RLS)
+
+No RLS policies. System-only table accessed exclusively via `SECURITY DEFINER` functions and the `score-aggregation-cron` Edge Function with `service_role` key.
+
+### spatial_ref_sys (PostGIS System Table - No RLS)
+
+PostgreSQL system table auto-created by PostGIS extension. Not application-managed, no RLS needed.
+
+---
+
 ## 📚 Related Documents
 
 - [Security Architecture](../03-architecture/security-architecture.md)

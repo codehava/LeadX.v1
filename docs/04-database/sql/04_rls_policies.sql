@@ -769,6 +769,17 @@ FOR INSERT WITH CHECK (
   )
 );
 
+-- Facilitator or creator can update their meetings
+CREATE POLICY "cadence_meetings_update" ON cadence_meetings
+FOR UPDATE USING (
+  facilitator_id = (SELECT auth.uid())
+  OR created_by = (SELECT auth.uid())
+);
+
+-- Admin full access
+CREATE POLICY "cadence_meetings_admin" ON cadence_meetings
+FOR ALL USING (is_admin());
+
 ALTER TABLE cadence_participants ENABLE ROW LEVEL SECURITY;
 
 -- Users can see/update their own participation
@@ -784,6 +795,10 @@ FOR ALL USING (
     AND cm.facilitator_id = (SELECT auth.uid())
   )
 );
+
+-- Admin full access
+CREATE POLICY "cadence_participants_admin" ON cadence_participants
+FOR ALL USING (is_admin());
 
 -- ============================================
 -- NOTIFICATIONS TABLE
