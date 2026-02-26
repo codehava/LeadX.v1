@@ -112,6 +112,7 @@ class ActivitySyncDto with _$ActivitySyncDto {
     @JsonKey(name: 'customer_id') String? customerId,
     @JsonKey(name: 'hvc_id') String? hvcId,
     @JsonKey(name: 'broker_id') String? brokerId,
+    @JsonKey(name: 'key_person_id') String? keyPersonId,
     String? summary,
     String? notes,
     @JsonKey(name: 'is_immediate') @Default(false) bool isImmediate,

@@ -29,6 +29,7 @@ import '../../domain/repositories/hvc_repository.dart';
 import '../../domain/repositories/pipeline_repository.dart';
 import '../../data/repositories/pipeline_referral_repository_impl.dart';
 import '../../domain/repositories/pipeline_referral_repository.dart';
+import '../../domain/repositories/scoreboard_repository.dart';
 import 'auth_providers.dart';
 import 'broker_providers.dart';
 import 'cadence_providers.dart';
@@ -36,6 +37,7 @@ import 'database_provider.dart';
 import 'hvc_providers.dart';
 import 'master_data_providers.dart';
 import 'pipeline_referral_providers.dart';
+import 'scoreboard_providers.dart';
 
 /// Provider for app settings service.
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
@@ -203,6 +205,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
     this._brokerRepository,
     this._cadenceRepository,
     this._pipelineReferralRepository,
+    this._scoreboardRepository,
     this._connectivityService,
     this._appSettingsService,
     this._coordinator,
@@ -217,6 +220,7 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
   final BrokerRepository _brokerRepository;
   final CadenceRepository _cadenceRepository;
   final PipelineReferralRepository _pipelineReferralRepository;
+  final ScoreboardRepository _scoreboardRepository;
   final ConnectivityService _connectivityService;
   final AppSettingsService _appSettingsService;
   final SyncCoordinator _coordinator;
@@ -460,6 +464,18 @@ class SyncNotifier extends StateNotifier<AsyncValue<SyncResult?>> {
       AppLogger.instance.error('sync.pull | Pipeline referral pull error: $e');
     }
 
+    // Pull scoring data (targets, scores, summaries)
+    try {
+      final currentUser = await _ref.read(currentUserProvider.future);
+      if (currentUser != null) {
+        AppLogger.instance.debug('sync.pull | Pulling scoring data...');
+        await _scoreboardRepository.syncUserScores(currentUser.id);
+        AppLogger.instance.debug('sync.pull | Scoring data synced');
+      }
+    } catch (e) {
+      AppLogger.instance.error('sync.pull | Scoring pull error: $e');
+    }
+
     // Step 5: Invalidate all data providers to refresh UI
     await _invalidateDataProviders();
   }
@@ -533,6 +549,7 @@ final syncNotifierProvider =
   final brokerRepository = ref.watch(brokerRepositoryProvider);
   final cadenceRepository = ref.watch(cadenceRepositoryProvider);
   final pipelineReferralRepository = ref.watch(_pipelineReferralRepositoryProvider);
+  final scoreboardRepository = ref.watch(scoreboardRepositoryProvider);
 
   return SyncNotifier(
     ref,
@@ -544,6 +561,7 @@ final syncNotifierProvider =
     brokerRepository,
     cadenceRepository,
     pipelineReferralRepository,
+    scoreboardRepository,
     connectivityService,
     appSettings,
     coordinator,

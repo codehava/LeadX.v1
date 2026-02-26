@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/pipeline.dart';
+import '../../providers/hvc_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../providers/sync_providers.dart';
 import '../common/app_card.dart';
@@ -148,19 +149,22 @@ class CustomerCard extends ConsumerWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _StatusChip(
-                label: customer.isActive ? 'Aktif' : 'Tidak Aktif',
-                color: customer.isActive ? Colors.green : Colors.grey,
-              ),
-              if (customer.industryName != null) ...[
+              if (!customer.isActive)
+                _StatusChip(
+                  label: 'Tidak Aktif',
+                  color: Colors.grey,
+                ),
+              if (!customer.isActive && customer.industryName != null)
                 const SizedBox(width: 8),
+              if (customer.industryName != null)
                 _StatusChip(
                   label: customer.industryName!,
                   color: colorScheme.secondary,
                 ),
-              ],
             ],
           ),
+          // HVC badge
+          _buildHvcBadge(context, ref),
           // Pipeline stages section
           pipelinesAsync.when(
             data: (pipelines) {
@@ -173,6 +177,45 @@ class CustomerCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHvcBadge(BuildContext context, WidgetRef ref) {
+    final hvcCountAsync = ref.watch(linkedHvcCountProvider(customer.id));
+    return hvcCountAsync.when(
+      data: (count) {
+        if (count == 0) return const SizedBox.shrink();
+        final theme = Theme.of(context);
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.star_outline,
+                  size: 14,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$count HVC',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

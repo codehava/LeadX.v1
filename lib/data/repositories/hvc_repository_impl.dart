@@ -295,15 +295,30 @@ class HvcRepositoryImpl implements HvcRepository {
 
   @override
   Stream<List<domain.CustomerHvcLink>> watchCustomerHvcs(String customerId) =>
-      _localDataSource.watchCustomerHvcs(customerId).map(
-            (links) => links.map(_mapToCustomerHvcLink).toList(),
-          );
+      _localDataSource.watchCustomerHvcs(customerId).asyncMap(
+        (links) => _enrichLinksWithHvcData(links),
+      );
 
   @override
   Future<List<domain.CustomerHvcLink>> getCustomerHvcs(
       String customerId) async {
     final links = await _localDataSource.getCustomerHvcs(customerId);
-    return links.map(_mapToCustomerHvcLink).toList();
+    return _enrichLinksWithHvcData(links);
+  }
+
+  /// Enrich links with HVC names by looking up from HVC table.
+  Future<List<domain.CustomerHvcLink>> _enrichLinksWithHvcData(
+      List<db.CustomerHvcLink> links) async {
+    final enrichedLinks = <domain.CustomerHvcLink>[];
+    for (final link in links) {
+      final hvc = await _localDataSource.getHvcById(link.hvcId);
+      enrichedLinks.add(_mapToCustomerHvcLink(
+        link,
+        hvcName: hvc?.name,
+        hvcCode: hvc?.code,
+      ));
+    }
+    return enrichedLinks;
   }
 
   @override
@@ -494,6 +509,8 @@ class HvcRepositoryImpl implements HvcRepository {
     db.CustomerHvcLink data, {
     String? customerName,
     String? customerCode,
+    String? hvcName,
+    String? hvcCode,
   }) =>
       domain.CustomerHvcLink(
         id: data.id,
@@ -508,6 +525,8 @@ class HvcRepositoryImpl implements HvcRepository {
         deletedAt: data.deletedAt,
         customerName: customerName,
         customerCode: customerCode,
+        hvcName: hvcName,
+        hvcCode: hvcCode,
       );
 
   /// Map Drift KeyPerson to domain entity.

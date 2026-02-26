@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/result.dart';
+import '../../../core/utils/currency_input_formatter.dart';
 import '../../../data/dtos/pipeline_dtos.dart';
 import '../../../data/dtos/master_data_dtos.dart';
 import '../../../domain/entities/pipeline.dart';
@@ -293,7 +294,7 @@ class _PipelineStageUpdateSheetState
                 // Pre-populate final premium with potential premium for won stages
                 if (stage.isFinal && stage.isWon && _finalPremiumController.text.isEmpty) {
                   _finalPremiumController.text =
-                      widget.pipeline.potentialPremium.toStringAsFixed(0);
+                      formatCurrencyValue(widget.pipeline.potentialPremium);
                 }
               });
             }
@@ -334,9 +335,11 @@ class _PipelineStageUpdateSheetState
               const SizedBox(height: 16),
               AppTextField(
                 controller: _finalPremiumController,
-                label: 'Premi Final (Rp) *',
-                hint: 'Masukkan premi final',
+                label: 'Premi Final *',
+                hint: '0',
+                prefix: const Text('Rp '),
                 keyboardType: TextInputType.number,
+                inputFormatters: [CurrencyInputFormatter()],
               ),
             ] else ...[
               AppTextField(
@@ -401,9 +404,7 @@ class _PipelineStageUpdateSheetState
           );
           return;
         }
-        final parsedPremium = double.tryParse(
-          _finalPremiumController.text.replaceAll(',', ''),
-        );
+        final parsedPremium = parseCurrency(_finalPremiumController.text);
         if (parsedPremium == null || parsedPremium <= 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -430,7 +431,7 @@ class _PipelineStageUpdateSheetState
     try {
       final repo = ref.read(pipelineRepositoryProvider);
       final finalPremium = _finalPremiumController.text.isNotEmpty
-          ? double.tryParse(_finalPremiumController.text.replaceAll(',', ''))
+          ? parseCurrency(_finalPremiumController.text)
           : null;
 
       final dto = PipelineStageUpdateDto(

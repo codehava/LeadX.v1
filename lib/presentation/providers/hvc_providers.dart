@@ -152,6 +152,13 @@ final linkedCustomerCountProvider =
   return repository.watchLinkedCustomers(hvcId).map((links) => links.length);
 });
 
+/// Provider for linked HVC count of a customer (derived from existing stream).
+final linkedHvcCountProvider =
+    StreamProvider.family<int, String>((ref, customerId) {
+  final repository = ref.watch(hvcRepositoryProvider);
+  return repository.watchCustomerHvcs(customerId).map((links) => links.length);
+});
+
 // ==========================================
 // Form Notifiers
 // ==========================================

@@ -238,6 +238,7 @@ CREATE TABLE activities (
   hvc_id UUID REFERENCES hvcs(id),
   broker_id UUID REFERENCES brokers(id),
   pipeline_id UUID REFERENCES pipelines(id),
+  key_person_id UUID REFERENCES key_persons(id) ON DELETE SET NULL,
   activity_type_id UUID REFERENCES activity_types(id),
   summary TEXT,
   notes TEXT,

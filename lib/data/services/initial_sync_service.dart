@@ -105,6 +105,8 @@ class InitialSyncService {
     // 4DX Scoring
     'measure_definitions',
     'scoring_periods',
+    'user_targets',
+    'user_scores',
     // Cadence
     'cadence_schedule_config',
   ];
@@ -292,6 +294,12 @@ class InitialSyncService {
         break;
       case 'scoring_periods':
         await _syncScoringPeriods();
+        break;
+      case 'user_targets':
+        await _syncUserTargets();
+        break;
+      case 'user_scores':
+        await _syncUserScores();
         break;
       // User hierarchy
       case 'regional_offices':
@@ -796,6 +804,103 @@ class InitialSyncService {
             isActive: Value(row['is_locked'] != true), // invert is_locked
             createdAt: DateTime.parse(row['created_at'] as String),
             updatedAt: DateTime.parse(row['updated_at'] as String),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> _syncUserTargets() async {
+    // Get current user ID from Supabase auth
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Fetch all current period IDs
+    final periodsData = await _supabase
+        .from('scoring_periods')
+        .select('id')
+        .eq('is_current', true);
+    final periodIds = (periodsData as List)
+        .map((row) => row['id'] as String)
+        .toList();
+    if (periodIds.isEmpty) return;
+
+    final data = await _supabase
+        .from('user_targets')
+        .select()
+        .eq('user_id', userId)
+        .inFilter('period_id', periodIds);
+
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.userTargets,
+          UserTargetsCompanion.insert(
+            id: row['id'] as String,
+            userId: row['user_id'] as String,
+            measureId: row['measure_id'] as String,
+            periodId: row['period_id'] as String,
+            targetValue: (row['target_value'] as num).toDouble(),
+            assignedBy: row['assigned_by'] as String? ?? userId,
+            assignedAt: row['assigned_at'] != null
+                ? DateTime.parse(row['assigned_at'] as String)
+                : DateTime.now(),
+            createdAt: row['created_at'] != null
+                ? DateTime.parse(row['created_at'] as String)
+                : DateTime.now(),
+            updatedAt: row['updated_at'] != null
+                ? DateTime.parse(row['updated_at'] as String)
+                : DateTime.now(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> _syncUserScores() async {
+    // Get current user ID from Supabase auth
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Fetch all current period IDs
+    final periodsData = await _supabase
+        .from('scoring_periods')
+        .select('id')
+        .eq('is_current', true);
+    final periodIds = (periodsData as List)
+        .map((row) => row['id'] as String)
+        .toList();
+    if (periodIds.isEmpty) return;
+
+    final data = await _supabase
+        .from('user_scores')
+        .select()
+        .eq('user_id', userId)
+        .inFilter('period_id', periodIds);
+
+    await _db.batch((batch) {
+      for (final row in data as List) {
+        batch.insert(
+          _db.userScores,
+          UserScoresCompanion.insert(
+            id: row['id'] as String,
+            userId: row['user_id'] as String,
+            measureId: row['measure_id'] as String,
+            periodId: row['period_id'] as String,
+            targetValue: (row['target_value'] as num?)?.toDouble() ?? 0,
+            actualValue: Value((row['actual_value'] as num?)?.toDouble() ?? 0),
+            percentage: Value((row['percentage'] as num?)?.toDouble() ?? 0),
+            calculatedAt: row['calculated_at'] != null
+                ? DateTime.parse(row['calculated_at'] as String)
+                : DateTime.now(),
+            createdAt: row['created_at'] != null
+                ? DateTime.parse(row['created_at'] as String)
+                : DateTime.now(),
+            updatedAt: row['updated_at'] != null
+                ? DateTime.parse(row['updated_at'] as String)
+                : DateTime.now(),
           ),
           mode: InsertMode.insertOrReplace,
         );

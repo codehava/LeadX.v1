@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/currency_input_formatter.dart';
 import '../../../data/dtos/pipeline_dtos.dart';
 import '../../providers/broker_providers.dart';
 import '../../providers/customer_providers.dart';
@@ -77,8 +78,11 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
         return;
       }
 
-      _potentialPremiumController.text = pipeline.potentialPremium.toString();
-      _tsiController.text = pipeline.tsi?.toString() ?? '';
+      _potentialPremiumController.text =
+          formatCurrencyValue(pipeline.potentialPremium);
+      _tsiController.text = pipeline.tsi != null
+          ? formatCurrencyValue(pipeline.tsi!)
+          : '';
       _notesController.text = pipeline.notes ?? '';
 
       setState(() {
@@ -240,15 +244,17 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                 Expanded(
                   child: AppTextField(
                     controller: _potentialPremiumController,
-                    label: 'Potensi Premi (Rp) *',
-                    hint: 'Masukkan nominal',
+                    label: 'Potensi Premi *',
+                    hint: '0',
+                    prefix: const Text('Rp '),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [CurrencyInputFormatter()],
                     onChanged: (_) => _hasUnsavedChanges = true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Potensi premi wajib diisi';
                       }
-                      final parsed = double.tryParse(value.replaceAll(',', ''));
+                      final parsed = parseCurrency(value);
                       if (parsed == null || parsed <= 0) {
                         return 'Masukkan nominal yang valid';
                       }
@@ -260,9 +266,11 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
                 Expanded(
                   child: AppTextField(
                     controller: _tsiController,
-                    label: 'TSI (Rp)',
-                    hint: 'Masukkan nominal',
+                    label: 'TSI',
+                    hint: '0',
+                    prefix: const Text('Rp '),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [CurrencyInputFormatter()],
                     onChanged: (_) => _hasUnsavedChanges = true,
                   ),
                 ),
@@ -551,11 +559,9 @@ class _PipelineFormScreenState extends ConsumerState<PipelineFormScreen> {
     }
 
     final formNotifier = ref.read(pipelineFormNotifierProvider.notifier);
-    final potentialPremium = double.parse(
-      _potentialPremiumController.text.replaceAll(',', ''),
-    );
+    final potentialPremium = parseCurrency(_potentialPremiumController.text)!;
     final tsi = _tsiController.text.isNotEmpty
-        ? double.tryParse(_tsiController.text.replaceAll(',', ''))
+        ? parseCurrency(_tsiController.text)
         : null;
 
     if (widget.isEditing) {

@@ -129,6 +129,12 @@ class ScoreboardLocalDataSource {
         _db.measureDefinitions,
         _db.measureDefinitions.id.equalsExp(_db.userScores.measureId),
       ),
+      innerJoin(
+        _db.userTargets,
+        _db.userTargets.userId.equalsExp(_db.userScores.userId) &
+            _db.userTargets.measureId.equalsExp(_db.userScores.measureId) &
+            _db.userTargets.periodId.equalsExp(_db.userScores.periodId),
+      ),
     ])
       ..where(_db.userScores.userId.equals(userId) &
           _db.userScores.periodId.isIn(periodIds))
@@ -230,9 +236,15 @@ class ScoreboardLocalDataSource {
   /// Get user scores for a specific period.
   Future<List<UserScore>> getUserScores(String userId, String periodId) async {
     final query = _db.select(_db.userScores).join([
-      leftOuterJoin(
+      innerJoin(
         _db.measureDefinitions,
         _db.measureDefinitions.id.equalsExp(_db.userScores.measureId),
+      ),
+      innerJoin(
+        _db.userTargets,
+        _db.userTargets.userId.equalsExp(_db.userScores.userId) &
+            _db.userTargets.measureId.equalsExp(_db.userScores.measureId) &
+            _db.userTargets.periodId.equalsExp(_db.userScores.periodId),
       ),
     ])
       ..where(_db.userScores.userId.equals(userId) &
@@ -257,6 +269,12 @@ class ScoreboardLocalDataSource {
       innerJoin(
         _db.measureDefinitions,
         _db.measureDefinitions.id.equalsExp(_db.userScores.measureId),
+      ),
+      innerJoin(
+        _db.userTargets,
+        _db.userTargets.userId.equalsExp(_db.userScores.userId) &
+            _db.userTargets.measureId.equalsExp(_db.userScores.measureId) &
+            _db.userTargets.periodId.equalsExp(_db.userScores.periodId),
       ),
     ])
       ..where(_db.userScores.userId.equals(userId) &

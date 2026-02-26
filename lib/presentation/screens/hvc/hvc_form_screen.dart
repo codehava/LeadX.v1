@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/currency_input_formatter.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/dtos/hvc_dtos.dart';
 import '../../../domain/entities/hvc.dart';
@@ -57,7 +58,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
     _addressController.text = hvc.address ?? '';
     _radiusController.text = hvc.radiusMeters.toString();
     if (hvc.potentialValue != null) {
-      _potentialValueController.text = hvc.potentialValue!.toStringAsFixed(0);
+      _potentialValueController.text = formatCurrencyValue(hvc.potentialValue!);
     }
     _selectedTypeId = hvc.typeId;
     _latitude = hvc.latitude;
@@ -230,6 +231,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
                 prefixText: 'Rp ',
               ),
               keyboardType: TextInputType.number,
+              inputFormatters: [CurrencyInputFormatter()],
               validator: Validators.validatePositiveNumber,
             ),
             const SizedBox(height: 32),
@@ -305,7 +307,7 @@ class _HvcFormScreenState extends ConsumerState<HvcFormScreen> {
     final notifier = ref.read(hvcFormNotifierProvider.notifier);
 
     final potentialValue = _potentialValueController.text.isNotEmpty
-        ? double.tryParse(_potentialValueController.text.replaceAll('.', ''))
+        ? parseCurrency(_potentialValueController.text)
         : null;
     final radiusMeters = int.tryParse(_radiusController.text) ?? 500;
 

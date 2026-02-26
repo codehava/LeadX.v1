@@ -10,12 +10,14 @@ import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/key_person.dart';
 import '../../providers/activity_providers.dart';
 import '../../providers/customer_providers.dart';
+import '../../providers/hvc_providers.dart';
 import '../../providers/master_data_providers.dart';
 import '../../providers/pipeline_providers.dart';
 import '../../widgets/cards/pipeline_card.dart';
 import '../../widgets/common/error_state.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/pipeline_summary_hero.dart';
+import '../../widgets/hvc/customer_hvc_link_sheet.dart';
 import '../../widgets/pipeline/pipeline_kanban_board.dart';
 import '../../widgets/pipeline/pipeline_stage_filter_bar.dart';
 import '../activity/activity_execution_sheet.dart';
@@ -42,7 +44,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -105,6 +107,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
             Tab(text: 'Key Person'),
             Tab(text: 'Pipeline'),
             Tab(text: 'Aktivitas'),
+            Tab(text: 'HVC'),
           ],
         ),
       ),
@@ -119,6 +122,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
             customerName: customer.name,
             customerLat: customer.latitude,
             customerLon: customer.longitude,
+          ),
+          _LinkedHvcsTab(
+            customerId: customer.id,
+            customerName: customer.name,
           ),
         ],
       ),
@@ -1167,6 +1174,169 @@ class _QuickActionButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Tab showing HVCs linked to this customer.
+class _LinkedHvcsTab extends ConsumerWidget {
+  const _LinkedHvcsTab({
+    required this.customerId,
+    required this.customerName,
+  });
+
+  final String customerId;
+  final String customerName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final linksAsync = ref.watch(customerHvcsProvider(customerId));
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: linksAsync.when(
+        data: (links) {
+          if (links.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.star_outline,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Belum ada HVC terhubung'),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => _addHvc(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Hubungkan ke HVC'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 88),
+            itemCount: links.length,
+            itemBuilder: (context, index) {
+              final link = links[index];
+              return Dismissible(
+                key: Key(link.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                confirmDismiss: (direction) => _confirmUnlink(
+                  context,
+                  ref,
+                  link.id,
+                  link.hvcId,
+                  link.hvcName ?? 'HVC',
+                ),
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.star),
+                    ),
+                    title: Text(link.hvcName ?? 'HVC'),
+                    subtitle: Text(link.relationshipDisplayName),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.link_off, color: Colors.red),
+                          tooltip: 'Hapus Link',
+                          onPressed: () => _confirmUnlink(
+                            context,
+                            ref,
+                            link.id,
+                            link.hvcId,
+                            link.hvcName ?? 'HVC',
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => context.push('/home/hvcs/${link.hvcId}'),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: AppLoadingIndicator()),
+        error: (error, _) => AppErrorState(
+          title: 'Gagal memuat HVC',
+          onRetry: () => ref.invalidate(customerHvcsProvider(customerId)),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'customer_add_hvc_fab',
+        onPressed: () => _addHvc(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Future<bool> _confirmUnlink(
+    BuildContext context,
+    WidgetRef ref,
+    String linkId,
+    String hvcId,
+    String hvcName,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Link'),
+        content: Text('Hapus hubungan dengan "$hvcName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (result ?? false) {
+      final notifier = ref.read(customerHvcLinkNotifierProvider.notifier);
+      final success = await notifier.unlinkCustomerFromHvc(
+        linkId,
+        hvcId: hvcId,
+        customerId: customerId,
+      );
+      if (success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Link berhasil dihapus')),
+        );
+      }
+      return success;
+    }
+    return false;
+  }
+
+  void _addHvc(BuildContext context) {
+    CustomerHvcLinkSheet.show(
+      context,
+      customerId: customerId,
+      customerName: customerName,
     );
   }
 }

@@ -262,6 +262,14 @@ FOR SELECT USING (
 CREATE POLICY "activities_admin_all" ON activities
 FOR ALL USING (is_admin());
 
+-- Users can view all activities for customers they can access
+-- (bridges gap: manager sees customer via hierarchy but activity user_id is outside hierarchy)
+CREATE POLICY "activities_select_via_customer" ON activities
+FOR SELECT USING (
+  customer_id IS NOT NULL
+  AND can_access_customer(customer_id)
+);
+
 -- Users can create activities
 CREATE POLICY "activities_insert" ON activities
 FOR INSERT WITH CHECK (

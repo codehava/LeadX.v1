@@ -1688,6 +1688,8 @@ mixin _$ActivitySyncDto {
   String? get hvcId => throw _privateConstructorUsedError;
   @JsonKey(name: 'broker_id')
   String? get brokerId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'key_person_id')
+  String? get keyPersonId => throw _privateConstructorUsedError;
   String? get summary => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_immediate')
@@ -1745,6 +1747,7 @@ abstract class $ActivitySyncDtoCopyWith<$Res> {
     @JsonKey(name: 'customer_id') String? customerId,
     @JsonKey(name: 'hvc_id') String? hvcId,
     @JsonKey(name: 'broker_id') String? brokerId,
+    @JsonKey(name: 'key_person_id') String? keyPersonId,
     String? summary,
     String? notes,
     @JsonKey(name: 'is_immediate') bool isImmediate,
@@ -1790,6 +1793,7 @@ class _$ActivitySyncDtoCopyWithImpl<$Res, $Val extends ActivitySyncDto>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? isImmediate = null,
@@ -1855,6 +1859,10 @@ class _$ActivitySyncDtoCopyWithImpl<$Res, $Val extends ActivitySyncDto>
             brokerId: freezed == brokerId
                 ? _value.brokerId
                 : brokerId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            keyPersonId: freezed == keyPersonId
+                ? _value.keyPersonId
+                : keyPersonId // ignore: cast_nullable_to_non_nullable
                       as String?,
             summary: freezed == summary
                 ? _value.summary
@@ -1944,6 +1952,7 @@ abstract class _$$ActivitySyncDtoImplCopyWith<$Res>
     @JsonKey(name: 'customer_id') String? customerId,
     @JsonKey(name: 'hvc_id') String? hvcId,
     @JsonKey(name: 'broker_id') String? brokerId,
+    @JsonKey(name: 'key_person_id') String? keyPersonId,
     String? summary,
     String? notes,
     @JsonKey(name: 'is_immediate') bool isImmediate,
@@ -1988,6 +1997,7 @@ class __$$ActivitySyncDtoImplCopyWithImpl<$Res>
     Object? customerId = freezed,
     Object? hvcId = freezed,
     Object? brokerId = freezed,
+    Object? keyPersonId = freezed,
     Object? summary = freezed,
     Object? notes = freezed,
     Object? isImmediate = null,
@@ -2053,6 +2063,10 @@ class __$$ActivitySyncDtoImplCopyWithImpl<$Res>
         brokerId: freezed == brokerId
             ? _value.brokerId
             : brokerId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        keyPersonId: freezed == keyPersonId
+            ? _value.keyPersonId
+            : keyPersonId // ignore: cast_nullable_to_non_nullable
                   as String?,
         summary: freezed == summary
             ? _value.summary
@@ -2135,6 +2149,7 @@ class _$ActivitySyncDtoImpl implements _ActivitySyncDto {
     @JsonKey(name: 'customer_id') this.customerId,
     @JsonKey(name: 'hvc_id') this.hvcId,
     @JsonKey(name: 'broker_id') this.brokerId,
+    @JsonKey(name: 'key_person_id') this.keyPersonId,
     this.summary,
     this.notes,
     @JsonKey(name: 'is_immediate') this.isImmediate = false,
@@ -2190,6 +2205,9 @@ class _$ActivitySyncDtoImpl implements _ActivitySyncDto {
   @JsonKey(name: 'broker_id')
   final String? brokerId;
   @override
+  @JsonKey(name: 'key_person_id')
+  final String? keyPersonId;
+  @override
   final String? summary;
   @override
   final String? notes;
@@ -2233,7 +2251,7 @@ class _$ActivitySyncDtoImpl implements _ActivitySyncDto {
 
   @override
   String toString() {
-    return 'ActivitySyncDto(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, deletedAt: $deletedAt)';
+    return 'ActivitySyncDto(id: $id, userId: $userId, createdBy: $createdBy, objectType: $objectType, activityTypeId: $activityTypeId, scheduledDatetime: $scheduledDatetime, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, customerId: $customerId, hvcId: $hvcId, brokerId: $brokerId, keyPersonId: $keyPersonId, summary: $summary, notes: $notes, isImmediate: $isImmediate, executedAt: $executedAt, latitude: $latitude, longitude: $longitude, locationAccuracy: $locationAccuracy, distanceFromTarget: $distanceFromTarget, isLocationOverride: $isLocationOverride, overrideReason: $overrideReason, rescheduledFromId: $rescheduledFromId, rescheduledToId: $rescheduledToId, cancelledAt: $cancelledAt, cancelReason: $cancelReason, deletedAt: $deletedAt)';
   }
 
   @override
@@ -2261,6 +2279,8 @@ class _$ActivitySyncDtoImpl implements _ActivitySyncDto {
             (identical(other.hvcId, hvcId) || other.hvcId == hvcId) &&
             (identical(other.brokerId, brokerId) ||
                 other.brokerId == brokerId) &&
+            (identical(other.keyPersonId, keyPersonId) ||
+                other.keyPersonId == keyPersonId) &&
             (identical(other.summary, summary) || other.summary == summary) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.isImmediate, isImmediate) ||
@@ -2307,6 +2327,7 @@ class _$ActivitySyncDtoImpl implements _ActivitySyncDto {
     customerId,
     hvcId,
     brokerId,
+    keyPersonId,
     summary,
     notes,
     isImmediate,
@@ -2356,6 +2377,7 @@ abstract class _ActivitySyncDto implements ActivitySyncDto {
     @JsonKey(name: 'customer_id') final String? customerId,
     @JsonKey(name: 'hvc_id') final String? hvcId,
     @JsonKey(name: 'broker_id') final String? brokerId,
+    @JsonKey(name: 'key_person_id') final String? keyPersonId,
     final String? summary,
     final String? notes,
     @JsonKey(name: 'is_immediate') final bool isImmediate,
@@ -2410,6 +2432,9 @@ abstract class _ActivitySyncDto implements ActivitySyncDto {
   @override
   @JsonKey(name: 'broker_id')
   String? get brokerId;
+  @override
+  @JsonKey(name: 'key_person_id')
+  String? get keyPersonId;
   @override
   String? get summary;
   @override

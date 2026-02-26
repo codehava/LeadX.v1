@@ -99,6 +99,11 @@ class ScoreboardRemoteDataSource {
 
     final periodIds = currentPeriods.map((p) => p.id).toList();
 
+    // Only fetch scores for measures the user is assigned to
+    final assignedMeasureIds =
+        await _getAssignedMeasureIds(userId, periodIds);
+    if (assignedMeasureIds.isEmpty) return [];
+
     final response = await _supabase
         .from('user_scores')
         .select('''
@@ -106,7 +111,8 @@ class ScoreboardRemoteDataSource {
           measure_definitions!inner(name, measure_type, unit, sort_order)
         ''')
         .eq('user_id', userId)
-        .inFilter('period_id', periodIds);
+        .inFilter('period_id', periodIds)
+        .inFilter('measure_id', assignedMeasureIds.toList());
 
     return (response as List).map((json) {
       final jsonMap = json as Map<String, dynamic>;
@@ -176,6 +182,11 @@ class ScoreboardRemoteDataSource {
   /// Fetch user scores for a specific period.
   Future<List<UserScore>> fetchUserScores(
       String userId, String periodId) async {
+    // Only fetch scores for measures the user is assigned to
+    final assignedMeasureIds =
+        await _getAssignedMeasureIds(userId, [periodId]);
+    if (assignedMeasureIds.isEmpty) return [];
+
     final response = await _supabase
         .from('user_scores')
         .select('''
@@ -183,7 +194,8 @@ class ScoreboardRemoteDataSource {
           measure_definitions!inner(name, measure_type, unit, sort_order)
         ''')
         .eq('user_id', userId)
-        .eq('period_id', periodId);
+        .eq('period_id', periodId)
+        .inFilter('measure_id', assignedMeasureIds.toList());
 
     return (response as List).map((json) {
       final jsonMap = json as Map<String, dynamic>;
@@ -802,6 +814,23 @@ class ScoreboardRemoteDataSource {
     });
 
     return rows;
+  }
+
+  // ============================================
+  // HELPERS
+  // ============================================
+
+  /// Get the set of measure IDs assigned to a user across given periods.
+  Future<Set<String>> _getAssignedMeasureIds(
+      String userId, List<String> periodIds) async {
+    final response = await _supabase
+        .from('user_targets')
+        .select('measure_id')
+        .eq('user_id', userId)
+        .inFilter('period_id', periodIds);
+    return (response as List)
+        .map((json) => (json as Map<String, dynamic>)['measure_id'] as String)
+        .toSet();
   }
 
   // ============================================
